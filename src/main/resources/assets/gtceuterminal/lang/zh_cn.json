@@ -200,8 +200,8 @@
   "gui.gtceuterminal.multiblock_manager.rename_dialog.confirm": "§a确认",
   "gui.gtceuterminal.multiblock_manager.rename_dialog.clear_name": "§c清空名称",
   "gui.gtceuterminal.multiblock_manager.refreshed_found": "§a已刷新 - 找到 %s 个多方块",
-  "gui.gtceuterminal.multiblock_manager.footer_summary": "%s multiblocks within %sm",
-  "gui.gtceuterminal.multiblock_manager.none_found": "No multiblocks found nearby.",
+  "gui.gtceuterminal.multiblock_manager.footer_summary": "%2$s 米内找到 %1$s 个多方块",
+  "gui.gtceuterminal.multiblock_manager.none_found": "附近未找到多方块。",
 
   "gui.gtceuterminal.dismantler.title": "§l§f多方块拆解器",
   "gui.gtceuterminal.dismantler.coords_format": "§7[%s, %s, %s]",
@@ -306,7 +306,7 @@
   "gui.gtceuterminal.component_detail_dialog.list.header": "§l§7组件类型：",
   "gui.gtceuterminal.component_detail_dialog.entry.count": "§7数量：§f%s",
   "gui.gtceuterminal.component_detail_dialog.entry.tier": "§7等级：§f%s",
-  "gui.gtceuterminal.component_detail_dialog.info.summary": "Tier: %s  ·  %s  ·  %s components (%s groups)",
+  "gui.gtceuterminal.component_detail_dialog.info.summary": "等级：%s · %s · %s 个组件（%s 类）",
 
   "gui.gtceuterminal.group_upgrade_dialog.title": "§l§f升级组确认",
   "gui.gtceuterminal.group_upgrade_dialog.upgrade_x": "§e升级 %sx %s",
@@ -391,7 +391,7 @@
   "gui.gtceuterminal.component_upgrade_dialog.materials.creative_mode_not_required": "§a[创造模式 - 不需要]",
   "gui.gtceuterminal.component_upgrade_dialog.option_all_any": "§f全部\n§7(任意)",
   "gui.gtceuterminal.component_upgrade_dialog.title": "§l§f升级 %s",
-  "gui.gtceuterminal.component_upgrade_dialog.tier_selection.pick_tier_first": "Select a tier above to see variants",
+  "gui.gtceuterminal.component_upgrade_dialog.tier_selection.pick_tier_first": "请先选择上方等级以查看变体",
 
   "gui.gtceuterminal.material_list.quantity.me": "§a%s§7/%s §a[ME]",
   "gui.gtceuterminal.material_list.quantity.inv": "§7%s/%s [背包]",

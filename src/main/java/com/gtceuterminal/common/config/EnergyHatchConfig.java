@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Energy Hatch configuration
 public class EnergyHatchConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(EnergyHatchConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -129,7 +128,6 @@ public class EnergyHatchConfig {
 
             allHatches.clear();
 
-            // Process patterns
             if (config.patterns != null) {
                 for (EnergyHatchPattern pattern : config.patterns) {
                     allHatches.addAll(expandPattern(pattern));
@@ -228,7 +226,6 @@ public class EnergyHatchConfig {
             }
         }
 
-        // Fallback
         return allHatches.stream()
                 .filter(h -> h.tier == tier)
                 .filter(h -> h.hatchType.equalsIgnoreCase(hatchType))

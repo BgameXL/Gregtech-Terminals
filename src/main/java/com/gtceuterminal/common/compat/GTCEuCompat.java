@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
@@ -162,14 +163,18 @@ public class GTCEuCompat {
                 } else {
                     o2iAddTo.invoke(inner, key, delta);
                 }
-            } catch (Exception ignored) {}
+            } catch (ReflectiveOperationException e) {
+                GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.addTo: reflection error: {}", e.getMessage());
+            }
         }
 
         public void clear() {
             try {
                 if (IS_LEGACY) mapClear.invoke(inner);
                 else           o2iClear.invoke(inner);
-            } catch (Exception ignored) {}
+            } catch (ReflectiveOperationException e) {
+                GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.clear: reflection error: {}", e.getMessage());
+            }
         }
     }
 

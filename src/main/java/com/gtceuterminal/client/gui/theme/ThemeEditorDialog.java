@@ -6,6 +6,9 @@ import com.gtceuterminal.common.network.CPacketSaveTheme;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.gtceuterminal.common.theme.ThemePreset;
+import com.gtceuterminal.common.theme.bundle.ThemeBundle;
+import com.gtceuterminal.common.theme.bundle.ThemeBundle;
+import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
@@ -24,22 +27,30 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class ThemeEditorDialog {
 
-    private static final int DW     = 340;
-    private static final int DH     = 270;
+    private static final int BUNDLE_BAR_H  = 110;
+    private static final int BUNDLE_CARD_W = 100;
+    private static final int BUNDLE_CARD_H = 98;
+    private static final int BUNDLE_PAD    = 4;
+
+    private static final int DW     = 580;
+    private static final int DH     = 480;
     private static final int HDR_H  = 24;
     private static final int FTR_H  = 30;
     private static final int PAD    = 8;
     private static final int COL_L  = 148;
     private static final int COL_RX = COL_L + PAD * 2;
     private static final int COL_R  = DW - COL_RX - PAD;
+    private static final int CONTENT_Y = HDR_H + BUNDLE_BAR_H + 2;
 
-    private static final int C_BG     = 0xFF1C1C1C;
-    private static final int C_PANEL  = 0xFF272727;
-    private static final int C_BORDER = 0xFF3A3A3A;
-    private static final int C_HOVER  = 0x33FFFFFF;
-    private static final int C_SAVE   = 0xFF1E6B1E;
-    private static final int C_RESET  = 0xFF6B1E1E;
-    private static final int C_SEL    = 0xFF3A5A8A; // highlight for selected tab
+    private static final int C_BG          = 0xFF1C1C1C;
+    private static final int C_PANEL       = 0xFF272727;
+    private static final int C_BORDER      = 0xFF3A3A3A;
+    private static final int C_HOVER       = 0x33FFFFFF;
+    private static final int C_SAVE        = 0xFF1E6B1E;
+    private static final int C_RESET       = 0xFF6B1E1E;
+    private static final int C_SEL         = 0xFF3A5A8A;
+    private static final int C_BUNDLE_SEL  = 0xFF2A4A2A;
+    private static final int C_BUNDLE_CARD = 0xFF222222;
 
     private final WidgetGroup rootGroup;
     private final ItemTheme   working;
@@ -48,16 +59,19 @@ public class ThemeEditorDialog {
     private int editTarget = 0;
     private final int[] ch = new int[4];
 
+    private int dw, dh;
+    private int colR;
+
     private RGBSliderWidget[] sliders = new RGBSliderWidget[4];
     private ImageWidget   accentSwatch, bgSwatch, panelSwatch;
-    // Tab backgrounds to highlight selected
     private ImageWidget[] tabBgs = new ImageWidget[3];
     private LabelWidget   hexLabel;
     private LabelWidget   wallpaperLabel;
     private ImageWidget   wallpaperThumb;
 
-    // Live UI preview widgets
     private ImageWidget   prevBg, prevHeader, prevPanel1, prevPanel2, prevAccentBar;
+    private String activeBundleId;
+    private ImageWidget[] bundleCardBgs;
 
     private List<String> wallpapers;
     private int          wallpaperIdx = -1;
@@ -67,8 +81,9 @@ public class ThemeEditorDialog {
     }
 
     private ThemeEditorDialog(WidgetGroup rootGroup, ItemTheme current) {
-        this.rootGroup = rootGroup;
-        this.working   = new ItemTheme(current);
+        this.rootGroup      = rootGroup;
+        this.working        = new ItemTheme(current);
+        this.activeBundleId = current.isBundleStyle() ? current.bundleId : "";
         syncChannels(working.accentColor);
         wallpapers   = WallpaperManager.listWallpapers();
         wallpaperIdx = wallpapers.indexOf(current.wallpaper);
@@ -79,53 +94,42 @@ public class ThemeEditorDialog {
         dialog.setBackground(new ColorRectTexture(0xB0000000));
         dialog.setClickClose(false);
 
-        // Clamp dialog size to available GUI-space so it fits at 3x/4x scale
-        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-        int availW = mc.getWindow().getGuiScaledWidth()  - 16;
-        int availH = mc.getWindow().getGuiScaledHeight() - 16;
-        int dw = Math.min(DW, availW);
-        int dh = Math.min(DH, availH);
+        this.dw   = rootGroup.getSize().width;
+        this.dh   = rootGroup.getSize().height;
+        this.colR = this.dw - COL_RX - PAD;
 
-        int px = Math.max(0, (rootGroup.getSize().width  - dw) / 2);
-        int py = Math.max(0, (rootGroup.getSize().height - dh) / 2);
+        int px = 0;
+        int py = 0;
 
         WidgetGroup panel = new WidgetGroup(px, py, dw, dh);
         panel.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(C_BG),
                 new ColorBorderTexture(1, C_BORDER)));
 
-        // If the dialog was clamped, wrap content in a scrollable viewport
-        if (dw < DW || dh < DH) {
-            panel.addWidget(buildHeader(dialog));
-            DraggableScrollableWidgetGroup scroll =
-                    new DraggableScrollableWidgetGroup(0, HDR_H, dw, dh - HDR_H - FTR_H);
-            scroll.setXScrollBarHeight(6);
-            scroll.setYScrollBarWidth(6);
-            scroll.setXBarStyle(new ColorRectTexture(0xFF1A1A1A), new ColorRectTexture(C_BORDER));
-            scroll.setYBarStyle(new ColorRectTexture(0xFF1A1A1A), new ColorRectTexture(C_BORDER));
-            // Content group at original size inside the scroll area
-            WidgetGroup content = new WidgetGroup(0, 0, DW, DH - HDR_H - FTR_H);
-            content.addWidget(buildLeftColAt(0, 0));
-            content.addWidget(buildRightColAt(COL_RX, 0));
-            scroll.addWidget(content);
-            panel.addWidget(scroll);
-            panel.addWidget(buildFooterAt(0, dh - FTR_H, dw, dialog));
-        } else {
-            panel.addWidget(buildHeader(dialog));
-            panel.addWidget(buildLeftCol());
-            panel.addWidget(buildRightCol());
-            panel.addWidget(buildFooter(dialog));
-        }
+        panel.addWidget(buildHeader(dialog));
+        panel.addWidget(buildBundleBar(0, HDR_H, dw));
+        panel.addWidget(new ImageWidget(0, CONTENT_Y - 2, dw, 1, new ColorRectTexture(C_BORDER)));
+
+        DraggableScrollableWidgetGroup scroll =
+                new DraggableScrollableWidgetGroup(0, CONTENT_Y, dw, dh - CONTENT_Y - FTR_H);
+        scroll.setYScrollBarWidth(6);
+        scroll.setYBarStyle(new ColorRectTexture(0xFF1A1A1A), new ColorRectTexture(C_BORDER));
+        WidgetGroup content = new WidgetGroup(0, 0, dw, dh - CONTENT_Y - FTR_H);
+        content.addWidget(buildLeftColAt(PAD, PAD));
+        content.addWidget(buildRightColAt(COL_RX, PAD));
+        scroll.addWidget(content);
+        panel.addWidget(scroll);
+        panel.addWidget(buildFooterAt(0, dh - FTR_H, dw, dialog));
 
         dialog.addWidget(panel);
     }
 
     private WidgetGroup buildHeader(DialogWidget dialog) {
-        WidgetGroup g = new WidgetGroup(0, 0, DW, HDR_H);
+        WidgetGroup g = new WidgetGroup(0, 0, dw, HDR_H);
         g.setBackground(new ColorRectTexture(C_PANEL));
         g.addWidget(new LabelWidget(PAD, (HDR_H - 8) / 2,
                 Component.translatable("gui.gtceuterminal.theme_editor.title").getString()));
-        ButtonWidget close = new ButtonWidget(DW - 20, (HDR_H - 14) / 2, 14, 14,
+        ButtonWidget close = new ButtonWidget(dw - 20, (HDR_H - 14) / 2, 14, 14,
                 new ColorRectTexture(0x00000000), cd -> dialog.setVisible(false));
         close.setButtonTexture(new TextTexture("§c✖").setWidth(14).setType(TextTexture.TextType.NORMAL));
         close.setHoverTexture(new ColorRectTexture(0x33FF0000));
@@ -133,12 +137,80 @@ public class ThemeEditorDialog {
         return g;
     }
 
+    private WidgetGroup buildBundleBar(int x, int y, int w) {
+        WidgetGroup bar = new WidgetGroup(x, y, w, BUNDLE_BAR_H);
+        bar.setBackground(new ColorRectTexture(0xFF1A1A1A));
+
+        bar.addWidget(new LabelWidget(PAD, 3, "§7Modpack Themes"));
+
+        List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
+                .filter(ThemeBundle::isAvailable)
+                .collect(java.util.stream.Collectors.toList());
+        bundleCardBgs = new ImageWidget[bundles.size()];
+
+        int scrollH = BUNDLE_BAR_H - 14;
+        int totalCardsW = bundles.size() * (BUNDLE_CARD_W + BUNDLE_PAD) + BUNDLE_PAD;
+
+        DraggableScrollableWidgetGroup scroll =
+                new DraggableScrollableWidgetGroup(0, 14, w, scrollH);
+        scroll.setXScrollBarHeight(4);
+        scroll.setXBarStyle(new ColorRectTexture(0xFF111111), new ColorRectTexture(C_BORDER));
+
+        WidgetGroup cards = new WidgetGroup(0, 0, Math.max(totalCardsW, w), scrollH);
+
+        for (int i = 0; i < bundles.size(); i++) {
+            final ThemeBundle bundle = bundles.get(i);
+            final int idx = i;
+            int cx = BUNDLE_PAD + i * (BUNDLE_CARD_W + BUNDLE_PAD);
+            int cy = (scrollH - BUNDLE_CARD_H) / 2;
+
+            boolean isSelected = bundle.id().equals(activeBundleId);
+
+            ImageWidget cardBg = new ImageWidget(cx, cy, BUNDLE_CARD_W, BUNDLE_CARD_H,
+                    new GuiTextureGroup(
+                            new ColorRectTexture(isSelected ? C_BUNDLE_SEL : C_BUNDLE_CARD),
+                            new ColorBorderTexture(1, isSelected ? bundle.accentColor() : C_BORDER)));
+            bundleCardBgs[i] = cardBg;
+            cards.addWidget(cardBg);
+
+            int previewH = BUNDLE_CARD_W - 2;
+            ImageWidget preview = new ImageWidget(cx + 1, cy + 1, BUNDLE_CARD_W - 2, previewH,
+                    bundle.previewTexture());
+            cards.addWidget(preview);
+            cards.addWidget(new ImageWidget(cx + 1, cy + previewH - 3, BUNDLE_CARD_W - 2, 3,
+                    new ColorRectTexture(bundle.accentColor() | 0xFF000000)));
+
+            int nameY = cy + previewH + 3;
+            LabelWidget name = new LabelWidget(cx + 3, nameY, "§f" + bundle.displayName());
+            cards.addWidget(name);
+
+            ButtonWidget btn = new ButtonWidget(cx, cy, BUNDLE_CARD_W, BUNDLE_CARD_H,
+                    new ColorRectTexture(0x00000000), cd -> applyBundle(bundle));
+            btn.setHoverTexture(new ColorRectTexture(C_HOVER));
+            btn.setHoverTooltips(
+                    Component.literal("§e" + bundle.displayName()),
+                    Component.literal(bundle.description()),
+                    Component.literal("§7Click to apply"));
+            cards.addWidget(btn);
+        }
+
+        if (bundles.isEmpty()) {
+            cards.addWidget(new LabelWidget(PAD, (scrollH - 8) / 2,
+                    "§8No modpack themes installed")); // It's Gonna be removed
+        }
+
+        scroll.addWidget(cards);
+        bar.addWidget(scroll);
+
+        return bar;
+    }
+
     private WidgetGroup buildLeftCol() {
-        return buildLeftColAt(PAD, HDR_H + PAD);
+        return buildLeftColAt(PAD, CONTENT_Y + PAD);
     }
 
     private WidgetGroup buildLeftColAt(int x, int y) {
-        int colH = DH - HDR_H - FTR_H - PAD * 2;
+        int colH = dh - CONTENT_Y - FTR_H - PAD * 2;
         WidgetGroup col = new WidgetGroup(x, y, COL_L, colH);
 
         col.addWidget(new LabelWidget(0, 0,
@@ -151,47 +223,39 @@ public class ThemeEditorDialog {
             int sx = (i % 4) * (swSz + swGap);
             int sy = 12 + (i / 4) * (swSz + swGap);
 
-            // Special swatch for GTCEu Native — show the GTCEu background texture
-            if (p == ThemePreset.GTCEU_NATIVE) {
-                col.addWidget(new ImageWidget(sx, sy, swSz, swSz,
-                        new com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup(
-                                com.gregtechceu.gtceu.api.gui.GuiTextures.BACKGROUND,
-                                new ColorBorderTexture(1, 0xFF2E75B6))));
-            } else {
-                col.addWidget(new ImageWidget(sx, sy, swSz, swSz,
-                        new GuiTextureGroup(
-                                new ColorRectTexture(p.accentColor),
-                                new ColorBorderTexture(1, 0xFF000000))));
-            }
+            col.addWidget(new ImageWidget(sx, sy, swSz, swSz,
+                    new GuiTextureGroup(
+                            new ColorRectTexture(p.accentColor),
+                            new ColorBorderTexture(1, 0xFF000000))));
 
             ButtonWidget btn = new ButtonWidget(sx, sy, swSz, swSz,
                     new ColorRectTexture(0x00000000), cd -> applyPreset(p));
             btn.setHoverTexture(new ColorRectTexture(0x55FFFFFF));
             String localized = switch (p) {
-                case DEFAULT -> Component.translatable("gui.gtceuterminal.theme_editor.preset.default").getString();
-                case GTCEU_RED -> Component.translatable("gui.gtceuterminal.theme_editor.preset.gtceu_red").getString();
-                case MATRIX -> Component.translatable("gui.gtceuterminal.theme_editor.preset.matrix").getString();
-                case GOLD -> Component.translatable("gui.gtceuterminal.theme_editor.preset.gold").getString();
-                case PURPLE -> Component.translatable("gui.gtceuterminal.theme_editor.preset.purple").getString();
-                case CYAN -> Component.translatable("gui.gtceuterminal.theme_editor.preset.cyan").getString();
-                case ORANGE -> Component.translatable("gui.gtceuterminal.theme_editor.preset.orange").getString();
-                case MONO -> Component.translatable("gui.gtceuterminal.theme_editor.preset.mono").getString();
-                case GTCEU_NATIVE -> Component.translatable("gui.gtceuterminal.theme_editor.preset.gtceu_native").getString();
+                case DEFAULT     -> Component.translatable("gui.gtceuterminal.theme_editor.preset.default").getString();
+                case GTCEU_RED   -> Component.translatable("gui.gtceuterminal.theme_editor.preset.gtceu_red").getString();
+                case MATRIX      -> Component.translatable("gui.gtceuterminal.theme_editor.preset.matrix").getString();
+                case GOLD        -> Component.translatable("gui.gtceuterminal.theme_editor.preset.gold").getString();
+                case PURPLE      -> Component.translatable("gui.gtceuterminal.theme_editor.preset.purple").getString();
+                case CYAN        -> Component.translatable("gui.gtceuterminal.theme_editor.preset.cyan").getString();
+                case ORANGE      -> Component.translatable("gui.gtceuterminal.theme_editor.preset.orange").getString();
+                case MONO        -> Component.translatable("gui.gtceuterminal.theme_editor.preset.mono").getString();
+                case PITCH_BLACK -> Component.translatable("gui.gtceuterminal.theme_editor.preset.pitch_black").getString();
             };
-            String suffix = p.style == ItemTheme.UiStyle.GTCEU_NATIVE
-                    ? Component.translatable("gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix").getString()
-                    : "";
-            btn.setHoverTooltips(Component.literal(localized + suffix));
+            btn.setHoverTooltips(Component.literal(localized));
             col.addWidget(btn);
         }
 
-        // Style indicator — shows which UiStyle is currently active
         int swRows = (presets.length + 3) / 4;
         int indicatorY = 12 + swRows * (swSz + swGap) + 2;
         LabelWidget styleLabel = new LabelWidget(0, indicatorY, () -> {
-            String styleName = working.uiStyle == ItemTheme.UiStyle.GTCEU_NATIVE
-                    ? Component.translatable("gui.gtceuterminal.theme_editor.style.gtceu_native").getString()
-                    : Component.translatable("gui.gtceuterminal.theme_editor.style.dark").getString();
+            String styleName;
+            if (working.isBundleStyle()) {
+                ThemeBundle b = ThemeBundleRegistry.get(working.bundleId);
+                styleName = "§a" + (b != null ? b.displayName() : working.bundleId);
+            } else {
+                styleName = Component.translatable("gui.gtceuterminal.theme_editor.style.dark").getString();
+            }
             return Component.translatable(
                     "gui.gtceuterminal.theme_editor.style_label",
                     styleName
@@ -223,7 +287,38 @@ public class ThemeEditorDialog {
                 cd -> clearWallpaper()));
         wy += 18;
 
-        // Live UI preview
+        if (working.isBundleStyle()) {
+            ThemeBundle activeBundle = ThemeBundleRegistry.get(working.bundleId);
+            if (activeBundle != null && activeBundle.hasSlideshow()) {
+                col.addWidget(makeToggleNarrow(0, wy, 70, "Slideshow", working.slideshowMode,
+                        v -> working.slideshowMode = v));
+                wy += 16;
+
+                LabelWidget sourceLabel = new LabelWidget(0, wy + 2,
+                        () -> "§8Source: §f" + working.slideshowSource.label);
+                sourceLabel.setClientSideWidget();
+                col.addWidget(sourceLabel);
+
+                ButtonWidget sourceBtn = new ButtonWidget(COL_L - 22, wy, 22, 12,
+                        new GuiTextureGroup(
+                                new ColorRectTexture(C_PANEL),
+                                new ColorBorderTexture(1, C_BORDER)),
+                        cd -> {
+                            working.slideshowSource =
+                                    (working.slideshowSource == ItemTheme.SlideshowSource.BUILTIN)
+                                            ? ItemTheme.SlideshowSource.CUSTOM
+                                            : ItemTheme.SlideshowSource.BUILTIN;
+                        });
+                sourceBtn.setButtonTexture(new com.lowdragmc.lowdraglib.gui.texture.TextTexture("§7⇄")
+                        .setWidth(22)
+                        .setType(com.lowdragmc.lowdraglib.gui.texture.TextTexture.TextType.NORMAL));
+                sourceBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
+                sourceBtn.setHoverTooltips(Component.literal("§7Toggle: Built-in / Custom wallpapers"));
+                col.addWidget(sourceBtn);
+                wy += 16;
+            }
+        }
+
         int previewH = 52;
         int previewY = wy;
         col.addWidget(new LabelWidget(0, previewY,
@@ -262,23 +357,22 @@ public class ThemeEditorDialog {
     }
 
     private WidgetGroup buildRightCol() {
-        return buildRightColAt(COL_RX, HDR_H + PAD);
+        return buildRightColAt(COL_RX, CONTENT_Y + PAD);
     }
 
     private WidgetGroup buildRightColAt(int x, int y) {
-        int colH = DH - HDR_H - FTR_H - PAD * 2;
-        WidgetGroup col = new WidgetGroup(x, y, COL_R, colH);
+        int colH = dh - CONTENT_Y - FTR_H - PAD * 2;
+        WidgetGroup col = new WidgetGroup(x, y, colR, colH);
 
         col.addWidget(new LabelWidget(0, 0,
                 Component.translatable("gui.gtceuterminal.theme_editor.color").getString()));
 
-        // --- Color target tabs ---
         String[] tNames = {
                 Component.translatable("gui.gtceuterminal.theme_editor.tab.accent").getString(),
                 Component.translatable("gui.gtceuterminal.theme_editor.tab.bg").getString(),
                 Component.translatable("gui.gtceuterminal.theme_editor.tab.panel").getString()
         };
-        int tBtnW = (COL_R - 4) / 3;
+        int tBtnW = (colR - 4) / 3;
 
         accentSwatch = new ImageWidget(0, 0, tBtnW - 4, 6, new ColorRectTexture(working.accentColor));
         bgSwatch     = new ImageWidget(0, 0, tBtnW - 4, 6, new ColorRectTexture(working.bgColor));
@@ -289,12 +383,10 @@ public class ThemeEditorDialog {
             final int ti = i;
             int bx = i * (tBtnW + 2);
 
-            // Tab background (highlight when selected)
             tabBgs[i] = new ImageWidget(bx, 11, tBtnW, 22,
                     new ColorRectTexture(ti == editTarget ? C_SEL : C_PANEL));
             col.addWidget(tabBgs[i]);
 
-            // Label
             col.addWidget(new LabelWidget(bx + 2, 13, "§8" + tNames[i]));
 
             // Swatch
@@ -321,7 +413,7 @@ public class ThemeEditorDialog {
 
         // RGBA sliders
         int sliderY = 47;
-        int barW    = COL_R - 36;
+        int barW    = colR - 36;
         String[] chanLabels = { "§cR", "§aG", "§9B", "§7A" };
 
         int[] CHAN_FILL = { 0xCCFF4444, 0xCC44FF44, 0xCC4444FF, 0xCCCCCCCC };
@@ -329,7 +421,6 @@ public class ThemeEditorDialog {
             final int ci = c;
             int sy = sliderY + c * 22;
 
-            // Channel label  (R / G / B / A)
             col.addWidget(new LabelWidget(0, sy + 4, chanLabels[c]));
 
             // Value label on the right
@@ -340,9 +431,9 @@ public class ThemeEditorDialog {
             // Draggable slider
             RGBSliderWidget slider = new RGBSliderWidget(
                     10, sy, barW, 14,
-                    0xFF0A0A0A,          // track bg
-                    CHAN_FILL[ci],        // fill color
-                    0xFFFFFFFF,          // thumb white
+                    0xFF0A0A0A,
+                    CHAN_FILL[ci],
+                    0xFFFFFFFF,
                     () -> ch[ci],
                     val -> {
                         ch[ci] = val;
@@ -355,27 +446,43 @@ public class ThemeEditorDialog {
             col.addWidget(slider);
         }
 
-        int optY = sliderY + 4 * 22 + 6;
-        col.addWidget(new ImageWidget(0, optY - 3, COL_R, 1, new ColorRectTexture(C_BORDER)));
-        col.addWidget(new LabelWidget(0, optY,
-                Component.translatable("gui.gtceuterminal.theme_editor.options").getString()));
-        optY += 12;
+        if (working.isBundleStyle()) {
+            int optY = sliderY + 4 * 22 + 6;
+            col.addWidget(new ImageWidget(0, optY - 3, colR, 1, new ColorRectTexture(C_BORDER)));
+            col.addWidget(new LabelWidget(0, optY, "§7Options"));
+            optY += 12;
 
-        col.addWidget(makeToggle(0, optY,
-                Component.translatable("gui.gtceuterminal.theme_editor.toggle.compact_mode").getString(),
-                working.compactMode,  v -> working.compactMode  = v)); optY += 18;
-        col.addWidget(makeToggle(0, optY,
-                Component.translatable("gui.gtceuterminal.theme_editor.toggle.show_tooltips").getString(),
-                working.showTooltips, v -> working.showTooltips = v)); optY += 18;
-        col.addWidget(makeToggle(0, optY,
-                Component.translatable("gui.gtceuterminal.theme_editor.toggle.show_borders").getString(),
-                working.showBorders,  v -> working.showBorders  = v));
+            col.addWidget(new LabelWidget(0, optY + 2, "§7Animation:"));
+
+            LabelWidget animLabel = new LabelWidget(60, optY + 2,
+                    () -> {
+                        if (working.paradeMode == ItemTheme.ParadeMode.ORBITAL)  return "§f⟳ Orbital";
+                        if (working.paradeMode == ItemTheme.ParadeMode.BOUNCING) return "§f⬇ Bouncing";
+                        return "§8✕ Off";
+                    });
+            animLabel.setClientSideWidget();
+            col.addWidget(animLabel);
+
+            ButtonWidget animBtn = new ButtonWidget(58, optY, 90, 12,
+                    new ColorRectTexture(0x00000000),
+                    cd -> {
+                        if (working.paradeMode == ItemTheme.ParadeMode.ORBITAL)
+                            working.paradeMode = ItemTheme.ParadeMode.BOUNCING;
+                        else if (working.paradeMode == ItemTheme.ParadeMode.BOUNCING)
+                            working.paradeMode = ItemTheme.ParadeMode.NONE;
+                        else
+                            working.paradeMode = ItemTheme.ParadeMode.ORBITAL;
+                    });
+            animBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
+            animBtn.setHoverTooltips(Component.literal("§7Click to cycle: Orbital → Bouncing → Off"));
+            col.addWidget(animBtn);
+        }
 
         return col;
     }
 
     private WidgetGroup buildFooter(DialogWidget dialog) {
-        return buildFooterAt(0, DH - FTR_H, DW, dialog);
+        return buildFooterAt(0, dh - FTR_H, dw, dialog);
     }
 
     private WidgetGroup buildFooterAt(int x, int y, int w, DialogWidget dialog) {
@@ -385,7 +492,7 @@ public class ThemeEditorDialog {
         int btnW = 80, btnH = 18;
         int btnY = (FTR_H - btnH) / 2;
 
-        ButtonWidget save = new ButtonWidget(DW / 2 - btnW - 4, btnY, btnW, btnH,
+        ButtonWidget save = new ButtonWidget(w / 2 - btnW - 4, btnY, btnW, btnH,
                 new GuiTextureGroup(new ColorRectTexture(C_SAVE), new ColorBorderTexture(1, 0xFF2E8B2E)),
                 cd -> saveAndClose(dialog));
         save.setButtonTexture(new TextTexture(
@@ -394,7 +501,7 @@ public class ThemeEditorDialog {
         save.setHoverTexture(new ColorRectTexture(0x2200FF00));
         ftr.addWidget(save);
 
-        ButtonWidget reset = new ButtonWidget(DW / 2 + 4, btnY, btnW, btnH,
+        ButtonWidget reset = new ButtonWidget(w / 2 + 4, btnY, btnW, btnH,
                 new GuiTextureGroup(new ColorRectTexture(C_RESET), new ColorBorderTexture(1, 0xFF8B2E2E)),
                 cd -> resetDefaults());
         reset.setButtonTexture(new TextTexture(
@@ -407,6 +514,32 @@ public class ThemeEditorDialog {
     }
 
     // ─── Actions ──────────────────────────────────────────────────────────────
+    private void applyBundle(ThemeBundle bundle) {
+        bundle.applyTo(working);
+        activeBundleId = bundle.id();
+        syncChannels(working.accentColor);
+        refreshSliders();
+        refreshSwatches();
+        refreshPreview();
+        refreshBundleCards();
+        GTCEUTerminalMod.LOGGER.debug("ThemeEditorDialog: applied bundle '{}'", bundle.id());
+    }
+
+    private void refreshBundleCards() {
+        if (bundleCardBgs == null) return;
+        List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
+                .filter(ThemeBundle::isAvailable)
+                .collect(java.util.stream.Collectors.toList());
+        for (int i = 0; i < bundleCardBgs.length && i < bundles.size(); i++) {
+            if (bundleCardBgs[i] == null) continue;
+            ThemeBundle b = bundles.get(i);
+            boolean sel = b.id().equals(activeBundleId);
+            bundleCardBgs[i].setImage(new GuiTextureGroup(
+                    new ColorRectTexture(sel ? C_BUNDLE_SEL : C_BUNDLE_CARD),
+                    new ColorBorderTexture(1, sel ? b.accentColor() : C_BORDER)));
+        }
+    }
+
     private void applyPreset(ThemePreset p) {
         p.applyTo(working);
         syncChannels(currentColor());
@@ -435,7 +568,6 @@ public class ThemeEditorDialog {
                 String.format("#%06X", working.bgColor     & 0xFFFFFF),
                 String.format("#%06X", working.panelColor  & 0xFFFFFF));
 
-        // Write directly to client-side item NBT so GUI reopens with correct colors
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null) {
             net.minecraft.world.item.ItemStack found = net.minecraft.world.item.ItemStack.EMPTY;
@@ -480,15 +612,21 @@ public class ThemeEditorDialog {
         working.showTooltips = def.showTooltips;
         working.showBorders  = def.showBorders;
         working.wallpaper    = "";
+        working.uiStyle      = ItemTheme.UiStyle.DARK;
+        working.bundleId     = "";
+        working.paradeMode      = ItemTheme.ParadeMode.ORBITAL;
+        working.slideshowMode   = false;
+        working.slideshowSource = ItemTheme.SlideshowSource.BUILTIN;
+        activeBundleId       = "";
         wallpaperIdx = -1;
         syncChannels(currentColor());
         refreshSliders();
         refreshSwatches();
         refreshTabHighlights();
+        refreshBundleCards();
         refreshWallpaperThumb();
     }
 
-    // ─── Color helpers ────────────────────────────────────────────────────────
     private void syncChannels(int color) {
         ch[0] = (color >> 16) & 0xFF;
         ch[1] = (color >> 8)  & 0xFF;
@@ -510,6 +648,13 @@ public class ThemeEditorDialog {
             case 2  -> working.panelColor = color;
             default -> working.accentColor = color;
         }
+
+        if (working.isBundleStyle()) {
+            working.uiStyle  = ItemTheme.UiStyle.DARK;
+            working.bundleId = "";
+            activeBundleId   = "";
+            refreshBundleCards();
+        }
     }
 
     private int currentColor() {
@@ -521,7 +666,6 @@ public class ThemeEditorDialog {
     }
 
     private void refreshSliders() {
-        // RGBSliderWidget is self-drawing — reads ch[] directly each frame
     }
 
     private void refreshSwatches() {
@@ -550,12 +694,11 @@ public class ThemeEditorDialog {
     private void refreshWallpaperThumb() {
         if (wallpaperThumb == null) return;
         if (working.hasWallpaper()) {
-            ResourceLocation rl = WallpaperManager.getTexture(working.wallpaper);
-            if (rl != null) {
-                wallpaperThumb.setImage(
-                        new com.lowdragmc.lowdraglib.gui.texture.ResourceTexture(rl.toString()));
-                return;
-            }
+            WallpaperManager.getTexture(working.wallpaper).ifPresentOrElse(
+                rl -> wallpaperThumb.setImage(new com.lowdragmc.lowdraglib.gui.texture.ResourceTexture(rl.toString())),
+                () -> wallpaperThumb.setImage(new ColorRectTexture(0xFF0A0A0A))
+            );
+            return;
         }
         wallpaperThumb.setImage(new ColorRectTexture(0xFF0A0A0A));
     }
@@ -589,9 +732,9 @@ public class ThemeEditorDialog {
         return btn;
     }
 
-    private WidgetGroup makeToggle(int x, int y, String label, boolean initial,
-                                   java.util.function.Consumer<Boolean> onChange) {
-        WidgetGroup g = new WidgetGroup(x, y, COL_R, 14);
+    private WidgetGroup makeToggleNarrow(int x, int y, int width, String label, boolean initial,
+                                         java.util.function.Consumer<Boolean> onChange) {
+        WidgetGroup g = new WidgetGroup(x, y, width, 14);
         final boolean[] state = { initial };
 
         ImageWidget box = new ImageWidget(0, 1, 10, 10,
@@ -606,7 +749,38 @@ public class ThemeEditorDialog {
 
         g.addWidget(new LabelWidget(14, 2, "§7" + label));
 
-        ButtonWidget btn = new ButtonWidget(0, 0, COL_R, 14,
+        ButtonWidget btn = new ButtonWidget(0, 0, width, 14,
+                new ColorRectTexture(0x00000000), cd -> {
+            state[0] = !state[0];
+            box.setImage(new GuiTextureGroup(
+                    new ColorRectTexture(state[0] ? 0xFF2E75B6 : 0xFF333333),
+                    new ColorBorderTexture(1, C_BORDER)));
+            onChange.accept(state[0]);
+        });
+        btn.setHoverTexture(new ColorRectTexture(C_HOVER));
+        g.addWidget(btn);
+
+        return g;
+    }
+
+    private WidgetGroup makeToggle(int x, int y, String label, boolean initial,
+                                   java.util.function.Consumer<Boolean> onChange) {
+        WidgetGroup g = new WidgetGroup(x, y, colR, 14);
+        final boolean[] state = { initial };
+
+        ImageWidget box = new ImageWidget(0, 1, 10, 10,
+                new GuiTextureGroup(
+                        new ColorRectTexture(state[0] ? 0xFF2E75B6 : 0xFF333333),
+                        new ColorBorderTexture(1, C_BORDER)));
+        g.addWidget(box);
+
+        LabelWidget tick = new LabelWidget(1, 1, () -> state[0] ? "§f✔" : " ");
+        tick.setClientSideWidget();
+        g.addWidget(tick);
+
+        g.addWidget(new LabelWidget(14, 2, "§7" + label));
+
+        ButtonWidget btn = new ButtonWidget(0, 0, colR, 14,
                 new ColorRectTexture(0x00000000), cd -> {
             state[0] = !state[0];
             box.setImage(new GuiTextureGroup(

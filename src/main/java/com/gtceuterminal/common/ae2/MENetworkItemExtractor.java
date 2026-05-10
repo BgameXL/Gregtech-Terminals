@@ -64,7 +64,6 @@ public class MENetworkItemExtractor {
         return storage.getInventory().getAvailableStacks().get(key);
     }
 
-    // Check availability WITHOUT extracting - for GUI display
     public static long checkItemAvailability(
             ItemStack stack,
             net.minecraft.world.level.Level level,
@@ -88,7 +87,6 @@ public class MENetworkItemExtractor {
     }
 
 
-    // Extract items from ME Network with detailed logging
     public static boolean extractItems(IGrid grid, Map<Item, Integer> required, Player player) {
         if (grid == null) {
             GTCEUTerminalMod.LOGGER.warn("Cannot extract: grid is null");
@@ -101,7 +99,6 @@ public class MENetworkItemExtractor {
             return false;
         }
 
-        // First check if all items are available
         if (!hasItems(grid, required)) {
             GTCEUTerminalMod.LOGGER.info("ME Network missing required items");
             for (Map.Entry<Item, Integer> entry : required.entrySet()) {
@@ -116,10 +113,8 @@ public class MENetworkItemExtractor {
             return false;
         }
 
-        // Create action source
         IActionSource actionSource = new PlayerSource(player, null);
 
-        // Extract all items
         Map<Item, Long> extracted = new HashMap<>();
         int totalExtracted = 0;
 
@@ -142,7 +137,6 @@ public class MENetworkItemExtractor {
             if (extractedAmount < requiredAmount) {
                 GTCEUTerminalMod.LOGGER.warn("Failed to extract {}: needed {}, got {}",
                         item.getDescription().getString(), requiredAmount, extractedAmount);
-                // Rollback
                 rollbackExtraction(storage, extracted, actionSource);
                 return false;
             }
@@ -194,7 +188,6 @@ public class MENetworkItemExtractor {
                     entry.getKey().getDescription().getString(), entry.getValue());
         }
 
-        // Try ME Network first if linked
         if (WirelessTerminalHandler.isLinked(stack)) {
             GTCEUTerminalMod.LOGGER.info("Wireless terminal is LINKED, checking ME Network...");
 
@@ -230,7 +223,6 @@ public class MENetworkItemExtractor {
 
     // Extract items from player inventory
     private static boolean extractFromPlayerInventory(Player player, Map<Item, Integer> required) {
-        // First check if player has all items
         for (Map.Entry<Item, Integer> entry : required.entrySet()) {
             int count = countItemInInventory(player, entry.getKey());
             if (count < entry.getValue()) {
@@ -242,7 +234,6 @@ public class MENetworkItemExtractor {
             }
         }
 
-        // Extract all items
         int totalExtracted = 0;
         for (Map.Entry<Item, Integer> entry : required.entrySet()) {
             Item item = entry.getKey();

@@ -7,27 +7,22 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-// Snapshot of a machine's energy state at a specific moment in time, sent from server to client for display in the Energy Analyzer UI.
 public class EnergySnapshot {
 
     public enum MachineMode { CONSUMER, GENERATOR, STORAGE, UNKNOWN }
 
     // ─── Identity ─────────────────────────────────────────────────────────────
-    /** User-defined label from analyzer rename; empty for default controller block name. */
     public String machineCustomName = "";
-    /** Block description id for the controller block (e.g. block.gtceu.ebf). */
     public String machineTypeKey = "";
     public MachineMode mode;
     public boolean isFormed;
 
-    // ─── Current energy state ────────────────────────────────────────────────
     public long energyStored;       // EU stored (long for normal machines)
     public long energyCapacity;
     public BigInteger bigStored;    // Only for BigInt storage (Power Substation)
     public BigInteger bigCapacity;
     public boolean usesBigInt;
 
-    // ─── Flow rates ───────────────────────────────────────────────────────────
     public long inputPerSec;        // EU/s incoming
     public long outputPerSec;       // EU/s outgoing
     public long inputVoltage;       // highest input voltage tier
@@ -35,10 +30,8 @@ public class EnergySnapshot {
     public long outputVoltage;
     public long outputAmperage;
 
-    // ─── Per-hatch breakdown ──────────────────────────────────────────────────
     public List<HatchInfo> hatches = new ArrayList<>();
 
-    // ─── Active recipe info (CONSUMER mode only) ──────────────────────────
     public boolean isRecipeActive   = false;
     public String  recipeId         = "";   // e.g. "gtceu:ebf/iron_ingot"
     public float   recipeProgress   = 0f;   // 0.0 – 1.0
@@ -47,11 +40,9 @@ public class EnergySnapshot {
     public String  recipeTypeName   = "";   // e.g. "Electric Blast Furnace"
     public List<RecipeHistoryEntry> recipeHistory = new ArrayList<>();
 
-    // ─── History (ring buffer sent as array) ─────────────────────────────────
     public long[] inputHistory  = new long[0];  // EU/s per second, oldest to newest
     public long[] outputHistory = new long[0];
 
-    // ─── Derived ──────────────────────────────────────────────────────────────
     public long netPerSec() { return inputPerSec - outputPerSec; }
 
     public float chargePercent() {
@@ -67,13 +58,11 @@ public class EnergySnapshot {
         long net = netPerSec();
         if (net == 0) return -1;
         if (net > 0) {
-            // Filling
             long remaining = usesBigInt
                     ? bigCapacity.subtract(bigStored).min(BigInteger.valueOf(Long.MAX_VALUE)).longValue()
                     : (energyCapacity - energyStored);
             return remaining <= 0 ? -1 : remaining / net;
         } else {
-            // Draining
             long stored = usesBigInt
                     ? bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue()
                     : energyStored;
@@ -81,8 +70,6 @@ public class EnergySnapshot {
         }
     }
 
-    // ─── Hatch info ───────────────────────────────────────────────────────────
-    /** blockNameKey = block.getDescriptionId() for the hatch block at that position. */
     public record HatchInfo(String blockNameKey, long voltage, long amperage, boolean isInput) {
 
         public void encode(FriendlyByteBuf buf) {
@@ -97,7 +84,6 @@ public class EnergySnapshot {
         }
     }
 
-    /** Title shown in UI: custom name or localized controller block name. */
     public Component getMachineTitle() {
         if (machineCustomName != null && !machineCustomName.isBlank()) {
             return Component.literal(machineCustomName);
@@ -108,7 +94,6 @@ public class EnergySnapshot {
         return Component.literal("");
     }
 
-    // ─── Network serialization ────────────────────────────────────────────────
     public void encode(FriendlyByteBuf buf) {
         buf.writeUtf(machineCustomName);
         buf.writeUtf(machineTypeKey);
@@ -150,7 +135,6 @@ public class EnergySnapshot {
         for (long v : outputHistory) buf.writeLong(v);
     }
 
-    // Must be in same order as encode()
     public static EnergySnapshot decode(FriendlyByteBuf buf) {
         EnergySnapshot s = new EnergySnapshot();
         s.machineCustomName = buf.readUtf();

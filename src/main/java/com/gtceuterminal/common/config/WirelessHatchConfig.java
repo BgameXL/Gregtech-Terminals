@@ -202,7 +202,6 @@ public class WirelessHatchConfig {
     private static void createHardcodedDefaults() {
         allHatches.clear();
         
-        // Fallback: Generate wireless energy input hatches for all tiers
         for (int tier = 0; tier < GTValues.VN.length; tier++) {
             String tierName = GTValues.VN[tier];
             String tierLower = tierName.toLowerCase();

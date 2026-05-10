@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.block.ICoilType;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.material.MaterialAvailability;
@@ -33,7 +34,6 @@ import net.minecraft.util.Mth;
 
 import java.util.*;
 
-// Group Upgrade Confirmation Dialog
 public class GroupUpgradeDialog extends DialogWidget {
 
     private static final int dialogW = 320;
@@ -397,7 +397,9 @@ public class GroupUpgradeDialog extends DialogWidget {
                     return Component.literal(fallback);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (RuntimeException e) {
+            GTCEUTerminalMod.LOGGER.debug("GroupUpgradeDialog: could not resolve coil name for tier {}: {}", tier, e.getMessage());
+        }
         return Component.translatable("gui.gtceuterminal.group_upgrade_dialog.unknown_coil");
     }
 }

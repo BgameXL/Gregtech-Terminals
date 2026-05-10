@@ -77,8 +77,7 @@ public class GTCEUTerminalMod {
 
         event.enqueueWork(() -> {
             LOGGER.info("Initializing component configurations...");
-
-            com.gtceuterminal.common.config.ItemsConfig.load();
+                    com.gtceuterminal.common.config.ItemsConfig.load();
 
             CoilConfig.initialize();
             HatchConfig.initialize();
@@ -93,9 +92,10 @@ public class GTCEUTerminalMod {
             SubstationHatchConfig.initialize();
             DualHatchConfig.initialize();
 
-            LOGGER.info("All component configurations initialized successfully");
+            com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.init();
 
-            LOGGER.info("Initializing AE2 integration...");
+            LOGGER.info("All component configurations initialized successfully");
+                    LOGGER.info("Initializing AE2 integration...");
             if (net.minecraftforge.fml.ModList.get().isLoaded("ae2")) {
                 AE2Integration.init();
             } else {

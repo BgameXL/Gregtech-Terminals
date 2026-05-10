@@ -6,7 +6,6 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import java.io.*;
 import java.util.*;
 
-// Dual Hatch configuration
 public class DualHatchConfig {
 
     private static final File CONFIG_FILE = new File("config/gtceuterminal/dual_hatches.json");

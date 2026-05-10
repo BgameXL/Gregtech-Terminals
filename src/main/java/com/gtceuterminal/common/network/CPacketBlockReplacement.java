@@ -46,7 +46,6 @@ public class CPacketBlockReplacement {
         this.mirrorMode = mirrorMode;
         this.fillCasingId = fillCasing != null ? Block.getId(fillCasing) : -1;
 
-        // Convert BlockState to IDs for network transmission
         for (Map.Entry<BlockState, BlockState> entry : replacements.entrySet()) {
             int oldId = Block.getId(entry.getKey());
             int newId = Block.getId(entry.getValue());
@@ -94,7 +93,6 @@ public class CPacketBlockReplacement {
                 return;
             }
 
-            // Find wireless terminal in player's inventory
             ItemStack wirelessTerminal = findWirelessTerminal(player);
 
             // Convert IDs back to BlockStates — validate each one server-side.
@@ -104,16 +102,6 @@ public class CPacketBlockReplacement {
             //      a malicious client from replacing arbitrary blocks in the world)
             BlockReplacementData data = new BlockReplacementData();
             data.setMirrorMode(mirrorMode);
-
-            // Collect all block states currently in the multiblock for validation
-            java.util.Set<net.minecraft.world.level.block.Block> multiblockBlocks = new java.util.HashSet<>();
-            try {
-                var state = controller.getMultiblockState();
-                if (state != null) {
-                    var matchContext = state.getMatchContext();
-                    // Fallback: scan the controller's bounding box
-                }
-            } catch (Exception ignored) {}
 
             // Set fill casing if present — validate it's a real non-air block
             if (fillCasingId >= 0) {
@@ -163,21 +151,18 @@ public class CPacketBlockReplacement {
     }
 
     private ItemStack findWirelessTerminal(ServerPlayer player) {
-        // Check main hand
         ItemStack mainHand = player.getMainHandItem();
         if (mainHand.getItem() instanceof MultiStructureManagerItem ||
                 mainHand.getItem() instanceof SchematicInterfaceItem) {
             return mainHand;
         }
 
-        // Check off hand
         ItemStack offHand = player.getOffhandItem();
         if (offHand.getItem() instanceof MultiStructureManagerItem ||
                 offHand.getItem() instanceof SchematicInterfaceItem) {
             return offHand;
         }
 
-        // Check inventory
         for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof MultiStructureManagerItem ||
                     stack.getItem() instanceof SchematicInterfaceItem) {

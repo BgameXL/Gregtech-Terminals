@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Parallel Hatch configuration
 public class ParallelHatchConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParallelHatchConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

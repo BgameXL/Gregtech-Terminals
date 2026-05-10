@@ -3,7 +3,8 @@ package com.gtceuterminal.client.gui.multiblock;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.BlockListWidget;
-import com.gtceuterminal.client.gui.widget.MultiblockPreviewWidget;
+import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
+import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 import com.gtceuterminal.common.network.CPacketDismantle;
 import com.gtceuterminal.common.network.TerminalNetwork;
@@ -22,14 +23,17 @@ import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class DismantlerUI {
 
     // ── Dimensions ────────────────────────────────────────────────────────────
-    private static final int GUI_W      = 520;
-    private static final int GUI_H      = 370;
+    private static final int GUI_W      = 600;
+    private static final int GUI_H      = 480;
     private static final int HEADER_H   = 30;
     private static final int INFO_H     = 40;
     private static final int FOOTER_H   = 34;
@@ -78,7 +82,7 @@ public class DismantlerUI {
         this.controllerPos = holder.controllerPos;
         this.player        = player;
         applyTheme(ItemTheme.load(holder.item));
-        this.scanResult    = computeScanResult(player, holder.controllerPos);
+        this.scanResult    = buildScanResult(player, holder.controllerPos, holder.scannedPositions);
     }
 
     private void applyTheme(ItemTheme t) {
@@ -87,6 +91,25 @@ public class DismantlerUI {
         COLOR_BG_MEDIUM    = t.panelColor;
         COLOR_BG_LIGHT     = t.isNativeStyle() ? 0xFF3A3A3A : t.accent(0xAA);
         COLOR_BORDER_LIGHT = t.isNativeStyle() ? 0xFF555555 : t.accent(0xFF);
+    }
+
+    private static DismantleScanner.ScanResult buildScanResult(Player player, BlockPos controllerPos,
+                                                               java.util.Set<BlockPos> preScanned) {
+        if (!preScanned.isEmpty()) {
+            // Build counts from the pre-scanned positions using the client level
+            var level = player.level();
+            java.util.Map<net.minecraft.world.level.block.Block, Integer> counts = new java.util.HashMap<>();
+            java.util.Map<net.minecraft.world.level.block.Block, java.util.List<BlockPos>> positions = new java.util.HashMap<>();
+            for (BlockPos pos : preScanned) {
+                var state = level.getBlockState(pos);
+                if (state.isAir()) continue;
+                var block = state.getBlock();
+                counts.merge(block, 1, Integer::sum);
+                positions.computeIfAbsent(block, k -> new java.util.ArrayList<>()).add(pos);
+            }
+            return new DismantleScanner.ScanResult(controllerPos, preScanned, counts, positions);
+        }
+        return computeScanResult(player, controllerPos);
     }
 
     private static DismantleScanner.ScanResult computeScanResult(Player player, BlockPos pos) {
@@ -104,6 +127,20 @@ public class DismantlerUI {
         return DismantleScanner.ScanResult.empty();
     }
 
+    // ── Parade ────────────────────────────────────────────────────────────────
+    private void setupParade() {
+        com.gtceuterminal.client.ClientEvents.clearActiveParade();
+        if (!theme.isBundleStyle()) return;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+        if (bundle == null) return;
+        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
+                bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
+        if (parade == null || parade.isEmpty()) return;
+        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
+        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
+    }
+
     // ── UI construction ───────────────────────────────────────────────────────
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
@@ -119,6 +156,7 @@ public class DismantlerUI {
         mainGroup.addWidget(buildInfoBar());
         mainGroup.addWidget(buildFooter());
 
+        setupParade();
         return createUIWithViewport(mainGroup);
     }
 
@@ -176,10 +214,25 @@ public class DismantlerUI {
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
+        int titleX = 10;
+        if (theme.isBundleStyle()) {
+            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+            if (bundle != null) {
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture icon = bundle.iconTexture();
+                if (icon != null) {
+                    int iconSize = 20;
+                    int iconY    = (HEADER_H - iconSize) / 2;
+                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                    titleX += iconSize + 4;
+                }
+            }
+        }
+
         // Title — left
-        LabelWidget title = new LabelWidget(10, 10,
+        LabelWidget title = new LabelWidget(titleX, 10,
                 Component.translatable("gui.gtceuterminal.dismantler.title").getString());
-        title.setTextColor(COLOR_TEXT_WHITE);
+        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : COLOR_TEXT_WHITE);
         header.addWidget(title);
 
         // Coords — center
@@ -189,7 +242,7 @@ public class DismantlerUI {
         coordsLabel.setTextColor(COLOR_TEXT_GRAY);
         header.addWidget(coordsLabel);
 
-        // ⚙ Theme button
+        
         ButtonWidget gearBtn = new ButtonWidget(GUI_W - 50, 6, 18, 18,
                 new ColorRectTexture(0x00000000),
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(player.getMainHandItem())));
@@ -198,7 +251,7 @@ public class DismantlerUI {
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
 
-        // ✕ Close button
+        
         ButtonWidget closeBtn = new ButtonWidget(GUI_W - 28, 6, 20, 18,
                 new GuiTextureGroup(
                         new ColorRectTexture(COLOR_BG_MEDIUM),
@@ -227,15 +280,51 @@ public class DismantlerUI {
         panel.addWidget(label);
 
         if (scanResult != null && scanResult.getTotalBlocks() > 0) {
-            panel.addWidget(new MultiblockPreviewWidget(6, 20, w - 12, CONTENT_H - 26, scanResult));
+            SchematicData previewData = buildSchematicFromScan();
+            if (previewData != null && !previewData.getBlocks().isEmpty()) {
+                panel.addWidget(new SchematicPreviewWidget(6, 20, w - 12, CONTENT_H - 26, previewData));
+            } else {
+                addNoDataLabel(panel, w);
+            }
         } else {
-            LabelWidget noData = new LabelWidget(w / 2 - 30, CONTENT_H / 2,
-                    Component.translatable("gui.gtceuterminal.dismantler.no_data").getString());
-            noData.setTextColor(COLOR_ERROR);
-            panel.addWidget(noData);
+            addNoDataLabel(panel, w);
         }
 
         return panel;
+    }
+
+    private void addNoDataLabel(WidgetGroup panel, int w) {
+        LabelWidget noData = new LabelWidget(w / 2 - 30, CONTENT_H / 2,
+                Component.translatable("gui.gtceuterminal.dismantler.no_data").getString());
+        noData.setTextColor(COLOR_ERROR);
+        panel.addWidget(noData);
+    }
+
+    private SchematicData buildSchematicFromScan() {
+        try {
+            var level = player.level();
+            java.util.Map<BlockPos, BlockState> blocks = new java.util.HashMap<>();
+            java.util.Map<BlockPos, CompoundTag> blockEntities = new java.util.HashMap<>();
+
+            for (BlockPos worldPos : scanResult.getAllBlocks()) {
+                BlockState state = level.getBlockState(worldPos);
+                if (state.isAir()) continue;
+                BlockPos rel = worldPos.subtract(controllerPos);
+                blocks.put(rel, state);
+                BlockEntity be = level.getBlockEntity(worldPos);
+                if (be != null) {
+                    try {
+                        blockEntities.put(rel, be.saveWithFullMetadata());
+                    } catch (RuntimeException e) {
+                        GTCEUTerminalMod.LOGGER.debug("DismantlerUI: could not serialize block entity at {}: {}", worldPos, e.getMessage());
+                    }
+                }
+            }
+            return new SchematicData("preview", "", blocks, blockEntities, "south");
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.warn("DismantlerUI: failed to build preview schematic", e);
+            return null;
+        }
     }
 
     // ── Block list panel (right) ───────────────────────────────────────────────

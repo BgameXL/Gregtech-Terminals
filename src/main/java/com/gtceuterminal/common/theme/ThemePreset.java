@@ -17,7 +17,7 @@ public enum ThemePreset {
     CYAN         ("Cyan",         0xFF00BCD4, 0xFF001A1E, 0xFF00252A, ItemTheme.UiStyle.DARK),
     ORANGE       ("Orange",       0xFFE67E22, 0xFF1A0F00, 0xFF251800, ItemTheme.UiStyle.DARK),
     MONO         ("Mono",         0xFFAAAAAA, 0xFF111111, 0xFF1E1E1E, ItemTheme.UiStyle.DARK),
-    GTCEU_NATIVE ("GTCEu Native", 0xFF888888, 0xFF404040, 0xFF2B2B2B, ItemTheme.UiStyle.GTCEU_NATIVE);
+    PITCH_BLACK  ("Pitch Black",  0xFF444444, 0xFF000000, 0xFF0A0A0A, ItemTheme.UiStyle.DARK);
 
     public final String            label;
     public final int               accentColor;

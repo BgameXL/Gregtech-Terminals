@@ -13,11 +13,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
-// Scan a multiblock and get information about the blocks that make it up.
 public class DismantleScanner {
 
 
-    // Result of scanning a multiblock
     public static class ScanResult {
         private final BlockPos controllerPos;
         private final Set<BlockPos> allBlocks;
@@ -82,7 +80,6 @@ public class DismantleScanner {
         Map<Block, Integer> blockCounts = new HashMap<>();
         Map<Block, List<BlockPos>> blockPositions = new HashMap<>();
 
-        // Get all blocks from the multiblock from the pattern/cache
         MultiblockState state = controller.getMultiblockState();
         if (state != null) {
             // 1) Prefer the cache: contains the ENTIRE multiblock (casings + parts + controller)
@@ -98,10 +95,8 @@ public class DismantleScanner {
                 controller.getParts().forEach(part -> allBlocks.add(part.self().getPos()));
             }
 
-            // Secure the controller
             allBlocks.add(controllerPos);
 
-            // Count blocks and save positions
             for (BlockPos pos : allBlocks) {
                 BlockState blockState = level.getBlockState(pos);
                 if (blockState.isAir()) continue;

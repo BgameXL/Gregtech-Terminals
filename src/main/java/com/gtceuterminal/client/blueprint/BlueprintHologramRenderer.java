@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.blueprint;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.util.SchematicUtils;
 
@@ -97,8 +98,9 @@ public final class BlueprintHologramRenderer {
                         bufferSource,
                         LIGHT_FULLBRIGHT,
                         overlayColor);
-            } catch (Exception ignored) {
-                // Some mod blocks may throw during ghost rendering — skip gracefully.
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("BlueprintHologramRenderer: skipped block render for {}: {}",
+                        rotatedState.getBlock().getDescriptionId(), e.getMessage());
             }
 
             poseStack.popPose();

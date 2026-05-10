@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// Configuration for items the Energy Analyzer, Multi-Structure Manager, and Schematic Interface.
 public class ItemsConfig {
 
     private static final YamlConfigLoader LOADER = new YamlConfigLoader("", "gtceuterminals.yaml");
@@ -68,7 +67,6 @@ public class ItemsConfig {
                 YamlConfigLoader.ConfigEntry.of("schematic.planner_build_all_enabled", false,
                         "[Schematic] Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default — the planner is a planning tool, not a builder."),
 
-                // Dismantler
                 YamlConfigLoader.ConfigEntry.section("Dismantler"),
                 YamlConfigLoader.ConfigEntry.of("dismantler.block_blacklist", List.of(),
                         "[Dismantler] Registry IDs of blocks the Dismantler will NEVER refund or remove.\n" +

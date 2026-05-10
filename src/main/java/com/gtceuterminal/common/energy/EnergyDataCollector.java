@@ -34,7 +34,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
-// Collects energy data from GTCEu machines at a given position and time, including current state and historical input/output for graphing.
 @Mod.EventBusSubscriber(modid = com.gtceuterminal.GTCEUTerminalMod.MOD_ID)
 public class EnergyDataCollector {
 
@@ -91,7 +90,6 @@ public class EnergyDataCollector {
                 snap.isFormed = substation.isFormed();
                 snap.mode = EnergySnapshot.MachineMode.STORAGE;
 
-                // Read BigInteger stored/capacity from IEnergyInfoProvider
                 IEnergyInfoProvider.EnergyInfo info = substation.getEnergyInfo();
                 snap.usesBigInt   = info.capacity().compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0;
                 snap.bigStored    = info.stored();
@@ -99,21 +97,18 @@ public class EnergyDataCollector {
                 snap.energyStored   = snap.bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
                 snap.energyCapacity = snap.bigCapacity.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
 
-                // Use MachineInferencer to get actual input/output flow via reflection
                 MachineInferencer.MachineSnapshot ms = MachineInferencer.inferMachine(level, pos);
                 if (ms != null) {
                     snap.inputPerSec  = ms.inputEuPerTick * 20;
                     snap.outputPerSec = ms.outputEuPerTick * 20;
                 }
 
-                // Also try capability for voltage info
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
                     snap.inputVoltage  = ec.getInputVoltage();
                     snap.inputAmperage = ec.getInputAmperage();
                     snap.outputVoltage  = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
-                    // Prefer per-sec from capability if inferencer gave 0
                     if (snap.inputPerSec == 0)  snap.inputPerSec  = ec.getInputPerSec();
                     if (snap.outputPerSec == 0) snap.outputPerSec = ec.getOutputPerSec();
                 }
@@ -150,7 +145,6 @@ public class EnergyDataCollector {
                 }
             }
 
-            // Any other GTCEu machine with energy capability
             else {
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
@@ -183,7 +177,6 @@ public class EnergyDataCollector {
         return snap;
     }
 
-    /** Block description id for UI; uses world block if present else registry key from link data. */
     private static String typeKeyFromControllerBlock(ServerLevel level, BlockPos pos, String controllerBlockKey) {
         var state = level.getBlockState(pos);
         if (!state.isAir()) {
@@ -206,7 +199,6 @@ public class EnergyDataCollector {
 
             snap.isRecipeActive = logic.isWorking();
             snap.recipeDuration = logic.getMaxProgress();
-            // Read progress ticks directly for accuracy (field is protected)
             try {
                 int progressTicks = PROGRESS_FIELD != null ? (int) PROGRESS_FIELD.get(logic) : 0;
                 snap.recipeProgress = snap.recipeDuration > 0
@@ -214,31 +206,26 @@ public class EnergyDataCollector {
                 snap.recipeProgressTicks = progressTicks;
             } catch (Exception e2) {
                 snap.recipeProgress = (float) logic.getProgressPercent();
-                snap.recipeProgressTicks = (int)(snap.recipeProgress * snap.recipeDuration);
+                snap.recipeProgressTicks = (int) (snap.recipeProgress * snap.recipeDuration);
             }
 
             if (logic.isWorking() || logic.isWaiting()) {
-                // lastRecipe is protected — use cached reflection field
                 try {
                     Object recipeObj = LAST_RECIPE_FIELD != null ? LAST_RECIPE_FIELD.get(logic) : null;
                     if (recipeObj instanceof com.gregtechceu.gtceu.api.recipe.GTRecipe recipe) {
-                        // Prefer output item display name over recipe path
                         snap.recipeId = getOutputName(recipe);
-
-                        // Recipe type name (the machine type)
                         if (recipe.recipeType != null) {
                             snap.recipeTypeName = toReadableName(
                                     recipe.recipeType.registryName.getPath());
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (IllegalAccessException | RuntimeException e) {
+                    GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
+                }
             }
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.debug("Error collecting recipe info", e);
-        }
+        } finally {}
     }
 
-    // Try to get a user-friendly name for the active recipe, preferring output item name if available
     private static String getOutputName(com.gregtechceu.gtceu.api.recipe.GTRecipe recipe) {
         try {
             // Try item outputs first
@@ -253,9 +240,11 @@ public class EnergyDataCollector {
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (RuntimeException e) {
+            GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading output name for recipe {}: {}",
+                    recipe.id, e.getMessage());
+        }
 
-        // Fallback: use recipe path suffix
         String fullId = recipe.id != null ? recipe.id.getPath() : "";
         int slash = fullId.lastIndexOf('/');
         return toReadableName(slash >= 0 ? fullId.substring(slash + 1) : fullId);
@@ -263,7 +252,6 @@ public class EnergyDataCollector {
 
     static String toReadableName(String id) {
         if (id == null || id.isBlank()) return "";
-        // Replace underscores with spaces, capitalize each word
         String[] words = id.replace('_', ' ').split(" ");
         StringBuilder sb = new StringBuilder();
         for (String w : words) {

@@ -9,15 +9,12 @@ import net.minecraft.world.level.block.Block;
 
 import net.minecraftforge.registries.ForgeRegistries;
 
-// Data class representing a linked machine for energy monitoring.
 public class LinkedMachineData {
 
     private BlockPos pos;
     private String dimensionId;
     private String customName;
-    /** Registry key of the controller block, e.g. {@code gtceu:electric_blast_furnace}. */
     private String controllerBlockKey;
-    /** Legacy English display from old saves when only {@code Type} was stored. */
     private String legacyTypeDisplay;
 
     public LinkedMachineData(BlockPos pos, String dimensionId, String customName, String controllerBlockKey) {
@@ -79,10 +76,6 @@ public class LinkedMachineData {
         return pos.equals(otherPos) && dimensionId.equals(otherDim);
     }
 
-    /**
-     * Localized controller name when no custom name is set; otherwise the custom name.
-     * Safe on dedicated server (uses block registry + translation keys).
-     */
     public Component getDisplayNameComponent() {
         if (customName != null && !customName.isBlank()) {
             return Component.literal(customName);
@@ -96,14 +89,10 @@ public class LinkedMachineData {
         return Component.literal(legacyTypeDisplay != null ? legacyTypeDisplay : "");
     }
 
-    /** For logging / plain string; prefer {@link #getDisplayNameComponent()} in UI. */
     public String getDisplayName() {
         return getDisplayNameComponent().getString();
     }
 
-    /**
-     * Offline UI: custom name, block translation key, or legacy English from old saves.
-     */
     public void applyToSnapshotIdentity(EnergySnapshot snap) {
         snap.machineCustomName = customName != null ? customName : "";
         snap.machineTypeKey = "";

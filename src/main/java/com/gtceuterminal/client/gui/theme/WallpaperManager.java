@@ -21,14 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Client-only manager for loading wallpaper images from disk.
- *
- * Images live in:  .minecraft/config/gtceuterminal/wallpapers/
- *
- * On first use the image is read with NativeImage, registered as a DynamicTexture
- * with Minecraft's TextureManager, and cached so it is only loaded once per session.
- */
 @OnlyIn(Dist.CLIENT)
 public class WallpaperManager {
 
@@ -36,10 +28,8 @@ public class WallpaperManager {
     private static final String RL_NAMESPACE      = "gtceuterminal";
     private static final String RL_PATH_PREFIX    = "dynamic/wallpaper/";
 
-    /** filename → registered ResourceLocation */
     private static final Map<String, ResourceLocation> cache = new HashMap<>();
 
-    // ─── Public API ──────────────────────────────────────────────────────────
     public static File getWallpaperDir() {
         File dir = new File(Minecraft.getInstance().gameDirectory, WALLPAPER_DIR_NAME);
         if (!dir.exists()) {
@@ -67,36 +57,33 @@ public class WallpaperManager {
         return result;
     }
 
-    public static ResourceLocation getTexture(String filename) {
-        if (filename == null || filename.isBlank()) return null;
+    public static java.util.Optional<ResourceLocation> getTexture(String filename) {
+        if (filename == null || filename.isBlank()) return java.util.Optional.empty();
 
-        // Return cached entry if already loaded
-        if (cache.containsKey(filename)) return cache.get(filename);
+        if (cache.containsKey(filename)) return java.util.Optional.of(cache.get(filename));
 
         File file = new File(getWallpaperDir(), filename);
         if (!file.exists() || !file.isFile()) {
             GTCEUTerminalMod.LOGGER.warn("WallpaperManager: file not found: {}", file.getAbsolutePath());
-            return null;
+            return java.util.Optional.empty();
         }
 
-        // Safety check — prevent path traversal
         try {
             Path wallpaperDir = getWallpaperDir().toPath().toRealPath();
             Path filePath     = file.toPath().toRealPath();
             if (!filePath.startsWith(wallpaperDir)) {
                 GTCEUTerminalMod.LOGGER.warn("WallpaperManager: rejected suspicious path: {}", filename);
-                return null;
+                return java.util.Optional.empty();
             }
         } catch (IOException e) {
             GTCEUTerminalMod.LOGGER.warn("WallpaperManager: could not resolve path for: {}", filename);
-            return null;
+            return java.util.Optional.empty();
         }
 
         try (FileInputStream fis = new FileInputStream(file)) {
             NativeImage img = NativeImage.read(fis);
             DynamicTexture tex = new DynamicTexture(img);
 
-            // Build a safe ResourceLocation key from the filename
             String rlPath = RL_PATH_PREFIX + sanitizeFilename(filename);
             ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(RL_NAMESPACE, rlPath);
 
@@ -104,11 +91,11 @@ public class WallpaperManager {
             cache.put(filename, rl);
 
             GTCEUTerminalMod.LOGGER.debug("WallpaperManager: loaded wallpaper '{}' → {}", filename, rl);
-            return rl;
+            return java.util.Optional.of(rl);
 
         } catch (IOException e) {
             GTCEUTerminalMod.LOGGER.warn("WallpaperManager: failed to load '{}': {}", filename, e.getMessage());
-            return null;
+            return java.util.Optional.empty();
         }
     }
 

@@ -34,15 +34,16 @@ import java.util.List;
 public class MultiStructureManagerUI {
 
     // ── Dimensions ────────────────────────────────────────────────────────────
-    private static final int GUI_W = 380;
-    private static final int GUI_H = 300;
-
-    private static final int HEADER_H    = 30;
-    private static final int FOOTER_H    = 28;
-    private static final int PAD         = 8;
-    private static final int ENTRY_H     = 28;
-    private static final int ENTRY_STEP  = 30; // entry height + 2px gap
+    private static final int MARGIN     = 16;
+    private static final int HEADER_H   = 30;
+    private static final int FOOTER_H   = 28;
+    private static final int PAD        = 8;
+    private static final int ENTRY_H    = 28;
+    private static final int ENTRY_STEP = 30;
     private static final int SCAN_RADIUS = 32;
+
+    private int GUI_W;
+    private int GUI_H;
 
     // ── Colors (overridden from theme) ────────────────────────────────────────
     private int COLOR_BG_DARK;
@@ -54,9 +55,9 @@ public class MultiStructureManagerUI {
     private static final int COLOR_TEXT_GRAY   = 0xFFAAAAAA;
     private static final int COLOR_HOVER       = 0x40FFFFFF;
 
-    // ── State ─────────────────────────────────────────────────────────────────
     private final IUIHolder uiHolder;
     private final Player    player;
+    private final net.minecraft.world.item.ItemStack terminalItem;
     private       ItemTheme theme;
 
     private List<MultiblockInfo> multiblocks = new ArrayList<>();
@@ -68,23 +69,26 @@ public class MultiStructureManagerUI {
 
     // ── Constructors ──────────────────────────────────────────────────────────
     public MultiStructureManagerUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        this.uiHolder = heldHolder;
-        this.player   = heldHolder.player;
-        applyTheme(ItemTheme.loadFromPlayer(player));
+        this.uiHolder     = heldHolder;
+        this.player       = heldHolder.player;
+        this.terminalItem = heldHolder.held;
+        applyTheme(ItemTheme.load(this.terminalItem));
         scanMultiblocks();
     }
 
     public MultiStructureManagerUI(MultiStructureManagerUIFactory.Holder holder, Player player) {
-        this.uiHolder = holder;
-        this.player   = player;
-        applyTheme(ItemTheme.loadFromPlayer(player));
+        this.uiHolder     = holder;
+        this.player       = player;
+        this.terminalItem = holder.getTerminalItem();
+        applyTheme(ItemTheme.load(this.terminalItem));
         scanMultiblocks();
     }
 
     @Deprecated
     public MultiStructureManagerUI(IUIHolder holder, Player player) {
-        this.uiHolder = holder;
-        this.player   = player;
+        this.uiHolder     = holder;
+        this.player       = player;
+        this.terminalItem = net.minecraft.world.item.ItemStack.EMPTY;
         applyTheme(ItemTheme.loadFromPlayer(player));
         scanMultiblocks();
     }
@@ -105,6 +109,12 @@ public class MultiStructureManagerUI {
 
     // ── UI construction ───────────────────────────────────────────────────────
     public ModularUI createUI() {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        int screenW = mc.getWindow().getGuiScaledWidth();
+        int screenH = mc.getWindow().getGuiScaledHeight();
+        GUI_W = Math.min(600, screenW - MARGIN * 2);
+        GUI_H = Math.min(480, screenH - MARGIN * 2);
+
         WidgetGroup main = new WidgetGroup(0, 0, GUI_W, GUI_H);
         this.rootGroup = main;
 
@@ -122,7 +132,31 @@ public class MultiStructureManagerUI {
         this.gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(main);
         gui.background(theme.modularUIBackground());
+
+        // Register the parade renderer AFTER gui is built so guiLeft/guiTop are known
+        setupParade();
+
         return gui;
+    }
+
+    private void setupParade() {
+        com.gtceuterminal.client.ClientEvents.clearActiveParade();
+        if (!theme.isBundleStyle()) return;
+
+        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+        if (bundle == null) return;
+
+        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
+                bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
+        if (parade == null || parade.isEmpty()) return;
+
+        // ContainerScreenEvent.Render.Foreground fires with posestack already
+        // translated by (leftPos, topPos) — so coordinates are GUI-panel-relative.
+        // The orbit center is simply the center of the panel at (GUI_W/2, GUI_H/2).
+        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
+
+        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     // ── Outer border ──────────────────────────────────────────────────────────
@@ -140,11 +174,27 @@ public class MultiStructureManagerUI {
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
+        // Bundle icon — shown left of the title when a modpack theme is active
+        int titleX = 10;
+        if (theme.isBundleStyle()) {
+            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+            if (bundle != null) {
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture icon = bundle.iconTexture();
+                if (icon != null) {
+                    int iconSize = 20;
+                    int iconY    = (HEADER_H - iconSize) / 2;
+                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                    titleX += iconSize + 4;
+                }
+            }
+        }
+
         // Title
-        LabelWidget title = new LabelWidget(10, 10,
+        LabelWidget title = new LabelWidget(titleX, 10,
                 Component.translatable("gui.gtceuterminal.multiblock_manager.nearby_title",
                         multiblocks.size()).getString());
-        title.setTextColor(COLOR_TEXT_WHITE);
+        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : COLOR_TEXT_WHITE);
         header.addWidget(title);
 
         // ↻ Refresh button
@@ -157,10 +207,10 @@ public class MultiStructureManagerUI {
                 Component.translatable("gui.gtceuterminal.multiblock_manager.refresh_tooltip").getString());
         header.addWidget(refreshBtn);
 
-        // ⚙ Theme button
+        
         ButtonWidget gearBtn = new ButtonWidget(GUI_W - 30, 7, 16, 16,
                 new ColorRectTexture(0x00000000),
-                cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.loadFromPlayer(player)));
+                cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalItem.isEmpty() ? player.getMainHandItem() : terminalItem)));
         gearBtn.setButtonTexture(new TextTexture("§7⚙").setWidth(16).setType(TextTexture.TextType.NORMAL));
         gearBtn.setHoverTexture(new ColorRectTexture(COLOR_HOVER));
         gearBtn.setHoverTooltips(
@@ -171,11 +221,10 @@ public class MultiStructureManagerUI {
     }
 
     // ── List panel ────────────────────────────────────────────────────────────
-    private static final int LIST_Y = 2 + HEADER_H + 4;           // header bottom + gap
-    private static final int LIST_H = GUI_H - LIST_Y - FOOTER_H - 8; // remaining space
-
     private WidgetGroup buildListPanel() {
-        WidgetGroup panel = new WidgetGroup(PAD, LIST_Y, GUI_W - PAD * 2, LIST_H);
+        int listY = 2 + HEADER_H + 4;
+        int listH = GUI_H - listY - FOOTER_H - 8;
+        WidgetGroup panel = new WidgetGroup(PAD, listY, GUI_W - PAD * 2, listH);
         panel.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(COLOR_BG_DARK),
                 new ColorBorderTexture(1, COLOR_BORDER_DARK)));
@@ -183,7 +232,7 @@ public class MultiStructureManagerUI {
         // Scroll area fills the panel
         int scrollW = GUI_W - PAD * 2 - 14; // leave room for scrollbar
         DraggableScrollableWidgetGroup scroll =
-                new DraggableScrollableWidgetGroup(2, 2, scrollW, LIST_H - 4);
+                new DraggableScrollableWidgetGroup(2, 2, scrollW, listH - 4);
         this.multiblockScroll = scroll;
         scroll.setYScrollBarWidth(8);
         scroll.setYBarStyle(
@@ -224,7 +273,6 @@ public class MultiStructureManagerUI {
         boolean isSelected = (index == selectedIndex);
         entry.setBackground(new ColorRectTexture(isSelected ? COLOR_BG_LIGHT : COLOR_BG_MEDIUM));
 
-        // ── Left click area (name + status pill) ─────────────────────────────
         int clickW = entryW - 72;
         ButtonWidget clickBtn = new ButtonWidget(0, 0, clickW, ENTRY_H,
                 new ColorRectTexture(0x00000000),
@@ -257,12 +305,10 @@ public class MultiStructureManagerUI {
         LabelWidget nameLabel = new LabelWidget(6, 16, nameText);
         entry.addWidget(nameLabel);
 
-        // ── Distance label ────────────────────────────────────────────────────
         LabelWidget distLabel = new LabelWidget(entryW - 70, 10, mb.getDistanceString());
         distLabel.setTextColor(COLOR_TEXT_GRAY);
         entry.addWidget(distLabel);
 
-        // ── Highlight button ──────────────────────────────────────────────────
         ButtonWidget highlightBtn = new ButtonWidget(entryW - 48, 6, 20, 16,
                 new ColorRectTexture(0x00000000),
                 cd -> toggleHighlight(mb));
@@ -273,7 +319,6 @@ public class MultiStructureManagerUI {
                 Component.translatable("gui.gtceuterminal.multiblock_manager.highlight_tooltip").getString());
         entry.addWidget(highlightBtn);
 
-        // ── Rename button ─────────────────────────────────────────────────────
         ButtonWidget renameBtn = new ButtonWidget(entryW - 26, 6, 20, 16,
                 new ColorRectTexture(0x00000000),
                 cd -> openRenameDialog(mb));

@@ -2,7 +2,6 @@ package com.gtceuterminal.common.energy;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-// Data class representing a single entry in the recipe history of a machine.
 public class RecipeHistoryEntry {
 
     public final String outputName;     // e.g. "Hot Nichrome Ingot"

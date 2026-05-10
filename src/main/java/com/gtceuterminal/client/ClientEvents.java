@@ -1,5 +1,6 @@
 package com.gtceuterminal.client;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.blueprint.BlueprintHologramRenderer;
 import com.gtceuterminal.client.gui.planner.PlannerScreen;
 import com.gtceuterminal.client.gui.planner.PlannerState;
@@ -31,8 +32,8 @@ import java.util.List;
 public class ClientEvents {
 
     // ── Clipboard cache ───────────────────────────────────────────────────────
-    private static SchematicData cachedClipboard     = null;
-    private static int           cachedClipboardHash = 0;
+    private static SchematicData cachedClipboard = null;
+    private static int cachedClipboardHash = 0;
 
     // ─────────────────────────────────────────────────────────────────────────
     // FREE-CAM ENTRY POINT — called from PlannerScreen ([3D] button / Tab key)
@@ -73,7 +74,7 @@ public class ClientEvents {
                 ));
             }
             case GLFW.GLFW_KEY_ESCAPE -> PlannerState.exitFreeCam();
-            case GLFW.GLFW_KEY_R      -> PlannerState.freeCamRotSteps = (PlannerState.freeCamRotSteps + 1) & 3;
+            case GLFW.GLFW_KEY_R -> PlannerState.freeCamRotSteps = (PlannerState.freeCamRotSteps + 1) & 3;
         }
     }
 
@@ -270,7 +271,6 @@ public class ClientEvents {
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
 
-        // ── Render all placed ghosts (works in both 2D and 3D mode) ──────────
         if (!PlannerState.ghosts.isEmpty()) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
@@ -287,15 +287,15 @@ public class ClientEvents {
                             poseStack, bufferSource, ghost.schematic, minecraft, ghost.rotSteps);
                     bufferSource.endBatch();
                     poseStack.popPose();
-                } catch (Exception ignored) {}
+                } catch (RuntimeException e) {
+                    GTCEUTerminalMod.LOGGER.warn("ClientEvents: error rendering planner ghost block: {}", e.getMessage());
+                }
             }
             RenderSystem.disableBlend();
         }
 
-        // ── In free-cam mode: only ghosts above, skip clipboard preview ───────
         if (PlannerState.freeCamActive) return;
 
-        // ── BlueprintViewScreen hologram ──────────────────────────────────────
         if (minecraft.screen instanceof com.gtceuterminal.client.gui.blueprint.BlueprintViewScreen bvs) {
             Vec3 cam = minecraft.gameRenderer.getMainCamera().getPosition();
             BlueprintHologramRenderer.Mode mode = bvs.isPlaceMode()
@@ -308,10 +308,9 @@ public class ClientEvents {
                     origin, bvs.getRotSteps(), cam, mode);
             bufferSource.endBatch();
             poseStack.popPose();
-            return; // skip clipboard preview while viewer is open
+            return;
         }
 
-        // ── Normal clipboard preview (schematic_interface item held) ──────────
         ItemStack heldItem = minecraft.player.getMainHandItem();
         if (!heldItem.getItem().toString().contains("schematic_interface")) {
             heldItem = minecraft.player.getOffhandItem();
@@ -331,7 +330,7 @@ public class ClientEvents {
             CompoundTag clipboardTag = tag.getCompound("Clipboard");
             int currentHash = clipboardTag.hashCode();
             if (cachedClipboard == null || currentHash != cachedClipboardHash) {
-                cachedClipboard     = SchematicData.fromNBT(clipboardTag, minecraft.level.registryAccess());
+                cachedClipboard = SchematicData.fromNBT(clipboardTag, minecraft.level.registryAccess());
                 cachedClipboardHash = currentHash;
             }
             if (cachedClipboard == null || cachedClipboard.getBlocks().isEmpty()) return;
@@ -346,6 +345,53 @@ public class ClientEvents {
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
             RenderSystem.disableBlend();
             poseStack.popPose();
-        } catch (Exception ignored) {}
+        } catch (RuntimeException e) {
+            GTCEUTerminalMod.LOGGER.warn("ClientEvents: error rendering clipboard hologram: {}", e.getMessage());
+        }
+    }
+
+    private static com.gtceuterminal.client.gui.widget.MultiblockParadeWidget activeParade = null;
+    private static com.gtceuterminal.client.gui.widget.BouncingParadeRenderer activeBouncingParade = null;
+
+    public static void setActiveParade(
+            com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade,
+            com.gtceuterminal.common.theme.ItemTheme.ParadeMode mode) {
+        activeParade = null;
+        activeBouncingParade = null;
+        if (parade == null || parade.isEmpty()) return;
+
+        if (mode == com.gtceuterminal.common.theme.ItemTheme.ParadeMode.NONE) {
+        } else if (mode == com.gtceuterminal.common.theme.ItemTheme.ParadeMode.BOUNCING) {
+            com.gtceuterminal.client.gui.widget.BouncingParadeRenderer bouncer =
+                    new com.gtceuterminal.client.gui.widget.BouncingParadeRenderer();
+            bouncer.setEntries(parade.getEntries());
+            activeBouncingParade = bouncer;
+        } else {
+            activeParade = parade;
+        }
+    }
+
+    public static void clearActiveParade() {
+        activeParade = null;
+        activeBouncingParade = null;
+    }
+
+    @SubscribeEvent
+    public static void onContainerRenderForeground(
+            net.minecraftforge.client.event.ContainerScreenEvent.Render.Foreground event) {
+        if (!(event.getContainerScreen() instanceof
+                com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer)) return;
+        if (activeParade != null && !activeParade.isEmpty())
+            activeParade.render(event.getGuiGraphics(), 0f);
+        if (activeBouncingParade != null && !activeBouncingParade.isEmpty())
+            activeBouncingParade.render(event.getGuiGraphics(), 0f);
+    }
+
+    @SubscribeEvent
+    public static void onScreenClose(net.minecraftforge.client.event.ScreenEvent.Closing event) {
+        if (event.getScreen() instanceof
+                com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer) {
+            clearActiveParade();
+        }
     }
 }

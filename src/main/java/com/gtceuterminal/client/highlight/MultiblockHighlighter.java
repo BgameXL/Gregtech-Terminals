@@ -19,13 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-// Manages multiblock highlighting on client side
 @Mod.EventBusSubscriber(modid = GTCEUTerminalMod.MOD_ID, value = Dist.CLIENT)
 public class MultiblockHighlighter {
 
     private static final Map<BlockPos, HighlightInfo> activeHighlights = new HashMap<>();
 
-    // Clear all highlights when the client level unloads (world change, disconnect). */
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
@@ -90,7 +88,6 @@ public class MultiblockHighlighter {
                 blocks.size(), controllerPos, Integer.toHexString(color), durationMs);
     }
 
-    // Overload for MultiblockInfo (uses pre-computed block positions)
     public static void highlight(MultiblockInfo multiblock, int color, int durationMs) {
         BlockPos controllerPos = multiblock.getControllerPos();
 
@@ -110,15 +107,11 @@ public class MultiblockHighlighter {
          blocks.size(), controllerPos, Integer.toHexString(color), durationMs);**/
     }
 
-    // Convenience method to highlight based on multiblock status color
     public static void highlightByStatus(MultiblockInfo multiblock, int durationMs) {
         int color = multiblock.getStatus().getColor();
         BlockPos controllerPos = multiblock.getControllerPos();
 
-        // Use pre-computed full block set (flood-filled during scan, includes all casings/coils)
         Set<BlockPos> blocks = new java.util.HashSet<>(multiblock.getAllBlockPositions());
-
-        // Fallback: at least include controller + component positions
         if (blocks.isEmpty()) {
             blocks.add(controllerPos);
             for (com.gtceuterminal.common.multiblock.ComponentInfo comp : multiblock.getComponents()) {
@@ -149,7 +142,6 @@ public class MultiblockHighlighter {
     }
 
     public static Map<BlockPos, HighlightInfo> getActiveHighlights() {
-        // Remove expired highlights
         activeHighlights.entrySet().removeIf(entry -> entry.getValue().isExpired());
         return activeHighlights;
     }

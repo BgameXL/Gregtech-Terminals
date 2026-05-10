@@ -34,12 +34,10 @@ public class UniversalMultiblockScanner {
 
     private static final int DEFAULT_SCAN_RADIUS = 32;
 
-    // Flood fill constants
     private static final int MAX_SCAN_SIZE_XZ = 48;
     private static final int MAX_SCAN_SIZE_Y  = 48;
     private static final int BOUNDS_PADDING = 2;
 
-    // Scan the area looking for ALL the multiblocks formed
     public static List<DetectedMultiblock> scanForAllMultiblocks(Level level, BlockPos center, int radius) {
         List<DetectedMultiblock> found = new ArrayList<>();
         Set<BlockPos> scannedControllers = new HashSet<>();
@@ -51,7 +49,6 @@ public class UniversalMultiblockScanner {
         int minZ = center.getZ() - radius;
         int maxZ = center.getZ() + radius;
 
-        // GTCEUTerminalMod.LOGGER.info("Scanning for universal multiblocks in radius {} from {}", radius, center);
 
         for (BlockPos pos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
             if (scannedControllers.contains(pos)) continue;
@@ -60,12 +57,10 @@ public class UniversalMultiblockScanner {
             if (be instanceof IMachineBlockEntity machineBlockEntity) {
                 MetaMachine metaMachine = machineBlockEntity.getMetaMachine();
 
-                // Detect if it is a MultiblockController
                 if (metaMachine instanceof MultiblockControllerMachine controller) {
                     BlockPos immutablePos = pos.immutable();
                     scannedControllers.add(immutablePos);
 
-                    // Check if it is formed
                     if (isMultiblockFormed(controller)) {
                         DetectedMultiblock detected = analyzeMultiblock(controller, immutablePos, level);
                         if (detected != null) {
@@ -84,18 +79,15 @@ public class UniversalMultiblockScanner {
 
     private static boolean isMultiblockFormed(MultiblockControllerMachine controller) {
         try {
-            /// Check if it is formed
             if (controller.isFormed()) {
                 return true;
             }
 
-            // Check pattern state
             MultiblockState state = controller.getMultiblockState();
             if (state != null && state.isNeededFlip()) {
                 return true;
             }
 
-            // Check parts count (if it has parts, it's probably formed)
             var parts = controller.getParts();
             if (parts != null && !parts.isEmpty()) {
                 return true;
@@ -108,7 +100,6 @@ public class UniversalMultiblockScanner {
         return false;
     }
 
-    // Analyze a multiblock and extract ALL its information
     private static DetectedMultiblock analyzeMultiblock(
             MultiblockControllerMachine controller,
             BlockPos pos,
@@ -119,7 +110,6 @@ public class UniversalMultiblockScanner {
             String modId = getMultiblockModId(controller);
             int tier = getMultiblockTier(controller);
 
-            // Extract all components from the multiblock
             Map<String, List<ComponentData>> components = extractAllComponents(controller, level);
 
             return new DetectedMultiblock(
@@ -137,7 +127,6 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    // Gets the name of the multiblock
     private static String getMultiblockName(MultiblockControllerMachine controller) {
         try {
             var definition = controller.getDefinition();
@@ -157,7 +146,6 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    // Detects which mod the multiblock comes from
     private static String getMultiblockModId(MultiblockControllerMachine controller) {
         try {
             var definition = controller.getDefinition();
@@ -175,7 +163,6 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    // Get the multiblock tier
     private static int getMultiblockTier(MultiblockControllerMachine controller) {
         try {
             // If getTier() is in MachineDefinition
@@ -204,10 +191,9 @@ public class UniversalMultiblockScanner {
             }
         }
 
-        return 0; // Fallback
+        return 0;
     }
 
-    // Remove ALL components from the multiblock
     private static Map<String, List<ComponentData>> extractAllComponents(
             MultiblockControllerMachine controller,
             Level level
@@ -236,7 +222,6 @@ public class UniversalMultiblockScanner {
                 }
             }
 
-            // Also extract structural components (coils, casings)
             extractStructureComponents(controller, level, components);
 
             detectWirelessAndAddonComponents(controller, level, components, alreadyScanned);
@@ -346,12 +331,10 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    // Analyze an individual component and categorize it
     private static ComponentData analyzeComponent(MetaMachine machine, Level level) {
         try {
             String type = detectComponentType(machine);
 
-            // getTier() is in MachineDefinition
             int tier = 0;
             var definition = machine.getDefinition();
             if (definition != null) {
@@ -370,7 +353,6 @@ public class UniversalMultiblockScanner {
     }
 
 
-    // Detects component type automatically
     private static String detectComponentType(MetaMachine machine) {
         try {
             var definition = machine.getDefinition();
@@ -378,8 +360,9 @@ public class UniversalMultiblockScanner {
 
             String id = definition.getId().toString().toLowerCase();
 
-            ComponentPattern pattern = ComponentPatternRegistry.findMatch(id);
-            if (pattern != null) {
+            java.util.Optional<ComponentPattern> patternOpt = ComponentPatternRegistry.findMatch(id);
+            if (patternOpt.isPresent()) {
+                ComponentPattern pattern = patternOpt.get();
                 GTCEUTerminalMod.LOGGER.debug("Matched pattern '{}' for block '{}'",
                         pattern.getPattern(), id);
 
@@ -437,74 +420,10 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    private static String detectAmperage(String id) {
-        if (id.contains("_65536a")) return "65536A";
-        if (id.contains("_16384a")) return "16384A";
-        if (id.contains("_4096a")) return "4096A";
-        if (id.contains("_1024a")) return "1024A";
-        if (id.contains("_256a")) return "256A";
-        if (id.contains("_64a")) return "64A";
-        if (id.contains("_16a")) return "16A";
-        if (id.contains("_4a")) return "4A";
-        return null;
-    }
-
-    private static String detectByImprovedAnalysis(String id) {
-        // Wireless components (no tienen PartAbility estándar)
-        if (id.contains("wireless")) {
-            if (id.contains("energy")) {
-                if (id.contains("input")) return "Wireless Energy Hatch (Input)";
-                if (id.contains("output")) return "Wireless Energy Hatch (Output)";
-                return "Wireless Energy Hatch";
-            }
-            if (id.contains("laser")) {
-                if (id.contains("target")) return "Wireless Laser Target Hatch";
-                if (id.contains("source")) return "Wireless Laser Source Hatch";
-                return "Wireless Laser Hatch";
-            }
-        }
-
-        // Substation hatches
-        if (id.contains("substation")) {
-            if (id.contains("input")) return "Substation Input Energy Hatch";
-            if (id.contains("output")) return "Substation Output Energy Hatch";
-        }
-
-        // Energy hatches
-        if (id.contains("energy")) {
-            String amperage = detectAmperage(id);
-            String prefix = amperage != null ? amperage + " " : "";
-
-            if (id.contains("output") || id.contains("dynamo")) {
-                return prefix + "Dynamo Hatch";
-            }
-            if (id.contains("input")) {
-                return prefix + "Energy Hatch";
-            }
-        }
-
-        if (id.contains("dynamo")) {
-            String amperage = detectAmperage(id);
-            return (amperage != null ? amperage + " " : "") + "Dynamo Hatch";
-        }
-
-        // Coils
-        if (id.contains("coil")) return "Heating Coil";
-
-        // Casings
-        if (id.contains("casing")) return "Casing";
-
-        return null;
-    }
-
-    // Helper method
-    private static String getBaseComponentType(String id) {
-        if (id.contains("energy") && id.contains("input")) return "Energy Hatch";
-        if (id.contains("energy") && id.contains("output")) return "Dynamo Hatch";
-        if (id.contains("dynamo")) return "Dynamo Hatch";
-        return "Component";
-    }
-
+    // ── Block-id classifiers — delegated to BlockIdClassifier ─────────────────
+    private static String detectAmperage(String id)             { return BlockIdClassifier.detectAmperage(id); }
+    private static String detectByImprovedAnalysis(String id)   { return BlockIdClassifier.detectByImprovedAnalysis(id); }
+    private static String getBaseComponentType(String id)       { return BlockIdClassifier.getBaseComponentType(id); }
 
     // Extracts components from the structure, scans the multiblock pattern
     private static boolean isCandidate(BlockState state) {
@@ -513,18 +432,16 @@ public class UniversalMultiblockScanner {
         try {
             String namespace = state.getBlock().builtInRegistryHolder().key().location().getNamespace();
             if ("gtceu".equals(namespace)) return true;
-        } catch (Exception ignored) {}
-
-        // Allow configured coil blocks
+        } catch (IllegalStateException e) {
+            GTCEUTerminalMod.LOGGER.debug("UniversalMultiblockScanner: could not read block namespace: {}", e.getMessage());
+        }
         return com.gtceuterminal.common.config.CoilConfig.getCoilTier(state) >= 0;
     }
 
-    // Gets all blocks from the multiblock using flood fill — public wrapper for MSM highlight
     public static Set<BlockPos> getMultiblockBlocksPublic(MultiblockControllerMachine controller, Level level) {
         return getMultiblockBlocks(controller, level);
     }
 
-    // Gets all blocks from the multiblock using flood fill
     private static Set<BlockPos> getMultiblockBlocks(MultiblockControllerMachine controller, Level level) {
         Set<BlockPos> positions = new HashSet<>();
         BlockPos controllerPos = controller.getPos();
@@ -590,39 +507,9 @@ public class UniversalMultiblockScanner {
         return positions;
     }
 
-    // Identify if a block is a structural component (coil, casing, etc.)
+    // ── Structure block identification — delegated to BlockIdClassifier ────────
     private static ComponentData identifyStructureBlock(BlockState blockState, BlockPos pos, Level level) {
-        String blockId = blockState.getBlock().builtInRegistryHolder().key().location().toString();
-        String blockIdLower = blockId.toLowerCase();
-
-        // Detect coils
-        if (blockIdLower.contains("coil")) {
-            int tier = detectCoilTier(blockId);
-            String coilName = blockState.getBlock().getName().getString();
-            return new ComponentData("COIL", coilName, tier, pos);
-        }
-
-        // Detect casings
-        if (blockIdLower.contains("casing")) {
-            return new ComponentData("CASING", blockState.getBlock().getName().getString(), 0, pos);
-        }
-
-        return null;
-    }
-
-    private static int detectCoilTier(String blockId) {
-        String lower = blockId.toLowerCase();
-
-        if (lower.contains("cupronickel")) return 0;
-        if (lower.contains("kanthal")) return 1;
-        if (lower.contains("nichrome")) return 2;
-        if (lower.contains("rtm_alloy") || lower.contains("rtmalloy")) return 3;
-        if (lower.contains("hss_g") || lower.contains("hssg")) return 4;
-        if (lower.contains("naquadah") && !lower.contains("enriched")) return 5;
-        if (lower.contains("trinium")) return 6;
-        if (lower.contains("tritanium")) return 7;
-
-        return 0;
+        return BlockIdClassifier.identifyStructureBlock(blockState, pos, level);
     }
 
     private static void extractStructureComponents(
@@ -631,12 +518,10 @@ public class UniversalMultiblockScanner {
             Map<String, List<ComponentData>> components
     ) {
         try {
-            // Use flood fill to get all blocks of the multiblock
             Set<BlockPos> positions = getMultiblockBlocks(controller, level);
 
             int structureBlocksFound = 0;
 
-            // Identify coils and casings
             for (BlockPos pos : positions) {
                 BlockState state = level.getBlockState(pos);
                 ComponentData structureComponent = identifyStructureBlock(state, pos, level);
@@ -656,7 +541,6 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    // Class that represents an individual component
     private static final class Bounds {
         int minX, maxX, minY, maxY, minZ, maxZ;
 
@@ -743,7 +627,6 @@ public class UniversalMultiblockScanner {
         }
     }
 
-    // Class that represents a detected multiblock
     public static class DetectedMultiblock {
         private final String name;
         private final String modId;

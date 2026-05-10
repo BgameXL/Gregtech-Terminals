@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-// This is just dead code, but I'll keep it around in case I want to re-enable the "Build All" feature later.
+// Dead code — just in case I re-use the planner code.
 public class CPacketPlacePlannerGhosts {
 
     public static final class GhostEntry {

@@ -240,7 +240,6 @@ public class MaterialCalculator {
             return offHand;
         }
 
-        // Check inventory
         for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof MultiStructureManagerItem ||
                     stack.getItem() instanceof SchematicInterfaceItem) {
@@ -427,7 +426,6 @@ public class MaterialCalculator {
 
             GTCEUTerminalMod.LOGGER.info("  Item: {}, Required: {}", itemName, remaining);
 
-            // Try inventory
             if (useInventory && remaining > 0) {
                 int available = Math.min(remaining, mat.getInInventory());
                 if (available > 0 && extractFromInventory(player, mat.getItem(), available)) {
@@ -436,7 +434,6 @@ public class MaterialCalculator {
                 }
             }
 
-            // Try chests
             if (useChests && remaining > 0) {
                 int available = Math.min(remaining, mat.getInNearbyChests());
                 if (available > 0 && extractFromChests(level, player.blockPosition(), mat.getItem(), available)) {

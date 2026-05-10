@@ -1,5 +1,6 @@
 package com.gtceuterminal.common.util;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 
 import net.minecraft.core.BlockPos;
@@ -75,7 +76,9 @@ public final class SchematicUtils {
                 if (axis == Direction.Axis.Z)
                     return state.setValue(BlockStateProperties.AXIS, Direction.Axis.X);
             }
-        } catch (Exception ignored) {}
+        } catch (IllegalArgumentException e) {
+            GTCEUTerminalMod.LOGGER.debug("SchematicUtils: could not rotate BlockState property: {}", e.getMessage());
+        }
         return state;
     }
 

@@ -32,8 +32,8 @@ import java.util.Map;
 public class SchematicInterfaceUI {
 
     // ── Dimensions ────────────────────────────────────────────────────────────
-    private static final int GUI_W      = 560;
-    private static final int GUI_H      = 380;
+    private static final int GUI_W      = 600;
+    private static final int GUI_H      = 480;
     private static final int HEADER_H   = 32;
     private static final int FOOTER_H   = 40;
     private static final int LEFT_W     = 190;
@@ -108,6 +108,20 @@ public class SchematicInterfaceUI {
         GTCEUTerminalMod.LOGGER.info("Loaded {} schematics, selectedIndex={}", schematics.size(), selectedIndex);
     }
 
+    // ── Parade ────────────────────────────────────────────────────────────────
+    private void setupParade() {
+        com.gtceuterminal.client.ClientEvents.clearActiveParade();
+        if (!theme.isBundleStyle()) return;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+        if (bundle == null) return;
+        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
+                bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
+        if (parade == null || parade.isEmpty()) return;
+        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
+        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
+    }
+
     // ── UI construction ───────────────────────────────────────────────────────
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
@@ -125,6 +139,7 @@ public class SchematicInterfaceUI {
 
         mainGroup.addWidget(buildFooter());
 
+        setupParade();
         ModularUI ui = createUIWithViewport(mainGroup);
         this.gui = ui;
         return ui;
@@ -184,12 +199,26 @@ public class SchematicInterfaceUI {
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
-        LabelWidget title = new LabelWidget(12, 11,
+        int titleX = 12;
+        if (theme.isBundleStyle()) {
+            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+            if (bundle != null) {
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture icon = bundle.iconTexture();
+                if (icon != null) {
+                    int iconSize = 20;
+                    int iconY    = (HEADER_H - iconSize) / 2;
+                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                    titleX += iconSize + 4;
+                }
+            }
+        }
+
+        LabelWidget title = new LabelWidget(titleX, 11,
                 Component.translatable("gui.gtceuterminal.schematic_interface.title").getString());
-        title.setTextColor(COLOR_TEXT_WHITE);
+        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : COLOR_TEXT_WHITE);
         header.addWidget(title);
 
-        // Clipboard status
         boolean hasClip = hasClipboard();
         String clipText = hasClip
                 ? Component.translatable("gui.gtceuterminal.schematic_interface.clipboard.ready").getString()
@@ -198,7 +227,7 @@ public class SchematicInterfaceUI {
         clipLabel.setTextColor(hasClip ? COLOR_SUCCESS : COLOR_TEXT_GRAY);
         header.addWidget(clipLabel);
 
-        // ⚙ Theme button
+        
         ButtonWidget gearBtn = new ButtonWidget(GUI_W - 50, 7, 18, 18,
                 new ColorRectTexture(0x00000000),
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
@@ -207,7 +236,7 @@ public class SchematicInterfaceUI {
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
 
-        // ✕ Close button
+        
         ButtonWidget closeBtn = new ButtonWidget(GUI_W - 28, 7, 20, 18,
                 new GuiTextureGroup(
                         new ColorRectTexture(COLOR_BG_MEDIUM),
@@ -233,7 +262,6 @@ public class SchematicInterfaceUI {
         WidgetGroup panel = new WidgetGroup(PAD, LIST_Y, LEFT_W, LIST_H);
         panel.setBackground(theme.panelTexture());
 
-        // Name input at the top
         LabelWidget nameLabel = new LabelWidget(8, 6,
                 Component.translatable("gui.gtceuterminal.schematic_interface.name_label").getString());
         nameLabel.setTextColor(COLOR_TEXT_GRAY);
@@ -246,13 +274,11 @@ public class SchematicInterfaceUI {
         nameInput.setBordered(true);
         panel.addWidget(nameInput);
 
-        // List section label
         LabelWidget listLabel = new LabelWidget(8, 40,
                 Component.translatable("gui.gtceuterminal.schematic_interface.saved_schematics_label").getString());
         listLabel.setTextColor(COLOR_TEXT_GRAY);
         panel.addWidget(listLabel);
 
-        // Schematic scroll list
         int scrollH = LIST_H - 56;
         this.schematicsListWidget = new DraggableScrollableWidgetGroup(8, 54, LEFT_W - 16, scrollH);
         schematicsListWidget.setBackground(theme.backgroundTexture());
@@ -301,12 +327,10 @@ public class SchematicInterfaceUI {
         WidgetGroup entry = new WidgetGroup(0, yPos, ENTRY_W, ENTRY_H);
         entry.setBackground(new ColorRectTexture(isSelected ? COLOR_BG_LIGHT : COLOR_BG_MEDIUM));
 
-        // Selection indicator bar
         if (isSelected) {
             entry.addWidget(new ImageWidget(0, 0, 3, ENTRY_H, new ColorRectTexture(COLOR_INFO)));
         }
 
-        // Click area
         ButtonWidget click = new ButtonWidget(0, 0, ENTRY_W, ENTRY_H,
                 new ColorRectTexture(0x00000000),
                 cd -> {
@@ -318,14 +342,12 @@ public class SchematicInterfaceUI {
         click.setHoverTexture(new ColorRectTexture(COLOR_HOVER));
         entry.addWidget(click);
 
-        // Name
         String name = schematic.getName();
         if (name.length() > 20) name = name.substring(0, 18) + "…";
         LabelWidget nameLabel = new LabelWidget(8, 6, "§f" + name);
         nameLabel.setTextColor(COLOR_TEXT_WHITE);
         entry.addWidget(nameLabel);
 
-        // Block count
         String info = Component.translatable(
                 "gui.gtceuterminal.schematic_interface.entry.blocks",
                 schematic.getBlocks().size()).getString();
@@ -333,7 +355,6 @@ public class SchematicInterfaceUI {
         infoLabel.setTextColor(COLOR_TEXT_GRAY);
         entry.addWidget(infoLabel);
 
-        // Size
         BlockPos sz = schematic.getSize();
         String sizeStr = sz.getX() + "×" + sz.getY() + "×" + sz.getZ();
         LabelWidget sizeLabel = new LabelWidget(8, 30, "§8" + sizeStr);
@@ -365,7 +386,6 @@ public class SchematicInterfaceUI {
         if (selectedIndex >= 0 && selectedIndex < schematics.size()) {
             SchematicData sel = schematics.get(selectedIndex);
 
-            // 3D preview
             if (player.level().isClientSide) {
                 SchematicPreviewWidget preview = new SchematicPreviewWidget(
                         0, 0, previewW, previewH, sel);
@@ -375,7 +395,6 @@ public class SchematicInterfaceUI {
 
             int ty = previewH + 6;
 
-            // Name bold
             String displayName = getMultiblockName(sel);
             if (displayName.length() > 28) displayName = displayName.substring(0, 26) + "…";
             LabelWidget nameLbl = new LabelWidget(4, ty, "§f§l" + displayName);
@@ -383,7 +402,6 @@ public class SchematicInterfaceUI {
             previewArea.addWidget(nameLbl);
             ty += 14;
 
-            // Block count + dimensions
             BlockPos size = sel.getSize();
             String info = Component.translatable(
                     "gui.gtceuterminal.schematic_interface.preview.info",
@@ -433,21 +451,18 @@ public class SchematicInterfaceUI {
 
         int btnH = 24, btnW = 100, spacing = 8, x = 8;
 
-        // Save — green
         ButtonWidget save = makeButton(x, 8, btnW, btnH, COLOR_SUCCESS,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString(),
                 cd -> saveSchematic());
         footer.addWidget(save);
         x += btnW + spacing;
 
-        // Load — blue
         ButtonWidget load = makeButton(x, 8, btnW, btnH, COLOR_INFO,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.load").getString(),
                 cd -> loadSchematic());
         footer.addWidget(load);
         x += btnW + spacing;
 
-        // Delete — red
         ButtonWidget delete = makeButton(x, 8, btnW, btnH, COLOR_ERROR,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.delete").getString(),
                 cd -> deleteSchematic());
@@ -501,7 +516,6 @@ public class SchematicInterfaceUI {
         TerminalNetwork.CHANNEL.sendToServer(
                 new CPacketSchematicAction(CPacketSchematicAction.ActionType.SAVE, name, -1));
 
-        // Optimistic local update
         CompoundTag itemTag = terminalItem.getTag();
         if (itemTag != null && itemTag.contains("Clipboard")) {
             try {

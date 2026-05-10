@@ -113,7 +113,6 @@ public final class SchematicCopier {
     private static Set<BlockPos> scanMultiblockArea(IMultiController controller, Level level) {
         Set<BlockPos> positions = new HashSet<>();
 
-        // Primary: use the cache, which contains only the actual multiblock blocks
         try {
             Collection<BlockPos> cached = controller.getMultiblockState().getCache();
             if (cached != null && !cached.isEmpty()) {

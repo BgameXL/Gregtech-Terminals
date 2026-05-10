@@ -76,7 +76,14 @@ public class ManagerSettingsUI {
     // ── UI construction ───────────────────────────────────────────────────────
     public ModularUI createUI() {
         WidgetGroup root = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        root.setBackground(theme.backgroundTexture());
+        root.setBackground(new com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture(0x00000000));
+
+        if (!theme.isNativeStyle()) {
+            root.addWidget(new com.gtceuterminal.client.gui.widget.WallpaperWidget(
+                    0, 0, GUI_W, GUI_H, () -> this.theme));
+        } else {
+            root.setBackground(theme.backgroundTexture());
+        }
 
         // Outer border
         root.addWidget(new ImageWidget(0,        0,        GUI_W, 2,     new ColorRectTexture(COLOR_BORDER_LIGHT)));
@@ -87,10 +94,25 @@ public class ManagerSettingsUI {
         root.addWidget(buildHeader());
         root.addWidget(buildSettingsPanel());
 
+        setupParade(root);
         ModularUI gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(root);
         gui.background(theme.modularUIBackground());
         return gui;
+    }
+
+    // ── Parade ────────────────────────────────────────────────────────────────
+    private void setupParade(com.lowdragmc.lowdraglib.gui.widget.WidgetGroup root) {
+        com.gtceuterminal.client.ClientEvents.clearActiveParade();
+        if (!theme.isBundleStyle()) return;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+        if (bundle == null) return;
+        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
+                bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
+        if (parade == null || parade.isEmpty()) return;
+        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
+        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     // ── Header ────────────────────────────────────────────────────────────────
@@ -98,9 +120,25 @@ public class ManagerSettingsUI {
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
-        LabelWidget title = new LabelWidget(10, 9,
+        // Bundle icon — shown left of the title when a modpack theme is active
+        int titleX = 10;
+        if (theme.isBundleStyle()) {
+            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+            if (bundle != null) {
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture icon = bundle.iconTexture();
+                if (icon != null) {
+                    int iconSize = 18;
+                    int iconY    = (HEADER_H - iconSize) / 2;
+                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                    titleX += iconSize + 4;
+                }
+            }
+        }
+
+        LabelWidget title = new LabelWidget(titleX, 9,
                 Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
-        title.setTextColor(COLOR_TEXT_WHITE);
+        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : COLOR_TEXT_WHITE);
         header.addWidget(title);
 
         return header;

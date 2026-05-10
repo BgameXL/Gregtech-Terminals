@@ -8,8 +8,6 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.chat.Component;
 
-    // Widget to preview a multiblock structure.
-
 public class MultiblockPreviewWidget extends WidgetGroup {
 
     private static final int COLOR_BG = 0xFF0A0A0A;
@@ -25,7 +23,7 @@ public class MultiblockPreviewWidget extends WidgetGroup {
 
         setBackground(new ColorRectTexture(COLOR_BG));
 
-        // Títle
+        // Title
         LabelWidget titleLabel = new LabelWidget(
                 width / 2 - 30,
                 height / 2 - 30,

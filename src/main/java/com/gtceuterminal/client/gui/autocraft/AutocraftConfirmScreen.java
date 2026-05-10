@@ -14,9 +14,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
-/**
- * Confirmation screen shown after the server sends {@link com.gtceuterminal.common.network.SPacketAnalysisResult}.
- */
 public class AutocraftConfirmScreen extends Screen {
 
     // ── Layout ────────────────────────────────────────────────────────────────
@@ -25,7 +22,7 @@ public class AutocraftConfirmScreen extends Screen {
     private static final int LIST_PAD  = 8;
     private static final int HDR_H     = 28;
     private static final int FOOT_H    = 30;
-    private static final int MAX_VISIBLE = 12;  // scroll after this many entries
+    private static final int MAX_VISIBLE = 12;
 
     // ── Colors ────────────────────────────────────────────────────────────────
     private static final int C_BG      = 0xFF1A1A1A;
@@ -250,7 +247,6 @@ public class AutocraftConfirmScreen extends Screen {
         return super.keyPressed(key, scan, mods);
     }
 
-    // ── Actions ───────────────────────────────────────────────────────────────
     private void doConfirm() {
         TerminalNetwork.sendToServer(new CPacketConfirmAutobuild(result));
         Minecraft.getInstance().setScreen(null); // close all GUIs, back to game

@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Heating Coil configuration
 public class CoilConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoilConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -134,7 +133,6 @@ public class CoilConfig {
     private static CoilEntry createCoilEntry(CoilPattern pattern, int tier) {
         String blockId = pattern.blockIdPattern;
 
-        // Extract coil material name from block ID
         // "gtceu:cupronickel_coil_block" -> "Cupronickel"
         String coilType = extractCoilType(blockId);
         String displayName = coilType + " Coil";
@@ -143,20 +141,17 @@ public class CoilConfig {
     }
 
     private static String extractCoilType(String blockId) {
-        // Extract material name: "gtceu:cupronickel_coil_block" -> "cupronickel"
         String material = blockId
                 .replace("gtceu:", "")
                 .replace("_coil_block", "")
                 .replace("_", " ");
 
-        // Capitalize: "cupronickel" -> "Cupronickel"
         return material.substring(0, 1).toUpperCase() + material.substring(1);
     }
 
     private static void createHardcodedDefaults() {
         allCoils.clear();
 
-        // Fallback hardcoded coils
         allCoils.add(new CoilEntry("gtceu:cupronickel_coil_block", "Cupronickel Coil", "Cupronickel", "1800K", 0));
         allCoils.add(new CoilEntry("gtceu:kanthal_coil_block", "Kanthal Coil", "Kanthal", "2700K", 1));
         allCoils.add(new CoilEntry("gtceu:nichrome_coil_block", "Nichrome Coil", "Nichrome", "3600K", 2));

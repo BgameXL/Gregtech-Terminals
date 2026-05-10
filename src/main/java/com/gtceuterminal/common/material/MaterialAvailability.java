@@ -87,12 +87,10 @@ public class MaterialAvailability {
         sb.append(item.getDescription().getString());
         sb.append(" x").append(required);
 
-        // Show inventory
         if (inInventory > 0) {
             sb.append(" §7[Inv: ").append(inInventory).append("]");
         }
 
-        // Show chests
         if (inNearbyChests > 0) {
             sb.append(" §7[Chests: ").append(inNearbyChests).append("]");
         }

@@ -51,8 +51,6 @@ public class ComponentUpgrader {
         boolean isCreative = player.isCreative();
         String extractionSource = "";
 
-        // If a concrete target ID is provided, validate it early before doing any work.
-        // Otherwise, fall back to the standard tier-based upgrade path.
         if (targetUpgradeId != null && !targetUpgradeId.isBlank()) {
             ResourceLocation rl = ResourceLocation.tryParse(targetUpgradeId);
             if (rl == null) {
@@ -110,7 +108,6 @@ public class ComponentUpgrader {
                     extractionSource = " §7(Inventory)";
                 }
             } else {
-                // No wireless terminal, use traditional method
                 List<MaterialAvailability> materials = MaterialCalculator.checkMaterialsAvailability(
                         required, player, level
                 );
@@ -211,7 +208,6 @@ public class ComponentUpgrader {
             if (!player.getInventory().add(oldStack)) {
                 player.drop(oldStack, false);
             }
-            // GTCEUTerminalMod.LOGGER.info("Returned old block {} to player", oldItem);
         }
 
         String targetLabel = (targetUpgradeId != null && !targetUpgradeId.isBlank())
@@ -299,7 +295,6 @@ public class ComponentUpgrader {
 
         String extractionSource = "";
 
-        // Try ME Network first if wireless terminal is provided
         if (wirelessTerminal != null && !wirelessTerminal.isEmpty()) {
             MENetworkItemExtractor.ExtractResult meResult =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(

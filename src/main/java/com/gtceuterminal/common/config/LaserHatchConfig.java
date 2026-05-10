@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Laser Hatch configuration
 public class LaserHatchConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(LaserHatchConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -140,7 +139,6 @@ public class LaserHatchConfig {
                 pattern.componentType.contains("SOURCE") ? "OUTPUT" : "INPUT";
         boolean wireless = pattern.componentType.contains("WIRELESS");
 
-        // Detected amperage from pattern (if any)
         String amperage = detectAmperageFromPattern(pattern.blockIdPattern);
 
         int minTier = pattern.minTier != null ? pattern.minTier : 0;
@@ -170,12 +168,10 @@ public class LaserHatchConfig {
     private static String generateDisplayName(String tierName, String componentType, boolean wireless, String amperage) {
         StringBuilder name = new StringBuilder(tierName);
 
-        // Add amperage to name if present
         if (amperage != null) {
             name.append(" ").append(amperage);
         }
 
-        // Add hatch type to name
         if (wireless) {
             if (componentType.contains("INPUT") || componentType.contains("TARGET")) {
                 name.append(" Wireless Laser Target Hatch");
@@ -207,7 +203,6 @@ public class LaserHatchConfig {
    public static LaserHatchEntry getHatchForTier(String hatchType, int tier) {
        if (!initialized) initialize();
 
-       // Prioritize hatches with specified amperage
        LaserHatchEntry withAmperage = allHatches.stream()
                .filter(h -> h.tier == tier)
                .filter(h -> h.hatchType.equalsIgnoreCase(hatchType))
@@ -242,7 +237,6 @@ public class LaserHatchConfig {
             }
         }
 
-        // Fallback
         return getHatchForTier(hatchType, tier);
     }
 

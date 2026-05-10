@@ -22,6 +22,10 @@ public class ItemTheme {
     private static final String TAG_BORDERS  = "showBorders";
     private static final String TAG_WALLPAPER= "wallpaper";
     private static final String TAG_STYLE    = "uiStyle";
+    private static final String TAG_BUNDLE        = "bundleId";
+    private static final String TAG_PARADE_MODE   = "paradeMode";
+    private static final String TAG_SLIDESHOW     = "slideshowMode";
+    private static final String TAG_SLIDESHOW_SRC = "slideshowSource";
 
     // ── Defaults ──────────────────────────────────────────────────────────────
     public static final int DEFAULT_ACCENT = 0xFF2E75B6;
@@ -32,22 +36,46 @@ public class ItemTheme {
     // ── UI Style enum ─────────────────────────────────────────────────────────
     public enum UiStyle {
         DARK("Dark"),
-        GTCEU_NATIVE("GTCEu Native");
+        GTCEU_NATIVE("GTCEu Native"),
+        BUNDLE("Bundle");
 
         public final String label;
         UiStyle(String label) { this.label = label; }
     }
 
+    // ── Parade Mode enum ─────────────────────────────────────────────────────
+    public enum ParadeMode {
+        ORBITAL("Orbital"),
+        BOUNCING("Bouncing"),
+        NONE("Off");
+
+        public final String label;
+        ParadeMode(String label) { this.label = label; }
+    }
+
+    // ── Slideshow Source enum ─────────────────────────────────────────────────
+    public enum SlideshowSource {
+        BUILTIN("Built-in"),
+        CUSTOM("Custom");
+
+        public final String label;
+        SlideshowSource(String label) { this.label = label; }
+    }
+
     // ── Fields ────────────────────────────────────────────────────────────────
-    public int     accentColor;
-    public int     bgColor;
-    public int     panelColor;
-    public int     textColor;
-    public boolean compactMode;
-    public boolean showTooltips;
-    public boolean showBorders;
-    public String  wallpaper;
-    public UiStyle uiStyle;
+    public int        accentColor;
+    public int        bgColor;
+    public int        panelColor;
+    public int        textColor;
+    public boolean    compactMode;
+    public boolean    showTooltips;
+    public boolean    showBorders;
+    public String     wallpaper;
+    public UiStyle    uiStyle;
+    public String     bundleId;
+    public ParadeMode paradeMode;
+    public boolean slideshowMode;
+    public SlideshowSource slideshowSource;
 
     // ── Constructors ──────────────────────────────────────────────────────────
     public ItemTheme() {
@@ -60,6 +88,10 @@ public class ItemTheme {
         showBorders  = true;
         wallpaper    = "";
         uiStyle      = UiStyle.DARK;
+        bundleId     = "";
+        paradeMode      = ParadeMode.ORBITAL;
+        slideshowMode   = false;
+        slideshowSource = SlideshowSource.BUILTIN;
     }
 
     public ItemTheme(ItemTheme other) {
@@ -72,6 +104,10 @@ public class ItemTheme {
         showBorders  = other.showBorders;
         wallpaper    = other.wallpaper;
         uiStyle      = other.uiStyle;
+        bundleId     = other.bundleId != null ? other.bundleId : "";
+        paradeMode      = other.paradeMode != null ? other.paradeMode : ParadeMode.ORBITAL;
+        slideshowMode   = other.slideshowMode;
+        slideshowSource = other.slideshowSource != null ? other.slideshowSource : SlideshowSource.BUILTIN;
     }
 
     // ── NBT ───────────────────────────────────────────────────────────────────
@@ -85,7 +121,11 @@ public class ItemTheme {
         tag.putBoolean(TAG_TOOLTIPS,  showTooltips);
         tag.putBoolean(TAG_BORDERS,   showBorders);
         tag.putString (TAG_WALLPAPER, wallpaper != null ? wallpaper : "");
-        tag.putString (TAG_STYLE,     uiStyle != null ? uiStyle.name() : UiStyle.DARK.name());
+        tag.putString (TAG_STYLE,       uiStyle != null ? uiStyle.name() : UiStyle.DARK.name());
+        tag.putString (TAG_BUNDLE,      bundleId != null ? bundleId : "");
+        tag.putString (TAG_PARADE_MODE,   paradeMode != null ? paradeMode.name() : ParadeMode.ORBITAL.name());
+        tag.putBoolean(TAG_SLIDESHOW,     slideshowMode);
+        tag.putString (TAG_SLIDESHOW_SRC, slideshowSource != null ? slideshowSource.name() : SlideshowSource.BUILTIN.name());
         return tag;
     }
 
@@ -100,6 +140,16 @@ public class ItemTheme {
         if (tag.contains(TAG_TOOLTIPS))  t.showTooltips = tag.getBoolean(TAG_TOOLTIPS);
         if (tag.contains(TAG_BORDERS))   t.showBorders  = tag.getBoolean(TAG_BORDERS);
         if (tag.contains(TAG_WALLPAPER)) t.wallpaper    = tag.getString (TAG_WALLPAPER);
+        if (tag.contains(TAG_BUNDLE))    t.bundleId     = tag.getString (TAG_BUNDLE);
+        if (tag.contains(TAG_PARADE_MODE)) {
+            try   { t.paradeMode = ParadeMode.valueOf(tag.getString(TAG_PARADE_MODE)); }
+            catch (IllegalArgumentException e) { t.paradeMode = ParadeMode.ORBITAL; }
+        }
+        if (tag.contains(TAG_SLIDESHOW))     t.slideshowMode = tag.getBoolean(TAG_SLIDESHOW);
+        if (tag.contains(TAG_SLIDESHOW_SRC)) {
+            try   { t.slideshowSource = SlideshowSource.valueOf(tag.getString(TAG_SLIDESHOW_SRC)); }
+            catch (IllegalArgumentException e) { t.slideshowSource = SlideshowSource.BUILTIN; }
+        }
         if (tag.contains(TAG_STYLE)) {
             try   { t.uiStyle = UiStyle.valueOf(tag.getString(TAG_STYLE)); }
             catch (IllegalArgumentException e) { t.uiStyle = UiStyle.DARK; }
@@ -144,69 +194,89 @@ public class ItemTheme {
 
     // ── Style query ───────────────────────────────────────────────────────────
     public boolean isNativeStyle() { return uiStyle == UiStyle.GTCEU_NATIVE; }
+    public boolean isBundleStyle() { return uiStyle == UiStyle.BUNDLE && bundleId != null && !bundleId.isBlank(); }
+
+    @net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+    @javax.annotation.Nullable
+    private com.gtceuterminal.common.theme.bundle.ThemeBundle activeBundle() {
+        if (!isBundleStyle()) return null;
+        return com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(bundleId);
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Texture helpers — USE THESE instead of reading color fields directly.
-    // Each method returns the right texture for the current UiStyle.
     // ─────────────────────────────────────────────────────────────────────────
     public IGuiTexture backgroundTexture() {
-        return isNativeStyle()
-                ? GuiTextures.BACKGROUND
-                : new ColorRectTexture(bgColor);
+        if (isNativeStyle()) return GuiTextures.BACKGROUND;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedBackground();
+        return new ColorRectTexture(bgColor);
     }
 
     public IGuiTexture panelTexture() {
-        return isNativeStyle()
-                ? GuiTextures.DISPLAY
-                : new ColorRectTexture(panelColor);
+        if (isNativeStyle()) return GuiTextures.DISPLAY;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedPanel();
+        return new ColorRectTexture(panelColor);
     }
 
     public IGuiTexture slotTexture() {
-        return isNativeStyle()
-                ? GuiTextures.SLOT
-                : new com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture(
+        if (isNativeStyle()) return GuiTextures.SLOT;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedSlot();
+        return new com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture(
                 "ldlib:textures/gui/button_common.png", 198, 18, 1, 1);
     }
 
     public IGuiTexture buttonTexture() {
-        return isNativeStyle()
-                ? GuiTextures.BUTTON
-                : new GuiTextureGroup(
+        if (isNativeStyle()) return GuiTextures.BUTTON;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedButton();
+        return new GuiTextureGroup(
                 new ColorRectTexture(panelColor),
                 new ColorBorderTexture(1, accentColor));
     }
 
     public IGuiTexture headerTexture() {
-        return isNativeStyle()
-                ? GuiTextures.TITLE_BAR_BACKGROUND
-                : new ColorRectTexture(panelColor);
+        if (isNativeStyle()) return GuiTextures.TITLE_BAR_BACKGROUND;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedHeader();
+        return new ColorRectTexture(panelColor);
     }
 
     public IGuiTexture borderTexture() {
-        return isNativeStyle()
-                ? IGuiTexture.EMPTY
-                : new ColorBorderTexture(1, accentColor);
+        if (isNativeStyle()) return IGuiTexture.EMPTY;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedBorder();
+        return new ColorBorderTexture(1, accentColor);
     }
 
     public IGuiTexture panelWithBorderTexture() {
         if (isNativeStyle()) return GuiTextures.DISPLAY;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.resolvedPanelWithBorder();
         return new GuiTextureGroup(
                 new ColorRectTexture(panelColor),
                 new ColorBorderTexture(1, accentColor));
     }
 
     public int labelColor() {
-        return isNativeStyle() ? 0xFFDDDDDD : textColor;
+        if (isNativeStyle()) return 0xFFDDDDDD;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
+        if (b != null) return b.textColor();
+        return textColor;
     }
 
     public int dimColor() { return 0xFFAAAAAA; }
 
     public int borderColor() {
-        return isNativeStyle() ? 0x00000000 : accentColor;
+        if (isNativeStyle()) return 0x00000000;
+        return accentColor;
     }
 
     public int bgFillColor() {
-        return isNativeStyle() ? 0x00000000 : bgColor;
+        if (isNativeStyle()) return 0x00000000;
+        return bgColor;
     }
 
     public IGuiTexture modularUIBackground() {

@@ -120,7 +120,21 @@ public class ComponentDetailUI {
         this.gui = new ModularUI(new Size(uiW, uiH), holder, player);
         gui.widget(mainGroup);
         gui.background(theme.modularUIBackground());
+        setupParade(mainGroup);
         return gui;
+    }
+
+    private void setupParade(com.lowdragmc.lowdraglib.gui.widget.WidgetGroup root) {
+        com.gtceuterminal.client.ClientEvents.clearActiveParade();
+        if (!theme.isBundleStyle()) return;
+        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+        if (bundle == null) return;
+        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
+                bundle.createParadeWidget(0, 0, uiW, uiH);
+        if (parade == null || parade.isEmpty()) return;
+        parade.setGuiCenter(uiW / 2f, uiH / 2f);
+        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     private WidgetGroup createMainPanel() {
@@ -129,6 +143,8 @@ public class ComponentDetailUI {
         if (theme.isNativeStyle()) {
             panel.setBackground(com.gregtechceu.gtceu.api.gui.GuiTextures.BACKGROUND);
         } else {
+            panel.addWidget(new com.gtceuterminal.client.gui.widget.WallpaperWidget(
+                    0, 0, uiW, uiH, () -> this.theme));
             panel.addWidget(new ImageWidget(0, 0, uiW, 2, new ColorRectTexture(COLOR_BORDER_LIGHT)));
             panel.addWidget(new ImageWidget(0, 0, 2, uiH, new ColorRectTexture(COLOR_BORDER_LIGHT)));
             panel.addWidget(new ImageWidget(uiW - 2, 0, 2, uiH, new ColorRectTexture(COLOR_BORDER_DARK)));
@@ -141,18 +157,33 @@ public class ComponentDetailUI {
     private WidgetGroup createHeader() {
         WidgetGroup header = new WidgetGroup(2, headerY, uiW - 4, headerH);
         header.setBackground(theme.headerTexture());
+        
+        int titleX = 10;
+        if (theme.isBundleStyle()) {
+            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
+            if (bundle != null) {
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture icon = bundle.iconTexture();
+                if (icon != null) {
+                    int iconSize = 18;
+                    int iconY    = (headerH - iconSize) / 2;
+                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                    titleX += iconSize + 4;
+                }
+            }
+        }
 
         String title = compact
                 ? Component.translatable(
-                        "gui.gtceuterminal.component_detail.header.title_compact",
-                        multiblock.getName()
-                ).getString()
+                "gui.gtceuterminal.component_detail.header.title_compact",
+                multiblock.getName()
+        ).getString()
                 : Component.translatable(
-                        "gui.gtceuterminal.component_detail.header.title_full",
-                        multiblock.getName()
-                ).getString();
+                "gui.gtceuterminal.component_detail.header.title_full",
+                multiblock.getName()
+        ).getString();
 
-        addText(header, 10, compact ? 7 : 10, uiW - 24, title, textScale);
+        addText(header, titleX, compact ? 7 : 10, uiW - 24, title, textScale);
         return header;
     }
 

@@ -1,5 +1,6 @@
 package com.gtceuterminal.common.pattern;
 
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gtceuterminal.common.ae2.MENetworkExtractor;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
 import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
@@ -7,11 +8,7 @@ import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
-import com.gtceuterminal.common.config.ComponentRegistry;
-import com.gtceuterminal.common.config.ComponentRegistry.ComponentCategory;
 
-import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
@@ -72,11 +69,9 @@ import java.util.HashSet;
  */
 public class AdvancedAutoBuilder {
 
-    // Same as GTCEu BlockPattern constants
     private static final Direction[] FACINGS = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN };
     private static final Direction[] FACINGS_H = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST };
 
-    // Reflection caches
     private static Field F_BLOCK_MATCHES;
     private static Field F_AISLE_REP;
     private static Field F_STRUCTURE_DIR;
@@ -106,7 +101,6 @@ public class AdvancedAutoBuilder {
         }
     }
 
-    // Perform advanced auto-build with settings support.
     public static boolean autoBuild(
             @NotNull Player player,
             @NotNull IMultiController controller,
@@ -120,7 +114,6 @@ public class AdvancedAutoBuilder {
             MultiblockState worldState = controller.getMultiblockState();
             Level world = player.level();
 
-            // Read internals from pattern
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) F_BLOCK_MATCHES.get(pattern);
             int[][] aisleRepetitions = (int[][]) F_AISLE_REP.get(pattern);
             RelativeDirection[] structureDir = (RelativeDirection[]) F_STRUCTURE_DIR.get(pattern);
@@ -131,7 +124,6 @@ public class AdvancedAutoBuilder {
                 return false;
             }
 
-            // Mirrors GTCEu autoBuild start
             int minZ = -centerOffset[4];
             // Save position cache before clean() so schematic copy/preview still works after auto-build
             it.unimi.dsi.fastutil.longs.LongOpenHashSet savedCache =
@@ -160,16 +152,13 @@ public class AdvancedAutoBuilder {
                 GTCEUTerminalMod.LOGGER.debug("No ME Network fluid storage available for auto-build");
             }
 
-            // NOTE: In GTCEu, fingerLength/thumbLength/palmLength are fields.
-            // We can derive them from the array.
+            // In GTCEu these are fields; we derive them from the array
             final int fingerLength = blockMatches.length;
-            final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
-            final int palmLength = (thumbLength > 0) ? blockMatches[0][0].length : 0;
+            final int thumbLength  = fingerLength > 0 ? blockMatches[0].length : 0;
+            final int palmLength   = thumbLength  > 0 ? blockMatches[0][0].length : 0;
 
-            // GTCEu-style iteration with correct z-cursor
             for (int c = 0, z = minZ++, r; c < fingerLength; c++) {
 
-                // Default GTCEu: r < aisleRepetitions[c][0] (minimum)
                 int repsForSlice = getRepetitionsForSlice(c, aisleRepetitions, settings.repeatCount);
 
                 for (r = 0; r < repsForSlice; r++) {
@@ -186,15 +175,13 @@ public class AdvancedAutoBuilder {
 
                             if (!world.isEmptyBlock(pos)) {
                                 blocks.put(pos, world.getBlockState(pos));
-                                // Important: count limited predicates for already-existing blocks
+                                // Count limited predicates for blocks that are already placed
                                 for (SimplePredicate limit : predicate.limited) {
                                     limit.testLimited(worldState);
                                 }
                             } else {
-                                // Build candidate BlockInfo[] exactly like GTCEu
                                 BlockInfo[] infos = pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
 
-                                // Convert to ItemStack candidates (skip AIR)
                                 List<ItemStack> candidates = new ArrayList<>();
                                 if (infos != null) {
                                     for (BlockInfo info : infos) {
@@ -206,25 +193,20 @@ public class AdvancedAutoBuilder {
 
                                 candidates = enrichWithCustomComponents(candidates, predicate);
 
-
                                 if (settings.noHatchMode != 0) {
                                     candidates = filterOutMultiblockParts(candidates);
                                 }
-
                                 candidates = applyCoilTierPreference(candidates, settings.tierMode);
 
-                                // ===== FLUID PLACEMENT SUPPORT =====
-                                // Check if this position requires a fluid block
+                                // Fluid block handling
                                 boolean isFluidBlock = false;
                                 Fluid targetFluid = null;
 
                                 for (ItemStack candidate : candidates) {
                                     BlockState candidateState = null;
-
                                     if (candidate.getItem() instanceof BlockItem bi) {
                                         candidateState = bi.getBlock().defaultBlockState();
                                     }
-
                                     if (candidateState != null && candidateState.getFluidState().isSource()) {
                                         isFluidBlock = true;
                                         targetFluid = candidateState.getFluidState().getType();
@@ -232,34 +214,17 @@ public class AdvancedAutoBuilder {
                                     }
                                 }
 
-                                // If this is a fluid position, handle it specially
                                 if (isFluidBlock && targetFluid != null) {
                                     boolean placed = false;
 
                                     if (!player.isCreative()) {
-                                        // Get player's item handler for bucket checking
                                         LazyOptional<IItemHandler> playerInvCap = player.getCapability(ForgeCapabilities.ITEM_HANDLER);
                                         IItemHandler playerInventory = playerInvCap.resolve().orElse(null);
-
-                                        // Try to place fluid from inventory or ME Network
                                         placed = FluidPlacementHelper.tryPlaceFluid(
-                                                world,
-                                                pos,
-                                                player,
-                                                targetFluid,
-                                                playerInventory,  // player inventory for buckets
-                                                fluidStorage      // ME Network fluid storage (defined earlier)
-                                        );
+                                                world, pos, player, targetFluid, playerInventory, fluidStorage);
                                     } else {
-                                        // Creative mode: just place it without consuming
                                         placed = FluidPlacementHelper.tryPlaceFluid(
-                                                world,
-                                                pos,
-                                                player,
-                                                targetFluid,
-                                                null,
-                                                null
-                                        );
+                                                world, pos, player, targetFluid, null, null);
                                     }
 
                                     if (placed) {
@@ -267,13 +232,8 @@ public class AdvancedAutoBuilder {
                                         placedCount++;
                                         blocks.put(pos, world.getBlockState(pos));
                                     }
-
-                                    // Skip normal block placement for fluid blocks
                                     continue;
                                 }
-                                // ===== END FLUID PLACEMENT SUPPORT =====
-
-                                // Now place exactly like GTCEu
                                 ItemStack found = null;
                                 int foundSlot = -1;
                                 IItemHandler handler = null;
@@ -299,7 +259,6 @@ public class AdvancedAutoBuilder {
                                 }
 
                                 if (found == null) {
-                                    // Nothing we can place here
                                     continue;
                                 }
 
@@ -327,7 +286,7 @@ public class AdvancedAutoBuilder {
                 }
             }
 
-            // Post-placement facing adjustment (same as GTCEu)
+            // Post-placement facing adjustment
             Direction frontFacing = controller.self().getFrontFacing();
             blocks.forEach((pos, block) -> {
                 if (block instanceof IMultiController) return;
@@ -353,179 +312,19 @@ public class AdvancedAutoBuilder {
                 }
             });
 
-            // GTCEUTerminalMod.LOGGER.info("AdvancedAutoBuilder: placed {} blocks (repeatCount={}, noHatchMode={}, tierMode={}, isUseAE={})",
-            // placedCount, settings.repeatCount, settings.noHatchMode, settings.tierMode, settings.isUseAE);
-
             return placedCount > 0;
 
         } catch (Throwable t) {
             GTCEUTerminalMod.LOGGER.error("AdvancedAutoBuilder failed", t);
             return false;
         }
-
-
     }
 
-    // -------------------------------
-    // Settings hooks
-    // -------------------------------
-    private static List<ItemStack> filterOutMultiblockParts(List<ItemStack> candidates) {
-        if (candidates.isEmpty()) return candidates;
+    // ── Candidate filtering — delegated to CandidateFilter ────────────────────
+    private static List<ItemStack> filterOutMultiblockParts(List<ItemStack> c)                              { return CandidateFilter.filterOutMultiblockParts(c); }
+    private static List<ItemStack> applyCoilTierPreference(List<ItemStack> c, int tierMode)                { return CandidateFilter.applyCoilTierPreference(c, tierMode); }
+    private static List<ItemStack> enrichWithCustomComponents(List<ItemStack> c, TraceabilityPredicate p)  { return CandidateFilter.enrichWithCustomComponents(c, p); }
 
-        List<ItemStack> out = new ArrayList<>(candidates.size());
-        for (ItemStack stack : candidates) {
-            if (!(stack.getItem() instanceof BlockItem bi)) continue;
-            BlockState bs = bi.getBlock().defaultBlockState();
-
-            // If it's a MetaMachineBlock, and it creates a MultiblockPartMachine, treat as hatch/bus/etc.
-            if (bs.getBlock() instanceof MetaMachineBlock machineBlock) {
-                try {
-                    if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState()) instanceof IMachineBlockEntity mbe) {
-                        MetaMachine mm = mbe.getMetaMachine();
-                        if (mm instanceof MultiblockPartMachine) {
-                            continue; // filtered out
-                        }
-                    }
-                } catch (Throwable ignored) {}
-            }
-            out.add(stack);
-        }
-        return out;
-    }
-
-    private static List<ItemStack> applyCoilTierPreference(List<ItemStack> candidates, int tierMode) {
-        if (candidates.isEmpty()) return candidates;
-        // UI tierMode is 1 to 16. We'll map to coil tier index (0-based) = tierMode - 1.
-        int desiredTier = tierMode - 1;
-        if (desiredTier < 0) return candidates;
-
-        boolean hasAnyCoil = false;
-        for (ItemStack st : candidates) {
-            if (st.getItem() instanceof BlockItem bi && bi.getBlock() instanceof CoilBlock) {
-                hasAnyCoil = true;
-                break;
-            }
-        }
-        if (!hasAnyCoil) return candidates;
-
-        List<ItemStack> filtered = new ArrayList<>();
-        for (ItemStack st : candidates) {
-            if (st.getItem() instanceof BlockItem bi && bi.getBlock() instanceof CoilBlock coil) {
-                int coilTier = coil.coilType.getTier();
-                if (coilTier == desiredTier) {
-                    filtered.add(st);
-                }
-            }
-        }
-        // If we found matching coils, use only those. Otherwise, don't restrict.
-        return filtered.isEmpty() ? candidates : filtered;
-    }
-
-    private static List<ItemStack> enrichWithCustomComponents(
-            List<ItemStack> originalCandidates,
-            TraceabilityPredicate predicate) {
-
-        if (originalCandidates.isEmpty()) {
-            return originalCandidates;
-        }
-
-        // Detect component category based on the original candidates and predicate context
-        ComponentCategory category = detectComponentCategory(originalCandidates);
-
-        if (category == null) {
-            return originalCandidates;
-        }
-
-        // Get custom components for this category from the registry
-        List<ItemStack> customComponents = ComponentRegistry.getMatchingItemStacks(category);
-
-        if (customComponents.isEmpty()) {
-            return originalCandidates;
-        }
-
-        // Combine original candidates with custom components, avoiding duplicates
-        Set<String> existing = new HashSet<>();
-        List<ItemStack> enriched = new ArrayList<>(originalCandidates);
-
-        // Track existing candidates
-        for (ItemStack stack : originalCandidates) {
-            String id = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
-            existing.add(id);
-        }
-
-        // Add custom components
-        for (ItemStack stack : customComponents) {
-            String id = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
-            if (!existing.contains(id)) {
-                enriched.add(stack);
-                existing.add(id);
-            }
-        }
-
-        int added = enriched.size() - originalCandidates.size();
-        if (added > 0) {
-            GTCEUTerminalMod.LOGGER.debug("Enriched {} with {} custom components",
-                    category.getDisplayName(), added);
-        }
-
-        return enriched;
-    }
-
-
-    private static ComponentCategory detectComponentCategory(List<ItemStack> candidates) {
-        if (candidates.isEmpty()) return null;
-
-        for (ItemStack stack : candidates) {
-            if (stack.isEmpty()) continue;
-
-            Item item = stack.getItem();
-            if (!(item instanceof BlockItem blockItem)) continue;
-
-            Block block = blockItem.getBlock();
-            String blockId = ForgeRegistries.BLOCKS.getKey(block).toString().toLowerCase();
-
-            if (blockId.contains("energy") && blockId.contains("hatch")) {
-                return ComponentCategory.ENERGY_HATCH;
-            }
-            if (blockId.contains("fluid") && blockId.contains("hatch")) {
-                return ComponentCategory.FLUID_HATCH;
-            }
-            if (blockId.contains("item") && (blockId.contains("bus") || blockId.contains("hatch"))) {
-                return ComponentCategory.ITEM_HATCH;
-            }
-            if (blockId.contains("maintenance") && blockId.contains("hatch")) {
-                return ComponentCategory.MAINTENANCE_HATCH;
-            }
-            if (blockId.contains("muffler")) {
-                return ComponentCategory.MUFFLER_HATCH;
-            }
-            if (blockId.contains("laser") && blockId.contains("hatch")) {
-                return ComponentCategory.LASER_HATCH;
-            }
-            if (blockId.contains("rotor")) {
-                return ComponentCategory.ROTOR_HOLDER;
-            }
-            if (blockId.contains("coil")) {
-                return ComponentCategory.COIL;
-            }
-            if (blockId.contains("casing")) {
-                return ComponentCategory.CASING;
-            }
-
-            // Fallback: if it's a MetaMachineBlock that creates a MultiblockPartMachine, treat as OTHER (hatch/bus/etc.)
-            if (block instanceof MetaMachineBlock machineBlock) {
-                try {
-                    return ComponentCategory.OTHER;
-                } catch (Exception ignored) {}
-            }
-        }
-
-        return null;
-    }
-
-    // -------------------------------
-    // GTCEu autoBuild logic helpers
-    // -------------------------------
     private static int getRepetitionsForSlice(int slice, int[][] aisleRepetitions, int repeatCount) {
         if (aisleRepetitions == null || slice < 0 || slice >= aisleRepetitions.length) return 1;
 
@@ -604,9 +403,6 @@ public class AdvancedAutoBuilder {
         return infos;
     }
 
-    // -------------------------------
-    // Orientation
-    // -------------------------------
     private static BlockPos setActualRelativeOffset(RelativeDirection[] structureDir,
                                                     int x, int y, int z,
                                                     Direction facing, Direction upwardsFacing,
@@ -693,9 +489,6 @@ public class AdvancedAutoBuilder {
         return new BlockPos(c1[0], c1[1], c1[2]);
     }
 
-    // -------------------------------
-    // Facing reset
-    // -------------------------------
     private static void resetFacing(BlockPos pos, BlockState blockState, Direction facing,
                                     BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
         if (blockState.hasProperty(BlockStateProperties.FACING)) {
@@ -721,9 +514,6 @@ public class AdvancedAutoBuilder {
         consumer.accept(blockState.setValue(property, found));
     }
 
-    // -------------------------------
-    // Inventory matching
-    // -------------------------------
     @Nullable
     private static IntObjectPair<IItemHandler> getMatchStackWithHandler(
             List<ItemStack> candidates,
@@ -740,7 +530,6 @@ public class AdvancedAutoBuilder {
             ItemStack stack = handler.getStackInSlot(i);
             if (stack.isEmpty()) continue;
 
-            // Check if this is a wireless terminal and AE2 is enabled
             if (isUseAE == 1 && WirelessTerminalHandler.isWirelessTerminal(stack)
                     && WirelessTerminalHandler.isLinked(stack)) {
 
@@ -757,7 +546,6 @@ public class AdvancedAutoBuilder {
                 }
             }
 
-            // Original logic: check if item matches candidates
             if (candidates.stream().anyMatch(candidate ->
                     ItemStack.isSameItemSameTags(candidate, stack)) &&
                     !stack.isEmpty() &&
@@ -768,9 +556,6 @@ public class AdvancedAutoBuilder {
 
         return null;
     }
-    // -------------------------------
-    // ME Network Integration
-    // -------------------------------
     @Nullable
     private static IFluidHandler getMENetworkFluidStorage(@NotNull Player player) {
         // Delegate to MENetworkFluidHandlerWrapper — keeps all appeng.* inside the ae2 package
@@ -837,7 +622,6 @@ public class AdvancedAutoBuilder {
 
                 if (!hatchBlocks.isEmpty() && hatchBlocks.contains(b)) continue;
 
-                // count
                 freq.addTo(b, 1);
             }
         }
@@ -868,7 +652,6 @@ public class AdvancedAutoBuilder {
         final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
         final int palmLength = (thumbLength > 0) ? blockMatches[0][0].length : 0;
 
-        // Simulate construction to count materials
         for (int c = 0, z = minZ++, r; c < fingerLength; c++) {
             int repsForSlice = getRepetitionsForSlice(c, aisleRepetitions, settings.repeatCount);
 
@@ -879,12 +662,10 @@ public class AdvancedAutoBuilder {
                         BlockPos pos = setActualRelativeOffset(structureDir, x, y, z, facing, upwardsFacing, isFlipped)
                                 .offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
 
-                        // Skip if position already has a block
                         if (!world.isEmptyBlock(pos)) {
                             continue;
                         }
 
-                        // Get candidates for this position
                         BlockInfo[] infos = pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
                         List<ItemStack> candidates = new ArrayList<>();
 
@@ -898,13 +679,11 @@ public class AdvancedAutoBuilder {
 
                         candidates = enrichWithCustomComponents(candidates, predicate);
 
-                        // Apply filters
                         if (settings.noHatchMode != 0) {
                             candidates = filterOutMultiblockParts(candidates);
                         }
                         candidates = applyCoilTierPreference(candidates, settings.tierMode);
 
-                        // Check if it's a fluid block
                         boolean isFluidBlock = false;
                         for (ItemStack candidate : candidates) {
                             if (candidate.getItem() instanceof BlockItem bi) {
@@ -916,12 +695,10 @@ public class AdvancedAutoBuilder {
                             }
                         }
 
-                        // Skip fluid blocks (handled separately)
                         if (isFluidBlock) {
                             continue;
                         }
 
-                        // Find first valid candidate
                         for (ItemStack candidate : candidates) {
                             if (!candidate.isEmpty() && candidate.getItem() instanceof BlockItem) {
                                 Item item = candidate.getItem();
@@ -937,4 +714,4 @@ public class AdvancedAutoBuilder {
 
         return required;
     }
-} // This is the second WORST file in the entire codebase, only beaten by ManagerSettingsUI.java. It's a mess of intertwined logic, but at least it's decently commented. Refactoring this would be a nightmare, so I'll just add comments and try to keep it as is.
+}

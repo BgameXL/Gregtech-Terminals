@@ -30,7 +30,6 @@ public class GTCEUTerminalTabs {
 
                         output.accept(GTCEUTerminalItems.DISMANTLER.get());
 
-                        // output.accept(GTCEUTerminalBlocks.POWER_MONITOR_ITEM.get());
 
                         output.accept(GTCEUTerminalItems.ENERGY_ANALYZER.get());
                     })

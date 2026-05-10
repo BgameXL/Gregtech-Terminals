@@ -265,7 +265,7 @@ public class MultiblockScanner {
             }
         }
 
-        // ⭐ FALLBACK: Special cases
+        // Special cases
         if (lower.contains("coil")) return ComponentType.COIL;
         if (lower.contains("casing")) return ComponentType.CASING;
 

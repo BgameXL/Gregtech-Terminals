@@ -80,7 +80,7 @@ public class RecipeHistoryTracker {
             int progress = getProgress(logic);
             int duration = logic.getMaxProgress();
 
-            GTRecipe currentRecipe = getCurrentRecipe(logic);
+            GTRecipe currentRecipe = getCurrentRecipe(logic).orElse(null);
             String currentId = currentRecipe != null && currentRecipe.id != null
                     ? currentRecipe.id.toString() : "";
 
@@ -152,16 +152,23 @@ public class RecipeHistoryTracker {
 
     private static int getProgress(RecipeLogic logic) {
         if (progressField != null) {
-            try { return (int) progressField.get(logic); } catch (Exception ignored) {}
+            try { return (int) progressField.get(logic); }
+            catch (IllegalAccessException e) {
+                GTCEUTerminalMod.LOGGER.warn("RecipeHistoryTracker: lost access to RecipeLogic.progress", e);
+            }
         }
         return (int) (logic.getProgressPercent() * logic.getMaxProgress());
     }
 
-    private static GTRecipe getCurrentRecipe(RecipeLogic logic) {
-        if (lastRecipeField == null) return null;
+    private static java.util.Optional<GTRecipe> getCurrentRecipe(RecipeLogic logic) {
+        if (lastRecipeField == null) return java.util.Optional.empty();
         try {
-            return (GTRecipe) lastRecipeField.get(logic);
-        } catch (Exception e) { return null; }
+            GTRecipe recipe = (GTRecipe) lastRecipeField.get(logic);
+            return java.util.Optional.ofNullable(recipe);
+        } catch (IllegalAccessException e) {
+            GTCEUTerminalMod.LOGGER.debug("RecipeHistoryTracker: could not read lastRecipe field", e);
+            return java.util.Optional.empty();
+        }
     }
 
     private static String getOutputName(GTRecipe recipe) {
@@ -177,8 +184,9 @@ public class RecipeHistoryTracker {
                     }
                 }
             }
-        } catch (Exception ignored) {}
-        // Fallback: recipe path suffix
+        } catch (RuntimeException e) {
+            GTCEUTerminalMod.LOGGER.debug("RecipeHistoryTracker: error reading recipe output name", e);
+        }
         if (recipe.id != null) {
             String path = recipe.id.getPath();
             int slash = path.lastIndexOf('/');

@@ -442,14 +442,12 @@ public class ComponentUpgradeHelper {
      */
     public static List<Integer> getAvailableTiers(ComponentType type) {
         return switch (type) {
-            // Fluid hatches
             case INPUT_HATCH, INPUT_HATCH_1X, QUAD_INPUT_HATCH, NONUPLE_INPUT_HATCH ->
                     HatchConfig.getInputHatches().stream().map(h -> h.tier).distinct().sorted().toList();
 
             case OUTPUT_HATCH, OUTPUT_HATCH_1X, QUAD_OUTPUT_HATCH, NONUPLE_OUTPUT_HATCH ->
                     HatchConfig.getOutputHatches().stream().map(h -> h.tier).distinct().sorted().toList();
 
-            // Item buses
             case INPUT_BUS -> BusConfig.getInputBuses().stream().map(b -> b.tier).sorted().toList();
             case OUTPUT_BUS -> BusConfig.getOutputBuses().stream().map(b -> b.tier).sorted().toList();
 
@@ -462,7 +460,6 @@ public class ComponentUpgradeHelper {
                             .sorted()
                             .toList();
 
-            // Substation hatches
             case SUBSTATION_INPUT_ENERGY, SUBSTATION_OUTPUT_ENERGY ->
                     SubstationHatchConfig.getAllHatches().stream()
                             .map(h -> h.tier)
@@ -479,7 +476,6 @@ public class ComponentUpgradeHelper {
                             .sorted()
                             .toList();
 
-            // Special hatches
             case PARALLEL_HATCH ->
                     ParallelHatchConfig.getAllParallelHatches().stream()
                             .filter(p -> p.variant.equals("STANDARD"))

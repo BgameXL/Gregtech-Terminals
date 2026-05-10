@@ -39,3 +39,9 @@ Thumbs.db
 
 # jenv
 .java-version
+.classpath
+.project
+.settings/
+.factorypath
+.eclipse
+bin

@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Fluid Hatch configuration
 public class HatchConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(HatchConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -103,7 +102,6 @@ public class HatchConfig {
         config.patterns.add(new FluidHatchPattern("gtceu:*_output_hatch_4x", "QUAD_OUTPUT_HATCH", "4x"));
         config.patterns.add(new FluidHatchPattern("gtceu:*_output_hatch_9x", "NONUPLE_OUTPUT_HATCH", "9x"));
 
-        // Special fluid hatches (It's gonna be removed eventually but for now we can add it here so it shows up in the config)
         config.patterns.add(new FluidHatchPattern("gtceu:*_pump_fluid_hatch", "PUMP_FLUID_HATCH", "1x"));
         config.patterns.add(new FluidHatchPattern("gtceu:*_tank_valve", "TANK_VALVE", "1x"));
 

@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.planner;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.planner.PlannerState.PlacedGhost;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.util.SchematicUtils;
@@ -37,10 +38,10 @@ public class PlannerScreen extends Screen {
     private static final int HUD_H       = 22;
 
     // ── Camera defaults ───────────────────────────────────────────────────────
-    private static final float ZOOM_DEFAULT  = 8f;   // px per block
+    private static final float ZOOM_DEFAULT  = 8f;
     private static final float ZOOM_MIN      = 3f;
     private static final float ZOOM_MAX      = 28f;
-    private static final float TILT_DEFAULT  = 72f;  // degrees; 90=top-down, lower=isometric
+    private static final float TILT_DEFAULT  = 72f;
     private static final float TILT_MIN      = 25f;
     private static final float TILT_MAX      = 90f;
 
@@ -195,7 +196,9 @@ public class PlannerScreen extends Screen {
                     color = 0xFF000000 | ((r * 3 / 4) << 16) | ((gv * 3 / 4) << 8) | (b * 3 / 4);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (RuntimeException e) {
+            GTCEUTerminalMod.LOGGER.debug("PlannerScreen: error reading map color at ({},{}): {}", wx, wz, e.getMessage());
+        }
 
         tileCache.put(key, color);
         return color;
@@ -460,13 +463,11 @@ public class PlannerScreen extends Screen {
         lastBuildBx  = buildBx;
         lastHudY     = y;
 
-        // ── 3D mode button ─────────────────────────────────────────────────
         drawHudBtn(g, modeBx, y + 3, BTN_W_MODE, BTN_H, 0xFF1A3A6B, 0xFF2E75B6);
         g.drawString(font,
                 Component.translatable("gui.gtceuterminal.planner.hud.mode_3d").getString(),
                 modeBx + 14, y + 7, 0xFFFFFFFF, false);
 
-        // ── Build All ──────────────────────────────────────────────────────
         int buildFill = hasGhosts ? 0xFF1E6B1E : 0xFF2A2A2A;
         int buildBdr  = hasGhosts ? 0xFF2E8B2E : 0xFF444444;
         drawHudBtn(g, buildBx, y + 3, BTN_W, BTN_H, buildFill, buildBdr);
@@ -478,7 +479,6 @@ public class PlannerScreen extends Screen {
                 : Component.translatable("gui.gtceuterminal.planner.hud.build_all.disabled").getString();
         g.drawString(font, buildLbl, buildBx + 6, y + 7, 0xFFFFFFFF, false);
 
-        // ── Clear All ──────────────────────────────────────────────────────
         int clearFill = hasGhosts ? 0xFF6B1E1E : 0xFF2A2A2A;
         int clearBdr  = hasGhosts ? 0xFF8B2E2E : 0xFF444444;
         drawHudBtn(g, clearBx, y + 3, BTN_W, BTN_H, clearFill, clearBdr);

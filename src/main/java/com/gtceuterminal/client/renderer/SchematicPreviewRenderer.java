@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.renderer;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.util.SchematicUtils;
 
@@ -15,10 +16,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Renders schematic ghost blocks in the world.
- * All rotation and distance math is delegated to {@link SchematicUtils}.
- */
 public class SchematicPreviewRenderer {
 
     public static void renderGhostBlocks(PoseStack poseStack,
@@ -36,7 +33,9 @@ public class SchematicPreviewRenderer {
                 Direction byName = Direction.byName(facingStr);
                 if (byName != null) originalFacing = byName;
             }
-        } catch (Exception ignored) {}
+        } catch (IllegalArgumentException e) {
+            GTCEUTerminalMod.LOGGER.debug("SchematicPreviewRenderer: invalid facing '{}', defaulting to SOUTH", schematic.getOriginalFacing());
+        }
 
         double distance    = SchematicUtils.calculateOptimalDistance(schematic);
         BlockPos targetPos = SchematicUtils.getTargetPlacementPos(minecraft.player, distance);
@@ -73,16 +72,13 @@ public class SchematicPreviewRenderer {
             try {
                 blockRenderer.renderSingleBlock(rotatedState, poseStack, bufferSource,
                         15728880, OverlayTexture.NO_OVERLAY);
-            } catch (Exception ignored) {}
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewRenderer: skipped block render for {}: {}", rotatedState.getBlock().getDescriptionId(), e.getMessage());
+            }
             poseStack.popPose();
         }
     }
 
-    /**
-     * Renders a schematic as ghost blocks at the PoseStack's current origin.
-     * Used by ClientEvents to render PlannerState ghosts — the caller must
-     * translate the PoseStack to the ghost's world origin first.
-     */
     public static void renderGhostBlocksAtOrigin(PoseStack poseStack,
                                                  MultiBufferSource bufferSource,
                                                  SchematicData schematic,
@@ -105,15 +101,14 @@ public class SchematicPreviewRenderer {
             try {
                 blockRenderer.renderSingleBlock(rotatedState, poseStack, bufferSource,
                         15728880, OverlayTexture.NO_OVERLAY);
-            } catch (Exception ignored) {}
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewRenderer: skipped ghost block render for {}: {}",
+                        rotatedState.getBlock().getDescriptionId(), e.getMessage());
+            }
             poseStack.popPose();
         }
     }
 
-    /**
-     * Returns the world position where the schematic preview should appear.
-     * Kept public so the behavior can call it for consistent paste-on-preview placement.
-     */
     public static BlockPos getTargetPlacementPos(Minecraft minecraft, double distance) {
         return SchematicUtils.getTargetPlacementPos(minecraft.player, distance);
     }

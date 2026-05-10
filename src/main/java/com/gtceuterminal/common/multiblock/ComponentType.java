@@ -2,7 +2,6 @@ package com.gtceuterminal.common.multiblock;
 
 import net.minecraft.network.chat.Component;
 
-// Types of multiblock components
 public enum ComponentType {
 
     // ============================================

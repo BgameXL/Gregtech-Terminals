@@ -32,12 +32,6 @@ import net.minecraft.world.item.ItemStack;
 import java.lang.reflect.Field;
 import java.util.*;
 
-/**
- * Server-side analysis of what a multiblock needs to be built or upgraded.
- *
- * <p>Does NOT place any blocks — it only reads the pattern and compares
- * against the ME network to produce an {@link AnalysisResult}.</p>
- */
 public final class MultiblockAnalyzer {
 
     private MultiblockAnalyzer() {}
@@ -66,14 +60,6 @@ public final class MultiblockAnalyzer {
         }
     }
 
-    // ── BUILD analysis ────────────────────────────────────────────────────────
-
-    /**
-     * Analyses what blocks are needed to build {@code controller} and how many
-     * the player's linked ME network has in stock.
-     *
-     * @return analysis result, or null on failure
-     */
     public static AnalysisResult analyzeForBuild(Player player,
                                                  IMultiController controller,
                                                  ManagerSettings.AutoBuildSettings settings) {
@@ -115,7 +101,6 @@ public final class MultiblockAnalyzer {
                                     .offset(centerPos);
 
                             if (!player.level().isEmptyBlock(pos)) {
-                                // Already placed — count limits like AdvancedAutoBuilder does
                                 GTCEuCompat.update(worldState, pos, pred);
                                 for (SimplePredicate lim : pred.limited) lim.testLimited(worldState);
                                 continue;
@@ -139,12 +124,6 @@ public final class MultiblockAnalyzer {
         }
     }
 
-    // ── UPGRADE analysis ──────────────────────────────────────────────────────
-
-    /**
-     * Analyses what items are needed to upgrade {@code components} and how many
-     * the ME network has.
-     */
     public static AnalysisResult analyzeForUpgrade(Player player,
                                                    List<ComponentInfo> components,
                                                    int targetTier,
@@ -171,8 +150,6 @@ public final class MultiblockAnalyzer {
         }
     }
 
-    // ── Shared: build entry list from needed map + ME query ───────────────────
-
     private static AnalysisResult buildEntries(Map<Item, Integer> needed,
                                                Player player,
                                                BlockPos controllerPos) {
@@ -191,7 +168,6 @@ public final class MultiblockAnalyzer {
                 inME      = storage.getInventory().getAvailableStacks().get(key);
                 if (crafting != null) {
                     try {
-                        // isCraftable signature varies across AE2 15.x patch versions
                         craftable = crafting.isCraftable(key);
                     } catch (Exception ex) {
                         GTCEUTerminalMod.LOGGER.debug(
@@ -207,8 +183,6 @@ public final class MultiblockAnalyzer {
         return new AnalysisResult(entries, controllerPos);
     }
 
-    // ── ME grid helper ────────────────────────────────────────────────────────
-
     private static IGrid getGrid(Player player) {
         try {
             // Find a linked wireless terminal in hands or inventory
@@ -219,7 +193,9 @@ public final class MultiblockAnalyzer {
                     if (g != null) return g;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.debug("MultiblockAnalyzer: could not resolve ME grid from wireless terminal", e);
+        }
         return null;
     }
 
@@ -230,8 +206,6 @@ public final class MultiblockAnalyzer {
         all.addAll(player.getInventory().items);
         return all;
     }
-
-    // ── Pattern helpers (mirrors AdvancedAutoBuilder) ─────────────────────────
 
     private static int getRepetitions(int slice, int[][] aisleReps, int repeatCount) {
         if (aisleReps == null || slice >= aisleReps.length) return 1;
@@ -246,7 +220,6 @@ public final class MultiblockAnalyzer {
     private static BlockInfo[] pickInfos(TraceabilityPredicate pred,
                                          PredicateCountMap global,
                                          PredicateCountMap layer) {
-        // Mirrors AdvancedAutoBuilder.pickInfosForPredicate exactly
         for (SimplePredicate lim : pred.limited) {
             if (lim.minLayerCount > 0) {
                 int cur = layer.getInt(lim);

@@ -7,7 +7,6 @@ public class ServerConfig {
     public static final String FILE_NAME = "gtceuterminal-server.toml";
     public static final ForgeConfigSpec SPEC;
 
-    // Configuration options
     public static final ForgeConfigSpec.IntValue MULTIBLOCK_SCAN_RADIUS;
     public static final ForgeConfigSpec.BooleanValue ENABLE_AE2_INTEGRATION;
     public static final ForgeConfigSpec.BooleanValue ENABLE_DEBUG_LOGGING;

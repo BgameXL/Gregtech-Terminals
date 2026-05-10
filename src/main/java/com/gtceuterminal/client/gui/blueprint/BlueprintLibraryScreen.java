@@ -11,14 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * GUI for managing saved blueprints.
- *
- * Called from {@link com.gtceuterminal.client.gui.planner.PlannerScreen} via
- * the "Blueprints" button in the sidebar. When the player loads a blueprint,
- * {@code onLoad} is called with the loaded {@link SchematicData} so the planner
- * can add it to its schematic list.
- */
+// Dead code It's gonna be re-used later
 public class BlueprintLibraryScreen extends Screen {
 
     // ── Layout ────────────────────────────────────────────────────────────────
@@ -79,13 +72,11 @@ public class BlueprintLibraryScreen extends Screen {
         this.onLoad            = onLoad;
         this.saveNameText      = currentSchematic != null
                 ? BlueprintFileManager.sanitize(
-                // Prefer multiblockType as default name — it's more descriptive than
-                // "Clipboard" which is the generic name SchematicCopier assigns.
                 currentSchematic.getMultiblockType() != null
                         && !currentSchematic.getMultiblockType().isBlank()
                         && !currentSchematic.getMultiblockType().equals("null")
                         ? currentSchematic.getMultiblockType()
-                        .replaceAll(".*:", "") // strip namespace prefix e.g. "gtceu:blast_furnace" → "blast_furnace"
+                        .replaceAll(".*:", "")
                         : currentSchematic.getName())
                 : "";
     }
@@ -121,7 +112,6 @@ public class BlueprintLibraryScreen extends Screen {
                 Component.translatable("gui.gtceuterminal.blueprint.library.title").getString(),
                 wx + 8, wy + 8, C_TEXT, false);
 
-        // Close button [✕]
         int closeBx = wx + W - 18;
         int closeBy = wy + 4;
         renderBtn(g, closeBx, closeBy, 14, 14, C_BTN_DEL, C_BTN_DEL_B, mouseX, mouseY);

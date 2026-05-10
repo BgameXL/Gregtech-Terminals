@@ -55,13 +55,9 @@ public class SchematicInterfaceBehavior {
         // Normal right-click → paste
         if (!level.isClientSide) {
             BlockPos anchor = blockPos;
-            try {
-                BlockState clicked = level.getBlockState(blockPos);
-                if (clicked != null && !clicked.isAir() && !clicked.canBeReplaced())
-                    anchor = blockPos.relative(context.getClickedFace());
-            } catch (Exception ignored) {
+            BlockState clicked = level.getBlockState(blockPos);
+            if (clicked != null && !clicked.isAir() && !clicked.canBeReplaced())
                 anchor = blockPos.relative(context.getClickedFace());
-            }
             SchematicPaster.pasteSchematic(stack, player, level, anchor);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

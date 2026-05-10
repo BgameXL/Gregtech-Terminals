@@ -187,7 +187,6 @@ public class SubstationHatchConfig {
     private static void createHardcodedDefaults() {
         allHatches.clear();
         
-        // Fallback: Generate 64A input hatches for all tiers
         for (int tier = 0; tier < GTValues.VN.length; tier++) {
             String tierName = GTValues.VN[tier];
             String tierLower = tierName.toLowerCase();

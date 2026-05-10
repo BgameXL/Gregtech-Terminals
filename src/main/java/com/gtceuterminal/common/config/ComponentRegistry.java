@@ -20,13 +20,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-// Component Registry for GTCEu Terminal
 public class ComponentRegistry {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File CONFIG_FILE = new File("config/gtceuterminal/components.json");
     
-    // Component categories
     public enum ComponentCategory {
         ENERGY_HATCH("Energy Hatches"),
         FLUID_HATCH("Fluid Hatches"),
@@ -96,7 +94,6 @@ public class ComponentRegistry {
         addPattern(ComponentCategory.ENERGY_HATCH, "gtcommunityadd:*_energy_input_hatch");
         addPattern(ComponentCategory.FLUID_HATCH, "gtcommunityadd:*_fluid_input_hatch");
 
-        // addPattern(ComponentCategory.ENERGY_HATCH, "kubejs:custom_energy_hatch");
         
         isDirty = true;
     }
@@ -140,7 +137,6 @@ public class ComponentRegistry {
 
         String cacheKey = category.name() + ":" + String.join(";", patterns);
         
-        // Verify cache
         if (wildcardCache.containsKey(cacheKey)) {
             return wildcardCache.get(cacheKey);
         }
@@ -180,19 +176,17 @@ public class ComponentRegistry {
     }
 
     private static boolean matchesPattern(String pattern, String text) {
-        // Sin wildcards, comparación directa
         if (!pattern.contains("*")) {
             return pattern.equals(text);
         }
         
-        // Convertir wildcards a regex
-        // Escapar caracteres especiales de regex excepto *
+        // Convert wildcard to regex
+        // Escape regex special chars except *
         String regex = pattern
                 .replace(".", "\\.")
                 .replace(":", "\\:")
                 .replace("*", ".*");
         
-        // ^ y $ para matchear toda la string
         regex = "^" + regex + "$";
         
         try {
@@ -253,12 +247,10 @@ public class ComponentRegistry {
             
             JsonObject components = root.getAsJsonObject("components");
             
-            // Limpiar configuración actual
             for (Set<String> patterns : customComponents.values()) {
                 patterns.clear();
             }
             
-            // Cargar patrones
             for (ComponentCategory category : ComponentCategory.values()) {
                 String key = category.name().toLowerCase();
                 if (components.has(key)) {

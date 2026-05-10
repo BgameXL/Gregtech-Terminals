@@ -11,7 +11,6 @@ public class ComponentPattern {
     private String displayPrefix; // Optional prefix like "4A", "16A"
     private String description;
     
-    // Constructors
     public ComponentPattern() {}
     
     public ComponentPattern(String pattern, ComponentType componentType) {

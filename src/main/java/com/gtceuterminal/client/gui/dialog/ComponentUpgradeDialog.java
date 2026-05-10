@@ -53,7 +53,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
     private static final int DIALOG_H  = 430;
     private static final int HEADER_H  = 28;
     private static final int INFO_H    = 38;
-    private static final int OPTIONS_H = 80;  // tier/option selection panel
+    private static final int OPTIONS_H = 80;
     private static final int PAD       = 10;
 
     // Y positions inside content (computed from constants)
@@ -228,7 +228,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
         titleLabel.setTextColor(COLOR_TEXT_WHITE);
         header.addWidget(titleLabel);
 
-        // ✕ close
+        
         ButtonWidget closeBtn = new ButtonWidget(cW - 30, 4, 22, 20,
                 new GuiTextureGroup(
                         new ColorRectTexture(COLOR_BG_MEDIUM),
@@ -652,7 +652,10 @@ public class ComponentUpgradeDialog extends DialogWidget {
             if (coilType == null) continue;
             Block block = null;
             try { block = entry.getValue() != null ? entry.getValue().get() : null; }
-            catch (Exception ignored) {}
+            catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.warn("ComponentUpgradeDialog: could not resolve coil block for '{}': {}",
+                        coilType.getName(), e.getMessage());
+            }
             if (block == null) continue;
             String id   = BuiltInRegistries.BLOCK.getKey(block).toString();
             String name = trimSuffixes(Component.translatable(block.getDescriptionId()).getString());
@@ -816,7 +819,10 @@ public class ComponentUpgradeDialog extends DialogWidget {
 
     private static String blockId(ComponentInfo rep) {
         try { return rep.getState().getBlock().builtInRegistryHolder().key().location().toString(); }
-        catch (Exception ignored) { return null; }
+        catch (IllegalStateException e) {
+            GTCEUTerminalMod.LOGGER.debug("ComponentUpgradeDialog: could not get block id for component: {}", e.getMessage());
+            return null;
+        }
     }
 
     private static String resolveBlockName(String blockId, int maxLen) {
@@ -827,7 +833,9 @@ public class ComponentUpgradeDialog extends DialogWidget {
                 String loc = Component.translatable(b.getDescriptionId()).getString();
                 if (loc != null && !loc.isBlank()) display = loc;
             }
-        } catch (Exception ignored) {}
+        } catch (IllegalArgumentException e) {
+            GTCEUTerminalMod.LOGGER.debug("ComponentUpgradeDialog: could not resolve block name for '{}': {}", blockId, e.getMessage());
+        }
         if (display.length() > maxLen) display = display.substring(0, maxLen - 1) + "…";
         return display;
     }

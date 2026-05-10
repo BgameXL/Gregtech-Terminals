@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-// Execute the dismantling of the multiblock
 public class DismantleExecutor {
 
 

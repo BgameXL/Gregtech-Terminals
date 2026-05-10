@@ -172,7 +172,7 @@ public class ComponentDetailDialog extends DialogWidget {
         title.setTextColor(COLOR_TEXT_WHITE);
         header.addWidget(title);
 
-        // ✕ Close button — right side of header
+        
         ButtonWidget closeBtn = new ButtonWidget(cW - 30, 4, 22, 20,
                 new GuiTextureGroup(
                         new ColorRectTexture(COLOR_BG_MEDIUM),
@@ -258,7 +258,6 @@ public class ComponentDetailDialog extends DialogWidget {
 
         boolean upgradeable = !rep.getPossibleUpgradeTiers().isEmpty();
 
-        // ── Clickable overlay ─────────────────────────────────────────────────
         if (upgradeable) {
             ButtonWidget clickArea = new ButtonWidget(0, 0, entryW, ENTRY_H,
                     new ColorRectTexture(0x00000000),
@@ -267,23 +266,19 @@ public class ComponentDetailDialog extends DialogWidget {
             entry.addWidget(clickArea);
         }
 
-        // ── Type color dot ────────────────────────────────────────────────────
         int dotColor = 0xFF000000 | group.getType().getColor();
         entry.addWidget(new ImageWidget(8, 16, 8, 8, new ColorRectTexture(dotColor)));
 
-        // ── Type name (top line) ──────────────────────────────────────────────
         String typeName = group.getType().getDisplayNameComponent().getString();
         LabelWidget typeLabel = new LabelWidget(22, 6, "§f" + typeName);
         typeLabel.setTextColor(COLOR_TEXT_WHITE);
         entry.addWidget(typeLabel);
 
-        // ── Block subtype (bottom line, gray) ─────────────────────────────────
         String blockSub = formatBlockSubtype(group.getBlockName());
         LabelWidget subLabel = new LabelWidget(22, 20, "§7" + blockSub);
         subLabel.setTextColor(COLOR_TEXT_GRAY);
         entry.addWidget(subLabel);
 
-        // ── Count badge ───────────────────────────────────────────────────────
         String countText = "×" + group.getCount();
         int badgeW = 72;
         int countX = entryW - 80;
@@ -291,7 +286,6 @@ public class ComponentDetailDialog extends DialogWidget {
         countLabel.setTextColor(COLOR_TEXT_WHITE);
         entry.addWidget(countLabel);
 
-        // ── Tier label ────────────────────────────────────────────────────────
         String tierText = Component.translatable(
                 "gui.gtceuterminal.component_detail_dialog.entry.tier",
                 tierNameForList(group, rep)).getString();

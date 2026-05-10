@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Maintenance Hatch configuration
 public class MaintenanceHatchConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(MaintenanceHatchConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -131,7 +130,6 @@ public class MaintenanceHatchConfig {
     private static void createHardcodedDefaults() {
         allHatches.clear();
 
-        // Fallback: 4 LV maintenance hatches only
         allHatches.add(new MaintenanceHatchEntry("gtceu:maintenance_hatch", "Maintenance Hatch", "LV", 1, "STANDARD"));
         // In GTCEu, Auto/Configurable/Cleaning are HV-tier variants.
         allHatches.add(new MaintenanceHatchEntry("gtceu:auto_maintenance_hatch", "Auto-Maintenance Hatch", "HV", 3, "AUTO"));

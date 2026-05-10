@@ -119,6 +119,10 @@ public class DefaultThemeConfig {
         o.addProperty("showBorders",  t.showBorders);
         o.addProperty("wallpaper",    t.wallpaper != null ? t.wallpaper : "");
         o.addProperty("uiStyle",      t.uiStyle != null ? t.uiStyle.name() : ItemTheme.UiStyle.DARK.name());
+        o.addProperty("bundleId",     t.bundleId != null ? t.bundleId : "");
+        o.addProperty("paradeMode",   t.paradeMode != null ? t.paradeMode.name() : ItemTheme.ParadeMode.ORBITAL.name());
+        o.addProperty("slideshowMode", t.slideshowMode);
+        o.addProperty("slideshowSource", t.slideshowSource != null ? t.slideshowSource.name() : ItemTheme.SlideshowSource.BUILTIN.name());
         return o;
     }
 
@@ -132,9 +136,19 @@ public class DefaultThemeConfig {
         if (o.has("showTooltips")) t.showTooltips  = o.get("showTooltips").getAsBoolean();
         if (o.has("showBorders"))  t.showBorders   = o.get("showBorders").getAsBoolean();
         if (o.has("wallpaper"))    t.wallpaper     = o.get("wallpaper").getAsString();
+        if (o.has("bundleId"))     t.bundleId      = o.get("bundleId").getAsString();
         if (o.has("uiStyle")) {
             try { t.uiStyle = ItemTheme.UiStyle.valueOf(o.get("uiStyle").getAsString()); }
             catch (IllegalArgumentException ignored) { t.uiStyle = ItemTheme.UiStyle.DARK; }
+        }
+        if (o.has("paradeMode")) {
+            try { t.paradeMode = ItemTheme.ParadeMode.valueOf(o.get("paradeMode").getAsString()); }
+            catch (IllegalArgumentException ignored) { t.paradeMode = ItemTheme.ParadeMode.ORBITAL; }
+        }
+        if (o.has("slideshowMode")) t.slideshowMode = o.get("slideshowMode").getAsBoolean();
+        if (o.has("slideshowSource")) {
+            try { t.slideshowSource = ItemTheme.SlideshowSource.valueOf(o.get("slideshowSource").getAsString()); }
+            catch (IllegalArgumentException ignored) { t.slideshowSource = ItemTheme.SlideshowSource.BUILTIN; }
         }
         return t;
     }

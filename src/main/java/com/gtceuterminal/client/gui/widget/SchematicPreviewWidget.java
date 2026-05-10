@@ -1,540 +1,267 @@
 package com.gtceuterminal.client.gui.widget;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 
+import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import com.lowdragmc.lowdraglib.utils.BlockInfo;
+import com.lowdragmc.lowdraglib.utils.TrackedDummyWorld;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.ColorResolver;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.lighting.LevelLightEngine;
-import net.minecraft.world.level.material.FluidState;
+
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+@OnlyIn(Dist.CLIENT)
 public class SchematicPreviewWidget extends WidgetGroup {
 
+    private static TrackedDummyWorld LEVEL;
+
+    private static final java.util.Map<String, SceneWidget> SCENE_CACHE = new java.util.LinkedHashMap<>() {
+        @Override protected boolean removeEldestEntry(java.util.Map.Entry<String, SceneWidget> eldest) {
+            if (size() > 8) { eldest.getValue().setVisible(false); return true; }
+            return false;
+        }
+    };
+
     private SchematicData schematic;
-    private float rotationX = 30.0F;
-    private float rotationY = 45.0F;
-    private float zoom = 1.0F;
     private int rotSteps = 0;
+    private SceneWidget sceneWidget;
+    private boolean pendingBuild = true;
 
-    private boolean isDragging = false;
-    private double lastMouseX = 0;
-    private double lastMouseY = 0;
-
-    private static final float MIN_ZOOM = 0.3F;
-    private static final float MAX_ZOOM = 3.0F;
-    private static final float ZOOM_STEP = 0.1F;
-
-    // Cache
-    private BlockPos cachedMinPos = BlockPos.ZERO;
-    private BlockPos cachedSize = BlockPos.ZERO;
-    private final List<BlockEntry> renderCache = new ArrayList<>();
-    private boolean needsRebuild = true;
-    private PreviewLevel previewLevel;
-
-    private static class BlockEntry {
-        BlockPos pos;
-        BlockState state;
-
-        BlockEntry(BlockPos pos, BlockState state) {
-            this.pos = pos;
-            this.state = state;
-        }
-    }
-
-    private static class PreviewLevel implements BlockAndTintGetter {
-        private final Map<BlockPos, BlockState> blocks;
-
-        PreviewLevel(Map<BlockPos, BlockState> blocks, Map<BlockPos, CompoundTag> blockEntities) {
-            this.blocks = blocks;
-            // Ya no necesitamos blockEntities para renderizado de ítems
-        }
-
-        @Override
-        public @NotNull BlockState getBlockState(@NotNull BlockPos pos) {
-            BlockState state = blocks.get(pos);
-            return state != null ? state : Blocks.AIR.defaultBlockState();
-        }
-
-        @Override
-        public @NotNull FluidState getFluidState(@NotNull BlockPos pos) {
-            return getBlockState(pos).getFluidState();
-        }
-
-        @Override
-        public BlockEntity getBlockEntity(@NotNull BlockPos pos) {
-            // Ya no necesitamos BlockEntity para renderizado de ítems
-            return null;
-        }
-
-        @Override
-        public int getHeight() {
-            return 256;
-        }
-
-        @Override
-        public int getMinBuildHeight() {
-            return -64;
-        }
-
-        @Override
-        public float getShade(@NotNull Direction direction, boolean shade) {
-            return 1.0F;
-        }
-
-        @Override
-        public int getBlockTint(@NotNull BlockPos pos, @NotNull ColorResolver colorResolver) {
-            return 0xFFFFFFFF;
-        }
-
-        @Override
-        public @NotNull LevelLightEngine getLightEngine() {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.level != null) return mc.level.getLightEngine();
-            throw new IllegalStateException("No client level available");
-        }
-    }
+    private int blockCount = 0;
+    private String displayName = "Multiblock Structure";
 
     public SchematicPreviewWidget(int x, int y, int width, int height, SchematicData schematic) {
         super(x, y, width, height);
         this.schematic = schematic;
-        updateCache();
+        updateDisplayInfo();
     }
 
     public void setSchematic(SchematicData schematic) {
         this.schematic = schematic;
-        this.needsRebuild = true;
-        updateCache();
+        updateDisplayInfo();
+        if (sceneWidget != null) {
+            sceneWidget.setVisible(false);
+            sceneWidget = null;
+        }
+        pendingBuild = true;
     }
 
-    private void updateCache() {
-        if (schematic == null || schematic.getBlocks().isEmpty()) {
-            renderCache.clear();
-            cachedMinPos = BlockPos.ZERO;
-            cachedSize = BlockPos.ZERO;
-            needsRebuild = false;
+    private void buildScene() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return;
+        if (schematic == null || schematic.getBlocks().isEmpty()) return;
+
+        String cacheKey = schematic.getName() + ":" + rotSteps;
+        if (SCENE_CACHE.containsKey(cacheKey)) {
+            sceneWidget = SCENE_CACHE.get(cacheKey);
+            sceneWidget.setVisible(true);
+            if (!widgets.contains(sceneWidget)) addWidget(sceneWidget);
             return;
         }
 
-        // ===Logic Rotation===
-        Map<BlockPos, BlockState> rotatedBlocks = new HashMap<>();
-        Map<BlockPos, CompoundTag> rotatedBEs = new HashMap<>();
+        if (LEVEL == null) LEVEL = new TrackedDummyWorld();
 
-        for (Map.Entry<BlockPos, BlockState> entry : schematic.getBlocks().entrySet()) {
-            BlockPos rp = rotatePositionSteps(entry.getKey(), rotSteps);
-            BlockState rs = rotateBlockStateSteps(entry.getValue(), rotSteps);
-            rotatedBlocks.put(rp, rs);
-        }
+        Map<BlockPos, BlockState> rotated = buildRotatedBlocks();
+        Map<BlockPos, CompoundTag> rotatedBEs = buildRotatedBEs();
 
-        for (Map.Entry<BlockPos, CompoundTag> entry : schematic.getBlockEntities().entrySet()) {
-            BlockPos rp = rotatePositionSteps(entry.getKey(), rotSteps);
-            rotatedBEs.put(rp, entry.getValue().copy());
-        }
-
+        // Compute bounds
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-
-        for (BlockPos pos : rotatedBlocks.keySet()) {
-            minX = Math.min(minX, pos.getX());
-            minY = Math.min(minY, pos.getY());
-            minZ = Math.min(minZ, pos.getZ());
-            maxX = Math.max(maxX, pos.getX());
-            maxY = Math.max(maxY, pos.getY());
-            maxZ = Math.max(maxZ, pos.getZ());
+        for (BlockPos p : rotated.keySet()) {
+            minX = Math.min(minX, p.getX()); minY = Math.min(minY, p.getY()); minZ = Math.min(minZ, p.getZ());
+            maxX = Math.max(maxX, p.getX()); maxY = Math.max(maxY, p.getY()); maxZ = Math.max(maxZ, p.getZ());
         }
+        int sizeX = maxX - minX + 1, sizeY = maxY - minY + 1, sizeZ = maxZ - minZ + 1;
+        float maxDim = Math.max(sizeX, Math.max(sizeY, sizeZ));
+        LEVEL.clear();
 
-        cachedMinPos = new BlockPos(minX, minY, minZ);
-        cachedSize = new BlockPos(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
+        Map<BlockPos, BlockInfo> infoMap = new HashMap<>();
+        for (var e : rotated.entrySet()) {
+            if (e.getValue().isAir()) continue;
+            BlockInfo info = BlockInfo.fromBlockState(e.getValue());
+            CompoundTag nbt = rotatedBEs.get(e.getKey());
+            if (nbt != null && !nbt.isEmpty()) info.setTag(nbt);
+            infoMap.put(e.getKey(), info);
+        }
+        LEVEL.addBlocks(infoMap);
 
-        if (needsRebuild) {
-            renderCache.clear();
-
-            List<Map.Entry<BlockPos, BlockState>> sorted = new ArrayList<>(rotatedBlocks.entrySet());
-            sorted.sort((a, b) -> {
-                int cmp = Integer.compare(a.getKey().getY(), b.getKey().getY());
-                if (cmp != 0) return cmp;
-                cmp = Integer.compare(a.getKey().getZ(), b.getKey().getZ());
-                if (cmp != 0) return cmp;
-                return Integer.compare(a.getKey().getX(), b.getKey().getX());
-            });
-
-            for (Map.Entry<BlockPos, BlockState> entry : sorted) {
-                if (!entry.getValue().isAir() && !entry.getValue().is(Blocks.AIR)) {
-                    renderCache.add(new BlockEntry(entry.getKey(), entry.getValue()));
+        com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine ctrl = null;
+        for (BlockPos pos : infoMap.keySet()) {
+            try {
+                var be = LEVEL.getBlockEntity(pos);
+                if (be instanceof com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity mbe) {
+                    mbe.setLevel(LEVEL);
+                    var machine = mbe.getMetaMachine();
+                    if (machine instanceof com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine c) {
+                        LEVEL.setInnerBlockEntity(mbe);
+                        ctrl = c;
+                    }
                 }
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not set up controller from block entity: {}", e.getMessage());
             }
-
-            // Rebuild preview level for CTM + ModelData queries
-            previewLevel = new PreviewLevel(
-                    rotatedBlocks,
-                    rotatedBEs
-            );
-
-            needsRebuild = false;
         }
+
+        if (ctrl != null) {
+            try {
+                var pat = ctrl.getPattern();
+                if (pat != null && pat.checkPatternAt(ctrl.getMultiblockState(), true)) {
+                    ctrl.onStructureFormed();
+                }
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: structure formation failed: {}", e.getMessage());
+            }
+        }
+        int w = getSize().width, h = getSize().height;
+        sceneWidget = new SceneWidget(0, 0, w, h, LEVEL);
+        sceneWidget.useOrtho(true)
+                .setOrthoRange(0.5f)
+                .setScalable(true)
+                .setDraggable(true)
+                .setRenderFacing(false)
+                .setRenderSelect(false);
+
+        sceneWidget.setCameraYawAndPitch(25, -135);
+        sceneWidget.setZoom((float)(3.5 * Math.sqrt(Math.max(maxDim, 1))));
+
+        sceneWidget.setRenderedCore(infoMap.keySet(), null);
+
+        // Use VBO cache via recordRenderCall (safe from any thread)
+        com.mojang.blaze3d.systems.RenderSystem.recordRenderCall(sceneWidget::useCacheBuffer);
+
+        // Needs more work
+        SCENE_CACHE.put(cacheKey, sceneWidget);
+
+        addWidget(sceneWidget);
     }
 
-    // Logic rotation helpers (GhostBlockRenderer)
-    private BlockPos rotatePositionSteps(BlockPos pos, int steps) {
-        BlockPos result = pos;
+    private void updateDisplayInfo() {
+        if (schematic == null || schematic.getBlocks().isEmpty()) {
+            blockCount = 0; displayName = "Multiblock Structure"; return;
+        }
+        blockCount = (int) schematic.getBlocks().values().stream().filter(s -> !s.isAir()).count();
+        for (var e : schematic.getBlocks().entrySet()) {
+            String id = e.getValue().getBlock().getDescriptionId().toLowerCase();
+            if (id.contains("controller")||id.contains("machine")||id.contains("multiblock")||id.contains("casing")) {
+                String n = e.getValue().getBlock().getName().getString();
+                displayName = n.length() > 35 ? n.substring(0,32)+"..." : n; return;
+            }
+        }
+        for (var e : schematic.getBlocks().entrySet()) {
+            if (!e.getValue().isAir()) {
+                String n = e.getValue().getBlock().getName().getString();
+                displayName = n.length() > 35 ? n.substring(0,32)+"..." : n; return;
+            }
+        }
+        displayName = "Multiblock Structure";
+    }
+
+    private Map<BlockPos, BlockState> buildRotatedBlocks() {
+        Map<BlockPos, BlockState> r = new HashMap<>();
+        if (schematic == null) return r;
+        for (var e : schematic.getBlocks().entrySet())
+            r.put(rotatePos(e.getKey(), rotSteps), rotateState(e.getValue(), rotSteps));
+        return r;
+    }
+
+    private Map<BlockPos, CompoundTag> buildRotatedBEs() {
+        Map<BlockPos, CompoundTag> r = new HashMap<>();
+        if (schematic == null) return r;
+        for (var e : schematic.getBlockEntities().entrySet())
+            r.put(rotatePos(e.getKey(), rotSteps), e.getValue().copy());
+        return r;
+    }
+
+    private BlockPos rotatePos(BlockPos p, int steps) {
+        for (int i = 0; i < steps; i++) p = new BlockPos(-p.getZ(), p.getY(), p.getX());
+        return p;
+    }
+
+    private BlockState rotateState(BlockState s, int steps) {
         for (int i = 0; i < steps; i++) {
-            // (x, z) -> (-z, x)
-            result = new BlockPos(-result.getZ(), result.getY(), result.getX());
+            var HF = net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
+            try {
+                if (s.hasProperty(HF)) s = s.setValue(HF, s.getValue(HF).getClockWise());
+            } catch (IllegalArgumentException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not rotate HORIZONTAL_FACING: {}", e.getMessage());
+            }
+            var F = net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING;
+            try {
+                if (s.hasProperty(F) && s.getValue(F).getAxis().isHorizontal())
+                    s = s.setValue(F, s.getValue(F).getClockWise());
+            } catch (IllegalArgumentException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not rotate FACING: {}", e.getMessage());
+            }
+            var A = net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS;
+            try {
+                if (s.hasProperty(A)) {
+                    var ax = s.getValue(A);
+                    if (ax == net.minecraft.core.Direction.Axis.X) s = s.setValue(A, net.minecraft.core.Direction.Axis.Z);
+                    else if (ax == net.minecraft.core.Direction.Axis.Z) s = s.setValue(A, net.minecraft.core.Direction.Axis.X);
+                }
+            } catch (IllegalArgumentException e) {
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not rotate AXIS: {}", e.getMessage());
+            }
         }
-        return result;
-    }
-
-    private BlockState rotateBlockStateSteps(BlockState state, int steps) {
-        BlockState result = state;
-        for (int i = 0; i < steps; i++) {
-            result = rotateBlockStateOnce(result);
-        }
-        return result;
-    }
-
-    private BlockState rotateBlockStateOnce(BlockState state) {
-        try {
-            // HORIZONTAL_FACING
-            if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING)) {
-                var facing = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING);
-                if (facing.getAxis().isHorizontal()) {
-                    state = state.setValue(
-                            net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING,
-                            facing.getClockWise()
-                    );
-                }
-            }
-
-            // FACING
-            if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING)) {
-                var facing = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING);
-                if (facing.getAxis().isHorizontal()) {
-                    state = state.setValue(
-                            net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING,
-                            facing.getClockWise()
-                    );
-                }
-            }
-
-            // AXIS: X <-> Z
-            if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS)) {
-                var axis = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS);
-                if (axis == net.minecraft.core.Direction.Axis.X) {
-                    state = state.setValue(
-                            net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS,
-                            net.minecraft.core.Direction.Axis.Z
-                    );
-                } else if (axis == net.minecraft.core.Direction.Axis.Z) {
-                    state = state.setValue(
-                            net.minecraft.world.level.block.state.properties.BlockStateProperties.AXIS,
-                            net.minecraft.core.Direction.Axis.X
-                    );
-                }
-            }
-        } catch (Exception ignored) {}
-
-        return state;
-    }
-
-    public int getRotSteps() {
-        return rotSteps;
+        return s;
     }
 
     @Override
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        RenderSystem.disableCull();
-        RenderSystem.enableDepthTest();
-        try {
-            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
-        } finally {
-            RenderSystem.enableCull();
+        if (pendingBuild) {
+            pendingBuild = false;
+            buildScene();
         }
 
-        int x = getPosition().x;
-        int y = getPosition().y;
-        int w = getSize().width;
-        int h = getSize().height;
+        int x = getPosition().x, y = getPosition().y, w = getSize().width, h = getSize().height;
+        graphics.fill(x, y, x+w, y+h, 0xFF080808);
 
-        graphics.fill(x, y, x + w, y + h, 0xDD000000);
-        graphics.fill(x, y, x + w, y + 1, 0xFF555555);
-        graphics.fill(x, y + h - 1, x + w, y + h, 0xFF555555);
-        graphics.fill(x, y, x + 1, y + h, 0xFF555555);
-        graphics.fill(x + w - 1, y, x + w, y + h, 0xFF555555);
+        super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+
+        if (sceneWidget == null) {
+            String msg = "No Schematic";
+            int tw = Minecraft.getInstance().font.width(msg);
+            graphics.drawString(Minecraft.getInstance().font, msg,
+                    x + (w - tw) / 2, y + h / 2 - 4, 0xFF888888, false);
+        }
+
+        // Border
+        graphics.fill(x, y, x+w, y+1, 0xFF555555);
+        graphics.fill(x, y+h-1, x+w, y+h, 0xFF555555);
+        graphics.fill(x, y, x+1, y+h, 0xFF555555);
+        graphics.fill(x+w-1, y, x+w, y+h, 0xFF555555);
     }
 
     @Override
-    public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        if (needsRebuild) {
-            updateCache();
-        }
+    public boolean mouseWheelMove(double mx, double my, double delta) {
+        if (!isMouseOverElement(mx, my)) return super.mouseWheelMove(mx, my, delta);
 
-        if (schematic != null && !renderCache.isEmpty()) {
-            renderPreview3D(graphics, partialTicks);
-        } else {
-            drawEmptyMessage(graphics);
-        }
-
-        super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
-    }
-
-    private void renderPreview3D(GuiGraphics graphics, float partialTicks) {
-        PoseStack poseStack = graphics.pose();
-        poseStack.pushPose();
-
-        int x = getPosition().x;
-        int y = getPosition().y;
-        int w = getSize().width;
-        int h = getSize().height;
-
-        try {
-            setupScissorWithPadding(x, y, w, h);
-
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthFunc(515);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.disableCull();
-            Lighting.setupForFlatItems();
-
-            float centerX = x + w / 2.0F;
-            float centerY = y + h / 2.0F;
-            poseStack.translate(centerX, centerY, 400.0F);
-
-            float maxDim = Math.max(cachedSize.getX(), Math.max(cachedSize.getY(), cachedSize.getZ()));
-            float baseScale = (Math.min(w, h) * 0.45F) / maxDim;
-            float finalScale = baseScale * this.zoom;
-
-            poseStack.scale(finalScale, finalScale, finalScale);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-
-            poseStack.mulPose(Axis.XP.rotationDegrees(this.rotationX));
-            poseStack.mulPose(Axis.YP.rotationDegrees(this.rotationY));
-
-            poseStack.translate(
-                    -(cachedMinPos.getX() + cachedSize.getX() / 2.0F),
-                    -(cachedMinPos.getY() + cachedSize.getY() / 2.0F),
-                    -(cachedMinPos.getZ() + cachedSize.getZ() / 2.0F)
-            );
-
-            renderBlocks(poseStack);
-
-            Lighting.setupForFlatItems();
-            RenderSystem.enableCull();
-            RenderSystem.disableBlend();
-            RenderSystem.disableDepthTest();
-
-        } catch (Exception e) {
-            com.gtceuterminal.GTCEUTerminalMod.LOGGER.error("Error rendering schematic preview", e);
-        } finally {
-            RenderSystem.disableScissor();
-            poseStack.popPose();
-        }
-    }
-
-    private void renderBlocks(PoseStack poseStack) {
-        Minecraft mc = Minecraft.getInstance();
-        BlockRenderDispatcher blockRenderer = mc.getBlockRenderer();
-        MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
-
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
-
-        for (BlockEntry entry : renderCache) {
-            poseStack.pushPose();
-            poseStack.translate(entry.pos.getX(), entry.pos.getY(), entry.pos.getZ());
-
-            try {
-                blockRenderer.renderSingleBlock(
-                        entry.state,
-                        poseStack,
-                        bufferSource,
-                        15728880,
-                        OverlayTexture.NO_OVERLAY
-                );
-            } catch (Exception e) {
+        if (!net.minecraft.client.gui.screens.Screen.hasControlDown()) {
+            // plain scroll = rotate camera 90° around Y — no recompile needed
+            if (sceneWidget != null) {
+                float currentPitch = sceneWidget.getRotationPitch();
+                float newPitch = currentPitch + (delta > 0 ? 90f : -90f);
+                sceneWidget.setCameraYawAndPitch(sceneWidget.getRotationYaw(), newPitch);
             }
-
-            poseStack.popPose();
-        }
-
-        bufferSource.endBatch();
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-
-    private void drawEmptyMessage(GuiGraphics graphics) {
-        String msg = "No Schematic";
-        int textWidth = Minecraft.getInstance().font.width(msg);
-        graphics.drawString(
-                Minecraft.getInstance().font,
-                msg,
-                getPosition().x + (getSize().width - textWidth) / 2,
-                getPosition().y + getSize().height / 2 - 4,
-                0xFF888888,
-                false
-        );
-    }
-
-    private void setupScissorWithPadding(int x, int y, int width, int height) {
-        Minecraft mc = Minecraft.getInstance();
-        double scale = mc.getWindow().getGuiScale();
-        int screenHeight = mc.getWindow().getHeight();
-
-        int scissorX = Math.max(0, (int)((x - 5) * scale));
-        int scissorY = Math.max(0, (int)(screenHeight - (y + height + 5) * scale));
-        int scissorW = (int)((width + 5 * 2) * scale);
-        int scissorH = (int)((height + 5 * 2) * scale);
-
-        RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (isMouseOverElement(mouseX, mouseY)) {
-            if (button == 0) {
-                isDragging = true;
-                lastMouseX = mouseX;
-                lastMouseY = mouseY;
-                return true;
-            } else if (button == 1) {
-                resetView();
-                return true;
-            }
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) {
-            isDragging = false;
-        }
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (isDragging) {
-            double deltaX = mouseX - lastMouseX;
-            double deltaY = mouseY - lastMouseY;
-
-            rotationY -= (float) deltaX * 0.5F;  // Cambio aquí
-            rotationX += (float) deltaY * 0.5F;
-
-            rotationX = Math.max(-80.0F, Math.min(80.0F, rotationX));
-
-            lastMouseX = mouseX;
-            lastMouseY = mouseY;
-            return true;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    @Override
-    public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (!isMouseOverElement(mouseX, mouseY)) {
-            return super.mouseWheelMove(mouseX, mouseY, wheelDelta);
-        }
-
-        // Ctrl + wheel = zoom
-        if (net.minecraft.client.gui.screens.Screen.hasControlDown()) {
-            zoom += (float) wheelDelta * ZOOM_STEP;
-            zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
             return true;
         }
 
-        // Wheel = rotación lógica
-        int dir = wheelDelta > 0 ? 1 : -1;
-        rotSteps = (rotSteps + dir) & 3;
-
-        needsRebuild = true; // IMPORTANTÍSIMO: esto fuerza rotación real del cache
-        return true;
+        return super.mouseWheelMove(mx, my, delta);
     }
 
-    public void resetView() {
-        rotationX = 30.0F;
-        rotationY = 45.0F;
-        zoom = 1.0F;
-        rotSteps = 0;
-        needsRebuild = true;
-    }
-
-    public float getRotationX() {
-        return rotationX;
-    }
-
-    public float getRotationY() {
-        return rotationY;
-    }
-
-    public float getZoom() {
-        return zoom;
-    }
-
-    public int getBlockCount() {
-        return renderCache.size();
-    }
-
-    public String getMultiblockDisplayName() {
-        if (schematic == null || schematic.getBlocks().isEmpty()) {
-            return "Multiblock Structure";
-        }
-
-        for (Map.Entry<BlockPos, BlockState> entry : schematic.getBlocks().entrySet()) {
-            BlockState state = entry.getValue();
-            String blockId = state.getBlock().getDescriptionId().toLowerCase();
-
-            if (blockId.contains("controller") ||
-                    blockId.contains("machine") ||
-                    blockId.contains("multiblock") ||
-                    blockId.contains("casing")) {
-
-                String displayName = state.getBlock().getName().getString();
-
-                if (displayName.length() > 35) {
-                    displayName = displayName.substring(0, 32) + "...";
-                }
-
-                return displayName;
-            }
-        }
-
-        for (Map.Entry<BlockPos, BlockState> entry : schematic.getBlocks().entrySet()) {
-            BlockState state = entry.getValue();
-            if (!state.isAir()) {
-                String displayName = state.getBlock().getName().getString();
-
-                if (displayName.length() > 35) {
-                    displayName = displayName.substring(0, 32) + "...";
-                }
-
-                return displayName;
-            }
-        }
-
-        return "Multiblock Structure";
-    }
+    // ── Accessors ─────────────────────────────────────────────────────────────
+    public int    getRotSteps()              { return rotSteps; }
+    public int    getBlockCount()            { return blockCount; }
+    public String getMultiblockDisplayName() { return displayName; }
 }

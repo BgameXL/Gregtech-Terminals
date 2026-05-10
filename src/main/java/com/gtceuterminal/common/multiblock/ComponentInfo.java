@@ -22,7 +22,7 @@ public class ComponentInfo {
         this.position = position;
         this.state = state;
         this.blockName = state.getBlock().builtInRegistryHolder().key().location().getPath();
-        this.amperage = detectAmperageFromBlockName(this.blockName);  // ← AGREGAR
+        this.amperage = detectAmperageFromBlockName(this.blockName);
     }
 
     public ComponentType getType() {

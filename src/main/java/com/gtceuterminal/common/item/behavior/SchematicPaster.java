@@ -67,7 +67,9 @@ public final class SchematicPaster {
                 Direction byName = Direction.byName(facingStr);
                 if (byName != null) originalFacing = byName;
             }
-        } catch (Exception ignored) {}
+        } catch (IllegalStateException e) {
+            GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not read original facing, defaulting to SOUTH: {}", e.getMessage());
+        }
 
         Direction targetFacing = player.getDirection().getOpposite();
         int rotationSteps = SchematicUtils.getRotationSteps(originalFacing, targetFacing);
@@ -77,14 +79,13 @@ public final class SchematicPaster {
             CompoundTag clipTag = itemTag.getCompound("Clipboard");
             if (clipTag.contains("UserRot"))
                 rotationSteps = (rotationSteps + (clipTag.getInt("UserRot") & 3)) & 3;
-        } catch (Exception ignored) {}
+        } catch (ClassCastException e) {
+            GTCEUTerminalMod.LOGGER.warn("SchematicPaster: malformed UserRot tag, ignoring: {}", e.getMessage());
+        }
 
         // Capture as final so it can be used inside the lambda below.
         final int finalRotationSteps = rotationSteps;
 
-        // Compute the lowest Y among all rotated relative positions.
-        // The schematic origin is the controller block, which may sit above the floor.
-        // Without this adjustment, blocks below the controller end up buried in the ground.
         int minRelY = clipboard.getBlocks().keySet().stream()
                 .mapToInt(pos -> SchematicUtils.rotatePositionSteps(pos, finalRotationSteps).getY())
                 .min()
@@ -97,7 +98,6 @@ public final class SchematicPaster {
                 "Pasting at {} (adjusted from {}, minRelY={}) — rotation: {}",
                 adjustedTarget, targetPos, minRelY, rotationSteps);
 
-        // ── PASS 1: compute placements + required materials ─────────────────────
         Map<Item, Integer> required = new HashMap<>();
         List<Placement> placements = new ArrayList<>();
         int skippedCount = 0;
@@ -144,7 +144,6 @@ public final class SchematicPaster {
             return;
         }
 
-        // ── PASS 2: material check / extraction ───────────────────────────────
         if (!player.getAbilities().instabuild) {
             MENetworkItemExtractor.ExtractResult result =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(itemStack, level, player, required);
@@ -155,13 +154,14 @@ public final class SchematicPaster {
             }
         }
 
-        // ── PASS 3: place blocks ───────────────────────────────────────────────
         IFluidHandler fluidStorage = null;
         net.minecraftforge.items.IItemHandler playerInventory = null;
 
         if (!player.getAbilities().instabuild) {
             try { fluidStorage = MENetworkFluidHandlerWrapper.getFromPlayer(player); }
-            catch (Exception ignored) {}
+            catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not resolve AE2 fluid storage: {}", e.getMessage());
+            }
 
             var cap = player.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER);
             playerInventory = cap.resolve().orElse(null);
@@ -213,7 +213,9 @@ public final class SchematicPaster {
                                     (net.minecraft.server.level.ServerLevel) level,
                                     p.worldPos, p.state, player,
                                     net.minecraft.world.item.ItemStack.EMPTY);
-                        } catch (Exception ignored) {}
+                        } catch (RuntimeException e) {
+                            GTCEUTerminalMod.LOGGER.debug("SchematicPaster: setPlacedBy failed at {}: {}", p.worldPos, e.getMessage());
+                        }
                         be.setChanged();
                     } catch (Exception e) {
                         GTCEUTerminalMod.LOGGER.error("Failed to load block entity at {}", p.worldPos, e);

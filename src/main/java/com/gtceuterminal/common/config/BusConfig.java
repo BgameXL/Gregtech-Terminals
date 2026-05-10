@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-// Bus configuration (Item I/O)
 public class BusConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(BusConfig.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -50,7 +49,7 @@ public class BusConfig {
         }
     }
 
-    // NEW: Pattern-based configuration for easier maintenance
+    
     public static class BusPattern {
         public String blockIdPattern;     // "gtceu:*_input_bus"
         public String componentType;      // "INPUT_BUS"
@@ -72,7 +71,7 @@ public class BusConfig {
         // OLD FORMAT: Individual entries (backward compatible)
         public List<BusEntry> buses = new ArrayList<>();
 
-        // NEW FORMAT: Wildcard patterns (preferred)
+        
         public List<BusPattern> patterns = new ArrayList<>();
     }
 
@@ -104,7 +103,6 @@ public class BusConfig {
     private static void createDefaultConfig(Path configPath) {
         BusConfiguration config = new BusConfiguration();
 
-        // Define patterns for all tiers of input and output buses
         config.patterns.add(new BusPattern("gtceu:*_input_bus", "INPUT_BUS"));
         config.patterns.add(new BusPattern("gtceu:*_output_bus", "OUTPUT_BUS"));
         config.patterns.add(new BusPattern("gtceu:*steam*input_bus*", "STEAM_INPUT_BUS"));
@@ -174,7 +172,6 @@ public class BusConfig {
         // Determine component type and bus type
         String busType = determineBusType(pattern.componentType);
 
-        // Get tier range
         int minTier = pattern.minTier != null ? pattern.minTier : 0;
         int maxTier = pattern.maxTier != null ? pattern.maxTier : GTValues.VN.length - 1;
 

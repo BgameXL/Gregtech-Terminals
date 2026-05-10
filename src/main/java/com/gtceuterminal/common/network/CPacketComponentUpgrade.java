@@ -1,5 +1,6 @@
 package com.gtceuterminal.common.network;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
@@ -133,7 +134,6 @@ public class CPacketComponentUpgrade {
                 }
             }
 
-            // Send feedback
             if (upgraded > 0) {
                 player.displayClientMessage(
                         Component.translatable(
@@ -236,16 +236,19 @@ public class CPacketComponentUpgrade {
                         return;
 
                     } finally {
-                        // unlock if we locked
                         if (lock != null) {
                             try {
                                 var unlockM = lock.getClass().getMethod("unlock");
                                 unlockM.invoke(lock);
-                            } catch (Exception ignored) {}
+                            } catch (ReflectiveOperationException e) {
+                                GTCEUTerminalMod.LOGGER.warn("CPacketComponentUpgrade: failed to unlock multiblock state lock", e);
+                            }
                         }
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                GTCEUTerminalMod.LOGGER.error("CPacketComponentUpgrade: error notifying multiblock state change at {}", controllerPos, e);
+            }
         }
 
         // hard fallback
@@ -270,7 +273,6 @@ public class CPacketComponentUpgrade {
             return offHand;
         }
 
-        // Check inventory
         for (ItemStack stack : player.getInventory().items) {
             if (stack.getItem() instanceof MultiStructureManagerItem ||
                     stack.getItem() instanceof SchematicInterfaceItem) {
@@ -308,15 +310,12 @@ public class CPacketComponentUpgrade {
             if (blockId.contains("source") || blockId.contains("output")) return ComponentType.OUTPUT_LASER;
         }
 
-        // Energy hatches
         if (blockId.contains("energy") && blockId.contains("input")) return ComponentType.ENERGY_HATCH;
         if (blockId.contains("dynamo")) return ComponentType.DYNAMO_HATCH;
         if (blockId.contains("energy") && blockId.contains("output")) return ComponentType.DYNAMO_HATCH;
 
-        // Coils
         if (blockId.contains("coil")) return ComponentType.COIL;
 
-        // Fluid hatches
         if (blockId.contains("quadruple") && blockId.contains("input"))
             return ComponentType.QUAD_INPUT_HATCH;
         if (blockId.contains("quadruple") && blockId.contains("output"))
@@ -330,11 +329,9 @@ public class CPacketComponentUpgrade {
         if (blockId.contains("input_hatch")) return ComponentType.INPUT_HATCH;
         if (blockId.contains("output_hatch")) return ComponentType.OUTPUT_HATCH;
 
-        // Item buses
         if (blockId.contains("input_bus")) return ComponentType.INPUT_BUS;
         if (blockId.contains("output_bus")) return ComponentType.OUTPUT_BUS;
 
-        // Special hatches
         if (blockId.contains("maintenance")) return ComponentType.MAINTENANCE;
         if (blockId.contains("muffler")) return ComponentType.MUFFLER;
         if (blockId.contains("parallel")) return ComponentType.PARALLEL_HATCH;

@@ -92,21 +92,21 @@ public class PartAbilityMapper {
     /**
      * Get ComponentType from PartAbility
      * @param ability The PartAbility from GTCEu
-     * @return The corresponding ComponentType, or null if not mapped
+     * @return The corresponding ComponentType, or empty if not mapped
      */
-    public static ComponentType fromAbility(PartAbility ability) {
-        if (ability == null) return null;
-        return ABILITY_TO_TYPE.get(ability.getName());
+    public static java.util.Optional<ComponentType> fromAbility(PartAbility ability) {
+        if (ability == null) return java.util.Optional.empty();
+        return java.util.Optional.ofNullable(ABILITY_TO_TYPE.get(ability.getName()));
     }
 
     /**
      * Get ComponentType from ability name string
      * @param abilityName The name of the ability (e.g., "input_energy")
-     * @return The corresponding ComponentType, or null if not mapped
+     * @return The corresponding ComponentType, or empty if not mapped
      */
-    public static ComponentType fromAbilityName(String abilityName) {
-        if (abilityName == null) return null;
-        return ABILITY_TO_TYPE.get(abilityName);
+    public static java.util.Optional<ComponentType> fromAbilityName(String abilityName) {
+        if (abilityName == null) return java.util.Optional.empty();
+        return java.util.Optional.ofNullable(ABILITY_TO_TYPE.get(abilityName));
     }
 
     /**

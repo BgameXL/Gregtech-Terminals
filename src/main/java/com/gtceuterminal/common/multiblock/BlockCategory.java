@@ -31,8 +31,7 @@ public class BlockCategory {
     
     public static Category categorize(BlockState state) {
         String path = state.getBlock().builtInRegistryHolder().key().location().getPath();
-        
-        // Check for coil_block or just coil
+
         if ((path.contains("coil_block") || path.contains("coil")) && !path.contains("fusion")) {
             return Category.COILS;
         }
@@ -136,8 +135,7 @@ public class BlockCategory {
         if (!tierPaths.isEmpty()) {
             for (String tierPath : tierPaths) {
                 if (tierPath.equals(examplePath)) continue;
-                
-                // Skip tiers above max
+
                 if (category != Category.COILS && TierProgression.getTierIndex(tierPath) > maxTierIndex) continue;
                 
                 net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValues().stream()
@@ -161,8 +159,7 @@ public class BlockCategory {
                     String path = block.builtInRegistryHolder().key().location().getPath();
                     
                     if (path.equals(examplePath)) return false;
-                    
-                    // Check tier limit
+
                     if (category != Category.COILS && TierProgression.getTierIndex(path) > maxTierIndex) return false;
                     
                     switch (category) {
@@ -194,8 +191,7 @@ public class BlockCategory {
                 .limit(20)
                 .forEach(block -> blocks.add(block.defaultBlockState()));
         }
-        
-        // Sort by tier index
+
         blocks.sort((a, b) -> {
             String pathA = a.getBlock().builtInRegistryHolder().key().location().getPath();
             String pathB = b.getBlock().builtInRegistryHolder().key().location().getPath();

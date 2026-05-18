@@ -45,10 +45,6 @@ public class ComponentInfo {
         return blockName;
     }
 
-    /**
-     * It achieves the maximum tier for this type of component.
-     * Coils use a different tier system (0-7) vs. voltage tiers
-     */
     private int getMaxTierForType() {
         if (type == ComponentType.COIL) {
             return 7;
@@ -58,21 +54,19 @@ public class ComponentInfo {
             return 4;
         }
 
-        // Standard components use voltage tiers (0-14)
         return GTValues.VN.length - 1;
     }
 
     public String getTierName() {
         if (type == ComponentType.COIL) {
-            String coilName = com.gtceuterminal.common.config.CoilConfig.getCoilDisplayName(tier);
+            com.gtceuterminal.common.config.ComponentEntry coilEntry = com.gtceuterminal.common.config.ComponentRegistry.coilByTier(tier);
+            String coilName = coilEntry != null ? coilEntry.displayName : "Unknown Coil";
             if (coilName != null && !coilName.isEmpty()) {
-                // Return only the coil name without "Coil"
                 return coilName.replace(" Coil", "").trim();
             }
             return "Unknown Coil";
         }
 
-        // Standard components use voltage names
         if (tier < 0 || tier >= GTValues.VN.length) {
             return "Unknown";
         }
@@ -82,10 +76,8 @@ public class ComponentInfo {
     public List<Integer> getPossibleUpgradeTiers() {
         List<Integer> tiers = new ArrayList<>();
         int maxTier = getMaxTierForType();
-
-        // Generate a list of ALL possible tiers (except the current one)
         for (int i = 0; i <= maxTier; i++) {
-            if (i != tier) {  // Exclude current tier
+            if (i != tier) {
                 tiers.add(i);
             }
         }
@@ -93,13 +85,11 @@ public class ComponentInfo {
         return tiers;
     }
 
-    // Check if it's possible to switch to a specific tier
     public boolean canUpgradeTo(int targetTier) {
         int maxTier = getMaxTierForType();
         return targetTier != tier && targetTier >= 0 && targetTier <= maxTier;
     }
 
-    // Get display name for GUI, Formats registry ID to readable name
     public String getDisplayName() {
         if (blockName.contains("rtm_alloy")) {
             return blockName.replace("rtm_alloy", "RTM Alloy")
@@ -122,7 +112,6 @@ public class ComponentInfo {
             }
 
             if (!part.isEmpty()) {
-                // Check if this part is a tier name
                 if (isTierName(part)) {
                     display.append(part.toUpperCase(java.util.Locale.ROOT));
                 } else {
@@ -159,19 +148,16 @@ public class ComponentInfo {
         return position;
     }
 
-    // Detect amperage from block name using common naming patterns
     private static String detectAmperageFromBlockName(String blockName) {
         if (blockName == null) return null;
 
         String lower = blockName.toLowerCase();
 
-        // Energy hatches
         if (lower.contains("_16a") || lower.endsWith("_16a")) return "16A";
         if (lower.contains("_8a") || lower.endsWith("_8a")) return "8A";
         if (lower.contains("_4a") || lower.endsWith("_4a")) return "4A";
         if (lower.contains("_2a") || lower.endsWith("_2a")) return "2A";
 
-        // High amperage
         if (lower.contains("_65536a_") || lower.contains("_65536a")) return "65536A";
         if (lower.contains("_16384a_") || lower.contains("_16384a")) return "16384A";
         if (lower.contains("_4096a_") || lower.contains("_4096a")) return "4096A";
@@ -179,10 +165,8 @@ public class ComponentInfo {
         if (lower.contains("_256a_") || lower.contains("_256a")) return "256A";
         if (lower.contains("_64a_") || lower.contains("_64a")) return "64A";
 
-        // Substation
         if (lower.contains("substation")) return "64A";
 
-        // Wireless GTMThings
         if (lower.contains("wireless")) {
             if (lower.contains("_16a") || lower.endsWith("_16a")) return "16A";
             if (lower.contains("_8a") || lower.endsWith("_8a")) return "8A";

@@ -14,23 +14,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Manages reading and writing {@link SchematicData} blueprints to disk.
- *
- * Blueprints are stored as {@code .nbt} files inside
- * {@code .minecraft/blueprints/} — global across all worlds, similar to
- * how JEI stores its config.
- * File format is just {@link SchematicData#toNBT()} — no new format needed.
- */
 public final class BlueprintFileManager {
 
-    /** Folder name inside the game directory. */
     private static final String FOLDER_NAME = "blueprints";
     private static final String EXTENSION    = ".nbt";
 
     private BlueprintFileManager() {}
 
-    // ── Directory ─────────────────────────────────────────────────────────────
     public static Path getBlueprintFolder() {
         Path folder = Minecraft.getInstance().gameDirectory.toPath().resolve(FOLDER_NAME);
         if (!Files.exists(folder)) {
@@ -43,7 +33,6 @@ public final class BlueprintFileManager {
         return folder;
     }
 
-    // ── List ──────────────────────────────────────────────────────────────────
     public static List<String> listBlueprintNames() {
         Path folder = getBlueprintFolder();
         List<String> names = new ArrayList<>();
@@ -59,7 +48,6 @@ public final class BlueprintFileManager {
         return names;
     }
 
-    // ── Save ──────────────────────────────────────────────────────────────────
     public static boolean save(String name, SchematicData schematic) {
         if (name == null || name.isBlank()) return false;
         Path file = getBlueprintFolder().resolve(sanitize(name) + EXTENSION);
@@ -74,7 +62,6 @@ public final class BlueprintFileManager {
         }
     }
 
-    // ── Load ──────────────────────────────────────────────────────────────────
     public static SchematicData load(String name) {
         Path file = getBlueprintFolder().resolve(sanitize(name) + EXTENSION);
         if (!Files.exists(file)) {
@@ -83,7 +70,6 @@ public final class BlueprintFileManager {
         }
         try {
             CompoundTag tag = NbtIo.readCompressed(file.toFile());
-            // fromNBT needs a registry provider — use the client level's access.
             var registryAccess = Minecraft.getInstance().level != null
                     ? Minecraft.getInstance().level.registryAccess()
                     : null;
@@ -100,7 +86,6 @@ public final class BlueprintFileManager {
         }
     }
 
-    // ── Delete ────────────────────────────────────────────────────────────────
     public static boolean delete(String name) {
         Path file = getBlueprintFolder().resolve(sanitize(name) + EXTENSION);
         try {
@@ -111,7 +96,6 @@ public final class BlueprintFileManager {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     public static String sanitize(String name) {
         return name.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
     }

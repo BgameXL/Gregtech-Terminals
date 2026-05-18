@@ -1,6 +1,7 @@
 package com.gtceuterminal.client.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.UIFactoryReflection;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
@@ -30,7 +31,7 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
         super(UI_ID);
     }
 
-    // ── Server entry point ────────────────────────────────────────────────────
+    // Server entry point
     public void openUI(ServerPlayer player, ItemStack item, BlockPos controllerPos) {
         Set<BlockPos> scannedPositions = scanPositions(player, controllerPos);
         super.openUI(new Holder(false, item, controllerPos, scannedPositions), player);
@@ -52,19 +53,12 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
         return java.util.Collections.emptySet();
     }
 
-    // ── UIFactory impl ────────────────────────────────────────────────────────
+    // UIFactory impl
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        try {
-            Class<?> uiClass = Class.forName(
-                    "com.gtceuterminal.client.gui.multiblock.DismantlerUI");
-            var m = uiClass.getMethod("create", Holder.class, Player.class);
-            return (ModularUI) m.invoke(null, holder, entityPlayer);
-        } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.error("Failed to create Dismantler UI", t);
-            throw new RuntimeException("Failed to create Dismantler UI", t);
-        }
+        return UIFactoryReflection.invokeCreate("com.gtceuterminal.client.gui.dismantler.DismantlerUI", Holder.class, holder, entityPlayer);
+
     }
 
     @Override
@@ -85,7 +79,6 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
         for (BlockPos pos : holder.scannedPositions) buf.writeBlockPos(pos);
     }
 
-    // ── Holder ────────────────────────────────────────────────────────────────
     public static class Holder implements IUIHolder {
         public final boolean remote;
         public final ItemStack item;

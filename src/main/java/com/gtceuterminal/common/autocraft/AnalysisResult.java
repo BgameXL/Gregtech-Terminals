@@ -8,22 +8,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Result of a multiblock or upgrade analysis pass.
- *
- * Contains one {@link Entry} per distinct item required, with how many
- * are needed and how many the ME network currently has in stock.
- * The "crafteable" flag means AE2 has a pattern to produce it.
- * Serialised over the network via {@link #encode}/{@link #decode}.
- */
 public final class AnalysisResult {
 
     public static final class Entry {
-        // The item needed
-        public final ItemStack stack;   // count = amount needed
-        // How many the ME network has in stock right now
+        public final ItemStack stack;
         public final long inME;
-        // Whether AE2 has a crafting pattern for this item
         public final boolean craftable;
 
         public Entry(ItemStack stack, long inME, boolean craftable) {
@@ -35,7 +24,6 @@ public final class AnalysisResult {
         public int needed()     { return stack.getCount(); }
         public boolean hasAll() { return inME >= needed(); }
 
-        // ── Serialisation ─────────────────────────────────────────────────────
         public void encode(FriendlyByteBuf buf) {
             buf.writeItem(stack);
             buf.writeLong(inME);
@@ -50,38 +38,17 @@ public final class AnalysisResult {
         }
     }
 
-    // ── Fields ────────────────────────────────────────────────────────────────
-    // Type of analysis — determines which confirm action the server executes
+    // Fields
     public enum Kind { BUILD, UPGRADE }
 
     public final Kind        kind;
     public final List<Entry> entries;
-
-    /**
-     * For BUILD: the controller block position.
-     * For UPGRADE: the controller block position (used to look up the multiblock).
-     */
     public final net.minecraft.core.BlockPos controllerPos;
-
-    /**
-     * For UPGRADE: the target tier (-1 if using upgradeId).
-     * For BUILD: unused (0).
-     */
-    public final int targetTier;
-
-    /**
-     * For UPGRADE: the explicit block-id upgrade target (may be null/empty).
-     * For BUILD: unused (null).
-     */
     public final String upgradeId;
-
-    /**
-     * For UPGRADE: the list of component positions to upgrade.
-     * For BUILD: empty.
-     */
     public final List<net.minecraft.core.BlockPos> componentPositions;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
+    public final int targetTier;
+
     public AnalysisResult(List<Entry> entries, net.minecraft.core.BlockPos controllerPos) {
         this.kind               = Kind.BUILD;
         this.entries            = entries;
@@ -104,16 +71,6 @@ public final class AnalysisResult {
         this.componentPositions = componentPositions;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    public boolean allAvailable() {
-        return entries.stream().allMatch(Entry::hasAll);
-    }
-
-    public int missingCount() {
-        return (int) entries.stream().filter(e -> !e.hasAll()).count();
-    }
-
-    // ── Serialisation ─────────────────────────────────────────────────────────
     public void encode(FriendlyByteBuf buf) {
         buf.writeEnum(kind);
         buf.writeBlockPos(controllerPos);
@@ -147,5 +104,13 @@ public final class AnalysisResult {
         } else {
             return new AnalysisResult(entries, controllerPos, targetTier, upgradeId, comps);
         }
+    }
+
+    // Helpers
+    public boolean allAvailable() {
+        return entries.stream().allMatch(Entry::hasAll);
+    }
+    public int missingCount() {
+        return (int) entries.stream().filter(e -> !e.hasAll()).count();
     }
 }

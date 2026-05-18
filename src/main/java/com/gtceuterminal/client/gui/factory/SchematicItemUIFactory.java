@@ -1,6 +1,7 @@
 package com.gtceuterminal.client.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.UIFactoryReflection;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
@@ -13,15 +14,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Factory for SchematicInterfaceItem UI.
- *
- * Serializes the full ItemStack NBT (schematic list + clipboard) server-side so
- * the client always has the correct data regardless of item-sync timing.
- * This avoids the empty-UI initial-data mismatch that occurs when using
- * HeldItemUIFactory with stateful widgets (TextFieldWidget, LabelWidget, etc.).
- * Must be registered in FMLCommonSetupEvent (immune to KubeJS double-constructor issue).
- */
 public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Holder> {
 
     public static final ResourceLocation UI_ID = ResourceLocation.fromNamespaceAndPath(
@@ -34,25 +26,16 @@ public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Hol
         super(UI_ID);
     }
 
-    // ── Server entry point ────────────────────────────────────────────────────
     public void openUI(ServerPlayer player, ItemStack item) {
         super.openUI(new Holder(false, item), player);
     }
 
-    // ── UIFactory impl ────────────────────────────────────────────────────────
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-
-        try {
-            Class<?> uiClass = Class.forName(
-                    "com.gtceuterminal.client.gui.multiblock.SchematicInterfaceUI");
-            var m = uiClass.getMethod("create", Holder.class, Player.class);
-            return (ModularUI) m.invoke(null, holder, entityPlayer);
-        } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.error("Failed to create Schematic Interface UI", t);
-            return null;
-        }
+        return UIFactoryReflection.invokeCreate(
+                "com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI",
+                Holder.class, holder, entityPlayer);
     }
 
     @Override
@@ -66,7 +49,6 @@ public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Hol
         buf.writeItem(holder.item);
     }
 
-    // ── Holder ────────────────────────────────────────────────────────────────
     public static class Holder implements IUIHolder {
         public final boolean remote;
         public final ItemStack item;

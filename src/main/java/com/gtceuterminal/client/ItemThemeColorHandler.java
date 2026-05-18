@@ -28,13 +28,9 @@ public class ItemThemeColorHandler {
         event.register(
                 (stack, tintIndex) -> {
                     if (tintIndex == 1) {
-                        // Always apply accent color — use saved theme if present,
-                        // otherwise use the default accent. Layer1 is white so
-                        // the tint color shows directly with no mixing.
                         ItemTheme theme = ItemTheme.load(stack);
                         return theme.accentColor | 0xFF000000;
                     }
-                    // layer0 = structural base → no tint
                     return 0xFFFFFFFF;
                 },
                 terminalItems

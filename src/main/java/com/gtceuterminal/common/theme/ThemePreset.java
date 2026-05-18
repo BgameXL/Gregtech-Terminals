@@ -1,12 +1,5 @@
 package com.gtceuterminal.common.theme;
 
-/**
- * Built-in color presets for the theme editor palette.
- *
- * Each preset carries its target {@link ItemTheme.UiStyle} so that selecting
- * "GTCEu Native" automatically switches the rendering to GuiTextures.BACKGROUND
- * + GuiTextures.DISPLAY without any extra steps.
- */
 public enum ThemePreset {
 
     DEFAULT      ("Default",      0xFF2E75B6, 0xFF1A1A1A, 0xFF252525, ItemTheme.UiStyle.DARK),

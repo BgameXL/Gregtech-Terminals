@@ -24,11 +24,8 @@ public class MultiblockInfo {
     private final List<ComponentInfo> components;
     private MultiblockStatus status;
 
-    // Universal Scanner Support
     private String sourceMod = "gtceu";
-    // Custom display name set by the player, stored in the MSM item NBT. If null or blank, falls back to the default machine type name.
     private String customDisplayName = null;
-    // Cached set of all block positions in this multiblock, used for efficient highlighting and interaction. Populated on demand.
     private Set<BlockPos> allBlockPositions = null;
 
     public MultiblockInfo(
@@ -126,13 +123,10 @@ public class MultiblockInfo {
         // Convert to list and sort by type name, then block name, then tier
         List<ComponentGroup> result = new ArrayList<>(groups.values());
         result.sort((a, b) -> {
-            // Sort by type first
             int typeCompare = a.getType().getDisplayName().compareTo(b.getType().getDisplayName());
             if (typeCompare != 0) return typeCompare;
-            // Then by block name
             int nameCompare = a.getBlockName().compareTo(b.getBlockName());
             if (nameCompare != 0) return nameCompare;
-            // Then by tier
             return Integer.compare(a.getTier(), b.getTier());
         });
 
@@ -159,13 +153,10 @@ public class MultiblockInfo {
     }
 
     public String getDistanceString() {
-        // Displaying a decimal point prevents many different distances from appearing identical due to rounding.
-        // (e.g., 55.6m, 56.1m, 56.4m -> "56m"), which also obscures the actual order.
         if (Double.isNaN(distanceFromPlayer) || Double.isInfinite(distanceFromPlayer)) {
             return "?m";
         }
 
-        // 1 decimal place up to 999.9m, then no decimal places to avoid taking up too much space.
         if (distanceFromPlayer < 1000.0) {
             return String.format(java.util.Locale.ROOT, "%.1fm", distanceFromPlayer);
         }
@@ -209,13 +200,6 @@ public class MultiblockInfo {
         return "gtceu".equals(sourceMod);
     }
 
-    /**
-     * Gets a display name that includes the source mod, useful for UI when there are multiblocks of multiple mods
-     * Examples:
-     * - GTCEu: "Electric Blast Furnace"
-     * - PFT: "Tesla Tower"
-     * - AGE: "Solar Boiler Array"
-     */
     public String getDisplayNameWithMod() {
         if ("gtceu".equals(sourceMod)) {
             return getName();
@@ -225,12 +209,12 @@ public class MultiblockInfo {
 
     public int getModColor() {
         return switch (sourceMod) {
-            case "gtceu" -> 0xFFFFFF;              // White
-            case "monifactory" -> 0x00FF00;               // Green
-            case "terrafirmagreg" -> 0x00FFFF;            // Cyan
-            case "phoenix's technologies" -> 0xFFAA00; // Orange
-            case "astrogreg:exsilium" -> 0xFF00FF;    // Purple
-            default -> 0xAAAAAA;                   // Gray
+            case "gtceu" -> 0xFFFFFF;
+            case "monifactory" -> 0x00FF00;
+            case "terrafirmagreg" -> 0x00FFFF;
+            case "phoenix's technologies" -> 0xFFAA00;
+            case "astrogreg:exsilium" -> 0xFF00FF;
+            default -> 0xAAAAAA;
         };
     }
 

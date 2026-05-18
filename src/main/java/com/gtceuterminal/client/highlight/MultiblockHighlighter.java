@@ -36,7 +36,7 @@ public class MultiblockHighlighter {
         public final Set<BlockPos> blocks;
         public final int color;
         public final long startTime;
-        public final int duration; // milliseconds, -1 = permanent
+        public final int duration;
         public final AABB boundingBox;
 
         public HighlightInfo(BlockPos controllerPos, Set<BlockPos> blocks, int color, int duration) {

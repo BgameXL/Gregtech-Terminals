@@ -20,20 +20,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 
-/**
- * Handles copying a formed GTCEu multiblock into an {@link ItemStack}'s NBT clipboard.
- *
- * Responsibilities:
- *  - Scanning the multiblock area to collect block positions
- *  - Cleaning block-entity NBT (strips real items, keeps config)
- *  - Handling AE2 machine and cable-bus config copying
- *  - Writing the resulting {@link SchematicData} to the item tag
- */
 public final class SchematicCopier {
 
     private SchematicCopier() {}
-
-    // ── Entry point ───────────────────────────────────────────────────────────
 
     public static void copyMultiblock(IMultiController controller, ItemStack itemStack,
                                       Player player, Level level) {
@@ -53,9 +42,6 @@ public final class SchematicCopier {
         Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
         BlockPos controllerPos = controller.self().getPos();
 
-        // Skip the upper half of double-block structures (doors, etc.).
-        // The cache contains both BlockPos for every door, but we only store
-        // the lower half so paste and material-count see exactly one entry per door.
         java.util.Set<BlockPos> upperHalves = new java.util.HashSet<>();
         for (BlockPos pos : positions) {
             BlockState st = level.getBlockState(pos);
@@ -66,7 +52,7 @@ public final class SchematicCopier {
         }
 
         for (BlockPos pos : positions) {
-            if (upperHalves.contains(pos)) continue; // upper half — lower half carries the item
+            if (upperHalves.contains(pos)) continue;
             BlockState state = level.getBlockState(pos);
             if (state.isAir()) continue;
 
@@ -101,15 +87,6 @@ public final class SchematicCopier {
         GTCEUTerminalMod.LOGGER.info("Multiblock copied: {} blocks", blocks.size());
     }
 
-    // ── Area scanning ─────────────────────────────────────────────────────────
-
-    /**
-     * Returns the set of block positions that belong to the multiblock.
-     *
-     * Primary: uses the multiblock state cache (exact parts only).
-     * Fallback: computes the bounding box of all parts and scans only the part
-     *           positions — no extra padding — so terrain blocks are not included.
-     */
     private static Set<BlockPos> scanMultiblockArea(IMultiController controller, Level level) {
         Set<BlockPos> positions = new HashSet<>();
 
@@ -124,8 +101,6 @@ public final class SchematicCopier {
             GTCEUTerminalMod.LOGGER.warn("Multiblock cache unavailable, falling back to part positions");
         }
 
-        // Fallback: collect positions directly from the part list instead of
-        // scanning the bounding box. This avoids capturing terrain blocks.
         List<IMultiPart> parts = controller.getParts();
         if (parts.isEmpty()) {
             GTCEUTerminalMod.LOGGER.warn("No parts found in multiblock");
@@ -141,12 +116,6 @@ public final class SchematicCopier {
         return positions;
     }
 
-    // ── NBT cleaning ──────────────────────────────────────────────────────────
-
-    /**
-     * Strips transient state and real-item data from a block-entity tag,
-     * keeping only the configuration needed to reconstruct the block on paste.
-     */
     private static CompoundTag cleanNBTForSchematic(CompoundTag originalTag) {
         if (originalTag == null || originalTag.isEmpty()) return new CompoundTag();
 
@@ -154,26 +123,22 @@ public final class SchematicCopier {
 
         copyString(originalTag, clean, "id");
 
-        // Covers / upgrades
         copyTag(originalTag, clean, "CoverContainer");
         copyTag(originalTag, clean, "Covers");
         copyTag(originalTag, clean, "Upgrades");
 
-        // Tier / material
         if (originalTag.contains("Tier"))     clean.putInt("Tier", originalTag.getInt("Tier"));
         copyString(originalTag, clean, "Material");
 
-        // Facing / rotation
         copyString(originalTag, clean, "Facing");
         copyString(originalTag, clean, "FrontFacing");
 
-        // User configuration
         if (originalTag.contains("WorkingEnabled"))
             clean.putBoolean("WorkingEnabled", originalTag.getBoolean("WorkingEnabled"));
         if (originalTag.contains("AllowInputFromOutputSide"))
             clean.putBoolean("AllowInputFromOutputSide", originalTag.getBoolean("AllowInputFromOutputSide"));
 
-        // Identity / cosmetics
+
         copyString(originalTag, clean, "CustomName");
         if (originalTag.contains("PartIndex"))
             clean.putInt("PartIndex", originalTag.getInt("PartIndex"));
@@ -181,7 +146,6 @@ public final class SchematicCopier {
         if (originalTag.contains("paintingColor"))
             clean.putInt("paintingColor", originalTag.getInt("paintingColor"));
 
-        // AE2 config (opt-in via server config)
         if (com.gtceuterminal.common.config.ItemsConfig.isSchAllowAE2ConfigCopy()) {
             String blockId = originalTag.getString("id").toLowerCase();
             if (isGTCEuAE2Machine(blockId))  copyGTCEuAE2MachineConfig(originalTag, clean);
@@ -192,8 +156,6 @@ public final class SchematicCopier {
                 originalTag.getAllKeys().size(), clean.getAllKeys().size());
         return clean;
     }
-
-    // ── AE2 detection ─────────────────────────────────────────────────────────
 
     private static boolean isGTCEuAE2Machine(String blockId) {
         if (!blockId.startsWith("gtceu:")) return false;
@@ -206,12 +168,6 @@ public final class SchematicCopier {
                 || blockId.contains("appliedenergistics2:cable_bus");
     }
 
-    // ── AE2 config copying ────────────────────────────────────────────────────
-
-    /**
-     * Copies AE2-related config from a GTCEu ME bus/hatch NBT tag,
-     * stripping real-item stock to prevent duplication on paste.
-     */
     private static void copyGTCEuAE2MachineConfig(CompoundTag src, CompoundTag dst) {
         if (src.contains("inventory")) {
             net.minecraft.nbt.Tag outerRaw = src.get("inventory");
@@ -271,7 +227,6 @@ public final class SchematicCopier {
         GTCEUTerminalMod.LOGGER.debug("Copied GTCEu AE2 machine config — keys: {}", dst.getAllKeys());
     }
 
-    /** Copies AE2 cable-bus part configuration, stripping real-item state. */
     private static void copyAE2CableBusConfig(CompoundTag src, CompoundTag dst) {
         String[] sideKeys = { "down", "up", "north", "south", "east", "west", "cable" };
 
@@ -312,8 +267,7 @@ public final class SchematicCopier {
         return safe;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
+    // Helpers
     private static void copyString(CompoundTag src, CompoundTag dst, String key) {
         if (src.contains(key)) dst.putString(key, src.getString(key));
     }

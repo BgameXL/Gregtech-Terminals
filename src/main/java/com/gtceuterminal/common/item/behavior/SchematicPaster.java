@@ -29,22 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Handles pasting a {@link SchematicData} from an {@link ItemStack}'s NBT clipboard
- * into the world at a given position.
- *
- * Responsibilities:
- *  - Computing block rotation based on the player's facing
- *  - Two-pass placement: material check first, then placement
- *  - Extracting materials from player inventory or ME network
- *  - Handling fluid blocks via FluidPlacementHelper
- *  - Restoring block-entity data after placement
- */
 public final class SchematicPaster {
 
     private SchematicPaster() {}
-
-    // ── Entry point ───────────────────────────────────────────────────────────
 
     public static void pasteSchematic(ItemStack itemStack, Player player,
                                       Level level, BlockPos targetPos) {
@@ -58,8 +45,6 @@ public final class SchematicPaster {
 
         SchematicData clipboard = SchematicData.fromNBT(
                 itemTag.getCompound("Clipboard"), level.registryAccess());
-
-        // Resolve rotation
         Direction originalFacing = Direction.SOUTH;
         try {
             String facingStr = clipboard.getOriginalFacing();
@@ -74,7 +59,6 @@ public final class SchematicPaster {
         Direction targetFacing = player.getDirection().getOpposite();
         int rotationSteps = SchematicUtils.getRotationSteps(originalFacing, targetFacing);
 
-        // Apply user rotation stored on the item
         try {
             CompoundTag clipTag = itemTag.getCompound("Clipboard");
             if (clipTag.contains("UserRot"))
@@ -83,7 +67,6 @@ public final class SchematicPaster {
             GTCEUTerminalMod.LOGGER.warn("SchematicPaster: malformed UserRot tag, ignoring: {}", e.getMessage());
         }
 
-        // Capture as final so it can be used inside the lambda below.
         final int finalRotationSteps = rotationSteps;
 
         int minRelY = clipboard.getBlocks().keySet().stream()
@@ -91,7 +74,6 @@ public final class SchematicPaster {
                 .min()
                 .orElse(0);
 
-        // Shift the anchor so the lowest schematic block sits exactly at targetPos.Y.
         final BlockPos adjustedTarget = targetPos.above(-minRelY);
 
         GTCEUTerminalMod.LOGGER.info(
@@ -116,15 +98,12 @@ public final class SchematicPaster {
             if (!current.isAir() && !current.canBeReplaced()) { skippedCount++; continue; }
             if (current.equals(rotatedState))                  { skippedCount++; continue; }
 
-            // Fluid blocks: no item form, handled separately
+            // Fluid blocks
             if (rotatedState.getFluidState().isSource()) {
                 placements.add(new Placement(relativePos, worldPos, rotatedState));
                 continue;
             }
 
-            // Skip the UPPER half of doors — the item is already counted from LOWER.
-            // When we place the LOWER half via BlockItem.place() Minecraft will
-            // auto-create the UPPER half, so we never need to place or count it.
             if (rotatedState.getBlock() instanceof DoorBlock
                     && rotatedState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
                 skippedCount++; continue;
@@ -179,11 +158,9 @@ public final class SchematicPaster {
                 continue;
             }
 
-            // Doors are two-block-tall structures.
             if (p.state.getBlock() instanceof DoorBlock
                     && p.state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
                 BlockPos upperPos = p.worldPos.above();
-                // Only place if there is room for the upper half
                 BlockState upperCurrent = level.getBlockState(upperPos);
                 if (upperCurrent.isAir() || upperCurrent.canBeReplaced()) {
                     BlockState upperState = p.state.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
@@ -240,8 +217,7 @@ public final class SchematicPaster {
         GTCEUTerminalMod.LOGGER.info("Schematic pasted: {} placed, {} skipped", placedCount, skippedCount);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
+    // Helpers
     private static Component buildMissingMessage(ItemStack itemStack, Level level,
                                                  Player player, Map<Item, Integer> required) {
         Map<Item, Integer> inv = MaterialCalculator.scanPlayerInventory(player);
@@ -269,7 +245,6 @@ public final class SchematicPaster {
         );
     }
 
-    // ── Internal record ───────────────────────────────────────────────────────
-
+    // Internal record
     private record Placement(BlockPos relativeKey, BlockPos worldPos, BlockState state) {}
 }

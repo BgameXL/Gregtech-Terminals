@@ -42,7 +42,6 @@ public class CPacketPlacePlannerGhosts {
         this.ghosts = ghosts;
     }
 
-    // ── Encode / Decode ───────────────────────────────────────────────────────
     public void encode(FriendlyByteBuf buf) {
         buf.writeInt(ghosts.size());
         for (GhostEntry g : ghosts) {
@@ -60,7 +59,6 @@ public class CPacketPlacePlannerGhosts {
         }
     }
 
-    // ── Handler ───────────────────────────────────────────────────────────────
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
@@ -109,7 +107,6 @@ public class CPacketPlacePlannerGhosts {
         ctx.get().setPacketHandled(true);
     }
 
-    // ── Placement logic ───────────────────────────────────────────────────────
     private static int[] placeSchematic(ServerPlayer player, ServerLevel level,
                                         SchematicData schematic,
                                         BlockPos origin, int rotSteps) {

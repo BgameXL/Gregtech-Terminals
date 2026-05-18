@@ -3,8 +3,7 @@ package com.gtceuterminal.common.multiblock;
 import java.util.*;
 
 public class TierProgression {
-    
-    // Coil progression
+
     private static final List<String> COIL_TIERS = Arrays.asList(
         "cupronickel_coil_block",
         "kanthal_coil_block", 
@@ -15,8 +14,7 @@ public class TierProgression {
         "trinium_coil_block",
         "tritanium_coil_block"
     );
-    
-    // Machine casing progression (it has a specific use, documentation and config files later)
+
     private static final List<String> CASING_TIERS = Arrays.asList(
         "lv_machine_casing",
         "mv_machine_casing",
@@ -28,28 +26,24 @@ public class TierProgression {
         "uv_machine_casing",
         "uhv_machine_casing"
     );
-    
-    // Energy hatch
+
     private static final List<String> VOLTAGE_TIERS = Arrays.asList(
         "ulv", "lv", "mv", "hv", "ev", "iv", "luv", "zpm", "uv", "uhv"
     );
 
     public static String getNextTier(String currentPath) {
-        // Check coils
         for (int i = 0; i < COIL_TIERS.size() - 1; i++) {
             if (currentPath.contains(COIL_TIERS.get(i))) {
                 return COIL_TIERS.get(i + 1);
             }
         }
-        
-        // Check casings
+
         for (int i = 0; i < CASING_TIERS.size() - 1; i++) {
             if (currentPath.contains(CASING_TIERS.get(i))) {
                 return CASING_TIERS.get(i + 1);
             }
         }
-        
-        // Check voltage tiers
+
         for (int i = 0; i < VOLTAGE_TIERS.size() - 1; i++) {
             if (currentPath.contains("." + VOLTAGE_TIERS.get(i) + ".") || 
                 currentPath.endsWith("." + VOLTAGE_TIERS.get(i))) {
@@ -62,21 +56,18 @@ public class TierProgression {
     }
 
     public static String getPreviousTier(String currentPath) {
-        // Check coils
         for (int i = 1; i < COIL_TIERS.size(); i++) {
             if (currentPath.contains(COIL_TIERS.get(i))) {
                 return COIL_TIERS.get(i - 1);
             }
         }
-        
-        // Check casings
+
         for (int i = 1; i < CASING_TIERS.size(); i++) {
             if (currentPath.contains(CASING_TIERS.get(i))) {
                 return CASING_TIERS.get(i - 1);
             }
         }
-        
-        // Check voltage tiers
+
         for (int i = 1; i < VOLTAGE_TIERS.size(); i++) {
             if (currentPath.contains("." + VOLTAGE_TIERS.get(i) + ".") || 
                 currentPath.endsWith("." + VOLTAGE_TIERS.get(i))) {
@@ -90,22 +81,19 @@ public class TierProgression {
 
     public static List<String> getAllTiers(String currentPath) {
         List<String> tiers = new ArrayList<>();
-        
-        // Check coils
+
         for (String coil : COIL_TIERS) {
             if (currentPath.contains(coil)) {
                 return new ArrayList<>(COIL_TIERS);
             }
         }
-        
-        // Check casings
+
         for (String casing : CASING_TIERS) {
             if (currentPath.contains(casing)) {
                 return new ArrayList<>(CASING_TIERS);
             }
         }
-        
-        // Check voltage tiers
+
         for (String tier : VOLTAGE_TIERS) {
             if (currentPath.contains("." + tier + ".") || currentPath.endsWith("." + tier)) {
                 for (String newTier : VOLTAGE_TIERS) {
@@ -119,7 +107,6 @@ public class TierProgression {
     }
 
     public static int getTierIndex(String path) {
-        // Coils
         for (int i = 0; i < COIL_TIERS.size(); i++) {
             if (path.contains(COIL_TIERS.get(i))) return i;
         }
@@ -128,8 +115,7 @@ public class TierProgression {
         for (int i = 0; i < CASING_TIERS.size(); i++) {
             if (path.contains(CASING_TIERS.get(i))) return i;
         }
-        
-        // Voltage
+
         for (int i = 0; i < VOLTAGE_TIERS.size(); i++) {
             if (path.contains("." + VOLTAGE_TIERS.get(i) + ".") || 
                 path.endsWith("." + VOLTAGE_TIERS.get(i))) return i;

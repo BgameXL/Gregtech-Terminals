@@ -37,15 +37,12 @@ public class CPacketDismantle {
             ServerPlayer player = context.getSender();
             if (player != null && player.level() instanceof ServerLevel serverLevel) {
 
-                // Security: verify the player is holding the DismantlerItem
                 if (!(player.getMainHandItem().getItem() instanceof DismantlerItem)) {
                     GTCEUTerminalMod.LOGGER.warn("Player {} tried to dismantle without holding DismantlerItem",
                             player.getName().getString());
                     return;
                 }
 
-                // Security: verify the player is within reach (max 6 blocks = distSq 36,
-                // use 64 to give a small margin for lag)
                 if (player.blockPosition().distSqr(msg.controllerPos) > 64) {
                     GTCEUTerminalMod.LOGGER.warn("Player {} tried to dismantle out of reach at {}",
                             player.getName().getString(), msg.controllerPos);
@@ -55,7 +52,6 @@ public class CPacketDismantle {
                 GTCEUTerminalMod.LOGGER.info("Dismantling multiblock at {} for player {}",
                         msg.controllerPos, player.getName().getString());
 
-                // Verify that it is a multiblock controller
                 BlockEntity blockEntity = serverLevel.getBlockEntity(msg.controllerPos);
 
                 if (blockEntity instanceof IMachineBlockEntity mbe) {
@@ -63,7 +59,6 @@ public class CPacketDismantle {
 
                     if (metaMachine instanceof MultiblockControllerMachine controller) {
                         if (controller.isFormed()) {
-                            // Perform dismantling
                             boolean success = DismantleExecutor.dismantleMultiblock(
                                     serverLevel, player, controller
                             );

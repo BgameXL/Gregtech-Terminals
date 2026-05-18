@@ -36,7 +36,6 @@ public class BlockReplacer {
         MENetworkItemExtractor.ExtractionSource extractionSource = MENetworkItemExtractor.ExtractionSource.NONE;
 
         if (!player.isCreative()) {
-            // Convert Block to Item for ME extraction
             Map<Item, Integer> requiredItems = new HashMap<>();
             for (Map.Entry<Block, Integer> entry : required.entrySet()) {
                 Item item = entry.getKey().asItem();
@@ -45,7 +44,6 @@ public class BlockReplacer {
                 }
             }
 
-            // Try extract from ME or inventory
             if (wirelessTerminal != null && !wirelessTerminal.isEmpty()) {
                 MENetworkItemExtractor.ExtractResult result =
                         MENetworkItemExtractor.tryExtractFromMEOrInventory(
@@ -55,7 +53,6 @@ public class BlockReplacer {
                 hasResources = result.success;
                 extractionSource = result.source;
             } else {
-                // No wireless terminal, use traditional method
                 hasResources = verifyAndConsumeInventory(player, required);
                 extractionSource = hasResources ? MENetworkItemExtractor.ExtractionSource.PLAYER_INVENTORY : MENetworkItemExtractor.ExtractionSource.NONE;
             }
@@ -140,7 +137,6 @@ public class BlockReplacer {
         return true;
     }
 
-    // Backward compatibility - replace blocks without wireless terminal
     public static boolean replaceBlocks(IMultiController controller, Player player,
                                         BlockReplacementData data) {
         return replaceBlocks(controller, player, data, ItemStack.EMPTY);
@@ -153,7 +149,7 @@ public class BlockReplacer {
 
     private static void updateNeighborBlocks(Level level, BlockPos pos, Block newBlock) {
         BlockPos[] neighbors = {
-                pos,           // The block itself
+                pos,
                 pos.above(), pos.below(),
                 pos.north(), pos.south(),
                 pos.east(), pos.west()
@@ -208,8 +204,6 @@ public class BlockReplacer {
         return required;
     }
 
-
-    // Verify and consume from player inventory (fallback method)
     private static boolean verifyAndConsumeInventory(Player player, Map<Block, Integer> required) {
         if (player.isCreative()) {
             return true;
@@ -226,7 +220,6 @@ public class BlockReplacer {
             }
         }
 
-        // Verify first
         for (Map.Entry<Block, Integer> entry : required.entrySet()) {
             int needed = entry.getValue();
             int have = available.getOrDefault(entry.getKey(), 0);
@@ -236,7 +229,6 @@ public class BlockReplacer {
             }
         }
 
-        // Then consume
         consumeBlocks(player, required);
         return true;
     }
@@ -263,7 +255,6 @@ public class BlockReplacer {
     }
 
     private static void returnBlocks(Player player, Map<Block, Integer> blocks) {
-        // Don't return blocks in creative mode
         if (player.isCreative()) {
             return;
         }

@@ -39,7 +39,6 @@ public class GroupUpgradeDialog extends DialogWidget {
     private static final int dialogW = 320;
     private static final int dialogH = 260;
 
-    // GTCEu Colors
     private ItemTheme theme;
     private int COLOR_BG_DARK = 0xFF1A1A1A;
     private int COLOR_BG_MEDIUM = 0xFF2B2B2B;
@@ -73,15 +72,13 @@ public class GroupUpgradeDialog extends DialogWidget {
             Runnable onSuccess,
             Runnable onClose
     ) {
-        super(parent, true);  // true = modal
+        super(parent, true);
         this.group = group;
         this.targetTier = targetTier;
         this.player = player;
         this.onSuccess = onSuccess;
         this.onClose = onClose;
         this.controllerPos = controllerPos;
-
-        // Apply theme — searches full inventory so the preset works regardless of hand
         this.theme = ItemTheme.loadFromPlayer(player);
         this.COLOR_BG_DARK      = theme.bgColor;
         this.COLOR_BG_MEDIUM    = theme.panelColor;
@@ -127,19 +124,14 @@ public class GroupUpgradeDialog extends DialogWidget {
             addWidget(new ImageWidget(0, h - 2, w, 2, new ColorRectTexture(COLOR_BORDER_DARK)));
         }
 
-        // Calculate materials
         calculateMaterials();
 
-        // Header
         addWidget(createHeader());
 
-        // Group info
         addWidget(createGroupInfo());
 
-        // Materials list or creative message
         addWidget(createMaterialsPanel());
 
-        // Buttons
         addWidget(createButtons());
     }
 
@@ -252,7 +244,6 @@ public class GroupUpgradeDialog extends DialogWidget {
         WidgetGroup panel = new WidgetGroup(10, 100, W - 20, listHeight);
         panel.setBackground(theme.panelTexture());
 
-        // Header
         LabelWidget headerLabel = new LabelWidget(10, 5,
                 net.minecraft.network.chat.Component.translatable(
                         "gui.gtceuterminal.group_upgrade_dialog.required_materials"
@@ -260,7 +251,6 @@ public class GroupUpgradeDialog extends DialogWidget {
         headerLabel.setTextColor(COLOR_TEXT_GRAY);
         panel.addWidget(headerLabel);
 
-        // Materials list
         int yPos = 18;
         for (MaterialAvailability mat : materials) {
             String itemName = mat.getItemName();
@@ -283,7 +273,6 @@ public class GroupUpgradeDialog extends DialogWidget {
     private WidgetGroup createButtons() {
         WidgetGroup buttons = new WidgetGroup(10, H - 35, W - 20, 28);
 
-        // Confirm button
         String confirmText = hasEnough
                 ? net.minecraft.network.chat.Component.translatable(
                         "gui.gtceuterminal.group_upgrade_dialog.confirm_upgrade_all",
@@ -317,7 +306,6 @@ public class GroupUpgradeDialog extends DialogWidget {
 
         buttons.addWidget(confirmBtn);
 
-        // Cancel button
         ButtonWidget cancelBtn = new ButtonWidget(
                 (W - 150), 0, 140, 24,
                 new GuiTextureGroup(

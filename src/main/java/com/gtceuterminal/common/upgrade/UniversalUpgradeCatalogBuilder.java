@@ -19,7 +19,6 @@ public final class UniversalUpgradeCatalogBuilder {
     private UniversalUpgradeCatalogBuilder() {
     }
 
-    // Scans the given multiblock controller's parts
     public static UniversalUpgradeCatalog build(MultiblockControllerMachine controller, Level level) {
         UniversalUpgradeCatalog catalog = new UniversalUpgradeCatalog();
 

@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 
 import com.gtceuterminal.common.config.ItemsConfig;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -58,7 +57,6 @@ public class DismantleScanner {
             return totalBlocks;
         }
 
-        // This is used for UI/preview (count per block). Exact refund with NBT
         public List<ItemStack> getItemsToRecover() {
             List<ItemStack> items = new ArrayList<>();
             for (Map.Entry<Block, Integer> entry : blockCounts.entrySet()) {
@@ -73,7 +71,6 @@ public class DismantleScanner {
     }
 
 
-    // Scan a multiblock and return detailed information
     public static ScanResult scanMultiblock(Level level, MultiblockControllerMachine controller) {
         BlockPos controllerPos = controller.getPos();
         Set<BlockPos> allBlocks = new HashSet<>();
@@ -82,15 +79,12 @@ public class DismantleScanner {
 
         MultiblockState state = controller.getMultiblockState();
         if (state != null) {
-            // 1) Prefer the cache: contains the ENTIRE multiblock (casings + parts + controller)
             try {
                 Collection<BlockPos> cache = state.getCache();
                 if (cache != null && !cache.isEmpty()) {
                     allBlocks.addAll(cache);
                 }
             } catch (Throwable ignored) {}
-
-            // 2) Fallback: at least include parts if the cache is unavailable
             if (allBlocks.isEmpty()) {
                 controller.getParts().forEach(part -> allBlocks.add(part.self().getPos()));
             }
@@ -111,7 +105,6 @@ public class DismantleScanner {
     }
 
 
-    // Calculate whether the player has space for all items
     public static boolean hasEnoughSpace(List<ItemStack> items,
                                          int playerInventorySlots,
                                          boolean hasMENetwork,
@@ -120,7 +113,7 @@ public class DismantleScanner {
         int availableSlots = playerInventorySlots;
 
         if (hasMENetwork) {
-            return true; // ME Network has "virtually" infinite space
+            return true;
         }
 
         availableSlots += nearbyChestSlots;

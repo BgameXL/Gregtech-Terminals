@@ -30,7 +30,6 @@ public class LinkedMachineData {
         this.legacyTypeDisplay = legacyTypeDisplay != null ? legacyTypeDisplay : "";
     }
 
-    // ─── NBT ─────────────────────────────────────────────────────────────────
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
         tag.putInt("X", pos.getX());
@@ -71,7 +70,7 @@ public class LinkedMachineData {
         );
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // Helpers
     public boolean matches(BlockPos otherPos, String otherDim) {
         return pos.equals(otherPos) && dimensionId.equals(otherDim);
     }
@@ -113,7 +112,6 @@ public class LinkedMachineData {
         return level.dimension().location().toString();
     }
 
-    // ─── Getters / Setters ────────────────────────────────────────────────────
     public BlockPos getPos()          { return pos; }
     public String getDimensionId()    { return dimensionId; }
     public String getCustomName()     { return customName; }

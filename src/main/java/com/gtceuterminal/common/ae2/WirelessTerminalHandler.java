@@ -13,10 +13,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Handles wireless terminal connection to ME Network via Wireless Access Point
- * Works exactly like AE2's Wireless Terminal
- */
 public class WirelessTerminalHandler {
 
     private static final String TAG_ACCESS_POINT_POS = "accessPoint";
@@ -24,42 +20,34 @@ public class WirelessTerminalHandler {
         return !stack.isEmpty() && stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem;
     }
 
-
-    // Check if the item is linked to a Wireless Access Point
     public static boolean isLinked(ItemStack stack) {
         return stack.hasTag() && stack.getTag().contains(TAG_ACCESS_POINT_POS);
     }
 
-    // Get the linked grid if available and in range
     @Nullable
     public static IGrid getLinkedGrid(ItemStack stack, Level level, Player player) {
         if (!isLinked(stack)) {
             return null;
         }
 
-        // Get the linked position
         GlobalPos globalPos = getLinkedPosition(stack);
         if (globalPos == null) {
             return null;
         }
 
-        // Check if we're in the right dimension
         if (!level.dimension().equals(globalPos.dimension())) {
             return null;
         }
 
-        // Get the Access Point
         BlockEntity be = level.getBlockEntity(globalPos.pos());
         if (!(be instanceof IWirelessAccessPoint accessPoint)) {
             return null;
         }
 
-        // Check if it's active
         if (!accessPoint.isActive()) {
             return null;
         }
 
-        // Check range
         double range = accessPoint.getRange();
         BlockPos playerPos = player.blockPosition();
         double distanceSq = globalPos.pos().distSqr(playerPos);
@@ -68,13 +56,11 @@ public class WirelessTerminalHandler {
             return null;
         }
 
-        // Get the grid (security is handled by AE2 internally)
         IGrid grid = accessPoint.getGrid();
 
         return grid;
     }
 
-    // Check if player is in range of the linked Access Point
     public static boolean isInRange(ItemStack stack, Level level, Player player) {
         if (!isLinked(stack)) {
             return false;

@@ -30,7 +30,7 @@ public class GTCETerminalCommands {
         dispatcher.register(
             Commands.literal("gtcet")
                 .then(Commands.literal("theme")
-                    .requires(src -> src.hasPermission(2)) // OP level 2
+                    .requires(src -> src.hasPermission(2))
                     .then(Commands.literal("set-default")
                         .executes(GTCETerminalCommands::setDefault))
                     .then(Commands.literal("reset-default")
@@ -43,8 +43,6 @@ public class GTCETerminalCommands {
         );
     }
 
-    // ─── /gtcet theme set-default ────────────────────────────────────────────
-    // Reads the theme from the admin's held terminal item and saves it as default
     private static int setDefault(CommandContext<CommandSourceStack> ctx) {
         CommandSourceStack src = ctx.getSource();
         ServerPlayer player;
@@ -55,7 +53,6 @@ public class GTCETerminalCommands {
             return 0;
         }
 
-        // Find terminal item in hands
         ItemStack found = findTerminal(player);
         if (found.isEmpty()) {
             src.sendFailure(Component.translatable(
@@ -77,7 +74,6 @@ public class GTCETerminalCommands {
         return 1;
     }
 
-    // ─── /gtcet theme reset-default ──────────────────────────────────────────
     private static int resetDefault(CommandContext<CommandSourceStack> ctx) {
         DefaultThemeConfig.save(new ItemTheme()); // built-in defaults
         DefaultThemeConfig.reload();
@@ -86,7 +82,6 @@ public class GTCETerminalCommands {
         return 1;
     }
 
-    // ─── /gtcet theme reload ─────────────────────────────────────────────────
     private static int reloadConfig(CommandContext<CommandSourceStack> ctx) {
         DefaultThemeConfig.reload();
         ctx.getSource().sendSuccess(() ->
@@ -94,7 +89,6 @@ public class GTCETerminalCommands {
         return 1;
     }
 
-    // ─── /gtcet theme info ───────────────────────────────────────────────────
     private static int showInfo(CommandContext<CommandSourceStack> ctx) {
         ItemTheme t = DefaultThemeConfig.get();
         ctx.getSource().sendSuccess(() -> {
@@ -117,7 +111,7 @@ public class GTCETerminalCommands {
         return 1;
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    // Helpers
     private static ItemStack findTerminal(ServerPlayer player) {
         for (var hand : net.minecraft.world.InteractionHand.values()) {
             ItemStack s = player.getItemInHand(hand);

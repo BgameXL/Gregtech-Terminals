@@ -16,10 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import java.util.HashMap;
 import java.util.Map;
 
-// Extracts items from ME Network with improved logging
 public class MENetworkItemExtractor {
 
-    // Check if all required items are available in the ME Network
     public static boolean hasItems(IGrid grid, Map<Item, Integer> required) {
         if (grid == null) {
             return false;
@@ -47,7 +45,6 @@ public class MENetworkItemExtractor {
         return true;
     }
 
-    // Get amount of specific item in ME Network
     public static long getItemCount(IGrid grid, Item item) {
         if (grid == null) {
             return 0;
@@ -152,7 +149,6 @@ public class MENetworkItemExtractor {
         return true;
     }
 
-    // Rollback extraction by returning items to the network
     private static void rollbackExtraction(IStorageService storage, Map<Item, Long> extracted, IActionSource actionSource) {
         GTCEUTerminalMod.LOGGER.info("Rolling back extraction...");
 
@@ -171,8 +167,6 @@ public class MENetworkItemExtractor {
         }
     }
 
-
-    // Try to extract items from ME Network, with fallback to player inventory
     public static ExtractResult tryExtractFromMEOrInventory(
             ItemStack stack,
             net.minecraft.world.level.Level level,
@@ -209,7 +203,6 @@ public class MENetworkItemExtractor {
             GTCEUTerminalMod.LOGGER.info("Wireless terminal is NOT LINKED");
         }
 
-        // Fallback to player inventory
         GTCEUTerminalMod.LOGGER.info("Trying player inventory as fallback...");
 
         if (extractFromPlayerInventory(player, required)) {
@@ -221,7 +214,6 @@ public class MENetworkItemExtractor {
         return new ExtractResult(false, ExtractionSource.NONE);
     }
 
-    // Extract items from player inventory
     private static boolean extractFromPlayerInventory(Player player, Map<Item, Integer> required) {
         for (Map.Entry<Item, Integer> entry : required.entrySet()) {
             int count = countItemInInventory(player, entry.getKey());
@@ -262,7 +254,6 @@ public class MENetworkItemExtractor {
         return true;
     }
 
-     // Count how many of an item the player has
     private static int countItemInInventory(Player player, Item item) {
         int count = 0;
 
@@ -275,7 +266,6 @@ public class MENetworkItemExtractor {
         return count;
     }
 
-     // Result of an extraction attempt
     public static class ExtractResult {
         public final boolean success;
         public final ExtractionSource source;
@@ -286,7 +276,6 @@ public class MENetworkItemExtractor {
         }
     }
 
-    // Where items were extracted from
     public enum ExtractionSource {
         ME_NETWORK,
         PLAYER_INVENTORY,

@@ -32,7 +32,6 @@ public class MultiblockPreviewWidget extends WidgetGroup {
         titleLabel.setTextColor(COLOR_TEXT_WHITE);
         addWidget(titleLabel);
 
-        // Coming soon
         LabelWidget comingSoonLabel = new LabelWidget(
                 width / 2 - 35,
                 height / 2 - 15,

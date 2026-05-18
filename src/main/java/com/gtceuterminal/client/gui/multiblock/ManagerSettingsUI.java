@@ -21,16 +21,14 @@ import net.minecraft.world.item.ItemStack;
 
 public class ManagerSettingsUI {
 
-    // ── Dimensions ────────────────────────────────────────────────────────────
     private static final int GUI_W    = 280;
     private static final int GUI_H    = 215;
     private static final int HEADER_H = 28;
     private static final int PAD      = 8;
-    private static final int ROW_H    = 32; // height per setting row
-    private static final int CTL_W    = 56; // control (button / input) width
+    private static final int ROW_H    = 32;
+    private static final int CTL_W    = 56;
     private static final int CTL_H    = 18;
 
-    // ── Colors ────────────────────────────────────────────────────────────────
     private int COLOR_BG_DARK;
     private int COLOR_BG_MEDIUM;
     private int COLOR_BG_LIGHT;
@@ -44,13 +42,11 @@ public class ManagerSettingsUI {
     private static final int COLOR_OFF         = 0xFF3A1A1A;
     private static final int COLOR_OFF_BORDER  = 0xFF884444;
 
-    // ── State ─────────────────────────────────────────────────────────────────
     private ItemTheme    theme;
     private final IUIHolder  uiHolder;
     private final ItemStack  itemStack;
     private final Player     player;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
     public ManagerSettingsUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
         this.uiHolder  = heldHolder;
         this.itemStack = heldHolder.held;
@@ -73,7 +69,6 @@ public class ManagerSettingsUI {
         COLOR_BORDER_LIGHT = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
     }
 
-    // ── UI construction ───────────────────────────────────────────────────────
     public ModularUI createUI() {
         WidgetGroup root = new WidgetGroup(0, 0, GUI_W, GUI_H);
         root.setBackground(new com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture(0x00000000));
@@ -101,7 +96,6 @@ public class ManagerSettingsUI {
         return gui;
     }
 
-    // ── Parade ────────────────────────────────────────────────────────────────
     private void setupParade(com.lowdragmc.lowdraglib.gui.widget.WidgetGroup root) {
         com.gtceuterminal.client.ClientEvents.clearActiveParade();
         if (!theme.isBundleStyle()) return;
@@ -115,12 +109,10 @@ public class ManagerSettingsUI {
         com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
-    // ── Header ────────────────────────────────────────────────────────────────
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
-        // Bundle icon — shown left of the title when a modpack theme is active
         int titleX = 10;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
@@ -144,7 +136,6 @@ public class ManagerSettingsUI {
         return header;
     }
 
-    // ── Settings panel ────────────────────────────────────────────────────────
     private WidgetGroup buildSettingsPanel() {
         int panelY = 2 + HEADER_H + 3;
         int panelH = GUI_H - panelY - 4;
@@ -154,7 +145,6 @@ public class ManagerSettingsUI {
         int y = 8;
         int innerW = GUI_W - PAD * 2;
 
-        // 1. No Hatch Mode
         y = addToggleRow(panel, y, innerW,
                 Component.translatable("gui.gtceuterminal.manager_settings.hatch_mode.label").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.hatch_mode.hint_toggle").getString(),
@@ -162,7 +152,6 @@ public class ManagerSettingsUI {
                 () -> getNoHatchMode() == 1,
                 () -> toggleNoHatchMode());
 
-        // 2. Tier Mode
         y = addInputRow(panel, y, innerW,
                 Component.translatable("gui.gtceuterminal.manager_settings.tier_mode.label").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.tier_mode.hint_scroll_type").getString(),
@@ -171,7 +160,6 @@ public class ManagerSettingsUI {
                 val -> setTierMode(parseIntSafe(val, 1)),
                 1, 16);
 
-        // 3. Repeat Count
         y = addInputRow(panel, y, innerW,
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.label").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.hint_layers").getString(),
@@ -180,7 +168,6 @@ public class ManagerSettingsUI {
                 val -> setRepeatCount(parseIntSafe(val, 0)),
                 0, 99);
 
-        // 4. Use AE2 (only if AE2 is present)
         if (MENetworkScanner.isAE2Available()) {
             addToggleRow(panel, y, innerW,
                     Component.translatable("gui.gtceuterminal.manager_settings.use_ae2.label").getString(),
@@ -193,7 +180,6 @@ public class ManagerSettingsUI {
         return panel;
     }
 
-    // ── Row helpers ───────────────────────────────────────────────────────────
     private int addToggleRow(WidgetGroup panel, int y, int panelW,
                              String label, String hint, String tooltip,
                              java.util.function.BooleanSupplier getter,
@@ -205,7 +191,6 @@ public class ManagerSettingsUI {
         lbl.setHoverTooltips(Component.literal(tooltip));
         panel.addWidget(lbl);
 
-        // Toggle button — texture is set initially and re-set on each click
         boolean[] state = { getter.getAsBoolean() };
 
         ButtonWidget[] btnRef = new ButtonWidget[1];
@@ -222,7 +207,6 @@ public class ManagerSettingsUI {
         ButtonWidget btn = btnRef[0];
         panel.addWidget(btn);
 
-        // Hint
         if (hint != null && !hint.isBlank()) {
             LabelWidget hintLbl = new LabelWidget(8, y + 14, hint);
             hintLbl.setTextColor(COLOR_HINT);
@@ -281,7 +265,7 @@ public class ManagerSettingsUI {
                 new TextTexture(txt).setWidth(CTL_W).setType(TextTexture.TextType.NORMAL)));
     }
 
-    // ── NBT helpers ───────────────────────────────────────────────────────────
+    // NBT helpers
     private int getNoHatchMode() {
         CompoundTag tag = itemStack.getTag();
         return (tag != null && tag.contains("NoHatchMode")) ? tag.getInt("NoHatchMode") : 0;

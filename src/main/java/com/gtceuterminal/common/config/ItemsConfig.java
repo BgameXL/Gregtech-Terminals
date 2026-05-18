@@ -14,83 +14,73 @@ public class ItemsConfig {
 
     private static final YamlConfigLoader LOADER = new YamlConfigLoader("", "gtceuterminals.yaml");
 
-    // ─── Energy Analyzer ─────────────────────────────────────────────────────
     private static int     ea_maxLinkedMachines    = 16;
     private static int     ea_refreshIntervalTicks = 20;
     private static boolean ea_showPerHatchDetails  = true;
     private static int     ea_historySeconds       = 30;
 
-    // ─── Multi Structure Manager ──────────────────────────────────────────────
     private static int     mgr_maxDetectedMultiblocks = 32;
     private static boolean mgr_allowMENetworkUpgrade  = true;
     private static int     mgr_highlightDurationSec   = 10;
     private static int     mgr_highlightColor         = 0x00AAFF;
 
-    // ─── Schematic Interface ──────────────────────────────────────────────────
     private static boolean sch_allowAE2ConfigCopy    = true;
     private static boolean sch_plannerBuildAllEnabled = false;
 
-    // ─── Dismantler ───────────────────────────────────────────────────────────
-    // Resolved Block objects for fast lookup at dismantle time
     private static Set<Block> dis_blockBlacklist = new HashSet<>();
 
-    // ─── Load ─────────────────────────────────────────────────────────────────
     public static void load() {
         LOADER.writeDefaults(List.of(
 
                 // Energy Analyzer
                 YamlConfigLoader.ConfigEntry.section("Energy Analyzer"),
                 YamlConfigLoader.ConfigEntry.of("energy_analyzer.max_linked_machines", 16,
-                        "[Energy Analyzer] Maximum machines linkable per item (1-64)"),
+                        " Maximum machines linkable per item (1-64)"),
                 YamlConfigLoader.ConfigEntry.of("energy_analyzer.refresh_interval_ticks", 20,
-                        "[Energy Analyzer] How often energy data is refreshed in ticks (20 = 1s, min 5)"),
+                        " How often energy data is refreshed in ticks (20 = 1s, min 5)"),
                 YamlConfigLoader.ConfigEntry.of("energy_analyzer.show_per_hatch_details", true,
-                        "[Energy Analyzer] Show per-hatch energy breakdown in the UI"),
+                        " Show per-hatch energy breakdown in the UI"),
                 YamlConfigLoader.ConfigEntry.of("energy_analyzer.history_seconds", 30,
-                        "[Energy Analyzer] Seconds of energy history to graph (5-120)"),
+                        " Seconds of energy history to graph (5-120)"),
 
                 // Multi Structure Manager
                 YamlConfigLoader.ConfigEntry.section("Multi Structure Manager"),
                 YamlConfigLoader.ConfigEntry.of("manager.max_detected_multiblocks", 32,
-                        "[Manager] Maximum number of multiblocks detected and shown in the UI (1-128)"),
+                        " Maximum number of multiblocks detected and shown in the UI (1-128)"),
                 YamlConfigLoader.ConfigEntry.of("manager.allow_me_network_upgrade", true,
-                        "[Manager] Allow upgrading components using items from a linked ME network (requires AE2)"),
+                        " Allow upgrading components using items from a linked ME network (requires AE2)"),
                 YamlConfigLoader.ConfigEntry.of("manager.highlight_duration_seconds", 10,
-                        "[Manager] How long the multiblock highlight lasts in the world after clicking (seconds, 1-60)"),
+                        " How long the multiblock highlight lasts in the world after clicking (seconds, 1-60)"),
                 YamlConfigLoader.ConfigEntry.of("manager.highlight_color", "00AAFF",
-                        "[Manager] Highlight color as hex RGB, e.g. 00AAFF = blue, FFAA00 = orange, 00FF88 = green"),
+                        " Highlight color as hex RGB, e.g. 00AAFF = blue, FFAA00 = orange, 00FF88 = green"),
 
                 // Schematic Interface
                 YamlConfigLoader.ConfigEntry.section("Schematic Interface"),
                 YamlConfigLoader.ConfigEntry.of("schematic.allow_ae2_config_copy", true,
-                        "[Schematic] Preserve AE2/ME bus slot configurations when copying and pasting multiblocks (requires AE2)"),
+                        " Preserve AE2/ME bus slot configurations when copying and pasting multiblocks (requires AE2)"),
                 YamlConfigLoader.ConfigEntry.of("schematic.planner_build_all_enabled", false,
-                        "[Schematic] Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default — the planner is a planning tool, not a builder."),
+                        " Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default — the planner is a planning tool, not a builder."),
 
                 YamlConfigLoader.ConfigEntry.section("Dismantler"),
                 YamlConfigLoader.ConfigEntry.of("dismantler.block_blacklist", List.of(),
-                        "[Dismantler] Registry IDs of blocks the Dismantler will NEVER refund or remove.\n" +
-                                "  Use this to protect blocks that cannot normally be obtained (e.g. bedrock, barriers, etc.\n" +
+                        " Registry IDs of blocks the Dismantler will NEVER refund or remove.\n" +
+                                " Use this to protect blocks that cannot normally be obtained (e.g. bedrock, barriers, etc.)\n" +
                                 "- minecraft:bedrock, - minecraft; barriers, -kubejs:custom_block. \n")
         ));
 
-        // ── Read Energy Analyzer ──────────────────────────────────────────────
         ea_maxLinkedMachines    = clamp(LOADER.getInt("energy_analyzer.max_linked_machines", 16), 1, 64);
         ea_refreshIntervalTicks = clamp(LOADER.getInt("energy_analyzer.refresh_interval_ticks", 20), 5, 200);
         ea_showPerHatchDetails  = LOADER.getBoolean("energy_analyzer.show_per_hatch_details", true);
         ea_historySeconds       = clamp(LOADER.getInt("energy_analyzer.history_seconds", 30), 5, 120);
 
-        // ── Read Multi Structure Manager ──────────────────────────────────────
         mgr_maxDetectedMultiblocks = clamp(LOADER.getInt("manager.max_detected_multiblocks", 32), 1, 128);
         mgr_allowMENetworkUpgrade  = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
         mgr_highlightDurationSec   = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
         mgr_highlightColor         = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
 
-        // ── Read Schematic Interface ──────────────────────────────────────────
         sch_allowAE2ConfigCopy     = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
         sch_plannerBuildAllEnabled = LOADER.getBoolean("schematic.planner_build_all_enabled", false);
 
-        // ── Read Dismantler ───────────────────────────────────────────────────
         dis_blockBlacklist = new HashSet<>();
         List<String> rawBlacklist = LOADER.getStringList("dismantler.block_blacklist");
         for (String entry : rawBlacklist) {
@@ -120,30 +110,28 @@ public class ItemsConfig {
         );
     }
 
-    // ─── Energy Analyzer Getters ──────────────────────────────────────────────
+    // Energy Analyzer Getters
     public static int     getEAMaxLinkedMachines()    { return ea_maxLinkedMachines; }
     public static int     getEARefreshIntervalTicks() { return ea_refreshIntervalTicks; }
     public static boolean getEAShowPerHatchDetails()  { return ea_showPerHatchDetails; }
     public static int     getEAHistorySeconds()       { return ea_historySeconds; }
-    // Kept for backward compatibility — dimension filtering removed but callers still compile
     public static boolean isEADimensionAllowed(String dimensionId) { return true; }
 
-    // ─── Multi Structure Manager Getters ──────────────────────────────────────
+    // Multi Structure Manager Getters
     public static int     getMgrMaxDetectedMultiblocks()  { return mgr_maxDetectedMultiblocks; }
     public static boolean isMgrAllowMENetworkUpgrade()    { return mgr_allowMENetworkUpgrade; }
     public static int     getMgrHighlightDurationMs()     { return mgr_highlightDurationSec * 1000; }
     public static int     getMgrHighlightColor()          { return mgr_highlightColor; }
 
-    // ─── Schematic Interface Getters ──────────────────────────────────────────
+    // Schematic Interface Getters
     public static boolean isSchAllowAE2ConfigCopy()     { return sch_allowAE2ConfigCopy; }
     public static boolean isSchPlannerBuildAllEnabled() { return sch_plannerBuildAllEnabled; }
 
-    // ─── Dismantler Getters ───────────────────────────────────────────────────
+    // Dismantler Getters
     public static boolean isDismantlerBlacklisted(Block block) {
         return dis_blockBlacklist.contains(block);
     }
 
-    // ─── Util ─────────────────────────────────────────────────────────────────
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }

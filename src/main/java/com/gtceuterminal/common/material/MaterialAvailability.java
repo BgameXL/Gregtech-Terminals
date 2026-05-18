@@ -79,8 +79,6 @@ public class MaterialAvailability {
         }
     }
 
-
-    // Get detailed display string with all sources
     public String getDisplayString() {
         StringBuilder sb = new StringBuilder();
 
@@ -103,20 +101,16 @@ public class MaterialAvailability {
         return sb.toString();
     }
 
-
-    // Get compact display string for GUI
     public String getCompactDisplayString() {
         String itemName = item.getDescription().getString();
         long total = getTotalAvailable();
 
         if (hasEnough()) {
-            // Show where items are coming from
             if (inMENetwork >= required) {
                 return "§a✓ " + itemName + " §7(ME: " + inMENetwork + ")";
             } else if (inInventory >= required) {
                 return "§a✓ " + itemName + " §7(Inv: " + inInventory + ")";
             } else {
-                // Split across sources
                 return "§a✓ " + itemName + " §7(" + formatSources() + ")";
             }
         } else {
@@ -124,8 +118,6 @@ public class MaterialAvailability {
         }
     }
 
-
-    // Format sources compactly
     private String formatSources() {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
@@ -149,8 +141,6 @@ public class MaterialAvailability {
         return sb.toString();
     }
 
-
-    // Get tooltip lines for GUI hover
     public String[] getTooltipLines() {
         return new String[] {
                 "§f" + item.getDescription().getString(),
@@ -182,8 +172,6 @@ public class MaterialAvailability {
         }
     }
 
-
-    //Get status indicator for GUI
     public String getStatusIndicator() {
         if (hasEnough()) {
             return "§a●"; // Green dot
@@ -194,8 +182,6 @@ public class MaterialAvailability {
         }
     }
 
-
-    // Get primary source (where most items will come from)
     public String getPrimarySource() {
         if (inMENetwork >= required) {
             return "ME Network";

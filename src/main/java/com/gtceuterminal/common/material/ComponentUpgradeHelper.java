@@ -6,8 +6,8 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.*;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentType;
-import com.gtceuterminal.common.config.SubstationHatchConfig;
-import com.gtceuterminal.common.config.DualHatchConfig;
+import com.gtceuterminal.common.config.ComponentEntry;
+import com.gtceuterminal.common.config.ComponentRegistry;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -18,22 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Helper class for component upgrades with complete support for:
- * - Standard components (buses, hatches, energy)
- * - Laser hatches (INPUT_LASER, OUTPUT_LASER)
- * - Substation hatches (SUBSTATION_INPUT_ENERGY, SUBSTATION_OUTPUT_ENERGY)
- * - Dynamo hatches (DYNAMO_HATCH)
- * - Wireless components (if ComponentType enum includes them)
- * - Maintenance hatches (only 4 specific types)
- */
 public class ComponentUpgradeHelper {
 
-    /**
-     * Build a minimal "required items" map from a concrete target blockId.
-     * This is used for component types where a tier alone is not enough to uniquely identify an upgrade
-     * (e.g. Maintenance hatches where multiple variants can share the same tier).
-     */
     public static Map<Item, Integer> getUpgradeItemsForBlockId(String targetBlockId) {
         Map<Item, Integer> items = new HashMap<>();
         if (targetBlockId == null || targetBlockId.isBlank()) return items;
@@ -51,20 +37,15 @@ public class ComponentUpgradeHelper {
         return items;
     }
 
-    /**
-     * Validate that a given blockId is an allowed upgrade option for the given component type.
-     * For now this is primarily used by MAINTENANCE upgrades.
-     */
     public static boolean isUpgradeIdAllowed(ComponentType type, String targetBlockId) {
         if (type == null) return false;
         if (targetBlockId == null || targetBlockId.isBlank()) return false;
 
         if (type == ComponentType.MAINTENANCE) {
-            return MaintenanceHatchConfig.getAllMaintenanceHatches().stream()
+            return ComponentRegistry.getMaintenanceHatches().stream()
                     .anyMatch(e -> targetBlockId.equals(e.blockId));
         }
 
-        // For other types, we currently use tier-based upgrades.
         return true;
     }
 
@@ -96,22 +77,16 @@ public class ComponentUpgradeHelper {
         return null;
     }
 
-    /**
-     * Get block ID from config based on component type and tier
-     * Updated to support all component types including lasers, substations, dynamos
-     */
     private static String getBlockIdFromConfig(ComponentType type, int tier, ComponentInfo component) {
         return switch (type) {
-            // ========== FLUID HATCHES ==========
             case INPUT_HATCH, INPUT_HATCH_1X, QUAD_INPUT_HATCH, NONUPLE_INPUT_HATCH -> {
-                for (HatchConfig.FluidHatchEntry hatch : HatchConfig.getInputHatches()) {
+                for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("INPUT")) {
                     if (hatch.tier == tier) {
-                        // Match based on capacity
                         boolean matches = switch (type) {
-                            case INPUT_HATCH -> hatch.capacity.equals("1x") && hatch.blockId.matches(".*:.*_input_hatch$");
-                            case INPUT_HATCH_1X -> hatch.capacity.equals("1x") && hatch.blockId.contains("_1x");
-                            case QUAD_INPUT_HATCH -> hatch.capacity.equals("4x");
-                            case NONUPLE_INPUT_HATCH -> hatch.capacity.equals("9x");
+                            case INPUT_HATCH -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_input_hatch$");
+                            case INPUT_HATCH_1X -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
+                            case QUAD_INPUT_HATCH -> hatch.attrIs("capacity", "4x");
+                            case NONUPLE_INPUT_HATCH -> hatch.attrIs("capacity", "9x");
                             default -> false;
                         };
                         if (matches) yield hatch.blockId;
@@ -121,13 +96,13 @@ public class ComponentUpgradeHelper {
             }
 
             case OUTPUT_HATCH, OUTPUT_HATCH_1X, QUAD_OUTPUT_HATCH, NONUPLE_OUTPUT_HATCH -> {
-                for (HatchConfig.FluidHatchEntry hatch : HatchConfig.getOutputHatches()) {
+                for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("OUTPUT")) {
                     if (hatch.tier == tier) {
                         boolean matches = switch (type) {
-                            case OUTPUT_HATCH -> hatch.capacity.equals("1x") && hatch.blockId.matches(".*:.*_output_hatch$");
-                            case OUTPUT_HATCH_1X -> hatch.capacity.equals("1x") && hatch.blockId.contains("_1x");
-                            case QUAD_OUTPUT_HATCH -> hatch.capacity.equals("4x");
-                            case NONUPLE_OUTPUT_HATCH -> hatch.capacity.equals("9x");
+                            case OUTPUT_HATCH -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_output_hatch$");
+                            case OUTPUT_HATCH_1X -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
+                            case QUAD_OUTPUT_HATCH -> hatch.attrIs("capacity", "4x");
+                            case NONUPLE_OUTPUT_HATCH -> hatch.attrIs("capacity", "9x");
                             default -> false;
                         };
                         if (matches) yield hatch.blockId;
@@ -136,65 +111,57 @@ public class ComponentUpgradeHelper {
                 yield null;
             }
 
-            // ========== ITEM BUSES ==========
             case INPUT_BUS -> {
-                for (BusConfig.BusEntry bus : BusConfig.getInputBuses()) {
+                for (ComponentEntry bus : ComponentRegistry.getBuses("INPUT")) {
                     if (bus.tier == tier) yield bus.blockId;
                 }
                 yield null;
             }
 
             case OUTPUT_BUS -> {
-                for (BusConfig.BusEntry bus : BusConfig.getOutputBuses()) {
+                for (ComponentEntry bus : ComponentRegistry.getBuses("OUTPUT")) {
                     if (bus.tier == tier) yield bus.blockId;
                 }
                 yield null;
             }
 
-            // ========== ENERGY HATCHES (Input) ==========
             case ENERGY_HATCH -> {
                 String amperage = component != null ? component.getAmperage() : null;
-                EnergyHatchConfig.EnergyHatchEntry energy = EnergyHatchConfig.getHatchForTierAndAmperage("INPUT", tier, amperage);
+                ComponentEntry energy = ComponentRegistry.energyHatchForTier("INPUT", tier, amperage);
                 yield energy != null ? energy.blockId : null;
             }
 
-            // ========== DYNAMO HATCHES (Energy Output) ==========
             case DYNAMO_HATCH -> {
                 String amperage = component != null ? component.getAmperage() : null;
-                EnergyHatchConfig.EnergyHatchEntry dynamo = EnergyHatchConfig.getHatchForTierAndAmperage("OUTPUT", tier, amperage);
+                ComponentEntry dynamo = ComponentRegistry.energyHatchForTier("OUTPUT", tier, amperage);
                 yield dynamo != null ? dynamo.blockId : null;
             }
 
-            // ========== SUBSTATION HATCHES ==========
             case SUBSTATION_INPUT_ENERGY -> {
-                SubstationHatchConfig.SubstationHatchEntry substation =
-                        SubstationHatchConfig.getHatchForTier("INPUT", tier);
+                ComponentEntry substation = ComponentRegistry.substationHatchForTier("INPUT", tier);
                 yield substation != null ? substation.blockId : null;
             }
 
             case SUBSTATION_OUTPUT_ENERGY -> {
-                SubstationHatchConfig.SubstationHatchEntry substation =
-                        SubstationHatchConfig.getHatchForTier("OUTPUT", tier);
+                ComponentEntry substation = ComponentRegistry.substationHatchForTier("OUTPUT", tier);
                 yield substation != null ? substation.blockId : null;
             }
 
-            // ========== LASER HATCHES ==========
             case INPUT_LASER -> {
                 String amperage = component != null ? component.getAmperage() : null;
-                LaserHatchConfig.LaserHatchEntry laser = LaserHatchConfig.getHatchForTierAndAmperage("INPUT", tier, amperage);
+                ComponentEntry laser = ComponentRegistry.laserHatchForTier("INPUT", tier, amperage);
                 yield laser != null ? laser.blockId : null;
             }
 
             case OUTPUT_LASER -> {
                 String amperage = component != null ? component.getAmperage() : null;
-                LaserHatchConfig.LaserHatchEntry laser = LaserHatchConfig.getHatchForTierAndAmperage("OUTPUT", tier, amperage);
+                ComponentEntry laser = ComponentRegistry.laserHatchForTier("OUTPUT", tier, amperage);
                 yield laser != null ? laser.blockId : null;
             }
 
-            // ========== SPECIAL HATCHES ==========
             case PARALLEL_HATCH -> {
-                for (ParallelHatchConfig.ParallelHatchEntry parallel : ParallelHatchConfig.getAllParallelHatches()) {
-                    if (parallel.tier == tier && parallel.variant.equals("STANDARD")) {
+                for (ComponentEntry parallel : ComponentRegistry.getParallelHatches()) {
+                    if (parallel.tier == tier && parallel.attrIs("variant", "STANDARD")) {
                         yield parallel.blockId;
                     }
                 }
@@ -202,18 +169,17 @@ public class ComponentUpgradeHelper {
             }
 
             case MUFFLER -> {
-                MufflerHatchConfig.MufflerHatchEntry muffler = MufflerHatchConfig.getHatchForTier(tier);
+                ComponentEntry muffler = ComponentRegistry.mufflerHatchForTier(tier);
                 yield muffler != null ? muffler.blockId : null;
             }
 
             case COIL -> {
-                CoilConfig.CoilEntry coil = CoilConfig.getCoilByTier(tier);
+                ComponentEntry coil = ComponentRegistry.coilByTier(tier);
                 yield coil != null ? coil.blockId : null;
             }
 
             case MAINTENANCE -> {
-                // Permitir cualquier tipo de maintenance hatch
-                for (MaintenanceHatchConfig.MaintenanceHatchEntry maintenance : MaintenanceHatchConfig.getAllMaintenanceHatches()) {
+                for (ComponentEntry maintenance : ComponentRegistry.getMaintenanceHatches()) {
                     if (maintenance.tier == tier) {
                         yield maintenance.blockId;
                     }
@@ -222,13 +188,13 @@ public class ComponentUpgradeHelper {
             }
 
             case DUAL_HATCH -> {
-                for (DualHatchConfig.DualHatchEntry hatch : DualHatchConfig.getInputDualHatches()) {
+                for (ComponentEntry hatch : ComponentRegistry.getDualHatches("INPUT")) {
                     if (hatch.tier == tier) {
                         yield hatch.blockId;
                     }
                 }
 
-                for (DualHatchConfig.DualHatchEntry hatch : DualHatchConfig.getOutputDualHatches()) {
+                for (ComponentEntry hatch : ComponentRegistry.getDualHatches("OUTPUT")) {
                     if (hatch.tier == tier) {
                         yield hatch.blockId;
                     }
@@ -238,7 +204,6 @@ public class ComponentUpgradeHelper {
             }
 
             default -> {
-                // Try to handle wireless types if they exist in ComponentType enum
                 String typeName = type.name();
                 if (typeName.startsWith("WIRELESS_")) {
                     yield getWirelessBlockId(type, tier);
@@ -248,9 +213,6 @@ public class ComponentUpgradeHelper {
         };
     }
 
-    /**
-     * Handle wireless components (if they exist in ComponentType enum)
-     */
     private static String getWirelessBlockId(ComponentType type, int tier) {
         String tierName = getTierNameForWireless(tier);
         if (tierName == null) return null;
@@ -264,47 +226,36 @@ public class ComponentUpgradeHelper {
         };
     }
 
-    /**
-     * Check if component can be upgraded to target tier
-     */
     public static boolean canUpgrade(ComponentInfo component, int targetTier) {
         if (!component.getType().isUpgradeable()) {
             return false;
         }
 
-        // Don't allow "upgrading" to same tier
         if (targetTier == component.getTier()) {
             return false;
         }
 
-        // Check if block exists for target tier
         String blockId = getBlockIdFromConfig(component.getType(), targetTier, component);
         if (blockId == null) {
             return false;
         }
 
-        // Check if block actually exists in game
         return getComponentBlock(component.getType(), targetTier) != null;
     }
 
-    /**
-     * Get upgrade display name for target tier
-     * Updated to support all component types
-     */
     public static String getUpgradeName(ComponentInfo component, int targetTier) {
         ComponentType type = component.getType();
         String tierDisplayName = getTierDisplayName(targetTier);
 
         return switch (type) {
-            // ========== FLUID HATCHES ==========
             case INPUT_HATCH, INPUT_HATCH_1X, QUAD_INPUT_HATCH, NONUPLE_INPUT_HATCH -> {
-                for (HatchConfig.FluidHatchEntry hatch : HatchConfig.getInputHatches()) {
+                for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("INPUT")) {
                     if (hatch.tier == targetTier) {
                         boolean matches = switch (type) {
-                            case INPUT_HATCH -> hatch.capacity.equals("1x") && hatch.blockId.matches(".*:.*_input_hatch$");
-                            case INPUT_HATCH_1X -> hatch.capacity.equals("1x") && hatch.blockId.contains("_1x");
-                            case QUAD_INPUT_HATCH -> hatch.capacity.equals("4x");
-                            case NONUPLE_INPUT_HATCH -> hatch.capacity.equals("9x");
+                            case INPUT_HATCH -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_input_hatch$");
+                            case INPUT_HATCH_1X -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
+                            case QUAD_INPUT_HATCH -> hatch.attrIs("capacity", "4x");
+                            case NONUPLE_INPUT_HATCH -> hatch.attrIs("capacity", "9x");
                             default -> false;
                         };
                         if (matches) yield hatch.displayName + " →";
@@ -314,13 +265,13 @@ public class ComponentUpgradeHelper {
             }
 
             case OUTPUT_HATCH, OUTPUT_HATCH_1X, QUAD_OUTPUT_HATCH, NONUPLE_OUTPUT_HATCH -> {
-                for (HatchConfig.FluidHatchEntry hatch : HatchConfig.getOutputHatches()) {
+                for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("OUTPUT")) {
                     if (hatch.tier == targetTier) {
                         boolean matches = switch (type) {
-                            case OUTPUT_HATCH -> hatch.capacity.equals("1x") && hatch.blockId.matches(".*:.*_output_hatch$");
-                            case OUTPUT_HATCH_1X -> hatch.capacity.equals("1x") && hatch.blockId.contains("_1x");
-                            case QUAD_OUTPUT_HATCH -> hatch.capacity.equals("4x");
-                            case NONUPLE_OUTPUT_HATCH -> hatch.capacity.equals("9x");
+                            case OUTPUT_HATCH -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_output_hatch$");
+                            case OUTPUT_HATCH_1X -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
+                            case QUAD_OUTPUT_HATCH -> hatch.attrIs("capacity", "4x");
+                            case NONUPLE_OUTPUT_HATCH -> hatch.attrIs("capacity", "9x");
                             default -> false;
                         };
                         if (matches) yield hatch.displayName + " →";
@@ -329,26 +280,24 @@ public class ComponentUpgradeHelper {
                 yield null;
             }
 
-            // ========== ITEM BUSES ==========
             case INPUT_BUS -> {
-                for (BusConfig.BusEntry bus : BusConfig.getInputBuses()) {
+                for (ComponentEntry bus : ComponentRegistry.getBuses("INPUT")) {
                     if (bus.tier == targetTier) yield bus.displayName + " →";
                 }
                 yield null;
             }
 
             case OUTPUT_BUS -> {
-                for (BusConfig.BusEntry bus : BusConfig.getOutputBuses()) {
+                for (ComponentEntry bus : ComponentRegistry.getBuses("OUTPUT")) {
                     if (bus.tier == targetTier) yield bus.displayName + " →";
                 }
                 yield null;
             }
 
-            // ========== ENERGY & DYNAMOS ==========
             case ENERGY_HATCH -> {
-                for (EnergyHatchConfig.EnergyHatchEntry energy : EnergyHatchConfig.getAllEnergyHatches()) {
+                for (ComponentEntry energy : ComponentRegistry.getEnergyHatches()) {
                     if (energy.tier == targetTier &&
-                            energy.hatchType.equalsIgnoreCase("INPUT") &&
+                            energy.attrIs("hatchType", "INPUT") &&
                             energy.blockId.endsWith("_energy_input_hatch")) {
                         yield energy.displayName + " →";
                     }
@@ -357,9 +306,9 @@ public class ComponentUpgradeHelper {
             }
 
             case DYNAMO_HATCH -> {
-                for (EnergyHatchConfig.EnergyHatchEntry energy : EnergyHatchConfig.getAllEnergyHatches()) {
+                for (ComponentEntry energy : ComponentRegistry.getEnergyHatches()) {
                     if (energy.tier == targetTier &&
-                            energy.hatchType.equalsIgnoreCase("OUTPUT") &&
+                            energy.attrIs("hatchType", "OUTPUT") &&
                             energy.blockId.endsWith("_energy_output_hatch")) {
                         yield energy.displayName + " →";
                     }
@@ -367,35 +316,29 @@ public class ComponentUpgradeHelper {
                 yield null;
             }
 
-            // ========== SUBSTATION ==========
             case SUBSTATION_INPUT_ENERGY -> {
-                SubstationHatchConfig.SubstationHatchEntry substation =
-                        SubstationHatchConfig.getHatchForTier("INPUT", targetTier);
+                ComponentEntry substation = ComponentRegistry.substationHatchForTier("INPUT", targetTier);
                 yield substation != null ? substation.displayName + " →" : null;
             }
 
             case SUBSTATION_OUTPUT_ENERGY -> {
-                SubstationHatchConfig.SubstationHatchEntry substation =
-                        SubstationHatchConfig.getHatchForTier("OUTPUT", targetTier);
+                ComponentEntry substation = ComponentRegistry.substationHatchForTier("OUTPUT", targetTier);
                 yield substation != null ? substation.displayName + " →" : null;
             }
 
-            // ========== LASERS ==========
             case INPUT_LASER -> {
-                LaserHatchConfig.LaserHatchEntry laser =
-                        LaserHatchConfig.getHatchForTier("INPUT", targetTier);
+                ComponentEntry laser = ComponentRegistry.laserHatchForTier("INPUT", targetTier, null);
                 yield laser != null ? laser.displayName + " →" : null;
             }
 
             case OUTPUT_LASER -> {
-                LaserHatchConfig.LaserHatchEntry laser =
-                        LaserHatchConfig.getHatchForTier("OUTPUT", targetTier);
+                ComponentEntry laser = ComponentRegistry.laserHatchForTier("OUTPUT", targetTier, null);
                 yield laser != null ? laser.displayName + " →" : null;
             }
-            // ========== SPECIAL HATCHES ==========
+
             case PARALLEL_HATCH -> {
-                for (ParallelHatchConfig.ParallelHatchEntry parallel : ParallelHatchConfig.getAllParallelHatches()) {
-                    if (parallel.tier == targetTier && parallel.variant.equals("STANDARD")) {
+                for (ComponentEntry parallel : ComponentRegistry.getParallelHatches()) {
+                    if (parallel.tier == targetTier && parallel.attrIs("variant", "STANDARD")) {
                         yield parallel.displayName + " →";
                     }
                 }
@@ -406,12 +349,12 @@ public class ComponentUpgradeHelper {
                     tierDisplayName + " Muffler Hatch →";
 
             case COIL -> {
-                CoilConfig.CoilEntry coil = CoilConfig.getCoilByTier(targetTier);
+                ComponentEntry coil = ComponentRegistry.coilByTier(targetTier);
                 yield coil != null ? coil.displayName : null;
             }
 
             case MAINTENANCE -> {
-                for (MaintenanceHatchConfig.MaintenanceHatchEntry maintenance : MaintenanceHatchConfig.getAllMaintenanceHatches()) {
+                for (ComponentEntry maintenance : ComponentRegistry.getMaintenanceHatches()) {
                     if (maintenance.tier == targetTier) {
                         yield maintenance.displayName + " →";
                     }
@@ -420,7 +363,6 @@ public class ComponentUpgradeHelper {
             }
 
             default -> {
-                // Handle wireless types
                 String typeName = type.name();
                 if (typeName.contains("WIRELESS_ENERGY_INPUT")) {
                     yield tierDisplayName + " Wireless Energy Input Hatch →";
@@ -436,40 +378,34 @@ public class ComponentUpgradeHelper {
         };
     }
 
-    /**
-     * Get available tiers for a component type
-     * Updated to handle all types correctly
-     */
     public static List<Integer> getAvailableTiers(ComponentType type) {
         return switch (type) {
             case INPUT_HATCH, INPUT_HATCH_1X, QUAD_INPUT_HATCH, NONUPLE_INPUT_HATCH ->
-                    HatchConfig.getInputHatches().stream().map(h -> h.tier).distinct().sorted().toList();
+                    ComponentRegistry.getFluidHatches("INPUT").stream().map(e -> e.tier).distinct().sorted().toList();
 
             case OUTPUT_HATCH, OUTPUT_HATCH_1X, QUAD_OUTPUT_HATCH, NONUPLE_OUTPUT_HATCH ->
-                    HatchConfig.getOutputHatches().stream().map(h -> h.tier).distinct().sorted().toList();
+                    ComponentRegistry.getFluidHatches("OUTPUT").stream().map(e -> e.tier).distinct().sorted().toList();
 
-            case INPUT_BUS -> BusConfig.getInputBuses().stream().map(b -> b.tier).sorted().toList();
-            case OUTPUT_BUS -> BusConfig.getOutputBuses().stream().map(b -> b.tier).sorted().toList();
+            case INPUT_BUS -> ComponentRegistry.getBuses("INPUT").stream().map(e -> e.tier).sorted().toList();
+            case OUTPUT_BUS -> ComponentRegistry.getBuses("OUTPUT").stream().map(e -> e.tier).sorted().toList();
 
-            // Energy Hatches
             case ENERGY_HATCH, DYNAMO_HATCH ->
-                    EnergyHatchConfig.getAllEnergyHatches().stream()
-                            .filter(h -> !h.blockId.contains("substation"))  // Exclude substation
+                    ComponentRegistry.getEnergyHatches().stream()
+                            .filter(h -> !h.blockId.contains("substation"))
                             .map(h -> h.tier)
                             .distinct()
                             .sorted()
                             .toList();
 
             case SUBSTATION_INPUT_ENERGY, SUBSTATION_OUTPUT_ENERGY ->
-                    SubstationHatchConfig.getAllHatches().stream()
+                    ComponentRegistry.get(ComponentRegistry.SUBSTATION_HATCHES).stream()
                             .map(h -> h.tier)
                             .distinct()
                             .sorted()
                             .toList();
 
-            // Lasers (IV+ only, tier 5+)
             case INPUT_LASER, OUTPUT_LASER ->
-                    LaserHatchConfig.getAllHatches().stream()
+                    ComponentRegistry.getLaserHatches().stream()
                             .map(l -> l.tier)
                             .filter(t -> t >= 5)
                             .distinct()
@@ -477,43 +413,42 @@ public class ComponentUpgradeHelper {
                             .toList();
 
             case PARALLEL_HATCH ->
-                    ParallelHatchConfig.getAllParallelHatches().stream()
-                            .filter(p -> p.variant.equals("STANDARD"))
+                    ComponentRegistry.getParallelHatches().stream()
+                            .filter(p -> p.attrIs("variant", "STANDARD"))
                             .map(p -> p.tier)
                             .sorted()
                             .toList();
 
             case MUFFLER ->
-                    MufflerHatchConfig.getAllMufflerHatches().stream().map(m -> m.tier).sorted().toList();
+                    ComponentRegistry.get(ComponentRegistry.MUFFLER_HATCHES).stream().map(e -> e.tier).sorted().toList();
 
             case COIL ->
-                    java.util.stream.IntStream.range(0, CoilConfig.getAllCoils().size()).boxed().toList();
+                    ComponentRegistry.getCoils().stream().map(e -> e.tier).sorted().toList();
 
             case MAINTENANCE ->
-                    MaintenanceHatchConfig.getAllMaintenanceHatches().stream()
+                    ComponentRegistry.getMaintenanceHatches().stream()
                             .map(m -> m.tier)
                             .distinct()
                             .sorted()
                             .toList();
 
             case DUAL_HATCH ->
-                    DualHatchConfig.getInputDualHatches().stream()
+                    ComponentRegistry.getDualHatches("INPUT").stream()
                             .map(h -> h.tier)
                             .distinct()
                             .sorted()
                             .toList();
 
             default -> {
-                // Handle wireless types
                 String typeName = type.name();
                 if (typeName.startsWith("WIRELESS_ENERGY_")) {
-                    yield EnergyHatchConfig.getAllEnergyHatches().stream()
+                    yield ComponentRegistry.getWirelessHatches().stream()
                             .map(e -> e.tier)
                             .distinct()
                             .sorted()
                             .toList();
                 } else if (typeName.startsWith("WIRELESS_LASER_")) {
-                    yield EnergyHatchConfig.getAllEnergyHatches().stream()
+                    yield ComponentRegistry.getWirelessHatches().stream()
                             .map(e -> e.tier)
                             .filter(t -> t >= 5)
                             .distinct()
@@ -524,8 +459,6 @@ public class ComponentUpgradeHelper {
             }
         };
     }
-
-    // ========== HELPER METHODS ==========
 
     private static String getTierNameForWireless(int tier) {
         if (tier < 0 || tier >= GTValues.VN.length) {

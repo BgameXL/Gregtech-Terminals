@@ -31,31 +31,16 @@ import java.util.List;
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ClientEvents {
 
-    // ── Clipboard cache ───────────────────────────────────────────────────────
     private static SchematicData cachedClipboard = null;
     private static int cachedClipboardHash = 0;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FREE-CAM ENTRY POINT — called from PlannerScreen ([3D] button / Tab key)
-    //
-    // KEY INSIGHT: We do NOT open any Screen. Without a Screen open,
-    // MouseHandler.turnPlayer() keeps running every frame and calls
-    // Entity.turn() on mc.player — which our MixinEntity intercepts
-    // and redirects to cameraEntity instead. This is the correct approach,
-    // matching how the Freecam mod works.
-    // ─────────────────────────────────────────────────────────────────────────
     public static void enterFreeCamScreen(Minecraft mc,
                                           List<SchematicData> schematics,
                                           int selectedIdx, int rotSteps) {
-        // Close the 2D planner (returns to normal play, no Screen open)
         mc.setScreen(null);
-        // Activate the free-cam state (spawns FreeCamera, sets camera entity)
         PlannerState.enterFreeCam(schematics, selectedIdx, rotSteps);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FREE-CAM: Keyboard (Tab → back to 2D, Esc → exit, R → rotate)
-    // ─────────────────────────────────────────────────────────────────────────
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (!PlannerState.freeCamActive) return;
@@ -78,9 +63,6 @@ public class ClientEvents {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FREE-CAM: Mouse buttons (LClick → place ghost, RClick → remove ghost)
-    // ─────────────────────────────────────────────────────────────────────────
     @SubscribeEvent
     public static void onMouseButton(InputEvent.MouseButton.Pre event) {
         if (!PlannerState.freeCamActive) return;
@@ -105,9 +87,6 @@ public class ClientEvents {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FREE-CAM: Scroll wheel — cycle schematic selector
-    // ─────────────────────────────────────────────────────────────────────────
     @SubscribeEvent
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
         if (!PlannerState.freeCamActive) return;
@@ -118,9 +97,6 @@ public class ClientEvents {
         event.setCanceled(true);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FREE-CAM: Tick — freeze the real player in place every game tick
-    // ─────────────────────────────────────────────────────────────────────────
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -258,9 +234,6 @@ public class ClientEvents {
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RENDER LEVEL — placed ghost schematics + clipboard preview
-    // ─────────────────────────────────────────────────────────────────────────
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) return;

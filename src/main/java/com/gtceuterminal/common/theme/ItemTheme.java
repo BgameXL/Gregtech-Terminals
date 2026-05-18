@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 // Represents the theme configuration stored in the terminal item. This is what the user edits in the Theme Editor.
 public class ItemTheme {
 
-    // ── NBT keys ─────────────────────────────────────────────────────────────
+    // NBT keys
     private static final String TAG_ROOT     = "Theme";
     private static final String TAG_ACCENT   = "accentColor";
     private static final String TAG_BG       = "bgColor";
@@ -27,13 +27,12 @@ public class ItemTheme {
     private static final String TAG_SLIDESHOW     = "slideshowMode";
     private static final String TAG_SLIDESHOW_SRC = "slideshowSource";
 
-    // ── Defaults ──────────────────────────────────────────────────────────────
+    // Defaults
     public static final int DEFAULT_ACCENT = 0xFF2E75B6;
     public static final int DEFAULT_BG     = 0xFF1A1A1A;
     public static final int DEFAULT_PANEL  = 0xFF252525;
     public static final int DEFAULT_TEXT   = 0xFFFFFFFF;
 
-    // ── UI Style enum ─────────────────────────────────────────────────────────
     public enum UiStyle {
         DARK("Dark"),
         GTCEU_NATIVE("GTCEu Native"),
@@ -43,7 +42,6 @@ public class ItemTheme {
         UiStyle(String label) { this.label = label; }
     }
 
-    // ── Parade Mode enum ─────────────────────────────────────────────────────
     public enum ParadeMode {
         ORBITAL("Orbital"),
         BOUNCING("Bouncing"),
@@ -53,7 +51,6 @@ public class ItemTheme {
         ParadeMode(String label) { this.label = label; }
     }
 
-    // ── Slideshow Source enum ─────────────────────────────────────────────────
     public enum SlideshowSource {
         BUILTIN("Built-in"),
         CUSTOM("Custom");
@@ -62,7 +59,6 @@ public class ItemTheme {
         SlideshowSource(String label) { this.label = label; }
     }
 
-    // ── Fields ────────────────────────────────────────────────────────────────
     public int        accentColor;
     public int        bgColor;
     public int        panelColor;
@@ -77,7 +73,6 @@ public class ItemTheme {
     public boolean slideshowMode;
     public SlideshowSource slideshowSource;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
     public ItemTheme() {
         accentColor  = DEFAULT_ACCENT;
         bgColor      = DEFAULT_BG;
@@ -110,7 +105,6 @@ public class ItemTheme {
         slideshowSource = other.slideshowSource != null ? other.slideshowSource : SlideshowSource.BUILTIN;
     }
 
-    // ── NBT ───────────────────────────────────────────────────────────────────
     public CompoundTag toNBT() {
         CompoundTag tag = new CompoundTag();
         tag.putInt    (TAG_ACCENT,    accentColor);
@@ -157,7 +151,6 @@ public class ItemTheme {
         return t;
     }
 
-    // ── ItemStack helpers ─────────────────────────────────────────────────────
     public static ItemTheme load(ItemStack stack) {
         if (stack.isEmpty()) return DefaultThemeConfig.get();
         CompoundTag root = stack.getTag();
@@ -168,14 +161,12 @@ public class ItemTheme {
     public static ItemTheme loadFromPlayer(net.minecraft.world.entity.player.Player player) {
         if (player == null) return DefaultThemeConfig.get();
 
-        // Check hands first (most common case)
         for (ItemStack stack : new ItemStack[]{
                 player.getMainHandItem(), player.getOffhandItem()}) {
             ItemTheme t = load(stack);
             if (t.uiStyle != UiStyle.DARK || t.bgColor != DEFAULT_BG) return t;
         }
 
-        // Search full inventory
         for (ItemStack stack : player.getInventory().items) {
             if (stack.isEmpty()) continue;
             CompoundTag root = stack.getTag();
@@ -192,7 +183,6 @@ public class ItemTheme {
         stack.getOrCreateTag().put(TAG_ROOT, theme.toNBT());
     }
 
-    // ── Style query ───────────────────────────────────────────────────────────
     public boolean isNativeStyle() { return uiStyle == UiStyle.GTCEU_NATIVE; }
     public boolean isBundleStyle() { return uiStyle == UiStyle.BUNDLE && bundleId != null && !bundleId.isBlank(); }
 
@@ -203,9 +193,6 @@ public class ItemTheme {
         return com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(bundleId);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Texture helpers — USE THESE instead of reading color fields directly.
-    // ─────────────────────────────────────────────────────────────────────────
     public IGuiTexture backgroundTexture() {
         if (isNativeStyle()) return GuiTextures.BACKGROUND;
         com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
@@ -285,7 +272,6 @@ public class ItemTheme {
                 : new ColorRectTexture(0x90000000);
     }
 
-    // ── Legacy color helpers ──────────────────────────────────────────────────
     public int accent(int alpha) {
         return (accentColor & 0x00FFFFFF) | (alpha << 24);
     }

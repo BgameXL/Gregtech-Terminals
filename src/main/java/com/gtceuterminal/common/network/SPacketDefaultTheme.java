@@ -21,7 +21,6 @@ public class SPacketDefaultTheme {
     private final boolean showBorders;
     private final String  wallpaper;
 
-    // Server-side constructor
     public SPacketDefaultTheme(ItemTheme theme) {
         this.accentColor  = theme.accentColor;
         this.bgColor      = theme.bgColor;
@@ -33,7 +32,6 @@ public class SPacketDefaultTheme {
         this.wallpaper    = theme.wallpaper != null ? theme.wallpaper : "";
     }
 
-    // Decoder constructor (client-side, called by Forge)
     public SPacketDefaultTheme(FriendlyByteBuf buf) {
         this.accentColor  = buf.readInt();
         this.bgColor      = buf.readInt();

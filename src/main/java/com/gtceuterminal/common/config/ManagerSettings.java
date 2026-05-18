@@ -3,11 +3,6 @@ package com.gtceuterminal.common.config;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Shared data classes for manager settings.
- * CPacketConfirmAutobuild) can reference them without touching any client-only classes.
- * ManagerSettingsUI re-exports these as type aliases so existing code compiles unchanged.
- */
 public class ManagerSettings {
 
     public static class Settings {
@@ -42,9 +37,9 @@ public class ManagerSettings {
     }
 
     public static class AutoBuildSettings {
-        public int repeatCount = 0;  // 0 = use default
-        public int noHatchMode = 0;  // 0 = place hatches, 1 = skip hatches
-        public int tierMode    = 1;  // component tier
+        public int repeatCount = 0;
+        public int noHatchMode = 0;
+        public int tierMode    = 1;
         public int isUseAE     = 0;
     }
 }

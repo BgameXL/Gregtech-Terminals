@@ -13,16 +13,14 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.List;
 import java.util.function.Supplier;
 
-// Client → Server: perform an action (unlink or rename) on a linked machine in the Energy Analyzer.
 public class CPacketEnergyAnalyzerAction {
 
     public enum Action { UNLINK, RENAME }
 
     private final Action action;
     private final int    machineIndex;
-    private final String newName; // only used for RENAME
+    private final String newName;
 
-    // ─── Constructors ─────────────────────────────────────────────────────────
     public CPacketEnergyAnalyzerAction(Action action, int machineIndex, String newName) {
         this.action       = action;
         this.machineIndex = machineIndex;
@@ -35,7 +33,6 @@ public class CPacketEnergyAnalyzerAction {
         this.newName      = buf.readUtf(64);
     }
 
-    // ─── Encode / Decode ──────────────────────────────────────────────────────
     public static void encode(CPacketEnergyAnalyzerAction msg, FriendlyByteBuf buf) {
         buf.writeVarInt(msg.action.ordinal());
         buf.writeVarInt(msg.machineIndex);
@@ -46,13 +43,11 @@ public class CPacketEnergyAnalyzerAction {
         return new CPacketEnergyAnalyzerAction(buf);
     }
 
-    // ─── Handler (runs on server main thread) ─────────────────────────────────
     public static void handle(CPacketEnergyAnalyzerAction msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
-            // Find the Energy Analyzer in either hand
             ItemStack stack = findAnalyzer(player);
             if (stack == null || stack.isEmpty()) {
                 GTCEUTerminalMod.LOGGER.warn("CPacketEnergyAnalyzerAction: player {} has no Energy Analyzer", player.getName().getString());
@@ -86,13 +81,11 @@ public class CPacketEnergyAnalyzerAction {
         ctx.get().setPacketHandled(true);
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
     private static ItemStack findAnalyzer(ServerPlayer player) {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack s = player.getItemInHand(hand);
             if (!s.isEmpty() && s.getItem() instanceof EnergyAnalyzerItem) return s;
         }
-        // Also check hotbar in case the player has it there but not in hand
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack s = player.getInventory().getItem(i);
             if (!s.isEmpty() && s.getItem() instanceof EnergyAnalyzerItem) return s;

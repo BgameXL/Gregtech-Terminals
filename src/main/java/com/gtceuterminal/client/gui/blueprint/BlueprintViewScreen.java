@@ -25,27 +25,11 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
-/**
- * 3D orbital viewer for a single schematic.
- *
- * Two sub-modes, toggled with {@code Tab}:
- *
- *   ORBIT<— camera orbits the schematic center; drag to rotate,
- *       scroll to zoom. No world context — good for inspecting the structure.
- *   PLACE — hologram is anchored to a world position; WASD moves
- *       it, R rotates 90° CW, Enter/Space confirms placement (adds ghost to
- *       planner), Escape cancels back to ORBIT.
- *
- * The screen is opened from {@link com.gtceuterminal.client.gui.planner.PlannerScreen}
- * when the player double-clicks (or uses the [3D] button on) a sidebar entry.
- */
 public class BlueprintViewScreen extends Screen {
 
-    // ── Sub-mode ──────────────────────────────────────────────────────────────
     private enum SubMode { ORBIT, PLACE }
     private SubMode subMode = SubMode.ORBIT;
 
-    // ── Colors ────────────────────────────────────────────────────────────────
     private static final int C_HUD    = 0xCC111111;
     private static final int C_TEXT   = 0xFFDDDDDD;
     private static final int C_DIM    = 0xFF888888;
@@ -60,27 +44,20 @@ public class BlueprintViewScreen extends Screen {
     private static final int BTN_W    = 80;
     private static final int BTN_H    = 16;
 
-    // ── Data ──────────────────────────────────────────────────────────────────
     private final SchematicData       schematic;
-    private final List<SchematicData> allSchematics;   // for returning to PlannerScreen
+    private final List<SchematicData> allSchematics;
     private final int                 originSelectedIdx;
     private       int                 rotSteps = 0;
 
-    // ── Camera ────────────────────────────────────────────────────────────────
     private final OrbitalCamera camera;
     private boolean dragging   = false;
     private double  lastMouseX, lastMouseY;
 
-    // ── Placement state (PLACE mode) ──────────────────────────────────────────
     private BlockPos placementOrigin;
 
-    // WASD movement accumulator (blocks/tick, applied each tick)
     private boolean moveNorth, moveSouth, moveEast, moveWest;
 
-    // ── Orbit anchor (ORBIT mode): a fake origin near the player ─────────────
     private final BlockPos orbitOrigin;
-
-    // ── Constructor ───────────────────────────────────────────────────────────
 
     public BlueprintViewScreen(SchematicData schematic,
                                List<SchematicData> allSchematics,
@@ -90,7 +67,6 @@ public class BlueprintViewScreen extends Screen {
         this.allSchematics     = allSchematics;
         this.originSelectedIdx = selectedIdx;
 
-        // Orbit anchor: place schematic centred ~8 blocks in front of the player
         Minecraft mc = Minecraft.getInstance();
         BlockPos playerPos = mc.player != null ? mc.player.blockPosition() : BlockPos.ZERO;
         this.orbitOrigin    = playerPos.offset(-schematic.getSize().getX() / 2,
@@ -102,11 +78,8 @@ public class BlueprintViewScreen extends Screen {
         this.camera = new OrbitalCamera(center);
     }
 
-    // ── Render ────────────────────────────────────────────────────────────────
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        // The hologram is rendered by the RenderLevelStageEvent in ClientEvents.
-        // Here we only draw the 2D HUD overlay on top.
 
         renderHUD(g, mouseX, mouseY);
         super.render(g, mouseX, mouseY, partialTick);
@@ -128,7 +101,6 @@ public class BlueprintViewScreen extends Screen {
                     Component.translatable("gui.gtceuterminal.blueprint.view.orbit.place_mode").getString(),
                     bx + 6, y + 7, 0xFFFFFFFF, false);
 
-            // Blueprints button
             int bx2 = bx - 6 - BTN_W;
             drawBtn(g, bx2, y + 3, BTN_W, BTN_H, C_BTN, C_BTN_B);
             g.drawString(font,
@@ -175,14 +147,12 @@ public class BlueprintViewScreen extends Screen {
         g.fill(x + w - 1, y, x + w, y + h, bdr);
     }
 
-    // ── Mouse ─────────────────────────────────────────────────────────────────
     @Override
     public boolean mouseClicked(double mx, double my, int btn) {
         int hudY = height - HUD_H;
 
         if (btn == 0 && my >= hudY) {
             if (subMode == SubMode.ORBIT) {
-                // Place Mode button
                 int bx = width - 8 - BTN_W;
                 if (mx >= bx && mx < bx + BTN_W) { enterPlaceMode(); return true; }
                 // Blueprints button
@@ -214,8 +184,6 @@ public class BlueprintViewScreen extends Screen {
     @Override
     public boolean mouseDragged(double mx, double my, int btn, double dx, double dy) {
         if (dragging) {
-            // Orbit drag works in both modes — in PLACE it lets you inspect
-            // the hologram from different angles while still moving with WASD.
             camera.drag(dx, dy);
             updateCameraEntity();
             return true;
@@ -234,7 +202,6 @@ public class BlueprintViewScreen extends Screen {
         return true;
     }
 
-    // ── Keyboard ──────────────────────────────────────────────────────────────
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
         if (subMode == SubMode.PLACE) {
@@ -265,28 +232,23 @@ public class BlueprintViewScreen extends Screen {
         return super.keyReleased(key, scan, mods);
     }
 
-    // ── Tick ──────────────────────────────────────────────────────────────────
     @Override
     public void tick() {
         super.tick();
         if (subMode != SubMode.PLACE) return;
 
-        // Move placement origin 1 block per tick per direction held
         int dx = (moveEast  ? 1 : 0) - (moveWest  ? 1 : 0);
         int dz = (moveSouth ? 1 : 0) - (moveNorth ? 1 : 0);
         if (dx != 0 || dz != 0) {
             placementOrigin = placementOrigin.offset(dx, 0, dz);
             snapToSurface();
-            // Update orbital camera target to follow the hologram
             camera.setTarget(BlueprintHologramRenderer.computeCenter(schematic, placementOrigin));
             updateCameraEntity();
         }
     }
 
-    // ── Sub-mode transitions ──────────────────────────────────────────────────
     private void enterPlaceMode() {
         subMode = SubMode.PLACE;
-        // Start placement at orbit anchor snapped to surface
         placementOrigin = orbitOrigin;
         snapToSurface();
         camera.setTarget(BlueprintHologramRenderer.computeCenter(schematic, placementOrigin));
@@ -312,7 +274,6 @@ public class BlueprintViewScreen extends Screen {
                         allSchematics, originSelectedIdx, rotSteps));
     }
 
-    // ── Camera entity sync ────────────────────────────────────────────────────
     private void updateCameraEntity() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
@@ -327,7 +288,6 @@ public class BlueprintViewScreen extends Screen {
         updateCameraEntity();
     }
 
-    // ── Placement helpers ─────────────────────────────────────────────────────
     private void snapToSurface() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
@@ -343,7 +303,6 @@ public class BlueprintViewScreen extends Screen {
                 placementOrigin.getZ());
     }
 
-    // ── Expose state for ClientEvents renderer ────────────────────────────────
     public SchematicData getSchematic()        { return schematic; }
     public BlockPos      getPlacementOrigin()  { return placementOrigin; }
     public BlockPos      getOrbitOrigin()      { return orbitOrigin; }
@@ -351,14 +310,12 @@ public class BlueprintViewScreen extends Screen {
     public SubMode       getSubMode()          { return subMode; }
     public boolean       isPlaceMode()         { return subMode == SubMode.PLACE; }
 
-    // ── Library ───────────────────────────────────────────────────────────────
     private void openLibrary() {
         Minecraft.getInstance().setScreen(
                 new BlueprintLibraryScreen(
                         this,
                         schematic,
                         loaded -> {
-                            // When a blueprint is loaded, re-open viewer with it
                             Minecraft.getInstance().setScreen(
                                     new BlueprintViewScreen(loaded, allSchematics, originSelectedIdx));
                         }));

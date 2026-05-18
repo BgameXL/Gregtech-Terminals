@@ -10,20 +10,12 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-/**
- * Encodes/decodes an ItemTheme as a short Base64 string for copy-paste sharing.
- *
- * Format: Base64( JSON with only color/option fields )
- * Example: eyJhY2NlbnRDb2xvciI6IiMyRTc1QjYi...
- *
- * Intentionally excludes wallpaper (not portable between players).
- */
+// This was for testing.
 public class ThemeCodec {
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final String PREFIX = "gtcet:";
 
-    // ── Export ────────────────────────────────────────────────────────────────
     public static String encode(ItemTheme theme) {
         JsonObject o = new JsonObject();
         o.addProperty("a", colorToHex(theme.accentColor));
@@ -38,7 +30,6 @@ public class ThemeCodec {
         return PREFIX + encoded;
     }
 
-    // ── Import ────────────────────────────────────────────────────────────────
     public static ItemTheme decode(String code) {
         try {
             String raw = code.trim();
@@ -54,7 +45,6 @@ public class ThemeCodec {
             if (o.has("c")) t.compactMode  = o.get("c").getAsBoolean();
             if (o.has("s")) t.showTooltips = o.get("s").getAsBoolean();
             if (o.has("r")) t.showBorders  = o.get("r").getAsBoolean();
-            // wallpaper intentionally not included
             return t;
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.warn("ThemeCodec: invalid code '{}': {}", code, e.getMessage());
@@ -62,15 +52,12 @@ public class ThemeCodec {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     private static String colorToHex(int argb) {
-        // Encode full ARGB so alpha is preserved (e.g. for textColor transparency)
         return String.format("#%08X", argb);
     }
 
     private static int hexToColor(String hex) {
         String s = hex.startsWith("#") ? hex.substring(1) : hex;
-        // Support both #RRGGBB (legacy) and #AARRGGBB (current)
         if (s.length() == 6) return 0xFF000000 | Integer.parseUnsignedInt(s, 16);
         return (int) Long.parseLong(s, 16);
     }

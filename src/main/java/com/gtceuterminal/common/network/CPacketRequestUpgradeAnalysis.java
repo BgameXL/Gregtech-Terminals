@@ -17,16 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
-    * Client → Server: request an analysis for a potential upgrade.
-    *
-    * The client sends the current components in the group, and the server re-runs
-    * the analysis to determine if the upgrade is valid and what the new component
-    * tiers would be. The server then responds with SPacketAnalysisResult.
-    */
 public class CPacketRequestUpgradeAnalysis {
 
-    // One entry per component in the group
     private static final class ComponentEntry {
         final BlockPos     pos;
         final ComponentType type;
@@ -44,7 +36,6 @@ public class CPacketRequestUpgradeAnalysis {
     private final String               upgradeId;
     private final BlockPos             controllerPos;
 
-    // Called from {@link com.gtceuterminal.client.gui.dialog.ComponentUpgradeDialog}.
     public CPacketRequestUpgradeAnalysis(List<ComponentInfo> infos,
                                           int targetTier,
                                           String upgradeId,
@@ -57,7 +48,6 @@ public class CPacketRequestUpgradeAnalysis {
         this.controllerPos = controllerPos;
     }
 
-    // ── Encode / Decode ───────────────────────────────────────────────────────
     public void encode(FriendlyByteBuf buf) {
         buf.writeBlockPos(controllerPos);
         buf.writeInt(targetTier);
@@ -84,14 +74,12 @@ public class CPacketRequestUpgradeAnalysis {
         }
     }
 
-    // ── Handler ───────────────────────────────────────────────────────────────
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
             try {
-                // Reconstruct lightweight ComponentInfo from sent data
                 List<ComponentInfo> infos = new ArrayList<>(components.size());
                 for (ComponentEntry e : components) {
                     BlockState state = player.serverLevel().getBlockState(e.pos);

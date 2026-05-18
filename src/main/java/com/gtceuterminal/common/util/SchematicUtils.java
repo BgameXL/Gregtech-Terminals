@@ -12,19 +12,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Shared utility methods for schematic operations.
- * Centralizes logic that was previously duplicated across
- * SchematicInterfaceBehavior, PlannerScreen, and SchematicPreviewRenderer.
- */
 public final class SchematicUtils {
 
     private SchematicUtils() {}
 
-    /**
-     * Rotates a relative block position by 90° clockwise, repeated {@code steps} times.
-     * Each step applies: (x, y, z) → (-z, y, x)
-     */
     public static BlockPos rotatePositionSteps(BlockPos pos, int steps) {
         BlockPos result = pos;
         for (int i = 0; i < steps; i++) {
@@ -33,17 +24,12 @@ public final class SchematicUtils {
         return result;
     }
 
-    /**
-     * Calculates how many 90° clockwise steps are needed to rotate
-     * {@code from} to face the same direction as {@code to}.
-     */
     public static int getRotationSteps(Direction from, Direction to) {
         return (to.get2DDataValue() - from.get2DDataValue() + 4) % 4;
     }
 
     /**
      * Rotates a {@link BlockState} by 90° clockwise, repeated {@code steps} times.
-     * Handles HORIZONTAL_FACING, FACING (horizontal only), and AXIS properties.
      */
     public static BlockState rotateBlockStateSteps(BlockState state, int steps) {
         BlockState result = state;
@@ -89,11 +75,6 @@ public final class SchematicUtils {
         return Math.min(15.0, Math.max(4.0, distance));
     }
 
-    /**
-     * Returns the world position where a schematic should be placed, mirroring
-     * the logic used by SchematicPreviewRenderer so the paste lands exactly on
-     * the ghost preview.
-     */
     public static BlockPos getTargetPlacementPos(Player player, double distance) {
         double raycastDistance = Math.max(10.0, distance + 5.0);
         HitResult hitResult = player.pick(raycastDistance, 0.0f, false);

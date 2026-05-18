@@ -11,21 +11,21 @@ public class EnergySnapshot {
 
     public enum MachineMode { CONSUMER, GENERATOR, STORAGE, UNKNOWN }
 
-    // ─── Identity ─────────────────────────────────────────────────────────────
+    // Identity
     public String machineCustomName = "";
     public String machineTypeKey = "";
     public MachineMode mode;
     public boolean isFormed;
 
-    public long energyStored;       // EU stored (long for normal machines)
+    public long energyStored;
     public long energyCapacity;
-    public BigInteger bigStored;    // Only for BigInt storage (Power Substation)
+    public BigInteger bigStored;
     public BigInteger bigCapacity;
     public boolean usesBigInt;
 
-    public long inputPerSec;        // EU/s incoming
-    public long outputPerSec;       // EU/s outgoing
-    public long inputVoltage;       // highest input voltage tier
+    public long inputPerSec;
+    public long outputPerSec;
+    public long inputVoltage;
     public long inputAmperage;
     public long outputVoltage;
     public long outputAmperage;
@@ -33,14 +33,14 @@ public class EnergySnapshot {
     public List<HatchInfo> hatches = new ArrayList<>();
 
     public boolean isRecipeActive   = false;
-    public String  recipeId         = "";   // e.g. "gtceu:ebf/iron_ingot"
-    public float   recipeProgress   = 0f;   // 0.0 – 1.0
-    public int     recipeProgressTicks = 0; // progress in ticks (for accurate time display)
-    public int     recipeDuration   = 0;    // total ticks
-    public String  recipeTypeName   = "";   // e.g. "Electric Blast Furnace"
+    public String  recipeId         = "";
+    public float   recipeProgress   = 0f;
+    public int     recipeProgressTicks = 0;
+    public int     recipeDuration   = 0;
+    public String  recipeTypeName   = "";
     public List<RecipeHistoryEntry> recipeHistory = new ArrayList<>();
 
-    public long[] inputHistory  = new long[0];  // EU/s per second, oldest to newest
+    public long[] inputHistory  = new long[0];
     public long[] outputHistory = new long[0];
 
     public long netPerSec() { return inputPerSec - outputPerSec; }

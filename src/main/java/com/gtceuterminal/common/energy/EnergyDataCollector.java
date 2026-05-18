@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.energy;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.RecipeLogicReflection;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.multiblock.MachineInferencer;
 
@@ -50,29 +51,10 @@ public class EnergyDataCollector {
         }
     }
 
-    // Cached reflection fields — obtained once to avoid per-tick getDeclaredField overhead.
-    private static final Field PROGRESS_FIELD;
-    private static final Field LAST_RECIPE_FIELD;
 
-    static {
-        Field pf = null, rf = null;
-        try {
-            pf = RecipeLogic.class.getDeclaredField("progress");
-            pf.setAccessible(true);
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("EnergyDataCollector: could not cache RecipeLogic.progress", e);
-        }
-        try {
-            rf = RecipeLogic.class.getDeclaredField("lastRecipe");
-            rf.setAccessible(true);
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("EnergyDataCollector: could not cache RecipeLogic.lastRecipe", e);
-        }
-        PROGRESS_FIELD = pf;
-        LAST_RECIPE_FIELD = rf;
-    }
 
-    // ─── Main entry point ────────────────────────────────────────────────────
+
+    // Main entry point
     public static EnergySnapshot collect(ServerLevel level, BlockPos pos,
                                          String customName, String controllerBlockKey) {
         EnergySnapshot snap = new EnergySnapshot();
@@ -85,7 +67,6 @@ public class EnergyDataCollector {
             MetaMachine machine = MetaMachine.getMachine(level, pos);
             if (machine == null) return snap;
 
-            // Power Substation — use MachineInferencer (reflection-based)
             if (machine instanceof PowerSubstationMachine substation) {
                 snap.isFormed = substation.isFormed();
                 snap.mode = EnergySnapshot.MachineMode.STORAGE;
@@ -114,7 +95,6 @@ public class EnergyDataCollector {
                 }
             }
 
-            // ─── WorkableElectricMultiblock (consumer / generator) ────────────
             else if (machine instanceof WorkableElectricMultiblockMachine electric) {
                 snap.isFormed = electric.isFormed();
                 snap.mode = electric.isGenerator()
@@ -137,7 +117,6 @@ public class EnergyDataCollector {
                     collectHatchInfo(electric, snap);
                 }
 
-                // Active recipe info + history tracking
                 if (snap.isFormed && snap.mode == EnergySnapshot.MachineMode.CONSUMER) {
                     collectRecipeInfo(electric, snap);
                     RecipeHistoryTracker.poll(pos, electric);
@@ -163,8 +142,6 @@ public class EnergyDataCollector {
                 }
             }
 
-            // History — use dimension + position as key to avoid collisions between
-            // machines with the same custom name in different dimensions or locations.
             String key = historyKey(level, pos);
             int maxH = ItemsConfig.getEAHistorySeconds();
             snap.inputHistory  = updateHistory(inputHistoryMap,  key, snap.inputPerSec,  maxH);
@@ -191,7 +168,6 @@ public class EnergyDataCollector {
         return "";
     }
 
-    // ─── Active recipe info ──────────────────────────────────────────────────
     private static void collectRecipeInfo(IRecipeLogicMachine rlm, EnergySnapshot snap) {
         try {
             RecipeLogic logic = rlm.getRecipeLogic();
@@ -200,7 +176,7 @@ public class EnergyDataCollector {
             snap.isRecipeActive = logic.isWorking();
             snap.recipeDuration = logic.getMaxProgress();
             try {
-                int progressTicks = PROGRESS_FIELD != null ? (int) PROGRESS_FIELD.get(logic) : 0;
+                int progressTicks = RecipeLogicReflection.getProgress(logic);
                 snap.recipeProgress = snap.recipeDuration > 0
                         ? (float) progressTicks / snap.recipeDuration : 0f;
                 snap.recipeProgressTicks = progressTicks;
@@ -211,15 +187,16 @@ public class EnergyDataCollector {
 
             if (logic.isWorking() || logic.isWaiting()) {
                 try {
-                    Object recipeObj = LAST_RECIPE_FIELD != null ? LAST_RECIPE_FIELD.get(logic) : null;
-                    if (recipeObj instanceof com.gregtechceu.gtceu.api.recipe.GTRecipe recipe) {
+                    com.gregtechceu.gtceu.api.recipe.GTRecipe recipe =
+                            RecipeLogicReflection.getLastRecipe(logic).orElse(null);
+                    if (recipe != null) {
                         snap.recipeId = getOutputName(recipe);
                         if (recipe.recipeType != null) {
                             snap.recipeTypeName = toReadableName(
                                     recipe.recipeType.registryName.getPath());
                         }
                     }
-                } catch (IllegalAccessException | RuntimeException e) {
+                } catch (RuntimeException e) {
                     GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
                 }
             }
@@ -228,7 +205,6 @@ public class EnergyDataCollector {
 
     private static String getOutputName(com.gregtechceu.gtceu.api.recipe.GTRecipe recipe) {
         try {
-            // Try item outputs first
             var itemCap = com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability.CAP;
             var outputs = recipe.outputs.get(itemCap);
             if (outputs != null && !outputs.isEmpty()) {
@@ -264,7 +240,6 @@ public class EnergyDataCollector {
         return sb.toString().trim();
     }
 
-    // ─── Hatch breakdown ─────────────────────────────────────────────────────
     private static void collectHatchInfo(WorkableElectricMultiblockMachine ctrl, EnergySnapshot snap) {
         try {
             for (IMultiPart part : ctrl.getParts()) {
@@ -311,7 +286,6 @@ public class EnergyDataCollector {
         }
     }
 
-    // ─── History helpers ──────────────────────────────────────────────────────
     private static long[] updateHistory(Map<String, Deque<Long>> map, String key,
                                         long value, int maxSize) {
         Deque<Long> deque = map.computeIfAbsent(key, k -> new ArrayDeque<>());

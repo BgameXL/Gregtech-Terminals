@@ -16,41 +16,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Renders a {@link SchematicData} as a translucent hologram at a given world position.
- *
- * Two render modes:
- *
- *   {@code PREVIEW} — neutral blue tint, used in {@link BlueprintViewScreen}
- *       where the camera orbits the schematic.
- *   {@code PLACEMENT} — green tint when placement is valid, red tint when
- *       blocked, used in the in-world WASD placement mode.
- *
- * Rendering is done block-by-block with {@link BlockRenderDispatcher#renderSingleBlock},
- * matching the same approach as the existing {@code SchematicPreviewRenderer} so that
- * block model variations, rotations, and fluid states all render correctly.
- */
 public final class BlueprintHologramRenderer {
 
     public enum Mode { PREVIEW, PLACEMENT_OK, PLACEMENT_BLOCKED }
 
-    // ARGB tint values multiplied into the light color.
-    // Full-bright light (0xF000F0) with alpha controlled by blending.
     private static final int LIGHT_FULLBRIGHT = 0xF000F0;
 
     private BlueprintHologramRenderer() {}
 
-    /**
-     * Renders the schematic hologram.
-     *
-     * @param poseStack    current pose stack (caller manages push/pop)
-     * @param bufferSource buffer source for batched rendering
-     * @param schematic    schematic to render
-     * @param origin       world-space block position of the schematic's (0,0,0) corner
-     * @param rotSteps     0–3 clockwise 90° rotation steps
-     * @param cameraPos    current camera world position (for translation)
-     * @param mode         rendering mode (tint color)
-     */
     public static void render(PoseStack poseStack,
                               MultiBufferSource bufferSource,
                               SchematicData schematic,
@@ -64,16 +37,15 @@ public final class BlueprintHologramRenderer {
         Minecraft mc = Minecraft.getInstance();
         BlockRenderDispatcher dispatcher = mc.getBlockRenderer();
 
-        // Enable blending for the translucent tint
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
         float alpha = (mode == Mode.PREVIEW) ? 0.55f : 0.65f;
-        // Tint: blue for preview, green/red for placement
+
         int overlayColor = switch (mode) {
             case PREVIEW          -> OverlayTexture.NO_OVERLAY;
-            case PLACEMENT_OK     -> OverlayTexture.pack(0, false);   // green tint
-            case PLACEMENT_BLOCKED -> OverlayTexture.pack(10, true);  // red tint
+            case PLACEMENT_OK     -> OverlayTexture.pack(0, false);
+            case PLACEMENT_BLOCKED -> OverlayTexture.pack(10, true);
         };
 
         for (var entry : schematic.getBlocks().entrySet()) {

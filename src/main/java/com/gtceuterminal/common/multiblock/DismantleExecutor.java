@@ -32,7 +32,6 @@ public class DismantleExecutor {
                                               MultiblockControllerMachine controller) {
         DismantleScanner.ScanResult scanResult = DismantleScanner.scanMultiblock(level, controller);
 
-        // Build EXACT refunds (including NBT) BEFORE breaking blocks
         List<ItemStack> items = new ArrayList<>();
         BlockPos controllerPos = controller.getPos();
 
@@ -45,7 +44,6 @@ public class DismantleExecutor {
             }
         }
 
-        // 1) First everything except the controller (avoids invalidating early state)
         for (BlockPos pos : scanResult.getAllBlocks()) {
             if (pos.equals(controllerPos)) continue;
             if (skipPositions.contains(pos)) continue;
@@ -55,27 +53,24 @@ public class DismantleExecutor {
             mergeInto(items, refund);
         }
 
-        // 2) Then the controller
         BlockState controllerBs = level.getBlockState(controllerPos);
         if (!ItemsConfig.isDismantlerBlacklisted(controllerBs.getBlock())) {
             ItemStack controllerRefund = createRefundStack(level, controllerPos);
             mergeInto(items, controllerRefund);
         }
 
-        // Break all blocks (without drops), controller at the end
         for (BlockPos pos : scanResult.getAllBlocks()) {
             if (pos.equals(controllerPos)) continue;
             BlockState bsBreak = level.getBlockState(pos);
             if (ItemsConfig.isDismantlerBlacklisted(bsBreak.getBlock())) continue;
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
-        // Only remove the controller if it isn't blacklisted
+
         BlockState controllerBreakBs = level.getBlockState(controllerPos);
         if (!ItemsConfig.isDismantlerBlacklisted(controllerBreakBs.getBlock())) {
             level.setBlock(controllerPos, Blocks.AIR.defaultBlockState(), 3);
         }
 
-        // Give items to the player
         for (ItemStack stack : items) {
             if (!player.getInventory().add(stack)) {
                 ItemEntity itemEntity = new ItemEntity(
@@ -197,8 +192,6 @@ public class DismantleExecutor {
         return Objects.equals(a.getTag(), b.getTag());
     }
 
-
-    // Calculate available space in the player's inventory
     public static int getAvailableInventorySlots(ServerPlayer player) {
         int emptySlots = 0;
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {

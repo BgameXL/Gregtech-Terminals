@@ -13,11 +13,6 @@ public class SchematicData {
     private final String name;
     private final String multiblockType;
     private final Map<BlockPos, BlockState> blocks;
-
-    /**
-     * Optional BlockEntity NBT per block position
-     * Used for accurate preview and perfect paste
-     */
     private final Map<BlockPos, CompoundTag> blockEntities;
     private final BlockPos size;
     private final String originalFacing;
@@ -139,7 +134,6 @@ public class SchematicData {
             blocks.put(pos, state);
         }
 
-        // Optional BlockEntities
         Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
         if (tag.contains("BlockEntities")) {
             ListTag beList = tag.getList("BlockEntities", 10);

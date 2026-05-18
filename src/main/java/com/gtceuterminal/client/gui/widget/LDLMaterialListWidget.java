@@ -18,7 +18,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
 
     private final List<MaterialAvailability> materials;
 
-    // GTCEu colors
     private static final int BG_COLOR = 0xFF2B2B2B;
     private static final int BG_HOVER = 0xFF3F3F3F;
     private static final int BORDER_LIGHT = 0xFF5A5A5A;
@@ -41,7 +40,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
     public void initWidget() {
         super.initWidget();
 
-        // Background panel
         setBackground(new ColorRectTexture(BG_COLOR));
 
         // Borders
@@ -54,7 +52,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
         addWidget(new ImageWidget(0, getSize().height - 2, getSize().width, 2,
                 new ColorRectTexture(BORDER_DARK)));
 
-        // Scrollable content
         DraggableScrollableWidgetGroup scrollWidget = new DraggableScrollableWidgetGroup(
                 4, 4, getSize().width - 16, getSize().height - 8
         );
@@ -78,26 +75,22 @@ public class LDLMaterialListWidget extends WidgetGroup {
         WidgetGroup entry = new WidgetGroup(0, yPos, getSize().width - 20, 14);
         entry.setBackground(new ColorRectTexture(0x00000000));
 
-        // Status indicator
         int dotColor = mat.hasEnough() ? STATUS_GREEN :
                 mat.getTotalAvailable() > 0 ? STATUS_YELLOW : STATUS_RED;
 
         ImageWidget statusDot = new ImageWidget(3, 5, 4, 4, new ColorRectTexture(dotColor));
         entry.addWidget(statusDot);
 
-        // Item name
         String itemName = mat.getItemName();
         LabelWidget nameLabel = new LabelWidget(12, 3, itemName);
         nameLabel.setTextColor(TEXT_WHITE);
         entry.addWidget(nameLabel);
 
-        // Quantity display
         String quantityText = formatQuantity(mat);
         LabelWidget quantityLabel = new LabelWidget(getSize().width - 110, 3, quantityText);
         quantityLabel.setTextColor(TEXT_GRAY);
         entry.addWidget(quantityLabel);
 
-        // Tooltip on hover
         entry.setHoverTooltips(createTooltip(mat));
 
         return entry;
@@ -139,7 +132,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
         tooltip.add(Component.literal("§f§l" + mat.getItemName()));
         tooltip.add(Component.empty());
 
-        // Required vs Available
         String availColor = mat.hasEnough() ? "§a" : "§c";
         tooltip.add(Component.translatable(
                 "gui.gtceuterminal.material_list.tooltip.required",
@@ -154,7 +146,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
         tooltip.add(Component.empty());
         tooltip.add(Component.translatable("gui.gtceuterminal.material_list.tooltip.sources_header"));
 
-        // Inventory
         if (mat.getInInventory() > 0) {
             tooltip.add(Component.translatable(
                     "gui.gtceuterminal.material_list.tooltip.source.inventory_nonzero",
@@ -164,7 +155,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
             tooltip.add(Component.translatable("gui.gtceuterminal.material_list.tooltip.source.inventory_zero"));
         }
 
-        // Chests
         if (mat.getInNearbyChests() > 0) {
             tooltip.add(Component.translatable(
                     "gui.gtceuterminal.material_list.tooltip.source.chests_nonzero",
@@ -174,7 +164,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
             tooltip.add(Component.translatable("gui.gtceuterminal.material_list.tooltip.source.chests_zero"));
         }
 
-        // ME Network — only shown when AE2 is present
         if (MENetworkScanner.isAE2Available()) {
             if (mat.getInMENetwork() > 0) {
                 tooltip.add(Component.translatable(
@@ -186,7 +175,6 @@ public class LDLMaterialListWidget extends WidgetGroup {
             }
         }
 
-        // Status
         tooltip.add(Component.empty());
         if (mat.hasEnough()) {
             tooltip.add(Component.translatable("gui.gtceuterminal.material_list.tooltip.status.sufficient"));

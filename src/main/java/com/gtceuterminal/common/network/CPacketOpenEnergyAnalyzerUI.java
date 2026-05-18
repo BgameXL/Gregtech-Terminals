@@ -9,7 +9,6 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-// Client → Server: Request to open the Energy Analyzer UI for a specific linked machine index.
 public class CPacketOpenEnergyAnalyzerUI {
 
     private final int machineIndex;

@@ -94,7 +94,6 @@ public class MachineInferencer {
             return new MachineSnapshot(0, MachineState.UNKNOWN);
         }
 
-        // Get MetaMachine if it's a GTCEu machine
         MetaMachine metaMachine = null;
         if (be instanceof IMachineBlockEntity machineEntity) {
             metaMachine = machineEntity.getMetaMachine();
@@ -126,7 +125,6 @@ public class MachineInferencer {
         }
 
         if (energySnapshot != null) {
-            // if (isDebug()) LOGGER.debug(String.valueOf("  -> Using energy container (0 EU/t): " + energySnapshot.state));
             return energySnapshot;
         }
 
@@ -216,11 +214,6 @@ public class MachineInferencer {
                     if (isDebug()) LOGGER.debug(String.valueOf("    Using theoretical capacity: " + eut + " EU/t (buffer/battery)"));
                 }
 
-                // Determine state:
-                // - Active energy flow detected via delta   → RUNNING
-                // - No energy stored at all                 → IDLE_NO_POWER
-                // - Buffer nearly full (≥99%) but no flow   → RUNNING (generator at capacity)
-                // - Energy present but no measured flow      → IDLE_NO_RECIPE (charged but idle)
                 MachineState state;
                 if (tracker.calculatedEuPerTick > 0) {
                     state = MachineState.RUNNING;
@@ -253,7 +246,6 @@ public class MachineInferencer {
 
     private static MachineSnapshot inferFromPowerStationBank(MachineTrait trait, BlockPos pos) {
         try {
-            // Get the PowerSubstationMachine instance (parent of the trait)
             MetaMachine machine = trait.getMachine();
 
             // BigInteger getStored()
@@ -303,17 +295,14 @@ public class MachineInferencer {
                 var getInputMethod = machineClazz.getMethod("getInputPerSec");
                 inputPerSec = (long) getInputMethod.invoke(machine);
             } catch (Exception e) {
-                // if (isDebug()) LOGGER.debug("{}", "    [DEBUG] Could not get inputPerSec: " + e.getMessage());
             }
 
             try {
                 var getOutputMethod = machineClazz.getMethod("getOutputPerSec");
                 outputPerSec = (long) getOutputMethod.invoke(machine);
             } catch (Exception e) {
-                // if (isDebug()) LOGGER.debug("{}", "    [DEBUG] Could not get outputPerSec: " + e.getMessage());
             }
 
-            // if (isDebug()) LOGGER.debug("  PowerStationEnergyBank:");
             if (isDebug()) LOGGER.debug(String.valueOf("    Stored: " + storedEnergy + " EU (" + fillPercent + "% full)"));
 
             long inputPerTick = inputPerSec / 20;
@@ -406,7 +395,6 @@ public class MachineInferencer {
             return new MachineSnapshot(eut, MachineState.RUNNING);
         }
 
-        // When idle, show the max capacity
         if (maxVoltageCapacity > 0) {
             return new MachineSnapshot(maxVoltageCapacity, MachineState.IDLE_NO_RECIPE);
         }
@@ -419,7 +407,6 @@ public class MachineInferencer {
         try {
             long maxVoltage = 0;
 
-            // Get parts from the controller
             for (IMultiPart part : controller.getParts()) {
                 if (part instanceof MetaMachine partMachine) {
                     for (var trait : partMachine.getTraits()) {

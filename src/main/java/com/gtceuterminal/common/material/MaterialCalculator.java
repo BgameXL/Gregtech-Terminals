@@ -29,14 +29,12 @@ public class MaterialCalculator {
             ComponentType type = component.getType();
             int currentTier = component.getTier();
 
-            // Validate tier upgrade
             if (targetTier <= currentTier) {
                 GTCEUTerminalMod.LOGGER.warn("Cannot upgrade {} from tier {} to tier {} (must be higher)",
                         type.getDisplayName(), currentTier, targetTier);
                 return materials;
             }
 
-            // Find the target hatch block ID
             String targetHatchId = findHatchBlockId(type, targetTier);
 
             if (targetHatchId == null) {
@@ -45,7 +43,6 @@ public class MaterialCalculator {
                 return materials;
             }
 
-            // Simply require the target hatch
             Item targetHatch = getItemFromId(targetHatchId);
 
             if (targetHatch != null) {
@@ -59,9 +56,6 @@ public class MaterialCalculator {
             return materials;
         }
 
-        // ============================================
-        // Hatch Finding Methods
-        // ============================================
         private static String findHatchBlockId(ComponentType type, int tier) {
             String tierName = com.gregtechceu.gtceu.api.GTValues.VN[tier].toLowerCase();
 
@@ -163,9 +157,6 @@ public class MaterialCalculator {
             return gtmthings;
         }
 
-    // ============================================
-    // Helper Methods
-    // ============================================
     private static boolean itemExists(String itemId) {
         try {
             net.minecraft.resources.ResourceLocation loc = net.minecraft.resources.ResourceLocation.parse(itemId);
@@ -224,16 +215,13 @@ public class MaterialCalculator {
     }
 
 
-    // Find wireless terminal in player's inventory
     private static ItemStack findWirelessTerminal(Player player) {
-        // Check main hand
         ItemStack mainHand = player.getMainHandItem();
         if (mainHand.getItem() instanceof MultiStructureManagerItem ||
                 mainHand.getItem() instanceof SchematicInterfaceItem) {
             return mainHand;
         }
 
-        // Check off hand
         ItemStack offHand = player.getOffhandItem();
         if (offHand.getItem() instanceof MultiStructureManagerItem ||
                 offHand.getItem() instanceof SchematicInterfaceItem) {
@@ -250,11 +238,6 @@ public class MaterialCalculator {
         return ItemStack.EMPTY;
     }
 
-    /**
-     * Check material availability from all sources INCLUDING ME Network
-     * CLIENT SIDE: Assumes ME has items if linked (can't check BlockEntity)
-     * SERVER SIDE: Actually checks ME Network
-     */
     public static List<MaterialAvailability> checkMaterialsAvailability(
             Map<Item, Integer> required,
             Player player,
@@ -267,7 +250,6 @@ public class MaterialCalculator {
         Map<Item, Integer> playerInv = scanPlayerInventory(player);
         Map<Item, Integer> chests = scanNearbyChests(level, player.blockPosition());
 
-        // Find wireless terminal
         ItemStack wirelessTerminal = findWirelessTerminal(player);
         boolean isLinked = !wirelessTerminal.isEmpty() && WirelessTerminalHandler.isLinked(wirelessTerminal);
 
@@ -277,22 +259,18 @@ public class MaterialCalculator {
             mat.setInInventory(playerInv.getOrDefault(entry.getKey(), 0));
             mat.setInNearbyChests(chests.getOrDefault(entry.getKey(), 0));
 
-            // ME Network handling
             long inME = 0;
 
             if (WirelessTerminalHandler.isLinked(wirelessTerminal)) {
                 if (level.isClientSide) {
-                    // CLIENT: Assume ME *might* have the items to allow confirmation
-                    // The server will verify when the upgrade is actually executed
                     long needed = entry.getValue();
                     long haveLocally = mat.getInInventory() + mat.getInNearbyChests();
                     long stillNeeded = Math.max(0, needed - haveLocally);
 
-                    inME = stillNeeded;  // Assume ME can provide what's missing
+                    inME = stillNeeded;
                     GTCEUTerminalMod.LOGGER.info("  {} [CLIENT]: Wireless linked, assuming ME can provide {} (will verify on server)",
                             entry.getKey().getDescription().getString(), stillNeeded);
                 } else {
-                    // SERVER: Actually check ME Network
                     inME = MENetworkItemExtractor.checkItemAvailability(
                             wirelessTerminal, level, player, entry.getKey()
                     );
@@ -378,7 +356,6 @@ public class MaterialCalculator {
         return remaining <= 0;
     }
 
-    // Extract materials - ONLY CALLED ON SERVER
     public static boolean extractMaterials(
             List<MaterialAvailability> materials,
             Player player,
@@ -388,16 +365,13 @@ public class MaterialCalculator {
     ) {
         GTCEUTerminalMod.LOGGER.info("=== Extracting Materials (Server: {}) ===", !level.isClientSide);
 
-        // Build required items map
         Map<Item, Integer> required = new HashMap<>();
         for (MaterialAvailability mat : materials) {
             required.put(mat.getItem(), mat.getRequired());
         }
 
-        // Find wireless terminal
         ItemStack wirelessTerminal = findWirelessTerminal(player);
 
-        // Try ME Network first if available
         if (!wirelessTerminal.isEmpty()) {
             GTCEUTerminalMod.LOGGER.info("  Found wireless terminal, trying ME Network extraction...");
 
@@ -419,7 +393,6 @@ public class MaterialCalculator {
             GTCEUTerminalMod.LOGGER.warn("  ✗ ME Network extraction failed, trying traditional method...");
         }
 
-        // Fallback to traditional extraction
         for (MaterialAvailability mat : materials) {
             int remaining = mat.getRequired();
             String itemName = mat.getItemName();

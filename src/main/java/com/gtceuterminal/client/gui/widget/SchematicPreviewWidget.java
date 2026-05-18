@@ -24,11 +24,17 @@ import java.util.*;
 @OnlyIn(Dist.CLIENT)
 public class SchematicPreviewWidget extends WidgetGroup {
 
-    private static TrackedDummyWorld LEVEL;
+    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {}
 
-    private static final java.util.Map<String, SceneWidget> SCENE_CACHE = new java.util.LinkedHashMap<>() {
-        @Override protected boolean removeEldestEntry(java.util.Map.Entry<String, SceneWidget> eldest) {
-            if (size() > 8) { eldest.getValue().setVisible(false); return true; }
+    // Instance-level: destroyed with the widget, no leaks between GUI sessions.
+    private final LinkedHashMap<String, SceneCacheEntry> sceneCache = new LinkedHashMap<>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, SceneCacheEntry> eldest) {
+            if (size() > 8) {
+                eldest.getValue().scene().setVisible(false);
+                removeWidget(eldest.getValue().scene());
+                return true;
+            }
             return false;
         }
     };
@@ -57,25 +63,31 @@ public class SchematicPreviewWidget extends WidgetGroup {
         pendingBuild = true;
     }
 
+    public void dispose() {
+        for (SceneCacheEntry entry : sceneCache.values()) {
+            entry.scene().setVisible(false);
+        }
+        sceneCache.clear();
+        sceneWidget = null;
+    }
+
     private void buildScene() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
         if (schematic == null || schematic.getBlocks().isEmpty()) return;
 
         String cacheKey = schematic.getName() + ":" + rotSteps;
-        if (SCENE_CACHE.containsKey(cacheKey)) {
-            sceneWidget = SCENE_CACHE.get(cacheKey);
+        if (sceneCache.containsKey(cacheKey)) {
+            SceneCacheEntry entry = sceneCache.get(cacheKey);
+            sceneWidget = entry.scene();
             sceneWidget.setVisible(true);
             if (!widgets.contains(sceneWidget)) addWidget(sceneWidget);
             return;
         }
 
-        if (LEVEL == null) LEVEL = new TrackedDummyWorld();
-
         Map<BlockPos, BlockState> rotated = buildRotatedBlocks();
         Map<BlockPos, CompoundTag> rotatedBEs = buildRotatedBEs();
 
-        // Compute bounds
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         for (BlockPos p : rotated.keySet()) {
@@ -84,7 +96,8 @@ public class SchematicPreviewWidget extends WidgetGroup {
         }
         int sizeX = maxX - minX + 1, sizeY = maxY - minY + 1, sizeZ = maxZ - minZ + 1;
         float maxDim = Math.max(sizeX, Math.max(sizeY, sizeZ));
-        LEVEL.clear();
+
+        TrackedDummyWorld level = new TrackedDummyWorld();
 
         Map<BlockPos, BlockInfo> infoMap = new HashMap<>();
         for (var e : rotated.entrySet()) {
@@ -94,22 +107,22 @@ public class SchematicPreviewWidget extends WidgetGroup {
             if (nbt != null && !nbt.isEmpty()) info.setTag(nbt);
             infoMap.put(e.getKey(), info);
         }
-        LEVEL.addBlocks(infoMap);
+        level.addBlocks(infoMap);
 
         com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine ctrl = null;
         for (BlockPos pos : infoMap.keySet()) {
             try {
-                var be = LEVEL.getBlockEntity(pos);
+                var be = level.getBlockEntity(pos);
                 if (be instanceof com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity mbe) {
-                    mbe.setLevel(LEVEL);
+                    mbe.setLevel(level);
                     var machine = mbe.getMetaMachine();
                     if (machine instanceof com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine c) {
-                        LEVEL.setInnerBlockEntity(mbe);
+                        level.setInnerBlockEntity(mbe);
                         ctrl = c;
                     }
                 }
             } catch (RuntimeException e) {
-                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not set up controller from block entity: {}", e.getMessage());
+                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not set up controller: {}", e.getMessage());
             }
         }
 
@@ -123,8 +136,9 @@ public class SchematicPreviewWidget extends WidgetGroup {
                 GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: structure formation failed: {}", e.getMessage());
             }
         }
+
         int w = getSize().width, h = getSize().height;
-        sceneWidget = new SceneWidget(0, 0, w, h, LEVEL);
+        sceneWidget = new SceneWidget(0, 0, w, h, level);
         sceneWidget.useOrtho(true)
                 .setOrthoRange(0.5f)
                 .setScalable(true)
@@ -133,16 +147,12 @@ public class SchematicPreviewWidget extends WidgetGroup {
                 .setRenderSelect(false);
 
         sceneWidget.setCameraYawAndPitch(25, -135);
-        sceneWidget.setZoom((float)(3.5 * Math.sqrt(Math.max(maxDim, 1))));
-
+        sceneWidget.setZoom((float) (3.5 * Math.sqrt(Math.max(maxDim, 1))));
         sceneWidget.setRenderedCore(infoMap.keySet(), null);
 
-        // Use VBO cache via recordRenderCall (safe from any thread)
         com.mojang.blaze3d.systems.RenderSystem.recordRenderCall(sceneWidget::useCacheBuffer);
 
-        // Needs more work
-        SCENE_CACHE.put(cacheKey, sceneWidget);
-
+        sceneCache.put(cacheKey, new SceneCacheEntry(level, sceneWidget));
         addWidget(sceneWidget);
     }
 
@@ -153,15 +163,15 @@ public class SchematicPreviewWidget extends WidgetGroup {
         blockCount = (int) schematic.getBlocks().values().stream().filter(s -> !s.isAir()).count();
         for (var e : schematic.getBlocks().entrySet()) {
             String id = e.getValue().getBlock().getDescriptionId().toLowerCase();
-            if (id.contains("controller")||id.contains("machine")||id.contains("multiblock")||id.contains("casing")) {
+            if (id.contains("controller") || id.contains("machine") || id.contains("multiblock") || id.contains("casing")) {
                 String n = e.getValue().getBlock().getName().getString();
-                displayName = n.length() > 35 ? n.substring(0,32)+"..." : n; return;
+                displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n; return;
             }
         }
         for (var e : schematic.getBlocks().entrySet()) {
             if (!e.getValue().isAir()) {
                 String n = e.getValue().getBlock().getName().getString();
-                displayName = n.length() > 35 ? n.substring(0,32)+"..." : n; return;
+                displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n; return;
             }
         }
         displayName = "Multiblock Structure";
@@ -225,7 +235,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
         }
 
         int x = getPosition().x, y = getPosition().y, w = getSize().width, h = getSize().height;
-        graphics.fill(x, y, x+w, y+h, 0xFF080808);
+        graphics.fill(x, y, x + w, y + h, 0xFF080808);
 
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
 
@@ -236,11 +246,10 @@ public class SchematicPreviewWidget extends WidgetGroup {
                     x + (w - tw) / 2, y + h / 2 - 4, 0xFF888888, false);
         }
 
-        // Border
-        graphics.fill(x, y, x+w, y+1, 0xFF555555);
-        graphics.fill(x, y+h-1, x+w, y+h, 0xFF555555);
-        graphics.fill(x, y, x+1, y+h, 0xFF555555);
-        graphics.fill(x+w-1, y, x+w, y+h, 0xFF555555);
+        graphics.fill(x, y, x + w, y + 1, 0xFF555555);
+        graphics.fill(x, y + h - 1, x + w, y + h, 0xFF555555);
+        graphics.fill(x, y, x + 1, y + h, 0xFF555555);
+        graphics.fill(x + w - 1, y, x + w, y + h, 0xFF555555);
     }
 
     @Override
@@ -248,11 +257,9 @@ public class SchematicPreviewWidget extends WidgetGroup {
         if (!isMouseOverElement(mx, my)) return super.mouseWheelMove(mx, my, delta);
 
         if (!net.minecraft.client.gui.screens.Screen.hasControlDown()) {
-            // plain scroll = rotate camera 90° around Y — no recompile needed
             if (sceneWidget != null) {
                 float currentPitch = sceneWidget.getRotationPitch();
-                float newPitch = currentPitch + (delta > 0 ? 90f : -90f);
-                sceneWidget.setCameraYawAndPitch(sceneWidget.getRotationYaw(), newPitch);
+                sceneWidget.setCameraYawAndPitch(sceneWidget.getRotationYaw(), currentPitch + (delta > 0 ? 90f : -90f));
             }
             return true;
         }
@@ -260,7 +267,6 @@ public class SchematicPreviewWidget extends WidgetGroup {
         return super.mouseWheelMove(mx, my, delta);
     }
 
-    // ── Accessors ─────────────────────────────────────────────────────────────
     public int    getRotSteps()              { return rotSteps; }
     public int    getBlockCount()            { return blockCount; }
     public String getMultiblockDisplayName() { return displayName; }

@@ -3,37 +3,19 @@ package com.gtceuterminal.client.blueprint;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Spherical orbital camera that orbits around a fixed target point.
- *
- * the target is fixed (center of the schematic),
- * and the camera position is computed from (yaw, pitch, distance).
- * No entity, no GL state — just math
- *   Yaw  — horizontal orbit, unclamped (wraps around)
- *   Pitch — vertical orbit, clamped to [-80°, -5°] so the camera
- *               never flips under the target or goes flat
- *   Dist  — zoom distance in block
- */
 public final class OrbitalCamera {
 
-    // ── Limits ────────────────────────────────────────────────────────────────
     public static final float PITCH_MIN =  5f;   // degrees above horizon
     public static final float PITCH_MAX = 85f;   // nearly straight down
     public static final float DIST_MIN  =  3f;
     public static final float DIST_MAX  = 60f;
-
-    // ── Defaults ──────────────────────────────────────────────────────────────
     private static final float YAW_DEFAULT   = 225f;  // south-west view
     private static final float PITCH_DEFAULT =  35f;
     private static final float DIST_DEFAULT  =  16f;
 
-    // ── Sensitivity ───────────────────────────────────────────────────────────
-    /** Degrees per pixel of mouse drag. */
     public static final float DRAG_SENSITIVITY = 0.4f;
-    /** Blocks per scroll notch. */
     public static final float SCROLL_SPEED     = 2.0f;
 
-    // ── State ─────────────────────────────────────────────────────────────────
     private Vec3  target;
     private float yaw;
     private float pitch;
@@ -50,11 +32,8 @@ public final class OrbitalCamera {
         this(Vec3.atCenterOf(center));
     }
 
-    // ── Input ─────────────────────────────────────────────────────────────────
     public void drag(double dx, double dy) {
         yaw   = (yaw + (float)(dx * DRAG_SENSITIVITY)) % 360f;
-        // dy is positive downward in screen space — subtract so dragging down
-        // increases pitch (camera moves lower, looks more downward at target).
         pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, pitch - (float)(dy * DRAG_SENSITIVITY)));
     }
 
@@ -62,7 +41,7 @@ public final class OrbitalCamera {
         dist = Math.max(DIST_MIN, Math.min(DIST_MAX, dist - (float)(delta * SCROLL_SPEED)));
     }
 
-    // ── Compute ───────────────────────────────────────────────────────────────
+    // Compute
     public Vec3 getPosition() {
         double yawRad   = Math.toRadians(yaw);
         double pitchRad = Math.toRadians(pitch);
@@ -82,10 +61,13 @@ public final class OrbitalCamera {
         return -pitch;
     }
 
-    // ── Target ────────────────────────────────────────────────────────────────
     public Vec3  getTarget()  { return target; }
+
     public void  setTarget(Vec3 t) { this.target = t; }
+
     public float getYaw()     { return yaw; }
+
     public float getPitch()   { return pitch; }
+    
     public float getDist()    { return dist; }
 }

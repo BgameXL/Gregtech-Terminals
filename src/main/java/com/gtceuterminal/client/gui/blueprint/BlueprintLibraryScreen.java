@@ -14,13 +14,12 @@ import java.util.function.Consumer;
 // Dead code It's gonna be re-used later
 public class BlueprintLibraryScreen extends Screen {
 
-    // ── Layout ────────────────────────────────────────────────────────────────
+    // Layout
     private static final int W         = 280;
     private static final int H         = 220;
     private static final int ENTRY_H   = 20;
     private static final int LIST_PAD  = 6;
 
-    // ── Colors ────────────────────────────────────────────────────────────────
     private static final int C_BG        = 0xFF1A1A1A;
     private static final int C_PANEL     = 0xFF222222;
     private static final int C_BORDER    = 0xFF2E75B6;
@@ -35,34 +34,28 @@ public class BlueprintLibraryScreen extends Screen {
     private static final int C_INPUT_BDR = 0xFF444444;
     private static final int C_INPUT_ACT = 0xFF2E75B6;
 
-    // ── State ─────────────────────────────────────────────────────────────────
-    private final SchematicData        currentSchematic;  // the schematic open in planner (to save)
-    private final Consumer<SchematicData> onLoad;         // called when user loads a blueprint
+    private final SchematicData        currentSchematic;
+    private final Consumer<SchematicData> onLoad;
     private final Screen               parentScreen;
 
     private List<String> blueprintNames = new ArrayList<>();
     private int          selectedIdx    = -1;
     private int          scrollY        = 0;
 
-    // Save-as text field
     private String  saveNameText  = "";
     private boolean saveFieldFocus = false;
     private long    cursorTimer   = 0;
 
-    // Feedback message (shown for ~2s after save/delete)
     private String feedbackMsg  = "";
     private long   feedbackTime = 0;
 
-    // Cached window origin
     private int wx, wy;
 
-    // ── List area geometry (relative to wx,wy) ────────────────────────────────
     private static final int LIST_TOP  = 30;
     private static final int LIST_H    = 120;
     private static final int LIST_LEFT = LIST_PAD;
-    private static final int LIST_W    = W - LIST_PAD * 2 - 90; // room for Load+Del buttons
+    private static final int LIST_W    = W - LIST_PAD * 2 - 90;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
     public BlueprintLibraryScreen(Screen parent,
                                   SchematicData currentSchematic,
                                   Consumer<SchematicData> onLoad) {
@@ -94,10 +87,8 @@ public class BlueprintLibraryScreen extends Screen {
         selectedIdx = Math.min(selectedIdx, blueprintNames.size() - 1);
     }
 
-    // ── Render ────────────────────────────────────────────────────────────────
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        // Dim background
         g.fill(0, 0, width, height, 0x88000000);
 
         // Panel
@@ -107,7 +98,6 @@ public class BlueprintLibraryScreen extends Screen {
         g.fill(wx, wy, wx + 1, wy + H, C_BORDER);
         g.fill(wx + W - 1, wy, wx + W, wy + H, C_BORDER);
 
-        // Title
         g.drawString(font,
                 Component.translatable("gui.gtceuterminal.blueprint.library.title").getString(),
                 wx + 8, wy + 8, C_TEXT, false);
@@ -119,7 +109,6 @@ public class BlueprintLibraryScreen extends Screen {
                 Component.translatable("gui.gtceuterminal.blueprint.library.close").getString(),
                 closeBx + 3, closeBy + 3, 0xFFFFFFFF, false);
 
-        // List area background
         int lx = wx + LIST_LEFT;
         int ly = wy + LIST_TOP;
         g.fill(lx - 1, ly - 1, lx + LIST_W + 1, ly + LIST_H + 1, C_INPUT_BDR);
@@ -145,7 +134,7 @@ public class BlueprintLibraryScreen extends Screen {
             g.drawString(f, display, lx + 4, ey + 6, C_TEXT, false);
         }
 
-        // Load + Delete buttons (right of list)
+        // Load + Delete buttons
         int btnX  = lx + LIST_W + 4;
         int btnY  = wy + LIST_TOP;
         boolean hasSelection = selectedIdx >= 0 && selectedIdx < blueprintNames.size();
@@ -166,7 +155,6 @@ public class BlueprintLibraryScreen extends Screen {
                         : Component.translatable("gui.gtceuterminal.blueprint.library.delete.disabled").getString(),
                 btnX + 4, btnY + 23, 0xFFFFFFFF, false);
 
-        // Save-as section
         int saveY = wy + LIST_TOP + LIST_H + 14;
         g.drawString(f,
                 Component.translatable("gui.gtceuterminal.blueprint.library.save_as_label").getString(),
@@ -185,7 +173,6 @@ public class BlueprintLibraryScreen extends Screen {
         boolean showCursor = saveFieldFocus && ((System.currentTimeMillis() / 500) % 2 == 0);
         g.drawString(f, displayText + (showCursor ? "|" : ""), wx + LIST_PAD + 4, inputY + 3, C_TEXT, false);
 
-        // Save button
         int saveBtnX = wx + LIST_PAD + inputW + 4;
         boolean canSave = !saveNameText.isBlank() && currentSchematic != null;
         renderBtn(g, saveBtnX, inputY, 38, 14, canSave ? 0xFF1E6B1E : 0xFF2A2A2A,
@@ -196,7 +183,6 @@ public class BlueprintLibraryScreen extends Screen {
                         : Component.translatable("gui.gtceuterminal.blueprint.library.save.disabled").getString(),
                 saveBtnX + 4, inputY + 3, 0xFFFFFFFF, false);
 
-        // Feedback message
         if (!feedbackMsg.isEmpty()) {
             long age = System.currentTimeMillis() - feedbackTime;
             if (age < 2000) {
@@ -227,18 +213,15 @@ public class BlueprintLibraryScreen extends Screen {
         return (a << 24) | (r << 16) | (gv << 8) | b;
     }
 
-    // ── Input ─────────────────────────────────────────────────────────────────
     @Override
     public boolean mouseClicked(double mx, double my, int btn) {
         if (btn != 0) return super.mouseClicked(mx, my, btn);
 
-        // Close button
         int closeBx = wx + W - 18, closeBy = wy + 4;
         if (mx >= closeBx && mx < closeBx + 14 && my >= closeBy && my < closeBy + 14) {
             onClose(); return true;
         }
 
-        // List entries
         int lx = wx + LIST_LEFT, ly = wy + LIST_TOP;
         if (mx >= lx && mx < lx + LIST_W && my >= ly && my < ly + LIST_H) {
             int idx = ((int) my - ly + scrollY) / ENTRY_H;
@@ -249,17 +232,15 @@ public class BlueprintLibraryScreen extends Screen {
             return true;
         }
 
-        // Load button
         int btnX = lx + LIST_W + 4, btnY = wy + LIST_TOP;
         if (mx >= btnX && mx < btnX + 82 && my >= btnY && my < btnY + 14) {
             doLoad(); return true;
         }
-        // Delete button
+
         if (mx >= btnX && mx < btnX + 82 && my >= btnY + 20 && my < btnY + 34) {
             doDelete(); return true;
         }
 
-        // Save text field
         int saveY   = wy + LIST_TOP + LIST_H + 14;
         int inputY  = saveY + 12;
         int inputW  = W - LIST_PAD * 2 - 46;
@@ -268,7 +249,6 @@ public class BlueprintLibraryScreen extends Screen {
             saveFieldFocus = true; return true;
         }
 
-        // Save button
         int saveBtnX = wx + LIST_PAD + inputW + 4;
         if (mx >= saveBtnX && mx < saveBtnX + 38 && my >= inputY && my < inputY + 14) {
             doSave(); return true;
@@ -303,7 +283,7 @@ public class BlueprintLibraryScreen extends Screen {
             if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
                 saveFieldFocus = false; return true;
             }
-            return true; // consume all keys while focused
+            return true;
         }
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
             onClose(); return true;
@@ -321,14 +301,11 @@ public class BlueprintLibraryScreen extends Screen {
         return false;
     }
 
-    // ── Actions ───────────────────────────────────────────────────────────────
     private void doLoad() {
         if (selectedIdx < 0 || selectedIdx >= blueprintNames.size()) return;
         String name = blueprintNames.get(selectedIdx);
         SchematicData loaded = BlueprintFileManager.load(name);
         if (loaded != null) {
-            // Rename the loaded schematic to the file name so it appears correctly
-            // in the PlannerScreen sidebar (otherwise everything shows as "Clipboard").
             SchematicData renamed = new SchematicData(
                     name,
                     loaded.getMultiblockType(),

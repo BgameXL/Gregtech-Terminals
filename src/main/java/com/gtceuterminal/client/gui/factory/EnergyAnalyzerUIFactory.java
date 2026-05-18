@@ -1,6 +1,7 @@
 package com.gtceuterminal.client.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.UIFactoryReflection;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
@@ -22,11 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** IMPORTANT:
- * This class must be safe to load on a dedicated server.
- * Do NOT reference net.minecraft.client.* or client-only GUI classes directly.
- * UI creation is done via reflection (only executed on the client).
- */
 public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.EnergyAnalyzerHolder> {
 
     public static final ResourceLocation UI_ID = ResourceLocation.fromNamespaceAndPath(
@@ -39,9 +35,7 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         super(UI_ID);
     }
 
-    // ─── Open UI ─────────────────────────────────────────────────────────────
     public void openUI(ServerPlayer player, int initialIndex) {
-        // Collect snapshots server-side before opening
         ItemStack stack = findAnalyzerItem(player);
         ItemTheme theme = ItemTheme.load(stack);
         List<EnergySnapshot> snapshots = new ArrayList<>();
@@ -72,18 +66,12 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         super.openUI(holder, player);
     }
 
-    // ─── UIFactory impl ───────────────────────────────────────────────────────
+    // UIFactory impl
     @Override
     protected ModularUI createUITemplate(EnergyAnalyzerHolder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        try {
-            Class<?> uiClass = Class.forName("com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI");
-            var m = uiClass.getMethod("create", EnergyAnalyzerHolder.class, Player.class);
-            return (ModularUI) m.invoke(null, holder, entityPlayer);
-        } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.error("Failed to create Energy Analyzer UI", t);
-            throw new RuntimeException("Failed to create Energy Analyzer UI", t);
-        }
+        return UIFactoryReflection.invokeCreate("com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI", EnergyAnalyzerHolder.class, holder, entityPlayer);
+
     }
 
     @Override
@@ -113,7 +101,6 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         buf.writeNbt(holder.theme.toNBT());
     }
 
-    // ─── Helper ───────────────────────────────────────────────────────────────
     private static ItemStack findAnalyzerItem(ServerPlayer player) {
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack s = player.getInventory().getItem(i);
@@ -122,7 +109,6 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         return ItemStack.EMPTY;
     }
 
-    // ─── Holder ───────────────────────────────────────────────────────────────
     public static class EnergyAnalyzerHolder implements IUIHolder {
         private final boolean remote;
         private Player player;

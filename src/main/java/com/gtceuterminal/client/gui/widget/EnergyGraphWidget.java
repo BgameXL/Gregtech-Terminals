@@ -14,7 +14,6 @@ import org.joml.Matrix4f;
 // Widget that draws a graph of energy input/output over time, with grid and border.
 public class EnergyGraphWidget extends Widget {
 
-    // Colors
     private static final int COLOR_INPUT  = 0xFF00CC55;
     private static final int COLOR_OUTPUT = 0xFFDD3333;
     private static final int COLOR_GRID   = 0x22FFFFFF;
@@ -63,36 +62,30 @@ public class EnergyGraphWidget extends Widget {
             for (long v : inputHistory)  max = Math.max(max, v);
             for (long v : outputHistory) max = Math.max(max, v);
 
-            // Filled areas (translucent)
             drawFilledArea(matrix, inputHistory,  len, w, h, max, COLOR_INPUT,  0.12f);
             drawFilledArea(matrix, outputHistory, len, w, h, max, COLOR_OUTPUT, 0.12f);
 
-            // Lines on top (opaque)
             drawLine(matrix, inputHistory,  len, w, h, max, COLOR_INPUT);
             drawLine(matrix, outputHistory, len, w, h, max, COLOR_OUTPUT);
         }
 
-        // Border
         drawBorder(matrix, w, h);
 
         RenderSystem.disableBlend();
         ps.popPose();
     }
 
-    // Grid
     private void drawGrid(Matrix4f matrix, int w, int h) {
         Tesselator tess = Tesselator.getInstance();
         BufferBuilder buf = tess.getBuilder();
         buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
-        // 4 horizontal lines
         for (int i = 0; i <= 4; i++) {
             float y = (h * i) / 4f;
             int c = (i == 0 || i == 4) ? COLOR_GRID_MAJOR : COLOR_GRID;
             putLine(buf, matrix, 0, y, w, y, c);
         }
 
-        // 8 vertical lines
         for (int i = 0; i <= 8; i++) {
             float x = (w * i) / 8f;
             int c = (i == 0 || i == 8) ? COLOR_GRID_MAJOR : COLOR_GRID;
@@ -102,7 +95,6 @@ public class EnergyGraphWidget extends Widget {
         tess.end();
     }
 
-    // Filled area
     private void drawFilledArea(Matrix4f matrix, long[] data, int len,
                                  int w, int h, long max, int color, float alpha) {
         if (data.length < 2) return;
@@ -130,7 +122,6 @@ public class EnergyGraphWidget extends Widget {
         tess.end();
     }
 
-    // Line
     private void drawLine(Matrix4f matrix, long[] data, int len,
                            int w, int h, long max, int color) {
         if (data.length < 2) return;
@@ -156,7 +147,6 @@ public class EnergyGraphWidget extends Widget {
         tess.end();
     }
 
-    // Border
     private void drawBorder(Matrix4f matrix, int w, int h) {
         Tesselator tess = Tesselator.getInstance();
         BufferBuilder buf = tess.getBuilder();

@@ -1,6 +1,7 @@
 package com.gtceuterminal.client.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.UIFactoryReflection;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
@@ -12,14 +13,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Factory for MultiStructureManagerItem UIs (MultiStructure list + ManagerSettings).
- *
- * Unlike HeldItemUIFactory, this factory serializes the MODE and ITEM NBT explicitly,
- * so the client always gets the right data regardless of item-sync timing.
- *
- * Must be registered in the @Mod constructor (same timing as LDLib's own factories).
- */
 public class MultiStructureManagerUIFactory
         extends UIFactory<MultiStructureManagerUIFactory.Holder> {
 
@@ -36,7 +29,7 @@ public class MultiStructureManagerUIFactory
         super(UI_ID);
     }
 
-    // ── Server entry points ───────────────────────────────────────────────────
+    // Server entry points
     public void openMultiStructure(ServerPlayer player, ItemStack item) {
         super.openUI(new Holder(false, MODE_MULTI, item), player);
     }
@@ -45,29 +38,24 @@ public class MultiStructureManagerUIFactory
         super.openUI(new Holder(false, MODE_SETTINGS, item), player);
     }
 
-    // ── UIFactory impl ────────────────────────────────────────────────────────
+    // UIFactory impl
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
 
-        try {
-            if (MODE_MULTI.equals(holder.mode)) {
-                Class<?> uiClass = Class.forName(
-                        "com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI");
-                var m = uiClass.getMethod("create", Holder.class, Player.class);
-                return (ModularUI) m.invoke(null, holder, entityPlayer);
-            } else {
-                Class<?> uiClass = Class.forName(
-                        "com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI");
-                var ctor = uiClass.getConstructor(Holder.class, Player.class);
-                Object instance = ctor.newInstance(holder, entityPlayer);
-                var m = uiClass.getMethod("createUI");
-                return (ModularUI) m.invoke(instance);
+        if (MODE_MULTI.equals(holder.mode)) {
+            return UIFactoryReflection.invokeCreate(
+                    "com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI",
+                    Holder.class, holder, entityPlayer);
+        } else {
+            try {
+                Class<?> uiClass = Class.forName("com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI");
+                Object instance = uiClass.getConstructor(Holder.class, Player.class).newInstance(holder, entityPlayer);
+                return UIFactoryReflection.invokeCreateUI(instance);
+            } catch (Throwable t) {
+                GTCEUTerminalMod.LOGGER.error("Failed to create ManagerSettingsUI", t);
+                return null;
             }
-        } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.error(
-                    "Failed to create MultiStructureManager UI (mode={})", holder.mode, t);
-            return null;
         }
     }
 
@@ -84,7 +72,7 @@ public class MultiStructureManagerUIFactory
         buf.writeItem(holder.item);
     }
 
-    // ── Holder ────────────────────────────────────────────────────────────────
+    // Holder
     public static class Holder implements IUIHolder {
         public final boolean remote;
         public final String mode;

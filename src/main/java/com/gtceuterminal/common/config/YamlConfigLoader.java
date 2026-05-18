@@ -7,14 +7,9 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-/** A simple YAML config loader that supports comments and preserves user edits.
- * - Can read/write scalar values and lists
- * - When writing defaults, it only appends missing keys to preserve existing comments and formatting.
- */
 public class YamlConfigLoader {
 
     private final File file;
-    // LinkedHashMap preserves insertion order.
     private final Map<String, Object> data = new LinkedHashMap<>();
 
     public YamlConfigLoader(String subDir, String fileName) {
@@ -25,7 +20,6 @@ public class YamlConfigLoader {
         this.file = dir.resolve(fileName).toFile();
     }
 
-    // ─── Public API ──────────────────────────────────────────────────────────
     public int getInt(String key, int defaultValue) {
         Object val = data.get(key);
         if (val instanceof Number n) return n.intValue();
@@ -66,7 +60,7 @@ public class YamlConfigLoader {
             for (Object item : list) result.add(item.toString().trim());
             return result;
         }
-        // If someone put a single value where a list is expected, wrap it
+
         if (val instanceof String s && !s.isBlank()) {
             GTCEUTerminalMod.LOGGER.warn("[YamlConfig] Key '{}' expected a list but found a single value '{}', wrapping it.", key, s);
             return List.of(s.trim());
@@ -78,7 +72,6 @@ public class YamlConfigLoader {
         return file.exists();
     }
 
-    // ─── Load ────────────────────────────────────────────────────────────────
     public void load() {
         if (!file.exists()) return;
         data.clear();
@@ -89,10 +82,8 @@ public class YamlConfigLoader {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                // Normalize Windows line endings
                 line = line.replace("\r", "");
 
-                // Detect list items BEFORE stripping comments
                 String stripped = line.stripLeading();
                 if (stripped.startsWith("- ")) {
                     if (currentListKey != null) {
@@ -106,7 +97,6 @@ public class YamlConfigLoader {
                     continue;
                 }
 
-                // For key:value lines, strip inline comments respecting quoted strings
                 line = stripInlineComment(line);
                 if (line.isBlank()) continue;
 
@@ -119,18 +109,15 @@ public class YamlConfigLoader {
 
                 if (key.isBlank()) continue;
 
-                // Warn on duplicate keys
                 if (seenKeys.contains(key)) {
                     GTCEUTerminalMod.LOGGER.warn("[YamlConfig] Duplicate key '{}' in {}, last value wins.", key, file.getName());
                 }
                 seenKeys.add(key);
 
                 if (value.isEmpty()) {
-                    // Next lines should be a block list
                     currentListKey = key;
                     data.put(key, new ArrayList<>());
                 } else if (value.startsWith("[") && value.endsWith("]")) {
-                    // Inline list: [a, b, c]
                     data.put(key, parseInlineList(value));
                 } else {
                     // Scalar value
@@ -153,7 +140,6 @@ public class YamlConfigLoader {
         }
     }
 
-    // ─── Write ───────────────────────────────────────────────────────────────
     public void writeDefaults(List<ConfigEntry> entries) {
         if (file.exists()) {
             load();
@@ -161,8 +147,6 @@ public class YamlConfigLoader {
                     .filter(e -> e.key() != null && !data.containsKey(e.key()))
                     .toList();
             if (missing.isEmpty()) return;
-
-            // Append missing keys to the existing file
             GTCEUTerminalMod.LOGGER.info("[YamlConfig] Adding {} missing key(s) to {}", missing.size(), file.getName());
             try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
                 writer.println();
@@ -175,7 +159,6 @@ public class YamlConfigLoader {
             }
             load();
         } else {
-            // Write fresh file
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 for (ConfigEntry entry : entries) {
                     writeEntry(writer, entry);
@@ -187,7 +170,6 @@ public class YamlConfigLoader {
         }
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
     private static String stripInlineComment(String line) {
         boolean inSingle = false;
         boolean inDouble = false;
@@ -247,7 +229,6 @@ public class YamlConfigLoader {
             return;
         }
         if (entry.comment != null && !entry.comment.isBlank()) {
-            // Multi-line comments (the dismantler entry uses \n inside the comment string)
             for (String line : entry.comment.split("\n")) {
                 writer.println("# " + line);
             }
@@ -262,7 +243,6 @@ public class YamlConfigLoader {
         }
     }
 
-    // ─── Entry helper ────────────────────────────────────────────────────────
     public record ConfigEntry(String key, Object value, String comment) {
         public static ConfigEntry of(String key, Object value, String comment) {
             return new ConfigEntry(key, value, comment);

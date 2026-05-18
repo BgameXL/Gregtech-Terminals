@@ -56,7 +56,6 @@ public class DismantlerItem extends Item {
         return InteractionResult.PASS;
     }
 
-    // ── Tooltip ───────────────────────────────────────────────────────────────
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
         return Component.translatable(this.getDescriptionId(stack));

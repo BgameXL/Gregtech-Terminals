@@ -16,15 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Loads the modpack's default theme from:
- *   config/gtceuterminal/default_theme.json
- *
- * Works on both sides:
- *  - Server: reads the JSON file, then broadcasts to all clients via SPacketDefaultTheme
- *  - Client: receives the theme via packet (setClientOverride), OR loads the local JSON
- *            as fallback (for singleplayer / integrated server)
- */
 public class DefaultThemeConfig {
 
     private static final Gson   GSON        = new GsonBuilder().setPrettyPrinting().create();
@@ -34,7 +25,6 @@ public class DefaultThemeConfig {
     private static ItemTheme cached = null;
     private static boolean   loaded = false;
 
-    // ─── Public API ──────────────────────────────────────────────────────────
     public static ItemTheme get() {
         if (!loaded) load();
         return cached;
@@ -56,13 +46,11 @@ public class DefaultThemeConfig {
                 Integer.toHexString(theme.panelColor  & 0xFFFFFF).toUpperCase());
     }
 
-    // sends the current default theme to a single newly-joined player.
     public static void sendToPlayer(net.minecraft.server.level.ServerPlayer player) {
         if (!loaded) load();
         TerminalNetwork.sendToPlayer(new SPacketDefaultTheme(cached), player);
     }
 
-    // ─── Load / Save ─────────────────────────────────────────────────────────
     private static void load() {
         loaded = true;
         Path file = configPath();
@@ -107,7 +95,6 @@ public class DefaultThemeConfig {
         }
     }
 
-    // ─── JSON helpers ─────────────────────────────────────────────────────────
     private static JsonObject toJson(ItemTheme t) {
         JsonObject o = new JsonObject();
         o.addProperty("accentColor",  colorToHex(t.accentColor));

@@ -28,16 +28,6 @@ import java.util.Map;
 
 public class ComponentUpgrader {
 
-    /**
-     * Upgrade to component with optional ME Network support
-     * @param component The component to upgrade
-     * @param targetTier Target tier
-     * @param player Player performing upgrade
-     * @param level Current level
-     * @param consumeMaterials Whether to consume materials
-     * @param wirelessTerminal Optional wireless terminal for ME access (can be null/empty)
-     * @return UpgradeResult with extraction source info
-     */
     public static UpgradeResult upgradeComponent(
             ComponentInfo component,
             int targetTier,
@@ -88,7 +78,7 @@ public class ComponentUpgrader {
                         extractionSource = " §7(Inventory)";
                     }
                 } else {
-                    // Fallback to traditional method
+
                     List<MaterialAvailability> materials = MaterialCalculator.checkMaterialsAvailability(
                             required, player, level
                     );
@@ -144,7 +134,6 @@ public class ComponentUpgrader {
         if (hasId) {
             ResourceLocation rl = ResourceLocation.tryParse(targetUpgradeId);
             if (rl == null) {
-                // Refund materials if we failed due to invalid ID (in theory this shouldn't happen since we check upfront,
                 return new UpgradeResult(false, "Invalid upgrade id: " + targetUpgradeId);
             }
 
@@ -226,16 +215,13 @@ public class ComponentUpgrader {
     private static void postPlaceInitialize(ServerLevel level, BlockPos pos, Player player) {
         BlockState state = level.getBlockState(pos);
 
-        // 1) Many mods bind owner here
         state.getBlock().setPlacedBy(level, pos, state, player, ItemStack.EMPTY);
 
-        // 2) Some mods set extra data when the BE is first created/loaded; ensure it's marked + synced
         BlockEntity be = level.getBlockEntity(pos);
         if (be != null) {
             be.setChanged();
         }
 
-        // 3) Force client update + neighbor update
         level.sendBlockUpdated(pos, state, state, 3);
         level.updateNeighborsAt(pos, state.getBlock());
         state.getBlock().onPlace(state, level, pos, level.getBlockState(pos), false);
@@ -254,7 +240,7 @@ public class ComponentUpgrader {
     }
 
 
-    // Backward compatibility - upgrade without wireless terminal
+    // upgrade without wireless terminal
     public static UpgradeResult upgradeComponent(
             ComponentInfo component,
             int targetTier,
@@ -312,7 +298,7 @@ public class ComponentUpgrader {
                             .getString();
                 }
             } else {
-                // Fallback to traditional method
+
                 List<MaterialAvailability> materials = MaterialCalculator.checkMaterialsAvailability(
                         totalRequired, player, level
                 );
@@ -338,7 +324,7 @@ public class ComponentUpgrader {
                         .getString();
             }
         } else {
-            // No wireless terminal, use traditional method
+
             List<MaterialAvailability> materials = MaterialCalculator.checkMaterialsAvailability(
                     totalRequired, player, level
             );
@@ -438,7 +424,6 @@ public class ComponentUpgrader {
     }
 
 
-    // Backward compatibility - bulk upgrade without wireless terminal
     public static BulkUpgradeResult upgradeMultipleComponents(
             List<ComponentInfo> components,
             int targetTier,
@@ -493,8 +478,6 @@ public class ComponentUpgrader {
 
             level.getChunkSource().getLightEngine().checkBlock(pos);
         }
-
-        // GTCEUTerminalMod.LOGGER.info("Updated CTM for block at {} and 6 neighbors", pos);
     }
 
     private static String formatMissing(Map<Item, Integer> missing) {

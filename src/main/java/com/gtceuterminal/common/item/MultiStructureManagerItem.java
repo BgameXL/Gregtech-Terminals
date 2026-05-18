@@ -1,5 +1,6 @@
 package com.gtceuterminal.common.item;
 
+import com.gtceuterminal.client.item.ClientTooltipHelper;
 import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.item.behavior.MultiStructureManagerBehavior;
 
@@ -38,7 +39,6 @@ public class MultiStructureManagerItem extends Item {
         return behavior.use(this, level, player, usedHand);
     }
 
-    // ── Tooltip ───────────────────────────────────────────────────────────────
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
         return Component.translatable(this.getDescriptionId(stack));

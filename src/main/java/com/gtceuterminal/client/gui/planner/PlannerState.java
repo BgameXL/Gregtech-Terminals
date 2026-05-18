@@ -19,21 +19,18 @@ public class PlannerState {
 
     public static final List<PlacedGhost> ghosts = new ArrayList<>();
 
-    // ── 3D free-cam ───────────────────────────────────────────────────────────
+    // 3D free-cam
     public static boolean freeCamActive    = false;
     public static List<SchematicData> freeCamSchematics = new ArrayList<>();
     public static int freeCamSelectedIdx   = 0;
     public static int freeCamRotSteps      = 0;
     public static BlockPos freeCamSnapPos  = null;
 
-    // The fake LocalPlayer entity that acts as our camera
     public static FreeCamera cameraEntity = null;
 
-    // Frozen player position (restored on exit)
     private static double frozenX, frozenY, frozenZ;
     private static float  frozenYaw, frozenPitch;
 
-    // ── Events ────────────────────────────────────────────────────────────────
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
@@ -48,7 +45,6 @@ public class PlannerState {
         if (freeCamActive) forceExit();
     }
 
-    // ── Enter / exit ──────────────────────────────────────────────────────────
     public static void enterFreeCam(List<SchematicData> schematics, int selectedIdx, int rotSteps) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
@@ -58,7 +54,6 @@ public class PlannerState {
         freeCamRotSteps    = rotSteps;
         freeCamSnapPos     = null;
 
-        // Snapshot player pos so we can freeze and restore
         frozenX     = mc.player.getX();
         frozenY     = mc.player.getY();
         frozenZ     = mc.player.getZ();
@@ -74,7 +69,6 @@ public class PlannerState {
         cameraEntity.xRotO = frozenPitch;
         cameraEntity.spawn();
 
-        // Tell Minecraft to use this entity as the camera
         mc.setCameraEntity(cameraEntity);
 
         freeCamActive = true;
@@ -84,7 +78,6 @@ public class PlannerState {
         if (!freeCamActive) return;
         Minecraft mc = Minecraft.getInstance();
 
-        // Restore camera to player
         if (mc.player != null) {
             mc.setCameraEntity(mc.player);
             mc.player.moveTo(frozenX, frozenY, frozenZ, frozenYaw, frozenPitch);
@@ -118,7 +111,6 @@ public class PlannerState {
         mc.player.fallDistance = 0f;
     }
 
-    // ── Ghost data ────────────────────────────────────────────────────────────
     public static class PlacedGhost {
         public final SchematicData schematic;
         public final BlockPos      origin;
@@ -134,11 +126,8 @@ public class PlannerState {
     public static boolean tryRemoveAt(int worldX, int worldZ) {
         for (int i = ghosts.size() - 1; i >= 0; i--) {
             PlacedGhost g = ghosts.get(i);
-            // Fix 3: hit-test against the actual footprint (bounding-box check), not just
-            // a ±1 tolerance around origin. Structures larger than 3×3 were impossible to
-            // right-click-remove if the cursor was anywhere past the first block.
+
             BlockPos sz   = g.schematic.getSize();
-            // Swap X/Z for 90°/270° rotations, same as isOccupied.
             int sizeX = (g.rotSteps % 2 == 0) ? sz.getX() : sz.getZ();
             int sizeZ = (g.rotSteps % 2 == 0) ? sz.getZ() : sz.getX();
             int gx = g.origin.getX();

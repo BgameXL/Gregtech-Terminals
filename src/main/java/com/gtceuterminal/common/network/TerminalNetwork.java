@@ -22,7 +22,7 @@ public class TerminalNetwork {
     private static int id = 0;
 
     public static void registerPackets() {
-        // ── C2S ──────────────────────────────────────────────────────────────
+
         CHANNEL.messageBuilder(CPacketBlockReplacement.class,        id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketBlockReplacement::encode)
                 .decoder(CPacketBlockReplacement::new)
@@ -89,7 +89,6 @@ public class TerminalNetwork {
                 .consumerMainThread(CPacketRequestUpgradeAnalysis::handle)
                 .add();
 
-        // ── S2C ──────────────────────────────────────────────────────────────
         CHANNEL.messageBuilder(SPacketDefaultTheme.class,            id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketDefaultTheme::encode)
                 .decoder(SPacketDefaultTheme::new)

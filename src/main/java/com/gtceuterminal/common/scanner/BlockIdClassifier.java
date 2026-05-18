@@ -11,7 +11,6 @@ final class BlockIdClassifier {
 
     private BlockIdClassifier() {}
 
-    // ── Amperage / tier ───────────────────────────────────────────────────────
     @Nullable
     static String detectAmperage(String id) {
         if (id.contains("_65536a")) return "65536A";
@@ -27,7 +26,6 @@ final class BlockIdClassifier {
 
     @Nullable
     static String detectByImprovedAnalysis(String id) {
-        // Wireless components (no standard PartAbility)
         if (id.contains("wireless")) {
             if (id.contains("energy")) {
                 if (id.contains("input"))  return "Wireless Energy Hatch (Input)";

@@ -2,13 +2,12 @@ package com.gtceuterminal.common.config;
 
 import com.gtceuterminal.common.multiblock.ComponentType;
 
-// Represents a pattern for matching block IDs to component types
 public class ComponentPattern {
     
     private String pattern;
     private ComponentType componentType;
-    private int priority = 50; // Higher = evaluated first
-    private String displayPrefix; // Optional prefix like "4A", "16A"
+    private int priority = 50;
+    private String displayPrefix;
     private String description;
     
     public ComponentPattern() {}
@@ -32,9 +31,9 @@ public class ComponentPattern {
     private boolean wildcardMatch(String text, String pattern) {
         // Convert wildcard pattern to regex
         String regex = pattern
-            .replace(".", "\\.")  // Escape dots
-            .replace("*", ".*")   // * becomes .*
-            .replace("?", ".");   // ? becomes .
+            .replace(".", "\\.")
+            .replace("*", ".*")
+            .replace("?", ".");
         
         return text.matches(regex);
     }
@@ -46,8 +45,7 @@ public class ComponentPattern {
         }
         return baseName;
     }
-    
-    // Getters and Setters
+
     public String getPattern() {
         return pattern;
     }

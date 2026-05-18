@@ -29,7 +29,6 @@ public class ComponentDetailUI {
     private static final int TARGET_W = 500;
     private static final int TARGET_H = 360;
 
-    // GTCEu Colors
     private ItemTheme theme;
     private int COLOR_BG_DARK = 0xFF1A1A1A;
     private int COLOR_BG_MEDIUM = 0xFF2B2B2B;
@@ -47,16 +46,13 @@ public class ComponentDetailUI {
     private ModularUI gui;
 
 
-    // Calculated (responsive)
     private int uiW, uiH;
     private boolean compact;
 
-    // Layout (calculated in createUI)
     private int headerH, infoH, bottomH, gap, pad;
     private int headerY, infoY, listY, buttonsY;
     private int listH;
 
-    // Font/scale
     private float textScale;
 
     public ComponentDetailUI(IUIHolder holder, net.minecraft.world.item.ItemStack terminalItem,
@@ -66,7 +62,6 @@ public class ComponentDetailUI {
         this.terminalItem = terminalItem;
         this.player = player;
         this.multiblock = multiblock;
-        // Apply theme colors
         this.theme              = ItemTheme.load(terminalItem);
         com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
                 "ComponentDetailUI: loaded theme accent=#{} bg=#{} style={} itemTag={}",
@@ -422,7 +417,7 @@ public class ComponentDetailUI {
                     group,
                     multiblock,
                     player,
-                    theme  // pass resolved theme directly — avoids inventory search issues
+                    theme  // pass resolved theme directly, it avoids inventory search issues
             );
         }
     }
@@ -450,7 +445,7 @@ public class ComponentDetailUI {
         );
     }
 
-    // --- text helpers (safe scaling) ---
+    // text helpers
     private void addText(WidgetGroup parent, int x, int y, int w, String text, float scale) {
         TextTexture tt = scaledTextTexture(text, w, scale);
         parent.addWidget(new ImageWidget(x, y, w, 12, tt));

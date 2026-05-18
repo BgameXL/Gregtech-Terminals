@@ -13,13 +13,12 @@ public class BlockReplacementData {
     private final Map<BlockState, BlockState> replacements = new HashMap<>();
     private boolean mirrorMode = false;
     private BlockState fillCasing = null;
-    private int maxTierIndex = 10; // Default to UHV
+    private int maxTierIndex = 10;
 
     public void addBlock(BlockState state) {
         String path = state.getBlock().builtInRegistryHolder().key().location().getPath();
         BlockCategory.Category category = BlockCategory.categorize(state);
 
-        // For buses and hatches, group by tier + type
         if (category == BlockCategory.Category.BUSES || category == BlockCategory.Category.HATCHES ||
                 category == BlockCategory.Category.ENERGY || category == BlockCategory.Category.LASER_ENERGY ||
                 category == BlockCategory.Category.SUBSTATION_ENERGY || category == BlockCategory.Category.DYNAMO_ENERGY) {

@@ -9,13 +9,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-/**
- * A horizontal draggable slider for 0–255 integer values (e.g. RGBA channels).
- * Supports:
- *   - Click anywhere on the track to jump to that value
- *   - Drag the thumb left/right
- *   - Scroll wheel to nudge by 1 (or 10 with Shift)
- */
 public class RGBSliderWidget extends Widget {
 
     // Visual
@@ -23,7 +16,6 @@ public class RGBSliderWidget extends Widget {
     private final int thumbColor;
     private final int fillColor;
 
-    // State
     private final IntSupplier getter;
     private final IntConsumer setter;
 
@@ -40,7 +32,6 @@ public class RGBSliderWidget extends Widget {
         this.setter     = setter;
     }
 
-    // ─── Rendering ────────────────────────────────────────────────────────────
     @Override
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
@@ -65,7 +56,6 @@ public class RGBSliderWidget extends Widget {
         // Track background
         graphics.fill(x, trackY, x + w, trackY + trackH, trackColor);
 
-        // Fill (left of thumb)
         if (fillW > 0)
             graphics.fill(x, trackY, x + fillW, trackY + trackH, fillColor);
 
@@ -74,7 +64,6 @@ public class RGBSliderWidget extends Widget {
         graphics.fill(thumbX + 1, y + 1,      thumbX + thumbW - 1, y + thumbH - 1, thumbColor);
     }
 
-    // ─── Input ────────────────────────────────────────────────────────────────
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && isMouseOverElement(mouseX, mouseY)) {
@@ -103,7 +92,6 @@ public class RGBSliderWidget extends Widget {
     @Override
     public boolean mouseWheelMove(double mouseX, double mouseY, double delta) {
         if (isMouseOverElement(mouseX, mouseY)) {
-            // Shift held = 10 step
             boolean shift = net.minecraft.client.gui.screens.Screen.hasShiftDown();
             int step = shift ? 10 : 1;
             int val  = clamp(getter.getAsInt() + (delta > 0 ? step : -step));
@@ -113,7 +101,6 @@ public class RGBSliderWidget extends Widget {
         return super.mouseWheelMove(mouseX, mouseY, delta);
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
     private void applyMouse(double mouseX) {
         int x = getPosition().x;
         int w = getSize().width;

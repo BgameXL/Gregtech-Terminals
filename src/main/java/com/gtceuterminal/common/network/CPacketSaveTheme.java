@@ -12,14 +12,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.function.Supplier;
 
-/**
- * Client → Server: the player saved a theme from the Theme Editor UI.
- *
- * The server re-validates the theme data and saves it to the item tag of the
- * terminal in player's inventory. The client is expected to update its local
- * theme data from the item tag after saving, so the server doesn't send any
- * response back for this action.
- */
 public class CPacketSaveTheme {
 
     private final CompoundTag themeTag;

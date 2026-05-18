@@ -16,7 +16,7 @@ import java.util.List;
 
 public class AutocraftConfirmScreen extends Screen {
 
-    // ── Layout ────────────────────────────────────────────────────────────────
+    // Layout
     private static final int W         = 320;
     private static final int ENTRY_H   = 14;
     private static final int LIST_PAD  = 8;
@@ -24,7 +24,6 @@ public class AutocraftConfirmScreen extends Screen {
     private static final int FOOT_H    = 30;
     private static final int MAX_VISIBLE = 12;
 
-    // ── Colors ────────────────────────────────────────────────────────────────
     private static final int C_BG      = 0xFF1A1A1A;
     private static final int C_PANEL   = 0xFF222222;
     private static final int C_BORDER  = 0xFF2E75B6;
@@ -38,7 +37,6 @@ public class AutocraftConfirmScreen extends Screen {
     private static final int C_YELLOW  = 0xFFFFCC00;
     private static final int C_RED     = 0xFFFF4444;
 
-    // ── State ─────────────────────────────────────────────────────────────────
     private final AnalysisResult result;
     private final Screen         parent;
     private final List<Entry>    entries;
@@ -71,17 +69,14 @@ public class AutocraftConfirmScreen extends Screen {
         cancelX   = confirmX - 6 - btnW;
     }
 
-    // ── Render ────────────────────────────────────────────────────────────────
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
         // Dim backdrop
         g.fill(0, 0, width, height, 0x88000000);
 
-        // Panel
         g.fill(wx, wy, wx + W, wy + H, C_BG);
         border(g, wx, wy, W, H, C_BORDER);
 
-        // Header
         g.fill(wx, wy, wx + W, wy + HDR_H, C_PANEL);
         String title = result.kind == AnalysisResult.Kind.BUILD
                 ? Component.translatable("gui.gtceuterminal.autocraft.header.build").getString()
@@ -89,13 +84,11 @@ public class AutocraftConfirmScreen extends Screen {
         g.drawString(font, title, wx + LIST_PAD, wy + 9, C_TEXT, false);
         g.fill(wx, wy + HDR_H - 1, wx + W, wy + HDR_H, C_BORDER);
 
-        // Entry list (scrollable)
         int listTop  = wy + HDR_H + LIST_PAD;
         int listH    = H - HDR_H - LIST_PAD * 2 - FOOT_H;
         int maxScroll = Math.max(0, entries.size() * ENTRY_H - listH);
         scrollY = Math.max(0, Math.min(maxScroll, scrollY));
 
-        // Scissor — RenderSystem is in com.mojang.blaze3d, not net.minecraft.client.renderer
         double scale  = Minecraft.getInstance().getWindow().getGuiScale();
         int    screenH= Minecraft.getInstance().getWindow().getHeight();
         com.mojang.blaze3d.systems.RenderSystem.enableScissor(
@@ -111,11 +104,9 @@ public class AutocraftConfirmScreen extends Screen {
 
         com.mojang.blaze3d.systems.RenderSystem.disableScissor();
 
-        // Footer separator
         int footY = wy + H - FOOT_H;
         g.fill(wx, footY, wx + W, footY + 1, C_BORDER);
 
-        // Summary text
         int missing = result.missingCount();
         String summary = missing == 0
                 ? Component.translatable("gui.gtceuterminal.autocraft.summary.all_available").getString()
@@ -125,7 +116,6 @@ public class AutocraftConfirmScreen extends Screen {
                 ).getString();
         g.drawString(font, summary, wx + LIST_PAD, footY + 9, C_TEXT, false);
 
-        // Buttons
         renderBtn(g, confirmX, btnY, btnW, btnH,
                 result.allAvailable() ? C_OK : 0xFF2A2A2A,
                 result.allAvailable() ? C_OK_B : 0xFF444444,
@@ -152,7 +142,6 @@ public class AutocraftConfirmScreen extends Screen {
         boolean ok   = e.hasAll();
         boolean craft= e.craftable && !ok;
 
-        // Icon color + symbol
         String icon;
         int    iconColor;
         if (ok) {
@@ -165,12 +154,10 @@ public class AutocraftConfirmScreen extends Screen {
 
         g.drawString(font, icon, x, y + 2, iconColor, false);
 
-        // Item name (truncated)
         String name = e.stack.getHoverName().getString();
         if (name.length() > 22) name = name.substring(0, 19) + "…";
         g.drawString(font, "§f" + name, x + 10, y + 2, C_TEXT, false);
 
-        // Right side: need × / ME count
         String inMeColored = (inME > 0 ? (ok ? "§a" : "§e") : "§c") + inME;
         String craftSuffix = craft ? " §e✦" : "";
         String right = Component.translatable(
@@ -182,7 +169,6 @@ public class AutocraftConfirmScreen extends Screen {
         int rw = font.width(right.replaceAll("§.", ""));
         g.drawString(font, right, x + w - rw, y + 2, C_TEXT, false);
 
-        // Divider
         g.fill(x, y + ENTRY_H - 1, x + w, y + ENTRY_H, 0xFF2A2A2A);
     }
 
@@ -206,19 +192,17 @@ public class AutocraftConfirmScreen extends Screen {
         return (a<<24)|(r<<16)|(gv<<8)|b;
     }
 
-    // ── Input ─────────────────────────────────────────────────────────────────
     @Override
     public boolean mouseClicked(double mx, double my, int btn) {
         if (btn != 0) return super.mouseClicked(mx, my, btn);
 
-        // Confirm
         if (result.allAvailable()
                 && mx >= confirmX && mx < confirmX + btnW
                 && my >= btnY    && my < btnY + btnH) {
             doConfirm();
             return true;
         }
-        // Cancel
+
         if (mx >= cancelX && mx < cancelX + btnW
                 && my >= btnY && my < btnY + btnH) {
             onClose();

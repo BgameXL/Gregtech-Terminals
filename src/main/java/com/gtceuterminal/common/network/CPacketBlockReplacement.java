@@ -22,20 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- * Client → Server: the player wants to replace blocks in a multiblock structure.
- *
- * The client sends a map of block states to replace, and the server performs
- * the replacements if valid. The server re-validates all block states and
- * doesn't trust the client for anything except the controller position and
- * mirror mode flag.
- */
 public class CPacketBlockReplacement {
 
     private final BlockPos controllerPos;
     private final Map<Integer, Integer> replacements;
     private final boolean mirrorMode;
-    private final int fillCasingId; // -1 if no fill casing
+    private final int fillCasingId;
 
     public CPacketBlockReplacement(BlockPos controllerPos,
                                    Map<BlockState, BlockState> replacements,
@@ -95,15 +87,9 @@ public class CPacketBlockReplacement {
 
             ItemStack wirelessTerminal = findWirelessTerminal(player);
 
-            // Convert IDs back to BlockStates — validate each one server-side.
-            // Client-sent block state IDs must:
-            //   1. Map to a non-air, non-null BlockState (catches out-of-range IDs)
-            //   2. Actually exist somewhere in the multiblock structure (prevents
-            //      a malicious client from replacing arbitrary blocks in the world)
             BlockReplacementData data = new BlockReplacementData();
             data.setMirrorMode(mirrorMode);
 
-            // Set fill casing if present — validate it's a real non-air block
             if (fillCasingId >= 0) {
                 BlockState fillCasing = Block.stateById(fillCasingId);
                 if (fillCasing != null && !fillCasing.isAir()) {
@@ -119,7 +105,6 @@ public class CPacketBlockReplacement {
                 BlockState oldState = Block.stateById(entry.getKey());
                 BlockState newState = Block.stateById(entry.getValue());
 
-                // Reject null, air, or suspiciously large IDs
                 if (oldState == null || oldState.isAir()) {
                     GTCEUTerminalMod.LOGGER.warn("CPacketBlockReplacement: invalid oldState id={} from {}",
                             entry.getKey(), player.getName().getString());
@@ -135,7 +120,6 @@ public class CPacketBlockReplacement {
                 data.addBlock(oldState);
             }
 
-            // Perform replacement with wireless terminal support
             boolean success = BlockReplacer.replaceBlocks(controller, player, data, wirelessTerminal);
 
             if (success) {

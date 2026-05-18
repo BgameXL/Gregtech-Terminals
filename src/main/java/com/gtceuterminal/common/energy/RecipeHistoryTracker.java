@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.RecipeLogicReflection;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -27,29 +28,9 @@ public class RecipeHistoryTracker {
 
     public static final int MAX_HISTORY = 20;
 
-    // Per-machine history deques (newest at tail)
     private static final Map<BlockPos, Deque<RecipeHistoryEntry>> historyMap = new HashMap<>();
 
-    // Per-machine last-seen state for change detection
     private static final Map<BlockPos, TrackState> stateMap = new HashMap<>();
-
-    private static Field progressField;
-    private static Field lastRecipeField;
-
-    static {
-        try {
-            progressField = RecipeLogic.class.getDeclaredField("progress");
-            progressField.setAccessible(true);
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("RecipeHistoryTracker: could not access RecipeLogic.progress", e);
-        }
-        try {
-            lastRecipeField = RecipeLogic.class.getDeclaredField("lastRecipe");
-            lastRecipeField.setAccessible(true);
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("RecipeHistoryTracker: could not access RecipeLogic.lastRecipe", e);
-        }
-    }
 
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event) {
@@ -58,7 +39,7 @@ public class RecipeHistoryTracker {
         GTCEUTerminalMod.LOGGER.debug("RecipeHistoryTracker: cleared all state on level unload");
     }
 
-    // ─── Internal state per machine ──────────────────────────────────────────
+    // Internal state per machine
     private static class TrackState {
         String  lastRecipeId     = "";
         int     lastProgress     = 0;
@@ -68,7 +49,7 @@ public class RecipeHistoryTracker {
         boolean wasWorking       = false;
     }
 
-    // ─── Public API ──────────────────────────────────────────────────────────
+    // Public API
     public static void poll(BlockPos pos, IRecipeLogicMachine rlm) {
         try {
             RecipeLogic logic = rlm.getRecipeLogic();
@@ -85,15 +66,12 @@ public class RecipeHistoryTracker {
                     ? currentRecipe.id.toString() : "";
 
             if (isWorking && !state.lastRecipeId.equals(currentId)) {
-                // New recipe started (or recipe changed)
                 if (!state.lastRecipeId.isEmpty() && state.wasWorking) {
-                    // Previous recipe was interrupted
                     addEntry(pos, new RecipeHistoryEntry(
                             state.currentOutput, state.currentDuration,
                             state.recipeStartTime, false));
                 }
 
-                // Record new recipe start
                 state.lastRecipeId    = currentId;
                 state.recipeStartTime = System.currentTimeMillis();
                 state.currentOutput   = getOutputName(currentRecipe);
@@ -102,7 +80,6 @@ public class RecipeHistoryTracker {
                 state.wasWorking      = true;
 
             } else if (state.wasWorking && !isWorking && !state.lastRecipeId.isEmpty()) {
-                // Was working, now stopped — check if completed or interrupted
                 boolean completed = state.lastProgress >= state.currentDuration - 2
                         || progress == 0 && state.lastProgress > 0;
                 addEntry(pos, new RecipeHistoryEntry(
@@ -113,7 +90,6 @@ public class RecipeHistoryTracker {
                 state.wasWorking   = false;
 
             } else if (isWorking && progress < state.lastProgress - 5) {
-                // Progress reset while same recipe = completed and restarted
                 addEntry(pos, new RecipeHistoryEntry(
                         state.currentOutput, state.currentDuration,
                         state.recipeStartTime, true));
@@ -142,7 +118,7 @@ public class RecipeHistoryTracker {
         stateMap.remove(pos);
     }
 
-    // ─── Internal helpers ─────────────────────────────────────────────────────
+    // Internal helpers
     private static void addEntry(BlockPos pos, RecipeHistoryEntry entry) {
         Deque<RecipeHistoryEntry> deque =
                 historyMap.computeIfAbsent(pos, k -> new ArrayDeque<>());
@@ -151,24 +127,12 @@ public class RecipeHistoryTracker {
     }
 
     private static int getProgress(RecipeLogic logic) {
-        if (progressField != null) {
-            try { return (int) progressField.get(logic); }
-            catch (IllegalAccessException e) {
-                GTCEUTerminalMod.LOGGER.warn("RecipeHistoryTracker: lost access to RecipeLogic.progress", e);
-            }
-        }
-        return (int) (logic.getProgressPercent() * logic.getMaxProgress());
+        int p = RecipeLogicReflection.getProgress(logic);
+        return p > 0 ? p : (int)(logic.getProgressPercent() * logic.getMaxProgress());
     }
 
     private static java.util.Optional<GTRecipe> getCurrentRecipe(RecipeLogic logic) {
-        if (lastRecipeField == null) return java.util.Optional.empty();
-        try {
-            GTRecipe recipe = (GTRecipe) lastRecipeField.get(logic);
-            return java.util.Optional.ofNullable(recipe);
-        } catch (IllegalAccessException e) {
-            GTCEUTerminalMod.LOGGER.debug("RecipeHistoryTracker: could not read lastRecipe field", e);
-            return java.util.Optional.empty();
-        }
+        return RecipeLogicReflection.getLastRecipe(logic);
     }
 
     private static String getOutputName(GTRecipe recipe) {

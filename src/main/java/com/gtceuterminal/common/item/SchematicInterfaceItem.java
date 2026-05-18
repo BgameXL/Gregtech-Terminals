@@ -2,6 +2,7 @@ package com.gtceuterminal.common.item;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 
+import com.gtceuterminal.client.item.ClientTooltipHelper;
 import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.item.behavior.SchematicInterfaceBehavior;
 
@@ -43,7 +44,6 @@ public class SchematicInterfaceItem extends Item {
         return this.behavior.use(this, level, player, usedHand);
     }
 
-    // ── Tooltip ───────────────────────────────────────────────────────────────
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
         return Component.translatable(this.getDescriptionId(stack))

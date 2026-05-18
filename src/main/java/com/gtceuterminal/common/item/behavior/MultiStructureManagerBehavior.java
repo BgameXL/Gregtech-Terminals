@@ -52,7 +52,6 @@ public class MultiStructureManagerBehavior {
         ItemStack itemStack = context.getItemInHand();
         InteractionHand hand = context.getHand();
 
-        // Check if clicking on Wireless Access Point to link
         BlockEntity be = level.getBlockEntity(blockPos);
         if (be != null) {
             try {
@@ -76,7 +75,6 @@ public class MultiStructureManagerBehavior {
         if (player.isShiftKeyDown()) {
             MetaMachine machine = MetaMachine.getMachine(level, blockPos);
 
-            // Case 1: Shift+Click on unformed controller → Auto-build
             if (machine instanceof IMultiController controller) {
                 if (!controller.isFormed()) {
                     if (!level.isClientSide) {
@@ -122,7 +120,6 @@ public class MultiStructureManagerBehavior {
                 return InteractionResult.sidedSuccess(level.isClientSide);
             }
 
-            // Case 2: Shift+Click on non-controller → Open Multi-Structure Manager
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
                 MultiStructureManagerUIFactory.INSTANCE.openMultiStructure(sp, itemStack);
@@ -130,7 +127,6 @@ public class MultiStructureManagerBehavior {
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        // Normal click (no shift) → if on unformed controller, analyze for autocraft
         {
             MetaMachine machine = MetaMachine.getMachine(level, blockPos);
             if (machine instanceof IMultiController controller && !controller.isFormed()) {
@@ -172,7 +168,6 @@ public class MultiStructureManagerBehavior {
             }
         }
 
-        // Normal click (no shift) on non-controller → Open Manager Settings
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             GTCEUTerminalMod.LOGGER.info("Server: opening Manager Settings UI");
             MultiStructureManagerUIFactory.INSTANCE.openManagerSettings(sp, itemStack);
@@ -184,7 +179,6 @@ public class MultiStructureManagerBehavior {
                                                            @NotNull Player player, @NotNull InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        // Shift + Right-click in air → Open Multi-Structure Manager
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
@@ -193,7 +187,6 @@ public class MultiStructureManagerBehavior {
             return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
         }
 
-        // Normal right-click in air → Open Manager Settings
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             GTCEUTerminalMod.LOGGER.info("Server: opening Manager Settings UI");
             MultiStructureManagerUIFactory.INSTANCE.openManagerSettings(sp, itemStack);

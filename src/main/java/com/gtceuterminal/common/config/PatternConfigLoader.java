@@ -103,13 +103,12 @@ public class PatternConfigLoader {
     }
 
     private static void addDefaultPatterns(JsonArray patterns) {
-        // GTMThings wireless hatches
+
         addPattern(patterns, "gtmthings:*_wireless_energy_input_hatch",  "WIRELESS_ENERGY_INPUT",  100, null,   "Wireless Energy Input Hatch (all tiers)");
         addPattern(patterns, "gtmthings:*_wireless_energy_output_hatch", "WIRELESS_ENERGY_OUTPUT", 100, null,   "Wireless Energy Output Hatch (all tiers)");
         addPattern(patterns, "gtmthings:*_wireless_laser_target_hatch",  "WIRELESS_LASER_INPUT",   100, null,   "Wireless Laser Target Hatch (all tiers)");
         addPattern(patterns, "gtmthings:*_wireless_laser_source_hatch",  "WIRELESS_LASER_OUTPUT",  100, null,   "Wireless Laser Source Hatch (all tiers)");
 
-        // Amperage-specific energy hatches
         addPattern(patterns, "*:*_energy_input_hatch_4a",   "ENERGY_HATCH", 90, "4A",  "4A Energy Input Hatch");
         addPattern(patterns, "*:*_energy_input_hatch_16a",  "ENERGY_HATCH", 90, "16A", "16A Energy Input Hatch");
         addPattern(patterns, "*:*_energy_input_hatch_64a",  "ENERGY_HATCH", 90, "64A", "64A Energy Input Hatch");
@@ -117,11 +116,9 @@ public class PatternConfigLoader {
         addPattern(patterns, "*:*_energy_output_hatch_16a", "DYNAMO_HATCH", 90, "16A", "16A Dynamo Hatch");
         addPattern(patterns, "*:*_energy_output_hatch_64a", "DYNAMO_HATCH", 90, "64A", "64A Dynamo Hatch");
 
-        // Substation hatches
         addPattern(patterns, "*:*_substation_input_hatch_*",  "SUBSTATION_INPUT_ENERGY",  95, null, "Substation Input Energy");
         addPattern(patterns, "*:*_substation_output_hatch_*", "SUBSTATION_OUTPUT_ENERGY", 95, null, "Substation Output Energy");
 
-        // Generic fallbacks (low priority)
         addPattern(patterns, "*:*_energy_input_hatch",  "ENERGY_HATCH", 10, null, "Generic energy input hatch");
         addPattern(patterns, "*:*_energy_output_hatch", "DYNAMO_HATCH", 10, null, "Generic dynamo hatch");
     }

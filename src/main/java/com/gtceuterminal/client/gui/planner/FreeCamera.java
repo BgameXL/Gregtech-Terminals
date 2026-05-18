@@ -29,7 +29,7 @@ public class FreeCamera extends LocalPlayer {
                 false   // wasShiftKeyDown
         );
         setId(entityId);
-        setPose(Pose.SWIMMING);      // Prevents head-bob
+        setPose(Pose.SWIMMING);
         getAbilities().flying = true;
         getAbilities().mayfly  = true;
         this.input = new KeyboardInput(Minecraft.getInstance().options);
@@ -45,7 +45,6 @@ public class FreeCamera extends LocalPlayer {
                 .removeEntity(getId(), RemovalReason.DISCARDED);
     }
 
-    // ── Overrides to prevent side-effects ────────────────────────────────────
     @Override
     protected void checkFallDamage(double h, boolean onGround, BlockState s, BlockPos p) { }
 
@@ -54,21 +53,15 @@ public class FreeCamera extends LocalPlayer {
 
     @Override
     public void aiStep() {
-        // Fix stutter #2: do NOT call super.aiStep() — it applies gravity, friction,
-        // and collision logic intended for the real player, which fights the fly movement
-        // and causes jitter. We only need to keep flying ability active.
         getAbilities().flying = true;
         getAbilities().mayfly  = true;
         setOnGround(false);
         fallDistance = 0f;
 
-        // Apply keyboard movement manually (same logic super would do, minus physics)
         if (input != null) {
             input.tick(false, 0f);
         }
 
-        // travel() reads flyingSpeed from abilities — must be set every tick or it
-        // resets to 0 after the first frame, causing the camera to stop moving.
         getAbilities().setFlyingSpeed(0.05f);
 
         travel(new Vec3(input != null ? input.leftImpulse : 0f,

@@ -30,7 +30,6 @@ import java.util.List;
 
 public class ComponentDetailDialog extends DialogWidget {
 
-    // ── Dimensions ────────────────────────────────────────────────────────────
     private static final int DIALOG_W  = 460;
     private static final int DIALOG_H  = 390;
     private static final int HEADER_H  = 28;
@@ -39,7 +38,6 @@ public class ComponentDetailDialog extends DialogWidget {
     private static final int ENTRY_GAP = 4;
     private static final int PAD       = 10;
 
-    // ── Colors ────────────────────────────────────────────────────────────────
     private int COLOR_BG_DARK;
     private int COLOR_BG_MEDIUM;
     private int COLOR_BG_LIGHT;
@@ -49,7 +47,6 @@ public class ComponentDetailDialog extends DialogWidget {
     private static final int COLOR_TEXT_GRAY   = 0xFFAAAAAA;
     private static final int COLOR_HOVER       = 0x22FFFFFF;
 
-    // ── State ─────────────────────────────────────────────────────────────────
     private ItemTheme theme;
     private final Player player;
     private final MultiblockInfo multiblock;
@@ -57,7 +54,6 @@ public class ComponentDetailDialog extends DialogWidget {
     private int W = DIALOG_W;
     private int H = DIALOG_H;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
     public ComponentDetailDialog(WidgetGroup parent, Player player, MultiblockInfo multiblock) {
         this(parent, player, multiblock, null, null);
     }
@@ -95,7 +91,6 @@ public class ComponentDetailDialog extends DialogWidget {
         if (onClose != null) onClose.run();
     }
 
-    // ── Layout init ───────────────────────────────────────────────────────────
     private void initDialog() {
         var mc = Minecraft.getInstance();
         int sw = mc.screen != null ? mc.screen.width  : mc.getWindow().getGuiScaledWidth();
@@ -121,16 +116,13 @@ public class ComponentDetailDialog extends DialogWidget {
         setSelfPosition(new Position(x, y));
         setBackground(theme.backgroundTexture());
 
-        // Content — may be larger than viewport if screen is tiny
         WidgetGroup content = buildContent(contentW, contentH);
 
         if (contentW <= maxW && contentH <= maxH) {
-            // Fits — add directly
             for (Widget w : new ArrayList<>(content.widgets)) {
                 addWidget(w);
             }
         } else {
-            // Needs scroll wrapper
             DraggableScrollableWidgetGroup viewport =
                     new DraggableScrollableWidgetGroup(0, 0, viewW, viewH);
             viewport.setYScrollBarWidth(8);
@@ -146,7 +138,6 @@ public class ComponentDetailDialog extends DialogWidget {
         WidgetGroup root = new WidgetGroup(0, 0, cW, cH);
         root.setBackground(theme.backgroundTexture());
 
-        // Outer border
         if (!theme.isNativeStyle()) {
             root.addWidget(new ImageWidget(0,      0,      cW, 2,  new ColorRectTexture(COLOR_BORDER_LIGHT)));
             root.addWidget(new ImageWidget(0,      0,      2,  cH, new ColorRectTexture(COLOR_BORDER_LIGHT)));
@@ -161,12 +152,10 @@ public class ComponentDetailDialog extends DialogWidget {
         return root;
     }
 
-    // ── Header ────────────────────────────────────────────────────────────────
     private WidgetGroup buildHeader(int cW) {
         WidgetGroup header = new WidgetGroup(2, 2, cW - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
-        // Multiblock name (resolved from translation key)
         String name = resolveDisplayName();
         LabelWidget title = new LabelWidget(10, 9, "§f" + name);
         title.setTextColor(COLOR_TEXT_WHITE);
@@ -188,7 +177,6 @@ public class ComponentDetailDialog extends DialogWidget {
         return header;
     }
 
-    // ── Info bar ──────────────────────────────────────────────────────────────
     private WidgetGroup buildInfoBar(int cW) {
         int y = 2 + HEADER_H + 3;
         WidgetGroup bar = new WidgetGroup(PAD, y, cW - PAD * 2, INFO_H);
@@ -212,7 +200,7 @@ public class ComponentDetailDialog extends DialogWidget {
         return bar;
     }
 
-    // ── Component groups list ─────────────────────────────────────────────────
+    // Component groups list
     private WidgetGroup buildGroupList(int cW, int cH) {
         int listY = 2 + HEADER_H + 3 + INFO_H + 4;
         int listH = cH - listY - 8;
@@ -222,7 +210,6 @@ public class ComponentDetailDialog extends DialogWidget {
                 new ColorRectTexture(COLOR_BG_DARK),
                 new ColorBorderTexture(1, COLOR_BORDER_DARK)));
 
-        // "Components" section label
         LabelWidget sectionLabel = new LabelWidget(10, 5,
                 Component.translatable("gui.gtceuterminal.component_detail_dialog.list.header").getString());
         sectionLabel.setTextColor(COLOR_TEXT_WHITE);
@@ -248,7 +235,6 @@ public class ComponentDetailDialog extends DialogWidget {
         return panel;
     }
 
-    // ── Single component group entry ──────────────────────────────────────────
     private WidgetGroup buildEntry(ComponentGroup group, int yPos, int entryW) {
         WidgetGroup entry = new WidgetGroup(0, yPos, entryW, ENTRY_H);
         entry.setBackground(theme.panelTexture());
@@ -296,7 +282,7 @@ public class ComponentDetailDialog extends DialogWidget {
         return entry;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // Helpers
     private String resolveDisplayName() {
         String raw = multiblock.getName();
         if (raw == null || raw.isEmpty())
@@ -313,13 +299,11 @@ public class ComponentDetailDialog extends DialogWidget {
         if (blockName == null || blockName.isBlank()) return "";
         String s = blockName;
 
-        // Strip common prefixes to get at the tier/amperage suffix
         for (String prefix : new String[]{"energy_hatch_", "input_hatch_", "output_hatch_",
                 "input_bus_", "output_bus_", "dynamo_hatch_"}) {
             if (s.startsWith(prefix)) { s = s.substring(prefix.length()); break; }
         }
 
-        // Uppercase tier names and amperage
         String[] parts = s.split("_");
         StringBuilder sb = new StringBuilder();
         for (String p : parts) {

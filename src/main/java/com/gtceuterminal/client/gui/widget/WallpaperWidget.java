@@ -43,7 +43,7 @@ public class WallpaperWidget extends Widget {
 
     private List<ResourceLocation> slideList = new ArrayList<>();
     private int  slideIdx   = 0;
-    private long slideStart = 0; // ms when current slide became fully visible
+    private long slideStart = 0;
 
     private String  lastBundleId     = null;
     private boolean lastSlideshowMode = false;
@@ -66,7 +66,6 @@ public class WallpaperWidget extends Widget {
         int w = size.width;
         int h = size.height;
 
-        // Solid BG always first
         graphics.fill(x, y, x + w, y + h, theme.bgColor);
 
         if (theme.slideshowMode && theme.isBundleStyle()) {

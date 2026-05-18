@@ -44,7 +44,6 @@ public class EnergyAnalyzerItem extends Item {
         super(new Item.Properties().stacksTo(1));
     }
 
-    // ─── Use on block ────────────────────────────────────────────────────────
     @Override
     public @NotNull InteractionResult useOn(@NotNull UseOnContext ctx) {
         Player player = ctx.getPlayer();
@@ -56,7 +55,6 @@ public class EnergyAnalyzerItem extends Item {
 
         if (level.isClientSide) return InteractionResult.SUCCESS;
 
-        // Only works on GTCEu machines
         MetaMachine machine = MetaMachine.getMachine(level, pos);
         if (machine == null) return InteractionResult.PASS;
 
@@ -67,10 +65,8 @@ public class EnergyAnalyzerItem extends Item {
         Component controllerName = ctrlBlock.getName();
 
         if (player.isShiftKeyDown()) {
-            // Shift+click: link or unlink
             List<LinkedMachineData> machines = loadMachines(stack);
 
-            // Check if already linked — unlink it
             for (int i = 0; i < machines.size(); i++) {
                 if (machines.get(i).matches(pos, dimId)) {
                     machines.remove(i);
@@ -87,7 +83,6 @@ public class EnergyAnalyzerItem extends Item {
                 }
             }
 
-            // Check limit
             int max = ItemsConfig.getEAMaxLinkedMachines();
             if (machines.size() >= max) {
                 player.displayClientMessage(
@@ -100,7 +95,6 @@ public class EnergyAnalyzerItem extends Item {
                 return InteractionResult.FAIL;
             }
 
-            // Check dimension allowed
             if (!ItemsConfig.isEADimensionAllowed(dimId)) {
                 player.displayClientMessage(
                         Component.translatable(
@@ -112,7 +106,6 @@ public class EnergyAnalyzerItem extends Item {
                 return InteractionResult.FAIL;
             }
 
-            // Link it
             machines.add(new LinkedMachineData(pos, dimId, "", controllerBlockKey));
             saveMachines(stack, machines);
             player.displayClientMessage(
@@ -125,7 +118,6 @@ public class EnergyAnalyzerItem extends Item {
             return InteractionResult.SUCCESS;
 
         } else {
-            // Right-click on machine: open directly to that machine
             List<LinkedMachineData> machines = loadMachines(stack);
             int idx = -1;
             for (int i = 0; i < machines.size(); i++) {
@@ -140,7 +132,6 @@ public class EnergyAnalyzerItem extends Item {
                 );
                 return InteractionResult.SUCCESS;
             }
-            // Request UI open — send index to open on that machine
             if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
                 EnergyAnalyzerUIFactory.INSTANCE.openUI(sp, idx);
             }
@@ -148,7 +139,6 @@ public class EnergyAnalyzerItem extends Item {
         }
     }
 
-    // ─── Use in air ──────────────────────────────────────────────────────────
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
@@ -166,14 +156,13 @@ public class EnergyAnalyzerItem extends Item {
             return InteractionResultHolder.success(stack);
         }
 
-        // Open list UI at first machine
         if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
             EnergyAnalyzerUIFactory.INSTANCE.openUI(sp, 0);
         }
         return InteractionResultHolder.success(stack);
     }
 
-    // ─── NBT helpers ─────────────────────────────────────────────────────────
+    // NBT helpers
     public static List<LinkedMachineData> loadMachines(ItemStack stack) {
         List<LinkedMachineData> result = new ArrayList<>();
         CompoundTag tag = stack.getTag();
@@ -192,7 +181,6 @@ public class EnergyAnalyzerItem extends Item {
         stack.getOrCreateTag().put(TAG_MACHINES, list);
     }
 
-    // ─── Tooltip ─────────────────────────────────────────────────────────────
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level,
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
@@ -212,7 +200,6 @@ public class EnergyAnalyzerItem extends Item {
                     machines.size(),
                     max
             ));
-            // Show first 3
             int shown = Math.min(3, machines.size());
             for (int i = 0; i < shown; i++) {
                 tooltip.add(Component.translatable(

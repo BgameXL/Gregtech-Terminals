@@ -13,10 +13,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
-// Widget responsible for periodically collecting energy data on server and sending to client
 public class EnergyUpdateWidget extends Widget {
 
     private static final int UPDATE_ID = 1;
@@ -35,7 +36,6 @@ public class EnergyUpdateWidget extends Widget {
         this.rebuildCallback = callback;
     }
 
-    // ─── Server side ──────────────────────────────────────────────────────────
     @Override
     public void detectAndSendChanges() {
         tickCounter++;
@@ -56,18 +56,15 @@ public class EnergyUpdateWidget extends Widget {
     }
 
     private List<EnergySnapshot> collectSnapshots(ServerPlayer player) {
-        List<EnergySnapshot> result = new ArrayList<>();
         List<LinkedMachineData> machines = holder.machines;
+        List<EnergySnapshot> result = new ArrayList<>(machines.size());
+        Map<String, ServerLevel> levelsByDim = new HashMap<>();
+        for (ServerLevel sl : player.getServer().getAllLevels()) {
+            levelsByDim.put(sl.dimension().location().toString(), sl);
+        }
 
         for (LinkedMachineData m : machines) {
-            ServerLevel targetLevel = null;
-            for (ServerLevel sl : player.getServer().getAllLevels()) {
-                if (sl.dimension().location().toString().equals(m.getDimensionId())) {
-                    targetLevel = sl;
-                    break;
-                }
-            }
-
+            ServerLevel targetLevel = levelsByDim.get(m.getDimensionId());
             if (targetLevel != null) {
                 result.add(EnergyDataCollector.collect(
                         targetLevel, m.getPos(), m.getCustomName(), m.getControllerBlockKey()));
@@ -82,7 +79,6 @@ public class EnergyUpdateWidget extends Widget {
         return result;
     }
 
-    // ─── Client side ──────────────────────────────────────────────────────────
     @Override
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (id != UPDATE_ID) return;
@@ -93,11 +89,9 @@ public class EnergyUpdateWidget extends Widget {
             fresh.add(EnergySnapshot.decode(buffer));
         }
 
-        // Replace snapshots in the holder
         holder.snapshots.clear();
         holder.snapshots.addAll(fresh);
 
-        // Trigger UI rebuild on client
         if (rebuildCallback != null) {
             rebuildCallback.run();
         }

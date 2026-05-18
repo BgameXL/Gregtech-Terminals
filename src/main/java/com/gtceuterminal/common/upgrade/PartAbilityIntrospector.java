@@ -11,7 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 
-// Utility class to introspect PartAbility instances and their registries via reflection.
+// Utility class to introspect PartAbility instances.
 public final class PartAbilityIntrospector {
 
     private PartAbilityIntrospector() {}

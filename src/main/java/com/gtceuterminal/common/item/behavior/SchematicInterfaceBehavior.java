@@ -35,7 +35,6 @@ public class SchematicInterfaceBehavior {
         ItemStack stack    = context.getItemInHand();
 
         if (player.isShiftKeyDown()) {
-            // Shift + right-click on a formed controller → copy it
             MetaMachine machine = MetaMachine.getMachine(level, blockPos);
             if (machine instanceof IMultiController controller && controller.isFormed()) {
                 if (!level.isClientSide) {
@@ -44,7 +43,6 @@ public class SchematicInterfaceBehavior {
                 return InteractionResult.sidedSuccess(level.isClientSide);
             }
 
-            // Shift + right-click elsewhere → open GUI
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Schematic UI");
                 SchematicItemUIFactory.INSTANCE.openUI(sp, stack);
@@ -52,7 +50,6 @@ public class SchematicInterfaceBehavior {
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        // Normal right-click → paste
         if (!level.isClientSide) {
             BlockPos anchor = blockPos;
             BlockState clicked = level.getBlockState(blockPos);
@@ -67,7 +64,6 @@ public class SchematicInterfaceBehavior {
         ItemStack stack = player.getItemInHand(usedHand);
 
         if (player.isShiftKeyDown()) {
-            // Shift + right-click in air → open GUI
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Schematic UI");
                 SchematicItemUIFactory.INSTANCE.openUI(sp, stack);
@@ -75,7 +71,6 @@ public class SchematicInterfaceBehavior {
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
-        // Right-click in air (no shift) → paste at ghost preview position
         if (hasClipboard(stack) && !level.isClientSide) {
             CompoundTag itemTag   = stack.getTag();
             SchematicData clipboard = SchematicData.fromNBT(

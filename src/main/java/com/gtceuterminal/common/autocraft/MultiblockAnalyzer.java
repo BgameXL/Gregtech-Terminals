@@ -9,6 +9,7 @@ import com.gtceuterminal.common.config.ManagerSettings;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
+import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
@@ -36,44 +37,20 @@ public final class MultiblockAnalyzer {
 
     private MultiblockAnalyzer() {}
 
-    // ── Reflection fields (same as AdvancedAutoBuilder) ───────────────────────
-    private static Field F_BLOCK_MATCHES;
-    private static Field F_AISLE_REP;
-    private static Field F_STRUCTURE_DIR;
-    private static Field F_CENTER_OFFSET;
-    private static boolean REFLECTION_READY = false;
-
-    private static void ensureReflection() {
-        if (REFLECTION_READY) return;
-        try {
-            F_BLOCK_MATCHES = BlockPattern.class.getDeclaredField("blockMatches");
-            F_BLOCK_MATCHES.setAccessible(true);
-            F_AISLE_REP = BlockPattern.class.getDeclaredField("aisleRepetitions");
-            F_AISLE_REP.setAccessible(true);
-            F_STRUCTURE_DIR = BlockPattern.class.getDeclaredField("structureDir");
-            F_STRUCTURE_DIR.setAccessible(true);
-            F_CENTER_OFFSET = BlockPattern.class.getDeclaredField("centerOffset");
-            F_CENTER_OFFSET.setAccessible(true);
-            REFLECTION_READY = true;
-        } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer: reflection init failed", t);
-        }
-    }
-
     public static AnalysisResult analyzeForBuild(Player player,
                                                  IMultiController controller,
                                                  ManagerSettings.AutoBuildSettings settings) {
-        ensureReflection();
-        if (!REFLECTION_READY) return null;
+        BlockPatternReflection.ensure();
+        if (!BlockPatternReflection.READY) return null;
 
         try {
             BlockPattern pattern        = controller.getPattern();
             MultiblockState worldState  = controller.getMultiblockState();
 
-            TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) F_BLOCK_MATCHES.get(pattern);
-            int[][]                     aisleReps    = (int[][])                     F_AISLE_REP.get(pattern);
-            RelativeDirection[]         structDir    = (RelativeDirection[])         F_STRUCTURE_DIR.get(pattern);
-            int[]                       centerOff    = (int[])                       F_CENTER_OFFSET.get(pattern);
+            TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
+            int[][]                     aisleReps    = (int[][])                     BlockPatternReflection.F_AISLE_REP.get(pattern);
+            RelativeDirection[]         structDir    = (RelativeDirection[])         BlockPatternReflection.F_STRUCTURE_DIR.get(pattern);
+            int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
 
             if (blockMatches == null) return null;
 
@@ -87,7 +64,6 @@ public final class MultiblockAnalyzer {
             PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
             GTCEuCompat.clean(worldState);
 
-            // item → total needed
             Map<Item, Integer> needed = new LinkedHashMap<>();
 
             for (int c = 0, z = minZ++; c < blockMatches.length; c++) {
@@ -185,7 +161,6 @@ public final class MultiblockAnalyzer {
 
     private static IGrid getGrid(Player player) {
         try {
-            // Find a linked wireless terminal in hands or inventory
             for (ItemStack s : allStacks(player)) {
                 if (WirelessTerminalHandler.isWirelessTerminal(s)
                         && WirelessTerminalHandler.isLinked(s)) {
@@ -269,7 +244,6 @@ public final class MultiblockAnalyzer {
         return null;
     }
 
-    // Mirrors AdvancedAutoBuilder.setActualRelativeOffset
     private static BlockPos relativeOffset(RelativeDirection[] dir,
                                            int x, int y, int z,
                                            net.minecraft.core.Direction facing,

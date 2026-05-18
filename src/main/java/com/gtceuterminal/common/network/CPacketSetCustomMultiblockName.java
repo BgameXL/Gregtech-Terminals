@@ -51,7 +51,6 @@ public class CPacketSetCustomMultiblockName {
                 hand = values[handOrdinal];
             }
 
-            // Search both hands first, then full inventory (rename can be triggered from MSM UI without holding it)
             ItemStack stack = null;
             for (InteractionHand h : InteractionHand.values()) {
                 ItemStack s = player.getItemInHand(h);
@@ -88,7 +87,6 @@ public class CPacketSetCustomMultiblockName {
             tag.put("CustomMultiblockNames", names);
             stack.setTag(tag);
 
-            // Ensure inventory sync
             player.getInventory().setChanged();
         });
 

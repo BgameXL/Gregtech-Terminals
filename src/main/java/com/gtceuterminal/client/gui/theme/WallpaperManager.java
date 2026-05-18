@@ -102,12 +102,10 @@ public class WallpaperManager {
     public static void evict(String filename) {
         cache.remove(filename);
     }
-
     public static void clearCache() {
         cache.clear();
     }
 
-    // ─── Internal helpers ─────────────────────────────────────────────────────
     private static String sanitizeFilename(String filename) {
         return filename.toLowerCase()
                 .replaceAll("[^a-z0-9._-]", "_")

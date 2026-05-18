@@ -23,13 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * Client → Server: the player confirmed the autocraft/build/upgrade dialog.
- *
- * The server re-runs the settings from the item tag so it doesn't trust
- * the client for item quantities — it just trusts the controller position and
- * kind, and re-validates everything server-side.
- */
 public class CPacketConfirmAutobuild {
 
     private final AnalysisResult.Kind kind;
@@ -46,7 +39,6 @@ public class CPacketConfirmAutobuild {
         this.componentPositions = new ArrayList<>(result.componentPositions);
     }
 
-    // ── Encode / Decode ───────────────────────────────────────────────────────
     public void encode(FriendlyByteBuf buf) {
         buf.writeEnum(kind);
         buf.writeBlockPos(controllerPos);
@@ -66,7 +58,6 @@ public class CPacketConfirmAutobuild {
         for (int i = 0; i < count; i++) componentPositions.add(buf.readBlockPos());
     }
 
-    // ── Handler ───────────────────────────────────────────────────────────────
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
@@ -114,7 +105,6 @@ public class CPacketConfirmAutobuild {
             return;
         }
 
-        // Read settings from the item the player is holding
         ManagerSettings.AutoBuildSettings settings = getSettings(player);
 
         boolean ok = AdvancedAutoBuilder.autoBuild(player, controller, settings);
@@ -141,16 +131,11 @@ public class CPacketConfirmAutobuild {
         int succeeded = 0, failed = 0;
 
         for (BlockPos pos : componentPositions) {
-            // Reconstruct a minimal ComponentInfo from the live world state.
-            // We use the block's state; type+tier will be re-inferred by ComponentUpgrader
-            // via the targetTier / upgradeId parameters, so we only need position+state here.
             net.minecraft.world.level.block.state.BlockState state =
                     player.serverLevel().getBlockState(pos);
 
-            // Build a minimal ComponentInfo — type/tier don't affect upgradeComponent when
-            // upgradeId or targetTier is explicit; they're used only for validation fallbacks.
             ComponentInfo info = new ComponentInfo(
-                    com.gtceuterminal.common.multiblock.ComponentType.CASING, // placeholder
+                    com.gtceuterminal.common.multiblock.ComponentType.CASING,
                     0,
                     pos,
                     state);
@@ -188,7 +173,6 @@ public class CPacketConfirmAutobuild {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     private static ManagerSettings.AutoBuildSettings getSettings(ServerPlayer player) {
         ItemStack held = player.getMainHandItem();
         if (!held.isEmpty()) {

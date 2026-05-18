@@ -36,7 +36,6 @@ import java.util.Set;
  */
 public class MultiblockScanner {
 
-    // Scans multiblocks near the player
     public static List<MultiblockInfo> scanNearbyMultiblocks(Player player, Level level, int radius) {
         List<MultiblockInfo> multiblocks = new ArrayList<>();
         BlockPos playerPos = player.blockPosition();
@@ -45,7 +44,6 @@ public class MultiblockScanner {
         GTCEUTerminalMod.LOGGER.info("=== Universal Multiblock Scan Started ===");
         // GTCEUTerminalMod.LOGGER.info("Position: {}, Radius: {}", playerPos, radius);
 
-        // Detects multiblocks
         List<DetectedMultiblock> detected = UniversalMultiblockScanner.scanForAllMultiblocks(
                 level,
                 playerPos,
@@ -53,7 +51,6 @@ public class MultiblockScanner {
         );
 
         // GTCEUTerminalMod.LOGGER.info("Universal scanner found {} multiblocks", detected.size());
-        // Convert DetectedMultiblock to MultiblockInfo
         for (DetectedMultiblock mb : detected) {
             try {
                 MultiblockInfo info = convertToMultiblockInfo(mb, playerVec, level);
@@ -64,19 +61,15 @@ public class MultiblockScanner {
             }
         }
 
-        // Apply custom display names from the Multi-Structure Manager item (if player is holding it)
         applyCustomNames(player, multiblocks);
 
-        // Order by distance to the player
         multiblocks.sort((a, b) -> Double.compare(a.getDistanceFromPlayer(), b.getDistanceFromPlayer()));
 
-        // Apply max detected limit from config
         int maxDetected = com.gtceuterminal.common.config.ItemsConfig.getMgrMaxDetectedMultiblocks();
         if (multiblocks.size() > maxDetected) {
             multiblocks = new ArrayList<>(multiblocks.subList(0, maxDetected));
         }
 
-        // Log
         long uniqueMods = detected.stream()
                 .map(DetectedMultiblock::getModId)
                 .distinct()
@@ -90,7 +83,6 @@ public class MultiblockScanner {
     private static void applyCustomNames(Player player, List<MultiblockInfo> multiblocks) {
         if (multiblocks.isEmpty()) return;
 
-        // Find MSM item in either hand or hotbar
         ItemStack msmStack = findMSMItem(player);
         if (msmStack == null || msmStack.isEmpty()) return;
 
@@ -142,7 +134,6 @@ public class MultiblockScanner {
          GTCEUTerminalMod.LOGGER.info("Calculated Distance: {}m", String.format("%.2f", distance));
          */
 
-        // Create MultiblockInfo
         MultiblockInfo info = new MultiblockInfo(
                 detected.getController(),
                 detected.getName(),
@@ -152,11 +143,8 @@ public class MultiblockScanner {
                 true
         );
 
-        // Add source mod metadata
         info.setSourceMod(detected.getModId());
 
-        // Pre-compute all block positions via flood fill so the highlight system has them ready
-        // This runs on the server during scan, which is fine — blocks are loaded server-side
         try {
             Set<BlockPos> allPos = com.gtceuterminal.common.scanner.UniversalMultiblockScanner
                     .getMultiblockBlocksPublic(detected.getController(), level);
@@ -170,7 +158,6 @@ public class MultiblockScanner {
                     detected.getName(), e.getMessage());
         }
 
-        // Convert and add components
         for (var entry : detected.getComponents().entrySet()) {
             String category = entry.getKey();
             List<ComponentData> components = entry.getValue();
@@ -208,11 +195,9 @@ public class MultiblockScanner {
         }
     }
 
-    // Map the universal scanner categories to ComponentType
     private static ComponentType parseComponentType(String category) {
         String lower = category.toLowerCase();
 
-        // WIRELESS COMPONENTS
         if (lower.contains("wireless")) {
             if (lower.contains("energy")) {
                 if (lower.contains("output")) {
@@ -228,7 +213,6 @@ public class MultiblockScanner {
             }
         }
 
-        // SUBSTATION HATCHES
         if (lower.contains("substation")) {
             if (lower.contains("input") || lower.contains("input energy")) {
                 return ComponentType.SUBSTATION_INPUT_ENERGY;
@@ -238,7 +222,6 @@ public class MultiblockScanner {
             }
         }
 
-        // LASER HATCHES
         if (lower.contains("laser")) {
             if (lower.contains("input") || lower.contains("target")) {
                 return ComponentType.INPUT_LASER;
@@ -248,24 +231,17 @@ public class MultiblockScanner {
             }
         }
 
-        // DIRECT MAPPING by display name
-        // This works because ComponentType.getDisplayName() matches
-        // what UniversalMultiblockScanner returns
         for (ComponentType type : ComponentType.values()) {
-            // Try exact match first
             if (type.getDisplayName().equalsIgnoreCase(category)) {
                 return type;
             }
 
-            // Try with amperage removed
-            // "4A Energy Hatch" -> "Energy Hatch"
             String categoryWithoutAmperage = category.replaceFirst("^\\d+A\\s+", "");
             if (type.getDisplayName().equalsIgnoreCase(categoryWithoutAmperage)) {
                 return type;
             }
         }
 
-        // Special cases
         if (lower.contains("coil")) return ComponentType.COIL;
         if (lower.contains("casing")) return ComponentType.CASING;
 

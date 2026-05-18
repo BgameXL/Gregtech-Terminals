@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.ae2;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.AE2Reflection;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -12,11 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Scanner for Applied Energistics 2 ME Networks
- * Uses reflection to avoid hard dependency on AE2
- * it works now!
- */
 public class MENetworkScanner {
 
     private static boolean ae2Available = false;
@@ -25,7 +21,7 @@ public class MENetworkScanner {
     public static boolean isAE2Available() {
         if (!ae2Checked) {
             try {
-                Class.forName("appeng.api.networking.IGrid");
+                Class.forName("appeng.api.networking.IGrid"); // kept for isAE2Available check
                 ae2Available = true;
                 GTCEUTerminalMod.LOGGER.info("AE2 detected - ME Network integration enabled");
             } catch (ClassNotFoundException e) {
@@ -48,7 +44,6 @@ public class MENetworkScanner {
 
         try {
 
-            // Scan area for ME network blocks
             for (BlockPos pos : BlockPos.betweenClosed(
                     playerPos.offset(-radius, -radius, -radius),
                     playerPos.offset(radius, radius, radius)
@@ -69,12 +64,7 @@ public class MENetworkScanner {
     }
 
     private static boolean isMENetworkBlock(BlockEntity be) {
-        try {
-            Class<?> gridHostClass = Class.forName("appeng.api.networking.IGridHost");
-            return gridHostClass.isInstance(be);
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return AE2Reflection.isGridHost(be);
     }
 
     public static long countItemInMENetwork(Player player, Level level, BlockPos nodePos, Item item) {
@@ -85,62 +75,13 @@ public class MENetworkScanner {
         try {
             BlockEntity be = level.getBlockEntity(nodePos);
             if (be == null) return 0;
-
-            Class<?> gridHostClass = Class.forName("appeng.api.networking.IGridHost");
-            if (!gridHostClass.isInstance(be)) {
-                return 0;
-            }
-
-            Object gridHost = gridHostClass.cast(be);
-            Object gridNode = gridHostClass.getMethod("getGridNode").invoke(gridHost);
-
-            if (gridNode == null) return 0;
-
-            Class<?> gridNodeClass = Class.forName("appeng.api.networking.IGridNode");
-            Object grid = gridNodeClass.getMethod("getGrid").invoke(gridNode);
-
-            if (grid == null) return 0;
-
-            Class<?> gridClass = Class.forName("appeng.api.networking.IGrid");
-            Class<?> storageGridClass = Class.forName("appeng.api.networking.storage.IStorageGrid");
-            Object storageGrid = gridClass.getMethod("getService", Class.class)
-                    .invoke(grid, storageGridClass);
-
-            if (storageGrid == null) return 0;
-
-            Object inventory = storageGridClass.getMethod("getInventory").invoke(storageGrid);
-
+            Object inventory = AE2Reflection.resolveInventory(be);
             if (inventory == null) return 0;
-
-            Class<?> aeItemStackClass = Class.forName("appeng.api.storage.data.IAEItemStack");
-            Class<?> aeItemStackFactoryClass = Class.forName("appeng.util.item.AEItemStack");
-
-            ItemStack minecraftStack = new ItemStack(item);
-            Object aeStack = aeItemStackFactoryClass.getMethod("fromItemStack", ItemStack.class)
-                    .invoke(null, minecraftStack);
-
-            if (aeStack == null) return 0;
-
-            Class<?> actionableClass = Class.forName("appeng.api.config.Actionable");
-            Object simulateAction = actionableClass.getField("SIMULATE").get(null);
-
-            Class<?> baseActionSourceClass = Class.forName("appeng.api.networking.security.IActionSource");
-            Class<?> machineSourceClass = Class.forName("appeng.me.helpers.MachineSource");
-            Object actionSource = machineSourceClass.getConstructor(Object.class).newInstance(be);
-
-            Class<?> inventoryClass = Class.forName("appeng.api.storage.IMEInventory");
-
-            Object result = inventoryClass.getMethod("extractItems", aeItemStackClass, actionableClass, baseActionSourceClass)
-                    .invoke(inventory, aeStack, simulateAction, actionSource);
-
-            if (result == null) return 0;
-
-            long count = (long) aeItemStackClass.getMethod("getStackSize").invoke(result);
-
+            ItemStack probe = new ItemStack(item);
+            ItemStack found = AE2Reflection.extract(inventory, be, probe, Long.MAX_VALUE, true);
+            long count = found != null ? found.getCount() : 0;
             GTCEUTerminalMod.LOGGER.debug("Found {} of {} in ME network at {}", count, item, nodePos);
-
             return count;
-
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Error counting items in ME network", e);
             return 0;
@@ -166,18 +107,11 @@ public class MENetworkScanner {
         return total;
     }
 
-    // ── Safe tooltip helpers ──────────────────────────────────────────────────
-    /** These are the ONLY entry points items outside the ae2 package should use
-     * to check AE2 link state. They guard against classloading WirelessTerminalHandler
-     * when AE2 is absent.
-     * Returns true if AE2 is loaded AND the item is linked to a Wireless Access Point
-     */
     public static boolean isItemLinked(net.minecraft.world.item.ItemStack stack) {
         if (!isAE2Available()) return false;
         return WirelessTerminalHandler.isLinked(stack);
     }
 
-    // Returns true if AE2 is loaded AND the item is in range of its linked Access Point
     public static boolean isItemInRange(net.minecraft.world.item.ItemStack stack,
                                         Level level,
                                         net.minecraft.world.entity.player.Player player) {

@@ -4,55 +4,34 @@ import net.minecraft.network.chat.Component;
 
 public enum ComponentType {
 
-    // ============================================
-    // ENERGY
-    // ============================================
     ENERGY_HATCH("Energy Hatch", "input_energy"),
     DYNAMO_HATCH("Dynamo Hatch", "output_energy"),
 
-    // ============================================
-    // WIRELESS (GTMThings)
-    // ============================================
     WIRELESS_ENERGY_INPUT("Wireless Energy Input Hatch", "wireless_energy_input"),
     WIRELESS_ENERGY_OUTPUT("Wireless Energy Output Hatch", "wireless_energy_output"),
     WIRELESS_LASER_INPUT("Wireless Laser Target Hatch", "wireless_laser_input"),
     WIRELESS_LASER_OUTPUT("Wireless Laser Source Hatch", "wireless_laser_output"),
 
-    // ============================================
-    // SUBSTATION
-    // ============================================
     SUBSTATION_INPUT_ENERGY("Substation Input Energy", "substation_input_energy"),
     SUBSTATION_OUTPUT_ENERGY("Substation Output Energy", "substation_output_energy"),
 
-    // ============================================
-    // BUSES (Item I/O)
-    // ============================================
     INPUT_BUS("Input Bus", "import_items"),
     OUTPUT_BUS("Output Bus", "export_items"),
     STEAM_INPUT_BUS("Steam Input Bus", "steam_import_items"),
     STEAM_OUTPUT_BUS("Steam Output Bus", "steam_export_items"),
 
-    // ============================================
-    // HATCHES (Fluid I/O)
-    // ============================================
     INPUT_HATCH("Input Hatch", "import_fluids"),
     OUTPUT_HATCH("Output Hatch", "export_fluids"),
 
-    // Dual Hatches (1x capacity)
     INPUT_HATCH_1X("Input Hatch (1x)", "import_fluids_1x"),
     OUTPUT_HATCH_1X("Output Hatch (1x)", "export_fluids_1x"),
 
-    // Quad Hatches (4x capacity)
     QUAD_INPUT_HATCH("Quad Input Hatch (4x)", "import_fluids_4x"),
     QUAD_OUTPUT_HATCH("Quad Output Hatch (4x)", "export_fluids_4x"),
 
-    // Nonuple Hatches (9x capacity)
     NONUPLE_INPUT_HATCH("Nonuple Input Hatch (9x)", "import_fluids_9x"),
     NONUPLE_OUTPUT_HATCH("Nonuple Output Hatch (9x)", "export_fluids_9x"),
 
-    // ============================================
-    // SPECIAL HATCHES
-    // ============================================
     MUFFLER("Muffler Hatch", "muffler"),
     MAINTENANCE("Maintenance Hatch", "maintenance"),
     ROTOR_HOLDER("Rotor Holder", "rotor_holder"),
@@ -62,30 +41,17 @@ public enum ComponentType {
     PASSTHROUGH_HATCH("Passthrough Hatch", "passthrough_hatch"),
     PARALLEL_HATCH("Parallel Hatch", "parallel_hatch"),
 
-    // ============================================
-    // LASER
-    // ============================================
     INPUT_LASER("Input Laser Hatch", "input_laser"),
     OUTPUT_LASER("Output Laser Hatch", "output_laser"),
 
-    // ============================================
-    // DATA/COMPUTATION (Research Multiblocks)
-    // ============================================
     COMPUTATION_DATA_RECEPTION("Computation Data Reception Hatch", "computation_data_reception"),
     COMPUTATION_DATA_TRANSMISSION("Computation Data Transmission Hatch", "computation_data_transmission"),
     OPTICAL_DATA_RECEPTION("Optical Data Reception Hatch", "optical_data_reception"),
     OPTICAL_DATA_TRANSMISSION("Optical Data Transmission Hatch", "optical_data_transmission"),
     DATA_ACCESS("Data Access Hatch", "data_access"),
 
-    // ============================================
-    // HPCA (High Performance Computing Array)
-    // ============================================
     HPCA_COMPONENT("HPCA Component", "hpca_component"),
     OBJECT_HOLDER("Object Holder", "object_holder"),
-
-    // ============================================
-    // STRUCTURE COMPONENTS
-    // ============================================
 
     COIL("Heating Coil", "coil"),
     CASING("Casing", "casing"),
@@ -99,9 +65,6 @@ public enum ComponentType {
 
     UNKNOWN("Unknown Component", "unknown");
 
-    // ============================================
-    // FIELDS & METHODS
-    // ============================================
     private final String displayName;
     private final String abilityId;
 
@@ -113,18 +76,14 @@ public enum ComponentType {
     public String getDisplayName() {
         return displayName;
     }
-
-    /** Translation key for user-facing UI labels. */
     public String getDisplayNameKey() {
         return "component.gtceuterminal.component_type." + name().toLowerCase();
     }
 
-    /** Localized name for UI usage (client-side). */
     public Component getDisplayNameComponent() {
         return Component.translatable(getDisplayNameKey());
     }
 
-    // ─── Coil tier localization helpers ──────────────────────────────────────
     public static String getCoilTierName(int tier) {
         String suffix = switch (tier) {
             case 0 -> "cupronickel";
@@ -144,15 +103,14 @@ public enum ComponentType {
         return abilityId;
     }
 
-    // Check if this component is upgradeable
     public boolean isUpgradeable() {
         return this != UNKNOWN &&
                 this != CASING &&
-                this != STEAM &&  // Steam doesn't have normal tiers
-                this != TANK_VALVE;  // Tank valve cannot be upgraded
+                this != STEAM &&
+                this != TANK_VALVE;
     }
 
-    // Check if it is a fluid component
+
     public boolean isFluidHandler() {
         return this == INPUT_HATCH ||
                 this == OUTPUT_HATCH ||
@@ -166,7 +124,6 @@ public enum ComponentType {
                 this == DUAL_HATCH;
     }
 
-    // Check if it is an item component
     public boolean isItemHandler() {
         return this == INPUT_BUS ||
                 this == OUTPUT_BUS ||
@@ -174,21 +131,19 @@ public enum ComponentType {
                 this == STEAM_OUTPUT_BUS;
     }
 
-    // Check if it is a power component
     public boolean isEnergyHandler() {
         return this == ENERGY_HATCH ||
                 this == DYNAMO_HATCH ||
-                this == WIRELESS_ENERGY_INPUT ||      // ⭐ NUEVO
-                this == WIRELESS_ENERGY_OUTPUT ||     // ⭐ NUEVO
+                this == WIRELESS_ENERGY_INPUT ||
+                this == WIRELESS_ENERGY_OUTPUT ||
                 this == SUBSTATION_INPUT_ENERGY ||
                 this == SUBSTATION_OUTPUT_ENERGY ||
                 this == INPUT_LASER ||
                 this == OUTPUT_LASER ||
-                this == WIRELESS_LASER_INPUT ||       // ⭐ NUEVO
-                this == WIRELESS_LASER_OUTPUT;        // ⭐ NUEVO
+                this == WIRELESS_LASER_INPUT ||
+                this == WIRELESS_LASER_OUTPUT;
     }
 
-    // Check if it is a data/computing component
     public boolean isDataHandler() {
         return this == COMPUTATION_DATA_RECEPTION ||
                 this == COMPUTATION_DATA_TRANSMISSION ||
@@ -198,7 +153,6 @@ public enum ComponentType {
                 this == HPCA_COMPONENT;
     }
 
-    // Check if it is a special component
     public boolean isSpecial() {
         return this == MAINTENANCE ||
                 this == MUFFLER ||
@@ -208,7 +162,6 @@ public enum ComponentType {
                 this == FILTER;
     }
 
-    // It obtains the capacity multiplier
     public int getCapacityMultiplier() {
         return switch (this) {
             case QUAD_INPUT_HATCH, QUAD_OUTPUT_HATCH, INPUT_HATCH_1X, OUTPUT_HATCH_1X -> 4;

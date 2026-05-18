@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
@@ -25,11 +26,10 @@ public class CPacketComponentUpgrade {
 
     private List<BlockPos> positions = new ArrayList<>();
     private final int targetTier;
-    private final String targetUpgradeId; // optional (e.g. maintenance hatch variant)
+    private final String targetUpgradeId;
     private final BlockPos controllerPos;
     private ServerLevel level;
 
-    // Main constructor used by decode
     public CPacketComponentUpgrade(List<BlockPos> positions, int targetTier, String targetUpgradeId, BlockPos controllerPos) {
         this.positions = positions;
         this.targetTier = targetTier;
@@ -37,7 +37,6 @@ public class CPacketComponentUpgrade {
         this.controllerPos = controllerPos;
     }
 
-    // Convenient constructor for a single component
     public CPacketComponentUpgrade(BlockPos position, int targetTier, String targetUpgradeId, BlockPos controllerPos) {
         this.positions = new ArrayList<>();
         this.positions.add(position);
@@ -46,7 +45,6 @@ public class CPacketComponentUpgrade {
         this.controllerPos = controllerPos;
     }
 
-    // Backward compatible constructors (tier-only)
     public CPacketComponentUpgrade(BlockPos position, int targetTier, BlockPos controllerPos) {
         this(position, targetTier, null, controllerPos);
     }
@@ -59,7 +57,6 @@ public class CPacketComponentUpgrade {
         buf.writeInt(targetTier);
         buf.writeBlockPos(controllerPos);
 
-        // optional upgradeId
         boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
         buf.writeBoolean(hasId);
         if (hasId) buf.writeUtf(targetUpgradeId);
@@ -75,7 +72,6 @@ public class CPacketComponentUpgrade {
         BlockPos controllerPos = buf.readBlockPos();
 
         String upgradeId = null;
-        // If older client/server mismatch happens, this may throw, but protocol is controlled by mod.
         boolean hasId = buf.readBoolean();
         if (hasId) {
             upgradeId = buf.readUtf(32767);
@@ -89,7 +85,6 @@ public class CPacketComponentUpgrade {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
-            // Find wireless terminal in player's hands or inventory
             ItemStack wirelessTerminal = findWirelessTerminal(player);
 
             boolean upgradedCoils = false;
@@ -114,8 +109,6 @@ public class CPacketComponentUpgrade {
                 }
 
                 ComponentInfo component = new ComponentInfo(type, currentTier, pos, state);
-
-                // Pass wireless terminal to upgrader
                 ComponentUpgrader.UpgradeResult result = ComponentUpgrader.upgradeComponent(
                         component,
                         targetTier,
@@ -177,73 +170,27 @@ public class CPacketComponentUpgrade {
         if (be != null) {
             try {
                 // MetaMachineBlockEntity#getMetaMachine()
-                var getMetaMachine = be.getClass().getMethod("getMetaMachine");
-                Object mm = getMetaMachine.invoke(be);
+                Object mm = MultiblockMachineReflection.getMetaMachine(be);
 
                 if (mm != null) {
 
                     //
                     Object lock = null;
-                    try {
-                        var getLock = mm.getClass().getMethod("getPatternLock");
-                        lock = getLock.invoke(mm);
-                        if (lock != null) {
-                            var lockM = lock.getClass().getMethod("lock");
-                            lockM.invoke(lock);
-                        }
-                    } catch (NoSuchMethodException ignored) {}
+                    lock = MultiblockMachineReflection.acquirePatternLock(mm);
 
                     try {
-                        // 1) invalidate structure to force re-check
-                        try {
-                            var invalidate = mm.getClass().getMethod("invalidateStructure");
-                            invalidate.invoke(mm);
-                        } catch (NoSuchMethodException ignored) {}
+                        MultiblockMachineReflection.invalidateStructure(mm);
 
-                        // 2) re-check pattern
-                        boolean formed = false;
-                        try {
-                            var check = mm.getClass().getMethod("checkStructurePattern");
-                            Object r = check.invoke(mm);
-                            formed = (r instanceof Boolean b) ? b : true;
-                        } catch (NoSuchMethodException ignored) {
-                            try {
-                                var check2 = mm.getClass().getMethod("checkPattern");
-                                Object r2 = check2.invoke(mm);
-                                formed = (r2 instanceof Boolean b) ? b : true;
-                            } catch (NoSuchMethodException ignored2) {}
-                        }
+                        boolean formed = MultiblockMachineReflection.checkAndRecheckPattern(mm);
 
-                        // 3) if formed, call onFormed, otherwise onInvalid
-                        if (formed) {
-                            try {
-                                var onFormed = mm.getClass().getMethod("onStructureFormed");
-                                onFormed.invoke(mm);
-                            } catch (NoSuchMethodException ignored) {}
-                        } else {
-                            // if not formed, we call onStructureInvalidated
-                            try {
-                                var onInv = mm.getClass().getMethod("onStructureInvalid");
-                                onInv.invoke(mm);
-                            } catch (NoSuchMethodException ignored) {
-                                try {
-                                    var onInv2 = mm.getClass().getMethod("onStructureInvalidated");
-                                    onInv2.invoke(mm);
-                                } catch (NoSuchMethodException ignored2) {}
-                            }
+                        if (!formed) {
+                            GTCEUTerminalMod.LOGGER.debug("CPacketComponentUpgrade: structure did not reform after upgrade");
                         }
 
                         return;
 
                     } finally {
-                        if (lock != null) {
-                            try {
-                                var unlockM = lock.getClass().getMethod("unlock");
-                                unlockM.invoke(lock);
-                            } catch (ReflectiveOperationException e) {
-                                GTCEUTerminalMod.LOGGER.warn("CPacketComponentUpgrade: failed to unlock multiblock state lock", e);
-                            }
-                        }
+                        MultiblockMachineReflection.releasePatternLock(lock);
                     }
                 }
             } catch (Exception e) {
@@ -251,7 +198,6 @@ public class CPacketComponentUpgrade {
             }
         }
 
-        // hard fallback
         var state = level.getBlockState(controllerPos);
         level.sendBlockUpdated(controllerPos, state, state, 3);
         level.updateNeighborsAt(controllerPos, state.getBlock());
@@ -259,14 +205,12 @@ public class CPacketComponentUpgrade {
     }
 
     private ItemStack findWirelessTerminal(ServerPlayer player) {
-        // Check main hand
         ItemStack mainHand = player.getMainHandItem();
         if (mainHand.getItem() instanceof MultiStructureManagerItem ||
                 mainHand.getItem() instanceof SchematicInterfaceItem) {
             return mainHand;
         }
 
-        // Check off hand
         ItemStack offHand = player.getOffhandItem();
         if (offHand.getItem() instanceof MultiStructureManagerItem ||
                 offHand.getItem() instanceof SchematicInterfaceItem) {
@@ -286,7 +230,6 @@ public class CPacketComponentUpgrade {
     private ComponentType detectComponentType(net.minecraft.world.level.block.Block block) {
         String blockId = block.builtInRegistryHolder().key().location().toString().toLowerCase();
 
-        // WIRELESS COMPONENTS
         if (blockId.contains("wireless")) {
             if (blockId.contains("energy")) {
                 if (blockId.contains("input")) return ComponentType.WIRELESS_ENERGY_INPUT;
@@ -298,13 +241,11 @@ public class CPacketComponentUpgrade {
             }
         }
 
-        // SUBSTATION HATCHES
         if (blockId.contains("substation")) {
             if (blockId.contains("input")) return ComponentType.SUBSTATION_INPUT_ENERGY;
             if (blockId.contains("output")) return ComponentType.SUBSTATION_OUTPUT_ENERGY;
         }
 
-        // LASER HATCHES
         if (blockId.contains("laser")) {
             if (blockId.contains("target") || blockId.contains("input")) return ComponentType.INPUT_LASER;
             if (blockId.contains("source") || blockId.contains("output")) return ComponentType.OUTPUT_LASER;
@@ -325,7 +266,6 @@ public class CPacketComponentUpgrade {
         if (blockId.contains("nonuple") && blockId.contains("output"))
             return ComponentType.NONUPLE_OUTPUT_HATCH;
 
-        // General fluid hatches (after specific types)
         if (blockId.contains("input_hatch")) return ComponentType.INPUT_HATCH;
         if (blockId.contains("output_hatch")) return ComponentType.OUTPUT_HATCH;
 
@@ -342,7 +282,6 @@ public class CPacketComponentUpgrade {
     private int detectTier(net.minecraft.world.level.block.Block block) {
         String blockId = block.builtInRegistryHolder().key().location().toString().toLowerCase();
 
-        // Standard voltage tiers
         if (blockId.contains("ulv")) return 0;
         if (blockId.contains("lv")) return 1;
         if (blockId.contains("mv")) return 2;
@@ -359,7 +298,6 @@ public class CPacketComponentUpgrade {
         if (blockId.contains("opv")) return 13;
         if (blockId.contains("max")) return 14;
 
-        // Coil tiers
         if (blockId.contains("cupronickel")) return 0;
         if (blockId.contains("kanthal")) return 1;
         if (blockId.contains("nichrome")) return 2;

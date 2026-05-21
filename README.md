@@ -36,7 +36,7 @@ Any mods or modpacks listed below will have specially-tailored integrations for 
 
 
 
-Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion [here](https://github.com/BgameXL/GTCEu-Terminals/issues) on GitHub or contact us on [Discord](https://discord.gg/dUaZeV6Drp).
+Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion [here](https://github.com/BgameXL/GTCEu-Terminals/issues) on GitHub or contact us on [Discord](https://discord.gg/r7PeUvMytZ).
 
 ### Credits
 

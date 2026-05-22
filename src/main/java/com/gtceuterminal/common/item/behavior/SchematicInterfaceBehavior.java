@@ -7,7 +7,8 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.util.SchematicUtils;
 
-import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
+import com.gtceuterminal.common.network.SPacketOpenSchematicInterfaceUI;
+import com.gtceuterminal.common.network.TerminalNetwork;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -45,7 +46,7 @@ public class SchematicInterfaceBehavior {
 
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Schematic UI");
-                SchematicItemUIFactory.INSTANCE.openUI(sp, stack);
+                TerminalNetwork.sendToPlayer(new SPacketOpenSchematicInterfaceUI(stack), sp);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -66,7 +67,7 @@ public class SchematicInterfaceBehavior {
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Schematic UI");
-                SchematicItemUIFactory.INSTANCE.openUI(sp, stack);
+                TerminalNetwork.sendToPlayer(new SPacketOpenSchematicInterfaceUI(stack), sp);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }

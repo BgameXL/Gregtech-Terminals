@@ -1,7 +1,7 @@
 package com.gtceuterminal.common.item;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
+import com.gtceuterminal.common.network.SPacketOpenDismantlerUI;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -41,7 +41,7 @@ public class DismantlerItem extends Item {
             var metaMachine = mbe.getMetaMachine();
             if (metaMachine instanceof MultiblockControllerMachine controller && controller.isFormed()) {
                 if (!level.isClientSide && player instanceof ServerPlayer sp) {
-                    DismantlerItemUIFactory.INSTANCE.openUI(sp, context.getItemInHand(), clickedPos);
+                    SPacketOpenDismantlerUI.openFor(sp, context.getItemInHand(), clickedPos);
                 }
                 return InteractionResult.sidedSuccess(level.isClientSide);
             }

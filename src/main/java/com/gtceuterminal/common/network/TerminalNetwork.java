@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TerminalNetwork {
 
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "5";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,
@@ -87,6 +87,31 @@ public class TerminalNetwork {
                 .encoder(CPacketRequestUpgradeAnalysis::encode)
                 .decoder(CPacketRequestUpgradeAnalysis::new)
                 .consumerMainThread(CPacketRequestUpgradeAnalysis::handle)
+                .add();
+
+
+        CHANNEL.messageBuilder(SPacketOpenMultiStructureManagerUI.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketOpenMultiStructureManagerUI::encode)
+                .decoder(SPacketOpenMultiStructureManagerUI::new)
+                .consumerMainThread(SPacketOpenMultiStructureManagerUI::handle)
+                .add();
+
+        CHANNEL.messageBuilder(SPacketOpenSchematicInterfaceUI.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketOpenSchematicInterfaceUI::encode)
+                .decoder(SPacketOpenSchematicInterfaceUI::new)
+                .consumerMainThread(SPacketOpenSchematicInterfaceUI::handle)
+                .add();
+
+        CHANNEL.messageBuilder(SPacketOpenDismantlerUI.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketOpenDismantlerUI::encode)
+                .decoder(SPacketOpenDismantlerUI::new)
+                .consumerMainThread(SPacketOpenDismantlerUI::handle)
+                .add();
+
+        CHANNEL.messageBuilder(SPacketOpenEnergyAnalyzerUI.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketOpenEnergyAnalyzerUI::encode)
+                .decoder(SPacketOpenEnergyAnalyzerUI::new)
+                .consumerMainThread(SPacketOpenEnergyAnalyzerUI::handle)
                 .add();
 
         CHANNEL.messageBuilder(SPacketDefaultTheme.class,            id++, NetworkDirection.PLAY_TO_CLIENT)

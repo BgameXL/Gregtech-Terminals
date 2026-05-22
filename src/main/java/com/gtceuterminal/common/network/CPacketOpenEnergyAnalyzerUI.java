@@ -1,7 +1,6 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,7 +35,7 @@ public class CPacketOpenEnergyAnalyzerUI {
             if (player == null) return;
             GTCEUTerminalMod.LOGGER.debug("CPacketOpenEnergyAnalyzerUI: index={}", msg.machineIndex);
             try {
-                EnergyAnalyzerUIFactory.INSTANCE.openUI(player, msg.machineIndex);
+                SPacketOpenEnergyAnalyzerUI.openFor(player, msg.machineIndex);
             } catch (Throwable t) {
                 GTCEUTerminalMod.LOGGER.error("Failed to open Energy Analyzer UI", t);
             }

@@ -8,6 +8,8 @@ import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
+import com.gtceuterminal.common.network.SPacketOpenMultiStructureManagerUI;
+import com.gtceuterminal.common.network.TerminalNetwork;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -122,7 +124,7 @@ public class MultiStructureManagerBehavior {
 
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
-                MultiStructureManagerUIFactory.INSTANCE.openMultiStructure(sp, itemStack);
+                TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -170,7 +172,7 @@ public class MultiStructureManagerBehavior {
 
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             GTCEUTerminalMod.LOGGER.info("Server: opening Manager Settings UI");
-            MultiStructureManagerUIFactory.INSTANCE.openManagerSettings(sp, itemStack);
+            TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_SETTINGS, itemStack), sp);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -182,14 +184,14 @@ public class MultiStructureManagerBehavior {
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
                 GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
-                MultiStructureManagerUIFactory.INSTANCE.openMultiStructure(sp, itemStack);
+                TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
             }
             return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
         }
 
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             GTCEUTerminalMod.LOGGER.info("Server: opening Manager Settings UI");
-            MultiStructureManagerUIFactory.INSTANCE.openManagerSettings(sp, itemStack);
+            TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_SETTINGS, itemStack), sp);
         }
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
     }

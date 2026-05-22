@@ -1,7 +1,7 @@
 package com.gtceuterminal.common.item;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
+import com.gtceuterminal.common.network.SPacketOpenEnergyAnalyzerUI;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.LinkedMachineData;
@@ -133,7 +133,7 @@ public class EnergyAnalyzerItem extends Item {
                 return InteractionResult.SUCCESS;
             }
             if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
-                EnergyAnalyzerUIFactory.INSTANCE.openUI(sp, idx);
+                SPacketOpenEnergyAnalyzerUI.openFor(sp, idx);
             }
             return InteractionResult.SUCCESS;
         }
@@ -157,7 +157,7 @@ public class EnergyAnalyzerItem extends Item {
         }
 
         if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
-            EnergyAnalyzerUIFactory.INSTANCE.openUI(sp, 0);
+            SPacketOpenEnergyAnalyzerUI.openFor(sp, 0);
         }
         return InteractionResultHolder.success(stack);
     }

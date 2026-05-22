@@ -1,7 +1,7 @@
-package com.gtceuterminal.client.gui.factory;
+package com.gtceuterminal.common.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.compat.UIFactoryReflection;
+import com.lowdragmc.lowdraglib.Platform;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
@@ -70,7 +70,18 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
     @Override
     protected ModularUI createUITemplate(EnergyAnalyzerHolder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        return UIFactoryReflection.invokeCreate("com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI", EnergyAnalyzerHolder.class, holder, entityPlayer);
+        GTCEUTerminalMod.LOGGER.info("=== EnergyAnalyzer createUITemplate isClient={} player={}", Platform.isClient(), entityPlayer);
+        if (Platform.isClient()) {
+            try {
+                ModularUI ui = com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI.create(holder, entityPlayer);
+                GTCEUTerminalMod.LOGGER.info("=== EnergyAnalyzer UI created: {}", ui);
+                return ui;
+            } catch (Throwable t) {
+                GTCEUTerminalMod.LOGGER.error("=== EnergyAnalyzer UI creation FAILED", t);
+                return null;
+            }
+        }
+        return new ModularUI(600, 480, holder, entityPlayer);
 
     }
 

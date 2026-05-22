@@ -8,7 +8,10 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class RGBSliderWidget extends Widget {
 
     // Visual

@@ -1,7 +1,7 @@
-package com.gtceuterminal.client.gui.factory;
+package com.gtceuterminal.common.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.compat.UIFactoryReflection;
+import com.lowdragmc.lowdraglib.Platform;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
@@ -42,20 +42,22 @@ public class MultiStructureManagerUIFactory
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-
-        if (MODE_MULTI.equals(holder.mode)) {
-            return UIFactoryReflection.invokeCreate(
-                    "com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI",
-                    Holder.class, holder, entityPlayer);
-        } else {
-            try {
-                Class<?> uiClass = Class.forName("com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI");
-                Object instance = uiClass.getConstructor(Holder.class, Player.class).newInstance(holder, entityPlayer);
-                return UIFactoryReflection.invokeCreateUI(instance);
-            } catch (Throwable t) {
-                GTCEUTerminalMod.LOGGER.error("Failed to create ManagerSettingsUI", t);
-                return null;
+        GTCEUTerminalMod.LOGGER.info("=== MultiStructureManager createUITemplate isClient={} mode={} player={}", Platform.isClient(), holder.mode, entityPlayer);
+        if (!Platform.isClient()) {
+            return new ModularUI(600, 480, holder, entityPlayer);
+        }
+        try {
+            ModularUI ui;
+            if (MODE_MULTI.equals(holder.mode)) {
+                ui = com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI.create(holder, entityPlayer);
+            } else {
+                ui = new com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI(holder, entityPlayer).createUI();
             }
+            GTCEUTerminalMod.LOGGER.info("=== MultiStructureManager UI created: {}", ui);
+            return ui;
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.error("=== MultiStructureManager UI creation FAILED", t);
+            return null;
         }
     }
 

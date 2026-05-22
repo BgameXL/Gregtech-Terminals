@@ -181,6 +181,7 @@
   "gui.gtceuterminal.schematic_interface.button.save": "§f§lSave",
   "gui.gtceuterminal.schematic_interface.button.load": "§f§lLoad",
   "gui.gtceuterminal.schematic_interface.button.delete": "§f§lDelete",
+  "gui.gtceuterminal.schematic_interface.button.planner": "§f§lPlanner",
   "gui.gtceuterminal.schematic_interface.button.close": "§7Close",
   "gui.gtceuterminal.schematic_interface.chat.error.no_clipboard": "§c§lError: §cNo clipboard! Copy a multiblock first.",
   "gui.gtceuterminal.schematic_interface.chat.error.enter_name": "§c§lError: §cPlease enter a name!",

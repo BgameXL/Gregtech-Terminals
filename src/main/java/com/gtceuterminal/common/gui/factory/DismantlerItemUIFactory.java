@@ -1,7 +1,7 @@
-package com.gtceuterminal.client.gui.factory;
+package com.gtceuterminal.common.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.compat.UIFactoryReflection;
+import com.lowdragmc.lowdraglib.Platform;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
@@ -57,8 +57,10 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        return UIFactoryReflection.invokeCreate("com.gtceuterminal.client.gui.dismantler.DismantlerUI", Holder.class, holder, entityPlayer);
-
+        if (Platform.isClient()) {
+            return com.gtceuterminal.client.gui.dismantler.DismantlerUI.create(holder, entityPlayer);
+        }
+        return new ModularUI(600, 480, holder, entityPlayer);
     }
 
     @Override

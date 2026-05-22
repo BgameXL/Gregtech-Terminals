@@ -3,7 +3,7 @@ package com.gtceuterminal.client.gui.multiblock;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.dialog.ComponentUpgradeDialog;
-import com.gtceuterminal.client.gui.factory.MultiStructureManagerUIFactory;
+import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentType;
@@ -23,7 +23,10 @@ import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class ComponentDetailUI {
 
     private static final int TARGET_W = 500;
@@ -152,7 +155,7 @@ public class ComponentDetailUI {
     private WidgetGroup createHeader() {
         WidgetGroup header = new WidgetGroup(2, headerY, uiW - 4, headerH);
         header.setBackground(theme.headerTexture());
-        
+
         int titleX = 10;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =

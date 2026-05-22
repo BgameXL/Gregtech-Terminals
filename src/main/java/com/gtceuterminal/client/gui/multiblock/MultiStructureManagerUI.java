@@ -7,13 +7,12 @@ import com.gtceuterminal.client.highlight.MultiblockHighlighter;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockScanner;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.client.gui.factory.MultiStructureManagerUIFactory;
+import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.config.ItemsConfig;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
@@ -25,7 +24,10 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class MultiStructureManagerUI {
 
     private static final int MARGIN      = 16;

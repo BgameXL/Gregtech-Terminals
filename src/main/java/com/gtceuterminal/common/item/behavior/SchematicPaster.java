@@ -93,6 +93,7 @@ public final class SchematicPaster {
             BlockPos   worldPos     = adjustedTarget.offset(rotatedPos);
 
             if (!level.isInWorldBounds(worldPos)) { skippedCount++; continue; }
+            if (com.gtceuterminal.common.config.ItemsConfig.isSchematicBlacklisted(rotatedState.getBlock())) { skippedCount++; continue; }
 
             BlockState current = level.getBlockState(worldPos);
             if (!current.isAir() && !current.canBeReplaced()) { skippedCount++; continue; }

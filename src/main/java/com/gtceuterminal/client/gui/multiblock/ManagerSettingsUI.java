@@ -2,7 +2,7 @@ package com.gtceuterminal.client.gui.multiblock;
 
 import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.client.gui.factory.MultiStructureManagerUIFactory;
+import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
@@ -18,7 +18,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class ManagerSettingsUI {
 
     private static final int GUI_W    = 280;

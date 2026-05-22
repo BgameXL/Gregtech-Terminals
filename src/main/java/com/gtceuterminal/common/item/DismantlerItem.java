@@ -1,7 +1,7 @@
 package com.gtceuterminal.common.item;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.factory.DismantlerItemUIFactory;
+import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;

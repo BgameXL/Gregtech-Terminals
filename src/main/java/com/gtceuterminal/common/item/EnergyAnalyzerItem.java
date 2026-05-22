@@ -1,7 +1,7 @@
 package com.gtceuterminal.common.item;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.factory.EnergyAnalyzerUIFactory;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.LinkedMachineData;

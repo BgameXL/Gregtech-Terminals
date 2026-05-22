@@ -181,6 +181,7 @@
   "gui.gtceuterminal.schematic_interface.button.save": "§f§l保存",
   "gui.gtceuterminal.schematic_interface.button.load": "§f§l加载",
   "gui.gtceuterminal.schematic_interface.button.delete": "§f§l删除",
+  "gui.gtceuterminal.schematic_interface.button.planner": "§f§lPlanner",
   "gui.gtceuterminal.schematic_interface.button.close": "§7关闭",
   "gui.gtceuterminal.schematic_interface.chat.error.no_clipboard": "§c§l错误：§c没有剪贴板！请先复制一个多方块。",
   "gui.gtceuterminal.schematic_interface.chat.error.enter_name": "§c§l错误：§c请输入名称！",

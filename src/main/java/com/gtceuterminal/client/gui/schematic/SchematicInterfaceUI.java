@@ -3,7 +3,7 @@ package com.gtceuterminal.client.gui.schematic;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
-import com.gtceuterminal.client.gui.factory.SchematicItemUIFactory;
+import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.network.CPacketSchematicAction;
 import com.gtceuterminal.common.network.TerminalNetwork;
@@ -27,7 +27,10 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class SchematicInterfaceUI {
 
     private static final int GUI_W    = 600;
@@ -271,7 +274,7 @@ public class SchematicInterfaceUI {
     }
 
     private ButtonWidget makeButton(int x, int y, int w, int h, int color, String label,
-            java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
+                                    java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
                 new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(1, colorBorderLight)),
                 action);

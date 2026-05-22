@@ -7,7 +7,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.util.SchematicUtils;
 
-import com.gtceuterminal.client.gui.factory.SchematicItemUIFactory;
+import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;

@@ -4,6 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.compat.RecipeLogicReflection;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.multiblock.MachineInferencer;
+import com.gtceuterminal.common.energy.MultiblockHandlerRegistry;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
@@ -28,7 +29,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -50,9 +50,6 @@ public class EnergyDataCollector {
                     "EnergyDataCollector: cleared history maps on level unload");
         }
     }
-
-
-
 
     // Main entry point
     public static EnergySnapshot collect(ServerLevel level, BlockPos pos,
@@ -125,6 +122,18 @@ public class EnergyDataCollector {
             }
 
             else {
+                var custom = MultiblockHandlerRegistry.tryHandle(machine, level, pos);
+                if (custom.isPresent()) {
+                    snap = custom.get();
+                    snap.machineCustomName = customName != null ? customName : "";
+                    snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
+                    String key = historyKey(level, pos);
+                    int maxH = ItemsConfig.getEAHistorySeconds();
+                    snap.inputHistory  = updateHistory(inputHistoryMap,  key, snap.inputPerSec,  maxH);
+                    snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
+                    return snap;
+                }
+
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
                     snap.isFormed = true;

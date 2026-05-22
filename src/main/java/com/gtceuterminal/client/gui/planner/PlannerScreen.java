@@ -11,6 +11,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * 2D top-down placement planner — Satisfactory/Factorio style.
@@ -24,6 +26,7 @@ import java.util.List;
  *   R key               → rotate selected schematic 90° CW
  *   Escape              → close (ghosts stay in world)
  */
+@OnlyIn(Dist.CLIENT)
 public class PlannerScreen extends Screen {
 
     private static final int SIDEBAR_W = 160;

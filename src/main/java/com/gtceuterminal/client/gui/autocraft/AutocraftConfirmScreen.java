@@ -13,7 +13,10 @@ import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class AutocraftConfirmScreen extends Screen {
 
     // Layout
@@ -111,9 +114,9 @@ public class AutocraftConfirmScreen extends Screen {
         String summary = missing == 0
                 ? Component.translatable("gui.gtceuterminal.autocraft.summary.all_available").getString()
                 : Component.translatable(
-                        "gui.gtceuterminal.autocraft.summary.missing",
-                        missing
-                ).getString();
+                "gui.gtceuterminal.autocraft.summary.missing",
+                missing
+        ).getString();
         g.drawString(font, summary, wx + LIST_PAD, footY + 9, C_TEXT, false);
 
         renderBtn(g, confirmX, btnY, btnW, btnH,
@@ -123,8 +126,8 @@ public class AutocraftConfirmScreen extends Screen {
         g.drawString(font,
                 result.allAvailable()
                         ? (result.kind == AnalysisResult.Kind.BUILD
-                                ? Component.translatable("gui.gtceuterminal.autocraft.confirm.build").getString()
-                                : Component.translatable("gui.gtceuterminal.autocraft.confirm.upgrade").getString())
+                           ? Component.translatable("gui.gtceuterminal.autocraft.confirm.build").getString()
+                           : Component.translatable("gui.gtceuterminal.autocraft.confirm.upgrade").getString())
                         : Component.translatable("gui.gtceuterminal.autocraft.confirm.unavailable").getString(),
                 confirmX + 6, btnY + 4, 0xFFFFFFFF, false);
 

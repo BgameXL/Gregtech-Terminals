@@ -26,6 +26,7 @@ public class ItemsConfig {
 
     private static boolean sch_allowAE2ConfigCopy    = true;
     private static boolean sch_plannerBuildAllEnabled = false;
+    private static Set<Block> sch_blockBlacklist     = new HashSet<>();
 
     private static Set<Block> dis_blockBlacklist = new HashSet<>();
 
@@ -59,7 +60,11 @@ public class ItemsConfig {
                 YamlConfigLoader.ConfigEntry.of("schematic.allow_ae2_config_copy", true,
                         " Preserve AE2/ME bus slot configurations when copying and pasting multiblocks (requires AE2)"),
                 YamlConfigLoader.ConfigEntry.of("schematic.planner_build_all_enabled", false,
-                        " Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default — the planner is a planning tool, not a builder."),
+                        " Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default (Beta Phase)."),
+                YamlConfigLoader.ConfigEntry.of("schematic.block_blacklist", List.of(),
+                        " Registry IDs of blocks the Schematic Interface will NEVER copy or paste.\n" +
+                                " Use this to block unobtainable or modpack-internal blocks (e.g. barriers, custom casings).\n" +
+                                " Example: - minecraft:bedrock, - kubejs:custom_block\n"),
 
                 YamlConfigLoader.ConfigEntry.section("Dismantler"),
                 YamlConfigLoader.ConfigEntry.of("dismantler.block_blacklist", List.of(),
@@ -81,26 +86,8 @@ public class ItemsConfig {
         sch_allowAE2ConfigCopy     = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
         sch_plannerBuildAllEnabled = LOADER.getBoolean("schematic.planner_build_all_enabled", false);
 
-        dis_blockBlacklist = new HashSet<>();
-        List<String> rawBlacklist = LOADER.getStringList("dismantler.block_blacklist");
-        for (String entry : rawBlacklist) {
-            String trimmed = entry.trim();
-            if (trimmed.isEmpty()) continue;
-            ResourceLocation rl = ResourceLocation.tryParse(trimmed);
-            if (rl == null) {
-                GTCEUTerminalMod.LOGGER.warn("[Dismantler] Invalid block ID in blacklist: '{}' — skipping", trimmed);
-                continue;
-            }
-            Block block = ForgeRegistries.BLOCKS.getValue(rl);
-            if (block == null) {
-                GTCEUTerminalMod.LOGGER.warn("[Dismantler] Unknown block '{}' in blacklist — skipping (not registered?)", trimmed);
-                continue;
-            }
-            dis_blockBlacklist.add(block);
-        }
-        if (!dis_blockBlacklist.isEmpty()) {
-            GTCEUTerminalMod.LOGGER.info("[Dismantler] Block blacklist loaded: {} entries", dis_blockBlacklist.size());
-        }
+        sch_blockBlacklist = loadBlockSet("schematic.block_blacklist", "[Schematic]");
+        dis_blockBlacklist = loadBlockSet("dismantler.block_blacklist", "[Dismantler]");
 
         GTCEUTerminalMod.LOGGER.info(
                 "ItemsConfig loaded — EnergyAnalyzer: maxMachines={}, refresh={}t, history={}s | Manager: maxMultiblocks={}, allowME={} | Schematic: ae2Copy={}",
@@ -108,6 +95,28 @@ public class ItemsConfig {
                 mgr_maxDetectedMultiblocks, mgr_allowMENetworkUpgrade,
                 sch_allowAE2ConfigCopy
         );
+    }
+
+    private static Set<Block> loadBlockSet(String key, String logPrefix) {
+        Set<Block> result = new HashSet<>();
+        for (String entry : LOADER.getStringList(key)) {
+            String trimmed = entry.trim();
+            if (trimmed.isEmpty()) continue;
+            ResourceLocation rl = ResourceLocation.tryParse(trimmed);
+            if (rl == null) {
+                GTCEUTerminalMod.LOGGER.warn("{} Invalid block ID in blacklist: '{}' — skipping", logPrefix, trimmed);
+                continue;
+            }
+            Block block = ForgeRegistries.BLOCKS.getValue(rl);
+            if (block == null) {
+                GTCEUTerminalMod.LOGGER.warn("{} Unknown block '{}' in blacklist — skipping (not registered?)", logPrefix, trimmed);
+                continue;
+            }
+            result.add(block);
+        }
+        if (!result.isEmpty())
+            GTCEUTerminalMod.LOGGER.info("{} Block blacklist loaded: {} entries", logPrefix, result.size());
+        return result;
     }
 
     // Energy Analyzer Getters
@@ -126,11 +135,10 @@ public class ItemsConfig {
     // Schematic Interface Getters
     public static boolean isSchAllowAE2ConfigCopy()     { return sch_allowAE2ConfigCopy; }
     public static boolean isSchPlannerBuildAllEnabled() { return sch_plannerBuildAllEnabled; }
+    public static boolean isSchematicBlacklisted(Block block) { return sch_blockBlacklist.contains(block); }
 
     // Dismantler Getters
-    public static boolean isDismantlerBlacklisted(Block block) {
-        return dis_blockBlacklist.contains(block);
-    }
+    public static boolean isDismantlerBlacklisted(Block block) { return dis_blockBlacklist.contains(block); }
 
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));

@@ -1,7 +1,7 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.factory.EnergyAnalyzerUIFactory;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;

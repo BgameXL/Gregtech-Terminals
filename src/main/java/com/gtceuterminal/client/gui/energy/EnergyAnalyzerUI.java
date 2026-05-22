@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.energy;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.factory.EnergyAnalyzerUIFactory;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.theme.ItemTheme;
@@ -15,7 +15,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class EnergyAnalyzerUI {
 
     private static final int W         = 600;

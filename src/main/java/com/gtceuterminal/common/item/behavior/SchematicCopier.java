@@ -55,6 +55,7 @@ public final class SchematicCopier {
             if (upperHalves.contains(pos)) continue;
             BlockState state = level.getBlockState(pos);
             if (state.isAir()) continue;
+            if (com.gtceuterminal.common.config.ItemsConfig.isSchematicBlacklisted(state.getBlock())) continue;
 
             BlockPos relativePos = pos.subtract(controllerPos);
             blocks.put(relativePos, state);

@@ -10,8 +10,11 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import org.joml.Matrix4f;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 // Widget that draws a graph of energy input/output over time, with grid and border.
+@OnlyIn(Dist.CLIENT)
 public class EnergyGraphWidget extends Widget {
 
     private static final int COLOR_INPUT  = 0xFF00CC55;
@@ -24,7 +27,7 @@ public class EnergyGraphWidget extends Widget {
     private long[] outputHistory;
 
     public EnergyGraphWidget(int x, int y, int width, int height,
-                              long[] inputHistory, long[] outputHistory) {
+                             long[] inputHistory, long[] outputHistory) {
         super(x, y, width, height);
         this.inputHistory  = inputHistory  != null ? inputHistory  : new long[0];
         this.outputHistory = outputHistory != null ? outputHistory : new long[0];
@@ -96,7 +99,7 @@ public class EnergyGraphWidget extends Widget {
     }
 
     private void drawFilledArea(Matrix4f matrix, long[] data, int len,
-                                 int w, int h, long max, int color, float alpha) {
+                                int w, int h, long max, int color, float alpha) {
         if (data.length < 2) return;
 
         float r = ((color >> 16) & 0xFF) / 255f;
@@ -123,7 +126,7 @@ public class EnergyGraphWidget extends Widget {
     }
 
     private void drawLine(Matrix4f matrix, long[] data, int len,
-                           int w, int h, long max, int color) {
+                          int w, int h, long max, int color) {
         if (data.length < 2) return;
 
         Tesselator tess = Tesselator.getInstance();
@@ -161,7 +164,7 @@ public class EnergyGraphWidget extends Widget {
 
     // Helpers
     private static void putLine(BufferBuilder buf, Matrix4f matrix,
-                                  float x1, float y1, float x2, float y2, int color) {
+                                float x1, float y1, float x2, float y2, int color) {
         float r = ((color >> 16) & 0xFF) / 255f;
         float g = ((color >> 8)  & 0xFF) / 255f;
         float b = ( color        & 0xFF) / 255f;

@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.dismantler;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.factory.DismantlerItemUIFactory;
+import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 import com.gtceuterminal.common.network.CPacketDismantle;
@@ -24,7 +24,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class DismantlerUI {
 
     private static final int GUI_W    = 600;

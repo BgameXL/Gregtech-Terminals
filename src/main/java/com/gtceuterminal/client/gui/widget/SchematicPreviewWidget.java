@@ -3,6 +3,8 @@ package com.gtceuterminal.client.gui.widget;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 
+import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -26,7 +28,6 @@ public class SchematicPreviewWidget extends WidgetGroup {
 
     private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {}
 
-    // Instance-level: destroyed with the widget, no leaks between GUI sessions.
     private final LinkedHashMap<String, SceneCacheEntry> sceneCache = new LinkedHashMap<>() {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, SceneCacheEntry> eldest) {
@@ -161,17 +162,22 @@ public class SchematicPreviewWidget extends WidgetGroup {
             blockCount = 0; displayName = "Multiblock Structure"; return;
         }
         blockCount = (int) schematic.getBlocks().values().stream().filter(s -> !s.isAir()).count();
+
         for (var e : schematic.getBlocks().entrySet()) {
-            String id = e.getValue().getBlock().getDescriptionId().toLowerCase();
-            if (id.contains("controller") || id.contains("machine") || id.contains("multiblock") || id.contains("casing")) {
-                String n = e.getValue().getBlock().getName().getString();
-                displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n; return;
+            if (e.getValue().isAir()) continue;
+            var block = e.getValue().getBlock();
+            if (block instanceof IMachineBlock mb && mb.getDefinition() instanceof MultiblockMachineDefinition) {
+                String n = block.getName().getString();
+                displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n;
+                return;
             }
         }
+
         for (var e : schematic.getBlocks().entrySet()) {
             if (!e.getValue().isAir()) {
                 String n = e.getValue().getBlock().getName().getString();
-                displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n; return;
+                displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n;
+                return;
             }
         }
         displayName = "Multiblock Structure";
@@ -194,8 +200,12 @@ public class SchematicPreviewWidget extends WidgetGroup {
     }
 
     private BlockPos rotatePos(BlockPos p, int steps) {
-        for (int i = 0; i < steps; i++) p = new BlockPos(-p.getZ(), p.getY(), p.getX());
-        return p;
+        return switch (steps % 4) {
+            case 1 -> new BlockPos(-p.getZ(), p.getY(),  p.getX());
+            case 2 -> new BlockPos(-p.getX(), p.getY(), -p.getZ());
+            case 3 -> new BlockPos( p.getZ(), p.getY(), -p.getX());
+            default -> p;
+        };
     }
 
     private BlockState rotateState(BlockState s, int steps) {

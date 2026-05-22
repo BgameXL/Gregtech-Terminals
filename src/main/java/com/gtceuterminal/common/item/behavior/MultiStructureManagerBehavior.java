@@ -7,7 +7,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 
-import com.gtceuterminal.client.gui.factory.MultiStructureManagerUIFactory;
+import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;

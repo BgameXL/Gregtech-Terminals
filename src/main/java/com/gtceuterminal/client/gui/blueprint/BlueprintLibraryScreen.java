@@ -10,8 +10,11 @@ import net.minecraft.network.chat.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 // Dead code It's gonna be re-used later
+@OnlyIn(Dist.CLIENT)
 public class BlueprintLibraryScreen extends Screen {
 
     // Layout
@@ -68,9 +71,9 @@ public class BlueprintLibraryScreen extends Screen {
                 currentSchematic.getMultiblockType() != null
                         && !currentSchematic.getMultiblockType().isBlank()
                         && !currentSchematic.getMultiblockType().equals("null")
-                        ? currentSchematic.getMultiblockType()
-                        .replaceAll(".*:", "")
-                        : currentSchematic.getName())
+                ? currentSchematic.getMultiblockType()
+                  .replaceAll(".*:", "")
+                : currentSchematic.getName())
                 : "";
     }
 

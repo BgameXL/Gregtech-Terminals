@@ -1,9 +1,9 @@
 package com.gtceuterminal;
 
-import com.gtceuterminal.client.gui.factory.DismantlerItemUIFactory;
-import com.gtceuterminal.client.gui.factory.EnergyAnalyzerUIFactory;
-import com.gtceuterminal.client.gui.factory.MultiStructureManagerUIFactory;
-import com.gtceuterminal.client.gui.factory.SchematicItemUIFactory;
+import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
+import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
+import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.ae2.AE2Integration;
 import com.gtceuterminal.common.command.GTCETerminalCommands;
 import com.gtceuterminal.common.config.*;
@@ -19,13 +19,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-import net.minecraft.client.gui.screens.MenuScreens;
 
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 
@@ -48,8 +48,13 @@ public class GTCEUTerminalMod {
         GTCEUTerminalItems.ITEMS.register(modEventBus);
         GTCEUTerminalTabs.CREATIVE_TABS.register(modEventBus);
 
+        UIFactory.register(EnergyAnalyzerUIFactory.INSTANCE);
+        UIFactory.register(MultiStructureManagerUIFactory.INSTANCE);
+        UIFactory.register(SchematicItemUIFactory.INSTANCE);
+        UIFactory.register(DismantlerItemUIFactory.INSTANCE);
+        LOGGER.info("UI Factories registered");
+
         modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(this::clientSetup);
 
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -93,18 +98,6 @@ public class GTCEUTerminalMod {
         });
 
         LOGGER.info("Common setup complete");
-    }
-
-    private void clientSetup(FMLClientSetupEvent event) {
-        LOGGER.info("Client setup started");
-        event.enqueueWork(() -> {
-            UIFactory.register(EnergyAnalyzerUIFactory.INSTANCE);
-            UIFactory.register(MultiStructureManagerUIFactory.INSTANCE);
-            UIFactory.register(SchematicItemUIFactory.INSTANCE);
-            UIFactory.register(DismantlerItemUIFactory.INSTANCE);
-            LOGGER.info("UI Factories registered (EnergyAnalyzer + MultiStructureManager + Schematic + Dismantler)");
-        });
-        LOGGER.info("Client setup complete");
     }
 
     @SubscribeEvent

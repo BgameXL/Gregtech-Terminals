@@ -1,8 +1,7 @@
 package com.gtceuterminal.common.network;
 
-import com.gtceuterminal.common.theme.DefaultThemeConfig;
-import com.gtceuterminal.common.theme.ItemTheme;
 
+import com.gtceuterminal.common.theme.ItemTheme;
 import net.minecraft.network.FriendlyByteBuf;
 
 import net.minecraftforge.network.NetworkEvent;
@@ -55,18 +54,12 @@ public class SPacketDefaultTheme {
     }
 
     public static void handle(SPacketDefaultTheme msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ItemTheme theme = new ItemTheme();
-            theme.accentColor  = msg.accentColor;
-            theme.bgColor      = msg.bgColor;
-            theme.panelColor   = msg.panelColor;
-            theme.textColor    = msg.textColor;
-            theme.compactMode  = msg.compactMode;
-            theme.showTooltips = msg.showTooltips;
-            theme.showBorders  = msg.showBorders;
-            theme.wallpaper    = msg.wallpaper;
-            DefaultThemeConfig.setClientOverride(theme);
-        });
+        ctx.get().enqueueWork(() ->
+                net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                        net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () ->
+                                com.gtceuterminal.client.network.ClientPacketHandlers.handleDefaultTheme(
+                                        msg.accentColor, msg.bgColor, msg.panelColor, msg.textColor,
+                                        msg.compactMode, msg.showTooltips, msg.showBorders, msg.wallpaper)));
         ctx.get().setPacketHandled(true);
     }
 }

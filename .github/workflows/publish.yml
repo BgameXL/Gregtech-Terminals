@@ -1,14 +1,15 @@
 name: Publish (Modrinth + CurseForge)
 
 on:
-  push:
-    tags: [ '*' ]
+  release:
+    types: [published]
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,7 +40,14 @@ jobs:
         uses: christian-draeger/read-properties@1.1.1
         with:
           path: gradle.properties
-          properties: 'mod_id mod_name mod_version minecraft_version gtceu_version'
+          properties: 'minecraft_version'
+
+      - name: Normalize version
+        id: version
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Publish to Modrinth + CurseForge
         uses: Kir-Antipov/mc-publish@v3.3.0
@@ -47,10 +55,10 @@ jobs:
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
 
-          # ─── Metadata ────────────────────────────────────────────────
-          name: "GTCEu Terminals ${{ github.ref_name }}"
-          version: ${{ github.ref_name }}
-          changelog: ${{ github.event.head_commit.message }}
+          name: "${{ github.event.release.name }} ${{ steps.version.outputs.version }}"
+          version: ${{ steps.version.outputs.version }}
+          changelog: ${{ github.event.release.body }}
+
           version-type: release
           loaders: forge
           game-versions: ${{ steps.properties.outputs.minecraft_version }}

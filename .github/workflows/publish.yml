@@ -29,15 +29,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build
-        run: ./gradlew build
-
       - name: Normalize version
         id: version
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Apply release version to gradle.properties
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/^mod_version=.*/mod_version=$VERSION/" gradle.properties
+
+      - name: Build
+        run: ./gradlew build
 
       - name: Publish to Modrinth + CurseForge
         uses: Kir-Antipov/mc-publish@v3.3.0

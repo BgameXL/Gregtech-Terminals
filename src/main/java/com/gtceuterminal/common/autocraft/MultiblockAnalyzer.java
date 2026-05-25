@@ -4,8 +4,8 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import com.gtceuterminal.common.config.ManagerSettings;
+import com.gtceuterminal.common.pattern.CandidateFilter;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
@@ -23,14 +23,12 @@ import appeng.api.networking.crafting.ICraftingService;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.BlockItem;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public final class MultiblockAnalyzer {
@@ -83,7 +81,15 @@ public final class MultiblockAnalyzer {
                             }
 
                             BlockInfo[] infos = pickInfos(pred, cacheGlobal, cacheLayer);
-                            ItemStack candidate = firstBlockItem(infos);
+                            List<ItemStack> candidates = new java.util.ArrayList<>();
+                            if (infos != null) for (BlockInfo info : infos)
+                                if (info != null && !info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
+
+                            candidates = CandidateFilter.enrichWithCustomComponents(candidates, pred);
+                            if (settings.noHatchMode != 0) candidates = CandidateFilter.filterOutMultiblockParts(candidates);
+                            candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
+
+                            ItemStack candidate = firstUsableBlockItem(candidates);
                             if (candidate == null || candidate.isEmpty()) continue;
 
                             needed.merge(candidate.getItem(), 1, Integer::sum);
@@ -92,7 +98,7 @@ public final class MultiblockAnalyzer {
                 }
             }
 
-            return buildEntries(needed, player, controller.self().getPos());
+            return buildEntries(needed, player, controller.self().getPos(), settings.isUseAE);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForBuild failed", e);
@@ -129,7 +135,14 @@ public final class MultiblockAnalyzer {
     private static AnalysisResult buildEntries(Map<Item, Integer> needed,
                                                Player player,
                                                BlockPos controllerPos) {
-        IGrid grid = getGrid(player);
+        return buildEntries(needed, player, controllerPos, 1);
+    }
+
+    private static AnalysisResult buildEntries(Map<Item, Integer> needed,
+                                               Player player,
+                                               BlockPos controllerPos,
+                                               int isUseAE) {
+        IGrid grid = isUseAE == 1 ? getGrid(player) : null;
         IStorageService   storage  = grid != null ? grid.getStorageService()   : null;
         ICraftingService  crafting = grid != null ? grid.getCraftingService()   : null;
 
@@ -240,6 +253,13 @@ public final class MultiblockAnalyzer {
             if (info == null || info.getBlockState().isAir()) continue;
             ItemStack s = info.getItemStackForm();
             if (!s.isEmpty()) return s;
+        }
+        return null;
+    }
+
+    private static ItemStack firstUsableBlockItem(List<ItemStack> candidates) {
+        for (ItemStack s : candidates) {
+            if (!s.isEmpty() && s.getItem() instanceof BlockItem) return s;
         }
         return null;
     }

@@ -4,7 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.config.ComponentPattern;
 import com.gtceuterminal.common.config.ComponentPatternRegistry;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -173,8 +172,19 @@ final class MultiblockAnalysisHelper {
     private static String detectComponentType(MetaMachine machine) {
         try {
             var def = machine.getDefinition();
-            if (def == null) return "Unknown Component";
+            if (def == null) return ComponentGroupRegistry.UNKNOWN.id;
             String id = def.getId().toString().toLowerCase();
+
+            if (machine instanceof MultiblockPartMachine) {
+                var block = machine.getBlockState().getBlock();
+                com.gtceuterminal.common.multiblock.ComponentGroup group =
+                        ComponentGroupRegistry.detectFromBlock(block);
+                if (group != ComponentGroupRegistry.UNKNOWN) {
+                    String amperage = BlockIdClassifier.detectAmperage(id);
+                    if (amperage != null) return amperage + " " + group.displayName;
+                    return group.id;
+                }
+            }
 
             Optional<ComponentPattern> patternOpt = ComponentPatternRegistry.findMatch(id);
             if (patternOpt.isPresent()) {
@@ -185,31 +195,15 @@ final class MultiblockAnalysisHelper {
                 return displayName;
             }
 
-            if (machine instanceof MultiblockPartMachine) {
-                var block = machine.getBlockState().getBlock();
-                ComponentType type = PartAbilityMapper.detectFromBlock(block);
-                if (type != null) {
-                    String amperage = BlockIdClassifier.detectAmperage(id);
-                    if (amperage != null) return amperage + " " + type.getDisplayName();
-
-                    if (type == ComponentType.UNKNOWN) {
-                        String blockId = BuiltInRegistries.BLOCK.getKey(block).toString();
-                        if (blockId.contains("wireless_energy_input"))   type = ComponentType.WIRELESS_ENERGY_INPUT;
-                        else if (blockId.contains("wireless_energy_output")) type = ComponentType.WIRELESS_ENERGY_OUTPUT;
-                        else if (blockId.contains("wireless_laser_target"))  type = ComponentType.WIRELESS_LASER_INPUT;
-                        else if (blockId.contains("wireless_laser_source"))  type = ComponentType.WIRELESS_LASER_OUTPUT;
-                    }
-                    return type.getDisplayName();
-                }
-            }
-
             String detected = BlockIdClassifier.detectByImprovedAnalysis(id);
             if (detected != null) return detected;
-            return def.getDescriptionId();
+
+            GTCEUTerminalMod.LOGGER.debug("detectComponentType: no match for '{}', returning UNKNOWN", id);
+            return ComponentGroupRegistry.UNKNOWN.id;
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.debug("Could not detect component type: {}", e.getMessage());
-            return "Unknown Component";
+            return ComponentGroupRegistry.UNKNOWN.id;
         }
     }
 

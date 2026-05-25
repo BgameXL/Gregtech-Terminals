@@ -234,6 +234,9 @@ public final class ComponentGroupRegistry {
     public static ComponentGroup fromCategory(String category) {
         String lower = category.toLowerCase(java.util.Locale.ROOT);
 
+        ComponentGroup byId = BY_ID.get(lower);
+        if (byId != null) return byId;
+
         ComponentGroup byAbility = BY_ABILITY.get(lower);
         if (byAbility != null) return byAbility;
 

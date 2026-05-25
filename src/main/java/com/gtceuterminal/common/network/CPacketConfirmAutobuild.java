@@ -175,9 +175,18 @@ public class CPacketConfirmAutobuild {
 
     private static ManagerSettings.AutoBuildSettings getSettings(ServerPlayer player) {
         ItemStack held = player.getMainHandItem();
-        if (!held.isEmpty()) {
-            ManagerSettings.Settings s = new ManagerSettings.Settings(held);
-            return s.toAutoBuildSettings();
+        if (held.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
+            return new ManagerSettings.Settings(held).toAutoBuildSettings();
+        }
+        held = player.getOffhandItem();
+        if (held.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
+            return new ManagerSettings.Settings(held).toAutoBuildSettings();
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack s = player.getInventory().getItem(i);
+            if (s.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
+                return new ManagerSettings.Settings(s).toAutoBuildSettings();
+            }
         }
         return new ManagerSettings.AutoBuildSettings();
     }

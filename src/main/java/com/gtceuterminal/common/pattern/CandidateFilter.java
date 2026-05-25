@@ -24,11 +24,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-final class CandidateFilter {
+public final class CandidateFilter {
 
     private CandidateFilter() {}
 
-    static List<ItemStack> filterOutMultiblockParts(List<ItemStack> candidates) {
+    public static List<ItemStack> filterOutMultiblockParts(List<ItemStack> candidates) {
         if (candidates.isEmpty()) return candidates;
 
         List<ItemStack> out = new ArrayList<>(candidates.size());
@@ -56,14 +56,14 @@ final class CandidateFilter {
         return out;
     }
 
-    static List<ItemStack> applyCoilTierPreference(List<ItemStack> candidates, int tierMode) {
+    public static List<ItemStack> applyCoilTierPreference(List<ItemStack> candidates, int tierMode) {
         if (candidates.isEmpty()) return candidates;
         int desiredTier = tierMode - 1;
         if (desiredTier < 0) return candidates;
 
         boolean hasAnyCoil = false;
         for (ItemStack st : candidates) {
-            if (st.getItem() instanceof BlockItem bi && bi.getBlock() instanceof CoilBlock) {
+            if (st.getItem() instanceof BlockItem bi && isCoilBlock(bi.getBlock())) {
                 hasAnyCoil = true;
                 break;
             }
@@ -72,16 +72,28 @@ final class CandidateFilter {
 
         List<ItemStack> filtered = new ArrayList<>();
         for (ItemStack st : candidates) {
-            if (st.getItem() instanceof BlockItem bi && bi.getBlock() instanceof CoilBlock coil) {
-                if (coil.coilType.getTier() == desiredTier) {
-                    filtered.add(st);
-                }
+            if (st.getItem() instanceof BlockItem bi && isCoilBlock(bi.getBlock())) {
+                int coilTier = getCoilTier(bi.getBlock());
+                if (coilTier == desiredTier) filtered.add(st);
             }
         }
         return filtered.isEmpty() ? candidates : filtered;
     }
 
-    static List<ItemStack> enrichWithCustomComponents(
+    private static boolean isCoilBlock(net.minecraft.world.level.block.Block block) {
+        if (block instanceof CoilBlock) return true;
+        String blockId = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(block).toString();
+        return com.gtceuterminal.common.config.ComponentRegistry.coilByBlockId(blockId) != null;
+    }
+
+    private static int getCoilTier(net.minecraft.world.level.block.Block block) {
+        if (block instanceof CoilBlock coil) return coil.coilType.getTier();
+        String blockId = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(block).toString();
+        var entry = com.gtceuterminal.common.config.ComponentRegistry.coilByBlockId(blockId);
+        return entry != null ? entry.tier : 0;
+    }
+
+    public static List<ItemStack> enrichWithCustomComponents(
             List<ItemStack> originalCandidates,
             TraceabilityPredicate predicate) {
 
@@ -130,7 +142,7 @@ final class CandidateFilter {
             if (blockId.contains("muffler"))                                   return ComponentCategory.MUFFLER_HATCH;
             if (blockId.contains("laser")       && blockId.contains("hatch")) return ComponentCategory.LASER_HATCH;
             if (blockId.contains("rotor"))                                     return ComponentCategory.ROTOR_HOLDER;
-            if (blockId.contains("coil"))                                      return ComponentCategory.COIL;
+            if (block instanceof CoilBlock)                                    return ComponentCategory.COIL;
             if (blockId.contains("casing"))                                    return ComponentCategory.CASING;
 
             if (block instanceof MetaMachineBlock) return ComponentCategory.OTHER;

@@ -94,6 +94,8 @@ public class GTCEUTerminalMod {
             } else {
                 LOGGER.info("AE2 not present — AE2 integration skipped");
             }
+
+            com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.init();
         });
 
         LOGGER.info("Common setup complete");

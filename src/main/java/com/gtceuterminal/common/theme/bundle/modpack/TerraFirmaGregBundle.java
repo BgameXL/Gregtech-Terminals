@@ -10,11 +10,20 @@ import javax.annotation.Nullable;
 
 public class TerraFirmaGregBundle extends ThemeBundle {
 
-    private static final int BG     = 0xFF0D0610;   // near-black, barely violet
-    private static final int PANEL  = 0xFF1A0D1F;   // dark purple-black, distinct from BG
-    private static final int ACCENT = 0xFFEA097B;   // vibrant magenta — borders only
-    private static final int BRIGHT = 0xFFF43B7D;   // bright pink for separators
-    private static final int TEXT   = 0xFFFFE8F0;   // warm white
+    private static final int BG     = 0xFF0D0610;
+    private static final int PANEL  = 0xFF1A0D1F;
+    private static final int ACCENT = 0xFFEA097B;
+    private static final int BRIGHT = 0xFFF43B7D;
+    private static final int TEXT   = 0xFFFFE8F0;
+
+    private static final Class<?> TFG_MACHINES;
+    static {
+        Class<?> c = null;
+        try {
+            c = Class.forName("su.terrafirmagreg.core.common.data.tfgt.TFGMultiMachines");
+        } catch (ClassNotFoundException ignored) {}
+        TFG_MACHINES = c;
+    }
 
     @Override
     public String id() { return "terrafirmagreg"; }
@@ -51,54 +60,48 @@ public class TerraFirmaGregBundle extends ThemeBundle {
 
     @OnlyIn(Dist.CLIENT)
     private void loadTFGShapes(com.gtceuterminal.client.gui.widget.MultiblockParadeWidget widget) {
-        try {
-            Class<?> tfgMachines = Class.forName(
-                    "su.terrafirmagreg.core.common.data.tfgt.TFGMultiMachines");
+        if (TFG_MACHINES == null) return;
 
-            String[][] machines = {
-                    { "ELECTRIC_GREENHOUSE",   "Electric Greenhouse"   },
-                    { "BIOREACTOR",            "Bioreactor"            },
-                    { "LARGE_STEAM_TURBINE",   "Large Steam Turbine"   },
-                    { "SMR_GENERATOR",         "SMR Generator"         },
-                    { "EVAPORATION_TOWER",     "Evaporation Tower"     },
-                    { "STEAM_BLOOMERY",        "Steam Bloomery"        },
-            };
+        String[][] machines = {
+                { "ELECTRIC_GREENHOUSE",   "Electric Greenhouse"   },
+                { "BIOREACTOR",            "Bioreactor"            },
+                { "LARGE_STEAM_TURBINE",   "Large Steam Turbine"   },
+                { "SMR_GENERATOR",         "SMR Generator"         },
+                { "EVAPORATION_TOWER",     "Evaporation Tower"     },
+                { "STEAM_BLOOMERY",        "Steam Bloomery"        },
+        };
 
-            for (String[] entry : machines) {
-                try {
-                    java.lang.reflect.Field field = tfgMachines.getField(entry[0]);
-                    Object def = field.get(null); // MultiblockMachineDefinition
+        for (String[] entry : machines) {
+            try {
+                java.lang.reflect.Field field = TFG_MACHINES.getField(entry[0]);
+                Object def = field.get(null);
 
-                    java.lang.reflect.Method getShapeInfos = null;
-                    for (String methodName : new String[]{
-                            "getMatchingShapes", "getShapeInfos", "getShapes", "matchingShapes"}) {
-                        try {
-                            getShapeInfos = def.getClass().getMethod(methodName);
-                            break;
-                        } catch (NoSuchMethodException ignored) {}
-                    }
-                    if (getShapeInfos == null) {
-                        com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                                "MultiblockParade: no shape method found for '{}'", entry[0]);
-                        continue;
-                    }
-                    @SuppressWarnings("unchecked")
-                    java.util.List<com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo> shapes =
-                            (java.util.List<com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo>) getShapeInfos.invoke(def);
-
-                    if (shapes != null && !shapes.isEmpty()) {
-                        widget.addFromShapeInfo(entry[1], shapes.get(0));
-                        com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                                "MultiblockParade: loaded shape for '{}'", entry[1]);
-                    }
-                } catch (Exception inner) {
-                    com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                            "MultiblockParade: skipped '{}': {}", entry[0], inner.getMessage());
+                java.lang.reflect.Method getShapeInfos = null;
+                for (String methodName : new String[]{
+                        "getMatchingShapes", "getShapeInfos", "getShapes", "matchingShapes"}) {
+                    try {
+                        getShapeInfos = def.getClass().getMethod(methodName);
+                        break;
+                    } catch (NoSuchMethodException ignored) {}
                 }
+                if (getShapeInfos == null) {
+                    com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
+                            "MultiblockParade: no shape method found for '{}'", entry[0]);
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                java.util.List<com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo> shapes =
+                        (java.util.List<com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo>) getShapeInfos.invoke(def);
+
+                if (shapes != null && !shapes.isEmpty()) {
+                    widget.addFromShapeInfo(entry[1], shapes.get(0));
+                    com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
+                            "MultiblockParade: loaded shape for '{}'", entry[1]);
+                }
+            } catch (Exception inner) {
+                com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
+                        "MultiblockParade: skipped '{}': {}", entry[0], inner.getMessage());
             }
-        } catch (ClassNotFoundException e) {
-            com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
-                    "MultiblockParade: TFG not installed, parade will use scanned multiblocks only");
         }
     }
 

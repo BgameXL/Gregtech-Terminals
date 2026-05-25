@@ -50,10 +50,16 @@ public class ManagerSettingsUI {
     private final ItemStack  itemStack;
     private final Player     player;
 
+    private int noHatchMode;
+    private int tierMode;
+    private int repeatCount;
+    private int isUseAE;
+
     public ManagerSettingsUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
         this.uiHolder  = heldHolder;
         this.itemStack = heldHolder.held;
         this.player    = heldHolder.player;
+        loadFromItem();
         applyTheme();
     }
 
@@ -61,7 +67,16 @@ public class ManagerSettingsUI {
         this.uiHolder  = holder;
         this.itemStack = holder.getTerminalItem();
         this.player    = player;
+        loadFromItem();
         applyTheme();
+    }
+
+    private void loadFromItem() {
+        CompoundTag tag = itemStack.getTag();
+        this.noHatchMode = tag != null && tag.contains("NoHatchMode")  ? tag.getInt("NoHatchMode")  : 0;
+        this.tierMode    = tag != null && tag.contains("TierMode")     ? tag.getInt("TierMode")     : 1;
+        this.repeatCount = tag != null && tag.contains("RepeatCount")  ? tag.getInt("RepeatCount")  : 0;
+        this.isUseAE     = tag != null && tag.contains("IsUseAE")      ? tag.getInt("IsUseAE")      : 0;
     }
 
     private void applyTheme() {
@@ -93,6 +108,8 @@ public class ManagerSettingsUI {
         root.addWidget(buildSettingsPanel());
 
         setupParade(root);
+
+
         ModularUI gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(root);
         gui.background(theme.modularUIBackground());
@@ -160,7 +177,7 @@ public class ManagerSettingsUI {
                 Component.translatable("gui.gtceuterminal.manager_settings.tier_mode.hint_scroll_type").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.tier_mode.tooltip").getString(),
                 () -> String.valueOf(getTierMode()),
-                val -> setTierMode(parseIntSafe(val, 1)),
+                val -> { try { setTierMode(Integer.parseInt(val)); } catch (NumberFormatException ignored) {} },
                 1, 16);
 
         y = addInputRow(panel, y, innerW,
@@ -168,7 +185,7 @@ public class ManagerSettingsUI {
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.hint_layers").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.tooltip").getString(),
                 () -> String.valueOf(getRepeatCount()),
-                val -> setRepeatCount(parseIntSafe(val, 0)),
+                val -> { try { setRepeatCount(Integer.parseInt(val)); } catch (NumberFormatException ignored) {} },
                 0, 99);
 
         if (MENetworkScanner.isAE2Available()) {
@@ -232,6 +249,7 @@ public class ManagerSettingsUI {
         panel.addWidget(lbl);
 
         TextFieldWidget input = new TextFieldWidget(ctlX, y - 2, CTL_W, CTL_H, getter, setter);
+        input.setClientSideWidget();
         input.setNumbersOnly(min, max);
         input.setTextColor(COLOR_TEXT_WHITE);
         input.setBackground(new GuiTextureGroup(
@@ -269,48 +287,36 @@ public class ManagerSettingsUI {
     }
 
     // NBT helpers
-    private int getNoHatchMode() {
-        CompoundTag tag = itemStack.getTag();
-        return (tag != null && tag.contains("NoHatchMode")) ? tag.getInt("NoHatchMode") : 0;
-    }
+    private int getNoHatchMode() { return noHatchMode; }
     private void toggleNoHatchMode() {
-        itemStack.getOrCreateTag().putInt("NoHatchMode", getNoHatchMode() == 1 ? 0 : 1);
+        noHatchMode = noHatchMode == 1 ? 0 : 1;
         syncToServer();
     }
 
-    private int getTierMode() {
-        CompoundTag tag = itemStack.getTag();
-        return (tag != null && tag.contains("TierMode")) ? tag.getInt("TierMode") : 1;
-    }
+    private int getTierMode() { return tierMode; }
     private void setTierMode(int tier) {
-        itemStack.getOrCreateTag().putInt("TierMode", Math.max(1, Math.min(16, tier)));
+        tierMode = Math.max(1, Math.min(16, tier));
         syncToServer();
     }
 
-    private int getRepeatCount() {
-        CompoundTag tag = itemStack.getTag();
-        return (tag != null && tag.contains("RepeatCount")) ? tag.getInt("RepeatCount") : 0;
-    }
+    private int getRepeatCount() { return repeatCount; }
     private void setRepeatCount(int count) {
-        itemStack.getOrCreateTag().putInt("RepeatCount", Math.max(0, Math.min(99, count)));
+        repeatCount = Math.max(0, Math.min(99, count));
         syncToServer();
     }
 
-    private int getIsUseAE() {
-        CompoundTag tag = itemStack.getTag();
-        return (tag != null && tag.contains("IsUseAE")) ? tag.getInt("IsUseAE") : 0;
-    }
+    private int getIsUseAE() { return isUseAE; }
     private void toggleIsUseAE() {
-        itemStack.getOrCreateTag().putInt("IsUseAE", getIsUseAE() == 1 ? 0 : 1);
+        isUseAE = isUseAE == 1 ? 0 : 1;
         syncToServer();
     }
 
     private void syncToServer() {
         CompoundTag snapshot = new CompoundTag();
-        for (String key : java.util.List.of("NoHatchMode", "TierMode", "RepeatCount", "IsUseAE")) {
-            CompoundTag t = itemStack.getTag();
-            if (t != null && t.contains(key)) snapshot.put(key, t.get(key));
-        }
+        snapshot.putInt("NoHatchMode",  noHatchMode);
+        snapshot.putInt("TierMode",     tierMode);
+        snapshot.putInt("RepeatCount",  repeatCount);
+        snapshot.putInt("IsUseAE",      isUseAE);
         com.gtceuterminal.common.network.TerminalNetwork.sendToServer(
                 new com.gtceuterminal.common.network.CPacketSaveManagerSettings(snapshot));
     }

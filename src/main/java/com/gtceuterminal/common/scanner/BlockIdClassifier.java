@@ -56,7 +56,6 @@ final class BlockIdClassifier {
             return (amperage != null ? amperage + " " : "") + "Dynamo Hatch";
         }
 
-        if (id.contains("coil"))   return "Heating Coil";
         if (id.contains("casing")) return "Casing";
 
         return null;
@@ -76,10 +75,15 @@ final class BlockIdClassifier {
         String blockId      = blockState.getBlock().builtInRegistryHolder().key().location().toString();
         String blockIdLower = blockId.toLowerCase();
 
+
         if (blockIdLower.contains("coil")) {
-            int tier     = detectCoilTier(blockId);
-            String name  = blockState.getBlock().getName().getString();
-            return new UniversalMultiblockScanner.ComponentData("COIL", name, tier, pos);
+            boolean isHeatingCoil = com.gregtechceu.gtceu.api.GTCEuAPI.HEATING_COILS.values().stream()
+                    .anyMatch(s -> s.get() == blockState.getBlock());
+            if (isHeatingCoil) {
+                int tier    = detectCoilTier(blockId);
+                String name = blockState.getBlock().getName().getString();
+                return new UniversalMultiblockScanner.ComponentData("COIL", name, tier, pos);
+            }
         }
 
         if (blockIdLower.contains("casing")) {
@@ -87,19 +91,31 @@ final class BlockIdClassifier {
                     "CASING", blockState.getBlock().getName().getString(), 0, pos);
         }
 
+        com.gtceuterminal.common.multiblock.ComponentGroup group =
+                com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(blockState.getBlock());
+        if (group != com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
+            String category = group.registryCategory != null ? group.registryCategory : group.id;
+            com.gtceuterminal.common.config.ComponentEntry entry =
+                    com.gtceuterminal.common.config.ComponentRegistry.first(
+                            category, e -> e.blockId.equalsIgnoreCase(blockId));
+            int tier    = entry != null ? entry.tier : 0;
+            String name = entry != null ? entry.displayName : blockState.getBlock().getName().getString();
+            return new UniversalMultiblockScanner.ComponentData(group.id, name, tier, pos);
+        }
+
         return null;
     }
 
     static int detectCoilTier(String blockId) {
         String lower = blockId.toLowerCase();
-        if (lower.contains("cupronickel"))                             return 0;
-        if (lower.contains("kanthal"))                                 return 1;
-        if (lower.contains("nichrome"))                                return 2;
+        if (lower.contains("cupronickel"))                              return 0;
+        if (lower.contains("kanthal"))                                  return 1;
+        if (lower.contains("nichrome"))                                 return 2;
         if (lower.contains("rtm_alloy") || lower.contains("rtmalloy")) return 3;
         if (lower.contains("hss_g") || lower.contains("hssg"))         return 4;
         if (lower.contains("naquadah") && !lower.contains("enriched")) return 5;
-        if (lower.contains("trinium"))                                 return 6;
-        if (lower.contains("tritanium"))                               return 7;
+        if (lower.contains("trinium"))                                  return 6;
+        if (lower.contains("tritanium"))                                return 7;
         return 0;
     }
 }

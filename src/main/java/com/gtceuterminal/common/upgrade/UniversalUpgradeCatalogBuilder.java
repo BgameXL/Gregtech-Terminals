@@ -46,6 +46,9 @@ public final class UniversalUpgradeCatalogBuilder {
             Set<PartAbility> abilities = PartAbilityIntrospector.detectAbilitiesForBlock(block);
             if (abilities.isEmpty()) continue;
 
+            com.gtceuterminal.common.multiblock.ComponentGroup installedGroup =
+                    com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(block);
+
             var installed = new UniversalUpgradeCatalog.InstalledPart(pos, blockId, tier, abilities);
 
             List<UniversalUpgradeCatalog.CandidatePart> candidates = new ArrayList<>();
@@ -56,6 +59,10 @@ public final class UniversalUpgradeCatalogBuilder {
                 for (var e : tierMap.entrySet()) {
                     int t = e.getKey();
                     for (Block b : e.getValue()) {
+                        com.gtceuterminal.common.multiblock.ComponentGroup candidateGroup =
+                                com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(b);
+                        if (candidateGroup != installedGroup) continue;
+
                         String id = BuiltInRegistries.BLOCK.getKey(b).toString();
                         candidates.add(new UniversalUpgradeCatalog.CandidatePart(id, t, ability));
                     }
@@ -69,21 +76,19 @@ public final class UniversalUpgradeCatalogBuilder {
         return catalog;
     }
 
-    // Dedupe candidates by ability name + block ID, keeping only the highest tier for each unique combination.
+    // Dedupe candidates by block ID only, keeping the lowest tier entry per block.
     private static List<UniversalUpgradeCatalog.CandidatePart> dedupeAndSortCandidates(
             List<UniversalUpgradeCatalog.CandidatePart> in
     ) {
-        Map<String, UniversalUpgradeCatalog.CandidatePart> map = new HashMap<>();
+        Map<String, UniversalUpgradeCatalog.CandidatePart> map = new LinkedHashMap<>();
         for (var c : in) {
-            String key = c.ability().getName() + "|" + c.blockId();
-            var prev = map.get(key);
-            if (prev == null || c.tier() > prev.tier()) map.put(key, c);
+            var prev = map.get(c.blockId());
+            if (prev == null || c.tier() < prev.tier()) map.put(c.blockId(), c);
         }
 
         List<UniversalUpgradeCatalog.CandidatePart> out = new ArrayList<>(map.values());
         out.sort(Comparator
-                .comparing((UniversalUpgradeCatalog.CandidatePart c) -> c.ability().getName())
-                .thenComparingInt(UniversalUpgradeCatalog.CandidatePart::tier)
+                .comparingInt(UniversalUpgradeCatalog.CandidatePart::tier)
                 .thenComparing(UniversalUpgradeCatalog.CandidatePart::blockId));
         return out;
     }

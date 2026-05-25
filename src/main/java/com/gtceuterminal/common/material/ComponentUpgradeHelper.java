@@ -102,33 +102,25 @@ public class ComponentUpgradeHelper {
     private static String getBlockIdFromConfigImpl(ComponentGroup type, int tier, ComponentInfo component) {
         return switch (type.id) {
             case "input_hatch", "input_hatch_1x", "quad_input_hatch", "nonuple_input_hatch" -> {
+                String cap = switch (type.id) {
+                    case "quad_input_hatch"    -> "4x";
+                    case "nonuple_input_hatch" -> "9x";
+                    default                    -> "1x";
+                };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("INPUT")) {
-                    if (hatch.tier == tier) {
-                        boolean matches = switch (type.id) {
-                            case "input_hatch" -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_input_hatch$");
-                            case "input_hatch_1x" -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
-                            case "quad_input_hatch" -> hatch.attrIs("capacity", "4x");
-                            case "nonuple_input_hatch" -> hatch.attrIs("capacity", "9x");
-                            default -> false;
-                        };
-                        if (matches) yield hatch.blockId;
-                    }
+                    if (hatch.tier == tier && hatch.attrIs("capacity", cap)) yield hatch.blockId;
                 }
                 yield null;
             }
 
             case "output_hatch", "output_hatch_1x", "quad_output_hatch", "nonuple_output_hatch" -> {
+                String cap = switch (type.id) {
+                    case "quad_output_hatch"    -> "4x";
+                    case "nonuple_output_hatch" -> "9x";
+                    default                     -> "1x";
+                };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("OUTPUT")) {
-                    if (hatch.tier == tier) {
-                        boolean matches = switch (type.id) {
-                            case "output_hatch" -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_output_hatch$");
-                            case "output_hatch_1x" -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
-                            case "quad_output_hatch" -> hatch.attrIs("capacity", "4x");
-                            case "nonuple_output_hatch" -> hatch.attrIs("capacity", "9x");
-                            default -> false;
-                        };
-                        if (matches) yield hatch.blockId;
-                    }
+                    if (hatch.tier == tier && hatch.attrIs("capacity", cap)) yield hatch.blockId;
                 }
                 yield null;
             }
@@ -236,7 +228,7 @@ public class ComponentUpgradeHelper {
         if (tierName == null) return null;
         if (type.registryCategory != null) {
             for (var e : ComponentRegistry.get(type.registryCategory)) {
-                if (e.tier == tier && e.attrIs("hatchType", type.id.contains("input") ? "ENERGY_INPUT" : "ENERGY_OUTPUT"))
+                if (e.tier == tier && e.attrIs("hatchType", type.id.contains("input") ? "INPUT" : "OUTPUT"))
                     return e.blockId;
             }
         }
@@ -272,33 +264,25 @@ public class ComponentUpgradeHelper {
 
         return switch (type.id) {
             case "input_hatch", "input_hatch_1x", "quad_input_hatch", "nonuple_input_hatch" -> {
+                String cap = switch (type.id) {
+                    case "quad_input_hatch"    -> "4x";
+                    case "nonuple_input_hatch" -> "9x";
+                    default                    -> "1x";
+                };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("INPUT")) {
-                    if (hatch.tier == targetTier) {
-                        boolean matches = switch (type.id) {
-                            case "input_hatch" -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_input_hatch$");
-                            case "input_hatch_1x" -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
-                            case "quad_input_hatch" -> hatch.attrIs("capacity", "4x");
-                            case "nonuple_input_hatch" -> hatch.attrIs("capacity", "9x");
-                            default -> false;
-                        };
-                        if (matches) yield hatch.displayName + " →";
-                    }
+                    if (hatch.tier == targetTier && hatch.attrIs("capacity", cap)) yield hatch.displayName + " →";
                 }
                 yield null;
             }
 
             case "output_hatch", "output_hatch_1x", "quad_output_hatch", "nonuple_output_hatch" -> {
+                String cap = switch (type.id) {
+                    case "quad_output_hatch"    -> "4x";
+                    case "nonuple_output_hatch" -> "9x";
+                    default                     -> "1x";
+                };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("OUTPUT")) {
-                    if (hatch.tier == targetTier) {
-                        boolean matches = switch (type.id) {
-                            case "output_hatch" -> hatch.attrIs("capacity", "1x") && hatch.blockId.matches(".*:.*_output_hatch$");
-                            case "output_hatch_1x" -> hatch.attrIs("capacity", "1x") && hatch.blockId.contains("_1x");
-                            case "quad_output_hatch" -> hatch.attrIs("capacity", "4x");
-                            case "nonuple_output_hatch" -> hatch.attrIs("capacity", "9x");
-                            default -> false;
-                        };
-                        if (matches) yield hatch.displayName + " →";
-                    }
+                    if (hatch.tier == targetTier && hatch.attrIs("capacity", cap)) yield hatch.displayName + " →";
                 }
                 yield null;
             }
@@ -319,9 +303,7 @@ public class ComponentUpgradeHelper {
 
             case "energy_hatch" -> {
                 for (ComponentEntry energy : ComponentRegistry.getEnergyHatches()) {
-                    if (energy.tier == targetTier &&
-                            energy.attrIs("hatchType", "INPUT") &&
-                            energy.blockId.endsWith("_energy_input_hatch")) {
+                    if (energy.tier == targetTier && energy.attrIs("hatchType", "INPUT")) {
                         yield energy.displayName + " →";
                     }
                 }
@@ -330,9 +312,7 @@ public class ComponentUpgradeHelper {
 
             case "dynamo_hatch" -> {
                 for (ComponentEntry energy : ComponentRegistry.getEnergyHatches()) {
-                    if (energy.tier == targetTier &&
-                            energy.attrIs("hatchType", "OUTPUT") &&
-                            energy.blockId.endsWith("_energy_output_hatch")) {
+                    if (energy.tier == targetTier && energy.attrIs("hatchType", "OUTPUT")) {
                         yield energy.displayName + " →";
                     }
                 }

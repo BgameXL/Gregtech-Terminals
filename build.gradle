@@ -124,6 +124,7 @@ dependencies {
         transitive = false
     }
 
+
     //LDLib
     modImplementation("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:${ldlib_version}") {
         transitive = false

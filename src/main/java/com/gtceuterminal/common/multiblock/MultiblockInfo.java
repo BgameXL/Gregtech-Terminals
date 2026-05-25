@@ -99,37 +99,22 @@ public class MultiblockInfo {
         return components;
     }
 
-    public List<ComponentGroup> getGroupedComponents() {
-        java.util.Map<String, ComponentGroup> groups = new java.util.HashMap<>();
-
+    public List<ComponentInfoGroup> getGroupedComponents() {
+        java.util.Map<String, ComponentInfoGroup> groups = new java.util.LinkedHashMap<>();
         for (ComponentInfo comp : components) {
-            // Filter out non-upgradeable components, as they don't have meaningful tiers and would just clutter the UI.
-            if (!comp.getType().isUpgradeable()) {
-                continue;
-            }
-
-            String blockName = comp.getBlockName();
-            String key = ComponentGroup.getGroupKey(comp.getType(), comp.getTier(), blockName);
-
-            ComponentGroup group = groups.get(key);
-            if (group == null) {
-                group = new ComponentGroup(comp.getType(), comp.getTier(), blockName);
-                groups.put(key, group);
-            }
-
-            group.addComponent(comp);
+            if (!comp.getGroup().isUpgradeable) continue;
+            String key = ComponentInfoGroup.getGroupKey(comp.getGroup(), comp.getTier(), comp.getBlockName());
+            groups.computeIfAbsent(key, k -> new ComponentInfoGroup(comp.getGroup(), comp.getTier(), comp.getBlockName()))
+                    .addComponent(comp);
         }
-
-        // Convert to list and sort by type name, then block name, then tier
-        List<ComponentGroup> result = new ArrayList<>(groups.values());
+        List<ComponentInfoGroup> result = new ArrayList<>(groups.values());
         result.sort((a, b) -> {
-            int typeCompare = a.getType().getDisplayName().compareTo(b.getType().getDisplayName());
-            if (typeCompare != 0) return typeCompare;
-            int nameCompare = a.getBlockName().compareTo(b.getBlockName());
-            if (nameCompare != 0) return nameCompare;
+            int tc = a.getGroup().displayName.compareTo(b.getGroup().displayName);
+            if (tc != 0) return tc;
+            int nc = a.getBlockName().compareTo(b.getBlockName());
+            if (nc != 0) return nc;
             return Integer.compare(a.getTier(), b.getTier());
         });
-
         return result;
     }
 
@@ -163,27 +148,19 @@ public class MultiblockInfo {
         return String.format(java.util.Locale.ROOT, "%.0fm", distanceFromPlayer);
     }
 
-    public List<ComponentInfo> getComponentsByType(ComponentType type) {
-        return components.stream()
-                .filter(c -> c.getType() == type)
-                .toList();
+    public List<ComponentInfo> getComponentsByGroup(ComponentGroup group) {
+        return components.stream().filter(c -> c.getGroup() == group).toList();
     }
 
     public List<ComponentInfo> getUpgradeableComponents() {
-        return components.stream()
-                .filter(c -> c.getType().isUpgradeable())
-                .toList();
+        return components.stream().filter(c -> c.getGroup().isUpgradeable).toList();
     }
 
-    public int countComponentsOfType(ComponentType type) {
-        return (int) components.stream()
-                .filter(c -> c.getType() == type)
-                .count();
+    public int countComponentsOfGroup(ComponentGroup group) {
+        return (int) components.stream().filter(c -> c.getGroup() == group).count();
     }
 
-    // ============================================
     // MOD SOURCE TRACKING
-    // ============================================
     public void setSourceMod(String modId) {
         this.sourceMod = modId != null ? modId : "unknown";
     }

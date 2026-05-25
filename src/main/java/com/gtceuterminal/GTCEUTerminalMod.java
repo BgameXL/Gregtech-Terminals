@@ -1,5 +1,6 @@
 package com.gtceuterminal;
 
+import com.gtceuterminal.api.TerminalAPI;
 import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
@@ -83,8 +84,6 @@ public class GTCEUTerminalMod {
         event.enqueueWork(() -> {
             LOGGER.info("Initializing component configurations...");
             com.gtceuterminal.common.config.ItemsConfig.load();
-
-            com.gtceuterminal.common.config.ComponentRegistry.init();
 
             com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.init();
 

@@ -4,7 +4,8 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.autocraft.MultiblockAnalyzer;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,13 +22,13 @@ public class CPacketRequestUpgradeAnalysis {
 
     private static final class ComponentEntry {
         final BlockPos     pos;
-        final ComponentType type;
+        final ComponentGroup group;
         final int           tier;
 
-        ComponentEntry(BlockPos pos, ComponentType type, int tier) {
-            this.pos  = pos;
-            this.type = type;
-            this.tier = tier;
+        ComponentEntry(BlockPos pos, ComponentGroup group, int tier) {
+            this.pos   = pos;
+            this.group = group;
+            this.tier  = tier;
         }
     }
 
@@ -37,12 +38,12 @@ public class CPacketRequestUpgradeAnalysis {
     private final BlockPos             controllerPos;
 
     public CPacketRequestUpgradeAnalysis(List<ComponentInfo> infos,
-                                          int targetTier,
-                                          String upgradeId,
-                                          BlockPos controllerPos) {
+                                         int targetTier,
+                                         String upgradeId,
+                                         BlockPos controllerPos) {
         this.components    = new ArrayList<>(infos.size());
         for (ComponentInfo ci : infos)
-            this.components.add(new ComponentEntry(ci.getPosition(), ci.getType(), ci.getTier()));
+            this.components.add(new ComponentEntry(ci.getPosition(), ci.getGroup(), ci.getTier()));
         this.targetTier    = targetTier;
         this.upgradeId     = upgradeId != null ? upgradeId : "";
         this.controllerPos = controllerPos;
@@ -55,7 +56,7 @@ public class CPacketRequestUpgradeAnalysis {
         buf.writeInt(components.size());
         for (ComponentEntry e : components) {
             buf.writeBlockPos(e.pos);
-            buf.writeEnum(e.type);
+            buf.writeUtf(e.group.id);
             buf.writeInt(e.tier);
         }
     }
@@ -68,9 +69,9 @@ public class CPacketRequestUpgradeAnalysis {
         this.components = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             BlockPos      pos  = buf.readBlockPos();
-            ComponentType type = buf.readEnum(ComponentType.class);
-            int           tier = buf.readInt();
-            components.add(new ComponentEntry(pos, type, tier));
+            ComponentGroup group = ComponentGroupRegistry.byId(buf.readUtf());
+            int            tier  = buf.readInt();
+            components.add(new ComponentEntry(pos, group, tier));
         }
     }
 
@@ -83,7 +84,7 @@ public class CPacketRequestUpgradeAnalysis {
                 List<ComponentInfo> infos = new ArrayList<>(components.size());
                 for (ComponentEntry e : components) {
                     BlockState state = player.serverLevel().getBlockState(e.pos);
-                    infos.add(new ComponentInfo(e.type, e.tier, e.pos, state));
+                    infos.add(new ComponentInfo(e.group, e.tier, e.pos, state));
                 }
 
                 if (infos.isEmpty()) {

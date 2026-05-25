@@ -6,7 +6,8 @@ import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -21,141 +22,141 @@ import java.util.*;
 // Calculates material requirements and checks availability
 public class MaterialCalculator {
 
-        private static final int CHEST_SCAN_RADIUS = 3;
+    private static final int CHEST_SCAN_RADIUS = 3;
 
-        public static Map<Item, Integer> calculateUpgradeCost(ComponentInfo component, int targetTier) {
-            Map<Item, Integer> materials = new HashMap<>();
+    public static Map<Item, Integer> calculateUpgradeCost(ComponentInfo component, int targetTier) {
+        Map<Item, Integer> materials = new HashMap<>();
 
-            ComponentType type = component.getType();
-            int currentTier = component.getTier();
+        ComponentGroup type = component.getGroup();
+        int currentTier = component.getTier();
 
-            if (targetTier <= currentTier) {
-                GTCEUTerminalMod.LOGGER.warn("Cannot upgrade {} from tier {} to tier {} (must be higher)",
-                        type.getDisplayName(), currentTier, targetTier);
-                return materials;
-            }
-
-            String targetHatchId = findHatchBlockId(type, targetTier);
-
-            if (targetHatchId == null) {
-                GTCEUTerminalMod.LOGGER.warn("Could not find hatch block for {} tier {}",
-                        type.getDisplayName(), targetTier);
-                return materials;
-            }
-
-            Item targetHatch = getItemFromId(targetHatchId);
-
-            if (targetHatch != null) {
-                materials.put(targetHatch, 1);
-                GTCEUTerminalMod.LOGGER.info("Upgrade {} (T{} → T{}) requires: {}",
-                        type.getDisplayName(), currentTier, targetTier, targetHatchId);
-            } else {
-                GTCEUTerminalMod.LOGGER.error("Target hatch item not found: {}", targetHatchId);
-            }
-
+        if (targetTier <= currentTier) {
+            GTCEUTerminalMod.LOGGER.warn("Cannot upgrade {} from tier {} to tier {} (must be higher)",
+                    type.displayName, currentTier, targetTier);
             return materials;
         }
 
-        private static String findHatchBlockId(ComponentType type, int tier) {
-            String tierName = com.gregtechceu.gtceu.api.GTValues.VN[tier].toLowerCase();
+        String targetHatchId = findHatchBlockId(type, targetTier);
 
-            String blockId = switch (type) {
-                case ENERGY_HATCH -> findEnergyHatch(tierName, true);
-                case DYNAMO_HATCH -> findEnergyHatch(tierName, false);
-                case INPUT_HATCH -> findFluidHatch(tierName, true);
-                case OUTPUT_HATCH -> findFluidHatch(tierName, false);
-                case INPUT_BUS -> findItemBus(tierName, true);
-                case OUTPUT_BUS -> findItemBus(tierName, false);
-                case DUAL_HATCH -> findDualHatch(tierName);
-                case INPUT_LASER -> findLaserHatch(tierName, true);
-                case OUTPUT_LASER -> findLaserHatch(tierName, false);
-                case MAINTENANCE -> "gtceu:maintenance_hatch";
-                case MUFFLER -> "gtceu:" + tierName + "_muffler_hatch";
-                case WIRELESS_ENERGY_INPUT -> findWirelessEnergyHatch(tierName, true);
-                case WIRELESS_ENERGY_OUTPUT -> findWirelessEnergyHatch(tierName, false);
-                default -> null;
-            };
-
-            return blockId;
+        if (targetHatchId == null) {
+            GTCEUTerminalMod.LOGGER.warn("Could not find hatch block for {} tier {}",
+                    type.displayName, targetTier);
+            return materials;
         }
 
-        private static String findEnergyHatch(String tier, boolean isInput) {
-            String suffix = isInput ? "_energy_input_hatch" : "_energy_output_hatch";
+        Item targetHatch = getItemFromId(targetHatchId);
 
-            String gtceu = "gtceu:" + tier + suffix;
-            if (itemExists(gtceu)) return gtceu;
-
-            String gtmthings = "gtmthings:" + tier + suffix;
-            if (itemExists(gtmthings)) return gtmthings;
-
-            return gtceu;
+        if (targetHatch != null) {
+            materials.put(targetHatch, 1);
+            GTCEUTerminalMod.LOGGER.info("Upgrade {} (T{} → T{}) requires: {}",
+                    type.displayName, currentTier, targetTier, targetHatchId);
+        } else {
+            GTCEUTerminalMod.LOGGER.error("Target hatch item not found: {}", targetHatchId);
         }
 
-        private static String findFluidHatch(String tier, boolean isInput) {
-            String suffix = isInput ? "_input_hatch" : "_output_hatch";
+        return materials;
+    }
 
-            String gtceu = "gtceu:" + tier + suffix;
-            if (itemExists(gtceu)) return gtceu;
+    private static String findHatchBlockId(ComponentGroup type, int tier) {
+        String tierName = com.gregtechceu.gtceu.api.GTValues.VN[tier].toLowerCase();
 
-            String withFluid = "gtceu:" + tier + "_fluid" + suffix;
-            if (itemExists(withFluid)) return withFluid;
+        String blockId = switch (type.id) {
+            case "energy_hatch"          -> findEnergyHatch(tierName, true);
+            case "dynamo_hatch"          -> findEnergyHatch(tierName, false);
+            case "input_hatch"           -> findFluidHatch(tierName, true);
+            case "output_hatch"          -> findFluidHatch(tierName, false);
+            case "input_bus"             -> findItemBus(tierName, true);
+            case "output_bus"            -> findItemBus(tierName, false);
+            case "dual_hatch"            -> findDualHatch(tierName);
+            case "input_laser"           -> findLaserHatch(tierName, true);
+            case "output_laser"          -> findLaserHatch(tierName, false);
+            case "maintenance"           -> "gtceu:maintenance_hatch";
+            case "muffler"              -> "gtceu:" + tierName + "_muffler_hatch";
+            case "wireless_energy_input"  -> findWirelessEnergyHatch(tierName, true);
+            case "wireless_energy_output" -> findWirelessEnergyHatch(tierName, false);
+            default -> null;
+        };
 
-            return gtceu;
+        return blockId;
+    }
+
+    private static String findEnergyHatch(String tier, boolean isInput) {
+        String suffix = isInput ? "_energy_input_hatch" : "_energy_output_hatch";
+
+        String gtceu = "gtceu:" + tier + suffix;
+        if (itemExists(gtceu)) return gtceu;
+
+        String gtmthings = "gtmthings:" + tier + suffix;
+        if (itemExists(gtmthings)) return gtmthings;
+
+        return gtceu;
+    }
+
+    private static String findFluidHatch(String tier, boolean isInput) {
+        String suffix = isInput ? "_input_hatch" : "_output_hatch";
+
+        String gtceu = "gtceu:" + tier + suffix;
+        if (itemExists(gtceu)) return gtceu;
+
+        String withFluid = "gtceu:" + tier + "_fluid" + suffix;
+        if (itemExists(withFluid)) return withFluid;
+
+        return gtceu;
+    }
+
+    private static String findItemBus(String tier, boolean isInput) {
+        String suffix = isInput ? "_input_bus" : "_output_bus";
+
+        String gtceu = "gtceu:" + tier + suffix;
+        if (itemExists(gtceu)) return gtceu;
+
+        String withItem = "gtceu:" + tier + "_item" + suffix;
+        if (itemExists(withItem)) return withItem;
+
+        return gtceu;
+    }
+
+    private static String findDualHatch(String tier) {
+        String gtceuDual = "gtceu:" + tier + "_dual_input_hatch";
+        if (itemExists(gtceuDual)) return gtceuDual;
+
+        String gtmthingsHuge = "gtmthings:" + tier + "_huge_dual_hatch";
+        if (itemExists(gtmthingsHuge)) return gtmthingsHuge;
+
+        String gtceuSimple = "gtceu:" + tier + "_dual_hatch";
+        if (itemExists(gtceuSimple)) return gtceuSimple;
+
+        return gtceuDual;
+    }
+
+    private static String findLaserHatch(String tier, boolean isInput) {
+        String suffix = isInput ? "_laser_input_hatch" : "_laser_output_hatch";
+
+        String gtceu = "gtceu:" + tier + suffix;
+        if (itemExists(gtceu)) return gtceu;
+
+        String alt = isInput ?
+                "gtceu:" + tier + "_laser_target_hatch" :
+                "gtceu:" + tier + "_laser_source_hatch";
+        if (itemExists(alt)) return alt;
+
+        return gtceu;
+    }
+
+    private static String findWirelessEnergyHatch(String tier, boolean isInput) {
+        String suffix = isInput ? "_wireless_energy_input_hatch" : "_wireless_energy_output_hatch";
+
+        String gtmthings = "gtmthings:" + tier + suffix;
+        if (itemExists(gtmthings)) return gtmthings;
+
+        String[] ampVariants = {"", "_1a", "_4a", "_16a"};
+        for (String amp : ampVariants) {
+            String variant = "gtmthings:" + tier + amp + suffix;
+            if (itemExists(variant)) return variant;
         }
 
-        private static String findItemBus(String tier, boolean isInput) {
-            String suffix = isInput ? "_input_bus" : "_output_bus";
-
-            String gtceu = "gtceu:" + tier + suffix;
-            if (itemExists(gtceu)) return gtceu;
-
-            String withItem = "gtceu:" + tier + "_item" + suffix;
-            if (itemExists(withItem)) return withItem;
-
-            return gtceu;
-        }
-
-        private static String findDualHatch(String tier) {
-            String gtceuDual = "gtceu:" + tier + "_dual_input_hatch";
-            if (itemExists(gtceuDual)) return gtceuDual;
-
-            String gtmthingsHuge = "gtmthings:" + tier + "_huge_dual_hatch";
-            if (itemExists(gtmthingsHuge)) return gtmthingsHuge;
-
-            String gtceuSimple = "gtceu:" + tier + "_dual_hatch";
-            if (itemExists(gtceuSimple)) return gtceuSimple;
-
-            return gtceuDual;
-        }
-
-        private static String findLaserHatch(String tier, boolean isInput) {
-            String suffix = isInput ? "_laser_input_hatch" : "_laser_output_hatch";
-
-            String gtceu = "gtceu:" + tier + suffix;
-            if (itemExists(gtceu)) return gtceu;
-
-            String alt = isInput ?
-                    "gtceu:" + tier + "_laser_target_hatch" :
-                    "gtceu:" + tier + "_laser_source_hatch";
-            if (itemExists(alt)) return alt;
-
-            return gtceu;
-        }
-
-        private static String findWirelessEnergyHatch(String tier, boolean isInput) {
-            String suffix = isInput ? "_wireless_energy_input_hatch" : "_wireless_energy_output_hatch";
-
-            String gtmthings = "gtmthings:" + tier + suffix;
-            if (itemExists(gtmthings)) return gtmthings;
-
-            String[] ampVariants = {"", "_1a", "_4a", "_16a"};
-            for (String amp : ampVariants) {
-                String variant = "gtmthings:" + tier + amp + suffix;
-                if (itemExists(variant)) return variant;
-            }
-
-            return gtmthings;
-        }
+        return gtmthings;
+    }
 
     private static boolean itemExists(String itemId) {
         try {

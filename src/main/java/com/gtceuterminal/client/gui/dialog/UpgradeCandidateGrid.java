@@ -30,6 +30,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+import static com.mojang.text2speech.Narrator.LOGGER;
+
 @OnlyIn(Dist.CLIENT)
 final class UpgradeCandidateGrid {
 
@@ -118,22 +120,18 @@ final class UpgradeCandidateGrid {
             int colorBorderLight,
             java.util.function.BiConsumer<String, Integer> onSelect
     ) {
+
+        LOGGER.info("buildCoilGrid: {} coils in registry", com.gtceuterminal.common.config.ComponentRegistry.getCoils().size());
         record CoilEntry(String blockId, String display, int tier) {}
         List<CoilEntry> list = new ArrayList<>();
-        for (var entry : GTCEuAPI.HEATING_COILS.entrySet()) {
-            ICoilType coilType = entry.getKey();
-            if (coilType == null) continue;
-            Block block = null;
-            try { block = entry.getValue() != null ? entry.getValue().get() : null; }
-            catch (RuntimeException e) {
-                GTCEUTerminalMod.LOGGER.warn("UpgradeCandidateGrid: could not resolve coil block '{}': {}",
-                        coilType.getName(), e.getMessage());
+        for (var entry : com.gtceuterminal.common.config.ComponentRegistry.getCoils()) {
+            String id   = entry.blockId;
+            String name = entry.displayName;
+            if (name != null && name.startsWith("block.")) {
+                name = trimSuffixes(Component.translatable(name).getString());
             }
-            if (block == null) continue;
-            String id   = BuiltInRegistries.BLOCK.getKey(block).toString();
-            String name = trimSuffixes(Component.translatable(block.getDescriptionId()).getString());
-            if (name.isBlank()) name = coilType.getName();
-            list.add(new CoilEntry(id, name, coilType.getTier()));
+            if (name == null || name.isBlank()) name = id;
+            list.add(new CoilEntry(id, name, entry.tier));
         }
         list.sort(Comparator.comparingInt(CoilEntry::tier)
                 .thenComparing(CoilEntry::display, String.CASE_INSENSITIVE_ORDER));

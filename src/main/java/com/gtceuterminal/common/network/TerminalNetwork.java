@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TerminalNetwork {
 
-    private static final String PROTOCOL = "5";
+    private static final String PROTOCOL = "4";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,
@@ -89,7 +89,6 @@ public class TerminalNetwork {
                 .consumerMainThread(CPacketRequestUpgradeAnalysis::handle)
                 .add();
 
-
         CHANNEL.messageBuilder(SPacketOpenMultiStructureManagerUI.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketOpenMultiStructureManagerUI::encode)
                 .decoder(SPacketOpenMultiStructureManagerUI::new)
@@ -124,6 +123,12 @@ public class TerminalNetwork {
                 .encoder(SPacketAnalysisResult::encode)
                 .decoder(SPacketAnalysisResult::new)
                 .consumerMainThread(SPacketAnalysisResult::handle)
+                .add();
+
+        CHANNEL.messageBuilder(CPacketSaveManagerSettings.class,     id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(CPacketSaveManagerSettings::encode)
+                .decoder(CPacketSaveManagerSettings::new)
+                .consumerMainThread(CPacketSaveManagerSettings::handle)
                 .add();
 
         GTCEUTerminalMod.LOGGER.info("TerminalNetwork: registered {} packets", id);

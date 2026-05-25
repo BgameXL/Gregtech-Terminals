@@ -4,9 +4,9 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.dialog.ComponentUpgradeDialog;
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
-import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
@@ -211,7 +211,7 @@ public class ComponentDetailUI {
 
         y += compact ? 12 : 14;
 
-        List<ComponentGroup> groups = multiblock.getGroupedComponents();
+        List<ComponentInfoGroup> groups = multiblock.getGroupedComponents();
         int totalComponents = multiblock.getComponents().size();
         addText(infoPanel, 10, y, uiW - pad * 2 - 20,
                 Component.translatable(
@@ -246,12 +246,12 @@ public class ComponentDetailUI {
                 new ColorRectTexture(COLOR_BORDER_LIGHT)
         );
 
-        List<ComponentGroup> groups = multiblock.getGroupedComponents();
+        List<ComponentInfoGroup> groups = multiblock.getGroupedComponents();
         int yPos = 0;
         int entryH = compact ? 34 : 40;
         int step   = compact ? 38 : 45;
 
-        for (ComponentGroup group : groups) {
+        for (ComponentInfoGroup group : groups) {
             scrollWidget.addWidget(createComponentGroupEntry(group, yPos, scrollW - 10, entryH));
             yPos += step;
         }
@@ -260,7 +260,7 @@ public class ComponentDetailUI {
         return listPanel;
     }
 
-    private WidgetGroup createComponentGroupEntry(ComponentGroup group, int yPos, int entryW, int entryH) {
+    private WidgetGroup createComponentGroupEntry(ComponentInfoGroup group, int yPos, int entryW, int entryH) {
         WidgetGroup entry = new WidgetGroup(0, yPos, entryW, entryH);
         entry.setBackground(new ColorRectTexture(COLOR_BG_MEDIUM));
 
@@ -269,7 +269,7 @@ public class ComponentDetailUI {
             int dotY = compact ? 12 : 15;
             entry.addWidget(new ImageWidget(8, dotY, 8, 8, new ColorRectTexture(COLOR_SUCCESS)));
 
-            String typeName = group.getType().getDisplayNameComponent().getString();
+            String typeName = net.minecraft.network.chat.Component.literal(group.getGroup().displayName).getString();
             addText(entry, 22, compact ? 4 : 5, entryW - 120, "§f" + typeName, textScale);
 
             addText(entry, 22, compact ? 16 : 17, 120,
@@ -317,10 +317,10 @@ public class ComponentDetailUI {
         return entry;
     }
 
-    private static String tierNameForList(ComponentGroup group, ComponentInfo rep) {
+    private static String tierNameForList(ComponentInfoGroup group, ComponentInfo rep) {
         try {
-            if (group != null && group.getType() == ComponentType.COIL) {
-                return ComponentType.getCoilTierName(rep.getTier());
+            if (group != null && group.getGroup() == ComponentGroupRegistry.COIL) {
+                return com.gtceuterminal.common.multiblock.ComponentType.getCoilTierName(rep.getTier());
             }
         } catch (Throwable ignored) {}
         String s = rep != null ? rep.getTierName() : "";
@@ -410,8 +410,8 @@ public class ComponentDetailUI {
         return backBtn;
     }
 
-    private void openUpgradeDialog(ComponentGroup group) {
-        GTCEUTerminalMod.LOGGER.info("Opening upgrade dialog for group: {}", group.getType());
+    private void openUpgradeDialog(ComponentInfoGroup group) {
+        GTCEUTerminalMod.LOGGER.info("Opening upgrade dialog for group: {}", group.getGroup());
         if (gui != null && gui.mainGroup != null) {
             new ComponentUpgradeDialog(
                     gui.mainGroup,

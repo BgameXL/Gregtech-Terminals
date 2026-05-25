@@ -76,6 +76,7 @@ public enum ComponentType {
     public String getDisplayName() {
         return displayName;
     }
+
     public String getDisplayNameKey() {
         return "component.gtceuterminal.component_type." + name().toLowerCase();
     }
@@ -179,5 +180,54 @@ public enum ComponentType {
         if (this == MUFFLER) return 0x808080;      // Gray (muffler)
         if (this == COIL) return 0xFF6347;         // Red (coil)
         return 0xFFFFFF;  // White (default)
+    }
+
+    public static ComponentType fromGroup(ComponentGroup group) {
+        if (group == null) return UNKNOWN;
+        return switch (group.id) {
+            case "energy_hatch" -> ENERGY_HATCH;
+            case "dynamo_hatch" -> DYNAMO_HATCH;
+            case "wireless_energy_input" -> WIRELESS_ENERGY_INPUT;
+            case "wireless_energy_output" -> WIRELESS_ENERGY_OUTPUT;
+            case "wireless_laser_input" -> WIRELESS_LASER_INPUT;
+            case "wireless_laser_output" -> WIRELESS_LASER_OUTPUT;
+            case "substation_input" -> SUBSTATION_INPUT_ENERGY;
+            case "substation_output" -> SUBSTATION_OUTPUT_ENERGY;
+            case "input_bus" -> INPUT_BUS;
+            case "output_bus" -> OUTPUT_BUS;
+            case "steam_input_bus" -> STEAM_INPUT_BUS;
+            case "steam_output_bus" -> STEAM_OUTPUT_BUS;
+            case "input_hatch" -> INPUT_HATCH;
+            case "output_hatch" -> OUTPUT_HATCH;
+            case "input_hatch_1x" -> INPUT_HATCH_1X;
+            case "output_hatch_1x" -> OUTPUT_HATCH_1X;
+            case "quad_input_hatch" -> QUAD_INPUT_HATCH;
+            case "quad_output_hatch" -> QUAD_OUTPUT_HATCH;
+            case "nonuple_input_hatch" -> NONUPLE_INPUT_HATCH;
+            case "nonuple_output_hatch" -> NONUPLE_OUTPUT_HATCH;
+            case "input_laser" -> INPUT_LASER;
+            case "output_laser" -> OUTPUT_LASER;
+            case "muffler" -> MUFFLER;
+            case "maintenance" -> MAINTENANCE;
+            case "parallel_hatch" -> PARALLEL_HATCH;
+            case "rotor_holder" -> ROTOR_HOLDER;
+            case "dual_hatch" -> DUAL_HATCH;
+            case "coil" -> COIL;
+            case "casing" -> CASING;
+            case "pump_fluid_hatch" -> PUMP_FLUID_HATCH;
+            case "steam" -> STEAM;
+            case "tank_valve" -> TANK_VALVE;
+            case "passthrough_hatch" -> PASSTHROUGH_HATCH;
+            case "computation_data_reception" -> COMPUTATION_DATA_RECEPTION;
+            case "computation_data_transmission" -> COMPUTATION_DATA_TRANSMISSION;
+            case "optical_data_reception" -> OPTICAL_DATA_RECEPTION;
+            case "optical_data_transmission" -> OPTICAL_DATA_TRANSMISSION;
+            case "data_access" -> DATA_ACCESS;
+            case "hpca_component" -> HPCA_COMPONENT;
+            case "object_holder" -> OBJECT_HOLDER;
+            case "machine_hatch" -> MACHINE_HATCH;
+            case "filter" -> FILTER;
+            default -> UNKNOWN;
+        };
     }
 }

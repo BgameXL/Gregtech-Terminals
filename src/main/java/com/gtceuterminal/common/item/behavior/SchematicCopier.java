@@ -138,6 +138,8 @@ public final class SchematicCopier {
             clean.putBoolean("WorkingEnabled", originalTag.getBoolean("WorkingEnabled"));
         if (originalTag.contains("AllowInputFromOutputSide"))
             clean.putBoolean("AllowInputFromOutputSide", originalTag.getBoolean("AllowInputFromOutputSide"));
+        if (originalTag.contains("activeRecipeType"))
+            clean.putInt("activeRecipeType", originalTag.getInt("activeRecipeType"));
 
 
         copyString(originalTag, clean, "CustomName");

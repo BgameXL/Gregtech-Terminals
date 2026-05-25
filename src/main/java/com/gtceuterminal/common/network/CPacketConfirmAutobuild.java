@@ -135,7 +135,7 @@ public class CPacketConfirmAutobuild {
                     player.serverLevel().getBlockState(pos);
 
             ComponentInfo info = new ComponentInfo(
-                    com.gtceuterminal.common.multiblock.ComponentType.CASING,
+                    com.gtceuterminal.common.multiblock.ComponentGroupRegistry.CASING,
                     0,
                     pos,
                     state);

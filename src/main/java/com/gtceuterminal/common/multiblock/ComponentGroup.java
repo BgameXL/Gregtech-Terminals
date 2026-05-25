@@ -1,69 +1,74 @@
 package com.gtceuterminal.common.multiblock;
 
-import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Predicate;
 
-public class ComponentGroup {
-    private final ComponentType type;
-    private final int tier;
-    private final String blockName;
-    private final List<ComponentInfo> components;
+public final class ComponentGroup {
 
-    public ComponentGroup(ComponentType type, int tier, String blockName) {
-        this.type = type;
-        this.tier = tier;
-        this.blockName = blockName;
-        this.components = new ArrayList<>();
+    public final String id;
+    public final String displayName;
+    public final int color;
+    public final boolean isUpgradeable;
+    public final boolean isFluidHandler;
+    public final boolean isItemHandler;
+    public final boolean isEnergyHandler;
+    public final boolean isDataHandler;
+    public final boolean isSpecial;
+    public final int capacityMultiplier;
+    public final Predicate<Block> detector;
+    public final String registryCategory;
+
+    private ComponentGroup(Builder b) {
+        this.id                = b.id;
+        this.displayName       = b.displayName;
+        this.color             = b.color;
+        this.isUpgradeable     = b.isUpgradeable;
+        this.isFluidHandler    = b.isFluidHandler;
+        this.isItemHandler     = b.isItemHandler;
+        this.isEnergyHandler   = b.isEnergyHandler;
+        this.isDataHandler     = b.isDataHandler;
+        this.isSpecial         = b.isSpecial;
+        this.capacityMultiplier = b.capacityMultiplier;
+        this.detector          = b.detector;
+        this.registryCategory  = b.registryCategory;
     }
 
-    public void addComponent(ComponentInfo component) {
-        components.add(component);
+    public static Builder builder(String id, String displayName) {
+        return new Builder(id, displayName);
     }
 
-    public ComponentType getType() {
-        return type;
-    }
+    public static final class Builder {
+        private final String id;
+        private final String displayName;
+        private int color = 0xFFFFFF;
+        private boolean isUpgradeable = true;
+        private boolean isFluidHandler, isItemHandler, isEnergyHandler, isDataHandler, isSpecial;
+        private int capacityMultiplier = 1;
+        private Predicate<Block> detector;
+        private String registryCategory;
 
-    public int getTier() {
-        return tier;
-    }
-
-    public String getBlockName() {
-        return blockName;
-    }
-
-    public int getCount() {
-        return components.size();
-    }
-
-    public List<ComponentInfo> getComponents() {
-        return components;
-    }
-
-    public ComponentInfo getRepresentative() {
-        return components.isEmpty() ? null : components.get(0);
-    }
-
-    public String getTierName() {
-        ComponentInfo rep = getRepresentative();
-        return rep != null ? rep.getTierName() : "Unknown";
-    }
-
-    public List<BlockPos> getPositions() {
-        List<BlockPos> positions = new ArrayList<>();
-        for (ComponentInfo comp : components) {
-            positions.add(comp.getPosition());
+        private Builder(String id, String displayName) {
+            this.id = id;
+            this.displayName = displayName;
         }
-        return positions;
+
+        public Builder color(int color)                      { this.color = color; return this; }
+        public Builder notUpgradeable()                      { this.isUpgradeable = false; return this; }
+        public Builder fluidHandler()                        { this.isFluidHandler = true; return this; }
+        public Builder itemHandler()                         { this.isItemHandler = true; return this; }
+        public Builder energyHandler()                       { this.isEnergyHandler = true; return this; }
+        public Builder dataHandler()                         { this.isDataHandler = true; return this; }
+        public Builder special()                             { this.isSpecial = true; return this; }
+        public Builder capacityMultiplier(int m)             { this.capacityMultiplier = m; return this; }
+        public Builder detector(Predicate<Block> detector)   { this.detector = detector; return this; }
+        public Builder registryCategory(String cat)          { this.registryCategory = cat; return this; }
+
+        public ComponentGroup build() {
+            return new ComponentGroup(this);
+        }
     }
 
-    public static String getGroupKey(ComponentType type, int tier, String blockName) {
-        return type.name() + "_" + tier + "_" + blockName;
-    }
-
-    public String getGroupKey() {
-        return getGroupKey(type, tier, blockName);
-    }
+    @Override
+    public String toString() { return "ComponentGroup{" + id + "}"; }
 }

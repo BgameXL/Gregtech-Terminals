@@ -1,9 +1,9 @@
 package com.gtceuterminal.client.gui.dialog;
 
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
@@ -161,7 +161,7 @@ public class ComponentDetailDialog extends DialogWidget {
         title.setTextColor(COLOR_TEXT_WHITE);
         header.addWidget(title);
 
-        
+
         ButtonWidget closeBtn = new ButtonWidget(cW - 30, 4, 22, 20,
                 new GuiTextureGroup(
                         new ColorRectTexture(COLOR_BG_MEDIUM),
@@ -182,7 +182,7 @@ public class ComponentDetailDialog extends DialogWidget {
         WidgetGroup bar = new WidgetGroup(PAD, y, cW - PAD * 2, INFO_H);
         bar.setBackground(theme.panelTexture());
 
-        List<ComponentGroup> groups = multiblock.getGroupedComponents();
+        List<ComponentInfoGroup> groups = multiblock.getGroupedComponents();
         int totalComponents = multiblock.getComponents().size();
 
         String text = Component.translatable(
@@ -224,9 +224,9 @@ public class ComponentDetailDialog extends DialogWidget {
                 new ColorRectTexture(COLOR_BORDER_DARK),
                 new ColorRectTexture(COLOR_BORDER_LIGHT));
 
-        List<ComponentGroup> groups = multiblock.getGroupedComponents();
+        List<ComponentInfoGroup> groups = multiblock.getGroupedComponents();
         int yPos = 0;
-        for (ComponentGroup group : groups) {
+        for (ComponentInfoGroup group : groups) {
             scroll.addWidget(buildEntry(group, yPos, scrollW - 10));
             yPos += ENTRY_H + ENTRY_GAP;
         }
@@ -235,7 +235,7 @@ public class ComponentDetailDialog extends DialogWidget {
         return panel;
     }
 
-    private WidgetGroup buildEntry(ComponentGroup group, int yPos, int entryW) {
+    private WidgetGroup buildEntry(ComponentInfoGroup group, int yPos, int entryW) {
         WidgetGroup entry = new WidgetGroup(0, yPos, entryW, ENTRY_H);
         entry.setBackground(theme.panelTexture());
 
@@ -252,10 +252,10 @@ public class ComponentDetailDialog extends DialogWidget {
             entry.addWidget(clickArea);
         }
 
-        int dotColor = 0xFF000000 | group.getType().getColor();
+        int dotColor = 0xFF000000 | group.getGroup().color;
         entry.addWidget(new ImageWidget(8, 16, 8, 8, new ColorRectTexture(dotColor)));
 
-        String typeName = group.getType().getDisplayNameComponent().getString();
+        String typeName = net.minecraft.network.chat.Component.literal(group.getGroup().displayName).getString();
         LabelWidget typeLabel = new LabelWidget(22, 6, "§f" + typeName);
         typeLabel.setTextColor(COLOR_TEXT_WHITE);
         entry.addWidget(typeLabel);
@@ -321,17 +321,17 @@ public class ComponentDetailDialog extends DialogWidget {
         return result.length() > 24 ? result.substring(0, 23) + "…" : result;
     }
 
-    private static String tierNameForList(ComponentGroup group, ComponentInfo rep) {
+    private static String tierNameForList(ComponentInfoGroup group, ComponentInfo rep) {
         try {
-            if (group.getType() == ComponentType.COIL) {
-                return ComponentType.getCoilTierName(rep.getTier());
+            if (group.getGroup() == ComponentGroupRegistry.COIL) {
+                return com.gtceuterminal.common.multiblock.ComponentType.getCoilTierName(rep.getTier());
             }
         } catch (Throwable ignored) {}
         String s = rep.getTierName();
         return s != null ? s : "";
     }
 
-    private void openUpgradeDialog(ComponentGroup group) {
+    private void openUpgradeDialog(ComponentInfoGroup group) {
         if (this.gui == null || this.gui.mainGroup == null) return;
         new ComponentUpgradeDialog(
                 this.gui.mainGroup,

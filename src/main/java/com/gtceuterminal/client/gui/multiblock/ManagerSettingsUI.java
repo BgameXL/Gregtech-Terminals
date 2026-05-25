@@ -275,6 +275,7 @@ public class ManagerSettingsUI {
     }
     private void toggleNoHatchMode() {
         itemStack.getOrCreateTag().putInt("NoHatchMode", getNoHatchMode() == 1 ? 0 : 1);
+        syncToServer();
     }
 
     private int getTierMode() {
@@ -283,6 +284,7 @@ public class ManagerSettingsUI {
     }
     private void setTierMode(int tier) {
         itemStack.getOrCreateTag().putInt("TierMode", Math.max(1, Math.min(16, tier)));
+        syncToServer();
     }
 
     private int getRepeatCount() {
@@ -291,6 +293,7 @@ public class ManagerSettingsUI {
     }
     private void setRepeatCount(int count) {
         itemStack.getOrCreateTag().putInt("RepeatCount", Math.max(0, Math.min(99, count)));
+        syncToServer();
     }
 
     private int getIsUseAE() {
@@ -299,6 +302,17 @@ public class ManagerSettingsUI {
     }
     private void toggleIsUseAE() {
         itemStack.getOrCreateTag().putInt("IsUseAE", getIsUseAE() == 1 ? 0 : 1);
+        syncToServer();
+    }
+
+    private void syncToServer() {
+        CompoundTag snapshot = new CompoundTag();
+        for (String key : java.util.List.of("NoHatchMode", "TierMode", "RepeatCount", "IsUseAE")) {
+            CompoundTag t = itemStack.getTag();
+            if (t != null && t.contains(key)) snapshot.put(key, t.get(key));
+        }
+        com.gtceuterminal.common.network.TerminalNetwork.sendToServer(
+                new com.gtceuterminal.common.network.CPacketSaveManagerSettings(snapshot));
     }
 
     private int parseIntSafe(String value, int defaultValue) {

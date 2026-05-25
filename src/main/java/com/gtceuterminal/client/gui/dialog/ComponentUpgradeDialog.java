@@ -6,9 +6,9 @@ import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.material.MaterialAvailability;
 import com.gtceuterminal.common.material.MaterialCalculator;
-import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.network.CPacketComponentUpgrade;
 import com.gtceuterminal.common.network.TerminalNetwork;
@@ -59,7 +59,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
     private final ItemTheme theme;
     private final int colorBgDark, colorBgMedium, colorBgLight, colorBorderLight;
 
-    private final ComponentGroup   group;
+    private final ComponentInfoGroup group;
     private final MultiblockInfo   multiblock;
     private final Player           player;
     private final DialogWidget     parentDialog;
@@ -90,13 +90,13 @@ public class ComponentUpgradeDialog extends DialogWidget {
     }
 
     public ComponentUpgradeDialog(WidgetGroup parent, ComponentDetailUI parentUI,
-                                  DialogWidget parentDialog, ComponentGroup group,
+                                  DialogWidget parentDialog, ComponentInfoGroup group,
                                   MultiblockInfo multiblock, Player player) {
         this(parent, parentUI, parentDialog, group, multiblock, player, null);
     }
 
     public ComponentUpgradeDialog(WidgetGroup parent, ComponentDetailUI parentUI,
-                                  DialogWidget parentDialog, ComponentGroup group,
+                                  DialogWidget parentDialog, ComponentInfoGroup group,
                                   MultiblockInfo multiblock, Player player, ItemTheme passedTheme) {
         super(parent, true);
         this.parentUI     = parentUI;
@@ -189,7 +189,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
 
         String title = Component.translatable(
                 "gui.gtceuterminal.component_upgrade_dialog.title",
-                group.getType().getDisplayNameComponent()).getString();
+                net.minecraft.network.chat.Component.literal(group.getGroup().displayName)).getString();
         LabelWidget titleLabel = new LabelWidget(10, 9, "§f" + title);
         titleLabel.setTextColor(C_TEXT_WHITE);
         header.addWidget(titleLabel);
@@ -211,8 +211,8 @@ public class ComponentUpgradeDialog extends DialogWidget {
         ComponentInfo rep = group.getRepresentative();
         if (rep == null) return panel;
 
-        String tierName = (rep.getType() == ComponentType.COIL)
-                ? ComponentType.getCoilTierName(rep.getTier())
+        String tierName = (rep.getGroup() == ComponentGroupRegistry.COIL)
+                ? com.gtceuterminal.common.multiblock.ComponentType.getCoilTierName(rep.getTier())
                 : rep.getTierName();
 
         LabelWidget l1 = new LabelWidget(10, 6, "§f" + Component.translatable(
@@ -228,8 +228,8 @@ public class ComponentUpgradeDialog extends DialogWidget {
 
     private WidgetGroup buildOptionsPanel(int cW) {
         ComponentInfo rep = group.getRepresentative();
-        boolean special = rep != null && (rep.getType() == ComponentType.MAINTENANCE
-                || rep.getType() == ComponentType.COIL);
+        boolean special = rep != null && (rep.getGroup() == ComponentGroupRegistry.MAINTENANCE
+                || rep.getGroup() == ComponentGroupRegistry.COIL);
         int panelH = special ? 80 : OPTIONS_H_TWO;
 
         WidgetGroup panel = new WidgetGroup(PAD, OPTIONS_Y, cW - PAD * 2, panelH);
@@ -319,7 +319,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
             }
         }
         if (tiers.isEmpty()) {
-            tiers.addAll(ComponentUpgradeHelper.getAvailableTiers(rep.getType()));
+            tiers.addAll(ComponentUpgradeHelper.getAvailableTiers(rep.getGroup()));
             tiers.remove(rep.getTier());
         }
         return new ArrayList<>(tiers);
@@ -329,12 +329,12 @@ public class ComponentUpgradeDialog extends DialogWidget {
         if (optionsScroll == null) return;
         optionsScroll.clearAllWidgets();
 
-        if (rep.getType() == ComponentType.MAINTENANCE) {
+        if (rep.getGroup() == ComponentGroupRegistry.MAINTENANCE) {
             UpgradeCandidateGrid.buildMaintenanceGrid(rep, optionsScroll, selectedUpgradeId,
                     colorBgLight, colorBorderLight, this::selectUpgrade);
             return;
         }
-        if (rep.getType() == ComponentType.COIL) {
+        if (rep.getGroup() == ComponentGroupRegistry.COIL) {
             UpgradeCandidateGrid.buildCoilGrid(rep, optionsScroll, selectedUpgradeId,
                     colorBgLight, colorBorderLight, this::selectUpgrade);
             return;
@@ -346,7 +346,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
     }
 
     private void buildFallbackTierGrid(ComponentInfo rep) {
-        List<Integer> tiers = ComponentUpgradeHelper.getAvailableTiers(rep.getType());
+        List<Integer> tiers = ComponentUpgradeHelper.getAvailableTiers(rep.getGroup());
         int btnW = 48, btnH = 24, spacing = 3, perRow = 7, xPos = 0, yPos = 0, added = 0;
 
         optionsScroll.addWidget(UpgradeCandidateGrid.makeOptionBtn(

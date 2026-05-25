@@ -25,14 +25,7 @@ import java.util.Set;
 
 /**
  * Multiblock Scanner
- * Detects multiblocks from ANY mod/modpack that uses the GTCEu API:
- * Examples:
- * - GTCEu
- * - AGE (AstroGreg:Exsilium)
- * - Monifactory
- * - TFG (TerraFirmaGreg)
- * - Any other modpack using GTCEu 7.0.0 and newer versions
- * Maintains the existing API for compatibility with the rest of the code.
+ * Detects multiblocks from ANY mod/modpack that uses the GTCEu API, without needing hardcoded support.
  */
 public class MultiblockScanner {
 
@@ -174,79 +167,16 @@ public class MultiblockScanner {
     }
 
 
-    // Create a ComponentInfo from the universal scanner data
     private static ComponentInfo createComponentInfo(String category, ComponentData comp, Level level) {
         try {
-            ComponentType type = parseComponentType(category);
+            ComponentGroup group = ComponentGroupRegistry.fromCategory(category);
             BlockPos pos = comp.getPosition();
-
             BlockState state = level.getBlockState(pos);
-
-            return new ComponentInfo(
-                    type,
-                    comp.getTier(),
-                    pos,
-                    state
-            );
+            return new ComponentInfo(group, comp.getTier(), pos, state);
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("Could not create component info for {}: {}",
-                    category, e.getMessage());
+            GTCEUTerminalMod.LOGGER.warn("Could not create component info for {}: {}", category, e.getMessage());
             return null;
         }
-    }
-
-    private static ComponentType parseComponentType(String category) {
-        String lower = category.toLowerCase();
-
-        if (lower.contains("wireless")) {
-            if (lower.contains("energy")) {
-                if (lower.contains("output")) {
-                    return ComponentType.WIRELESS_ENERGY_OUTPUT;
-                }
-                return ComponentType.WIRELESS_ENERGY_INPUT;
-            }
-            if (lower.contains("laser")) {
-                if (lower.contains("source") || lower.contains("output")) {
-                    return ComponentType.WIRELESS_LASER_OUTPUT;
-                }
-                return ComponentType.WIRELESS_LASER_INPUT;
-            }
-        }
-
-        if (lower.contains("substation")) {
-            if (lower.contains("input") || lower.contains("input energy")) {
-                return ComponentType.SUBSTATION_INPUT_ENERGY;
-            }
-            if (lower.contains("output") || lower.contains("output energy")) {
-                return ComponentType.SUBSTATION_OUTPUT_ENERGY;
-            }
-        }
-
-        if (lower.contains("laser")) {
-            if (lower.contains("input") || lower.contains("target")) {
-                return ComponentType.INPUT_LASER;
-            }
-            if (lower.contains("output") || lower.contains("source")) {
-                return ComponentType.OUTPUT_LASER;
-            }
-        }
-
-        for (ComponentType type : ComponentType.values()) {
-            if (type.getDisplayName().equalsIgnoreCase(category)) {
-                return type;
-            }
-
-            String categoryWithoutAmperage = category.replaceFirst("^\\d+A\\s+", "");
-            if (type.getDisplayName().equalsIgnoreCase(categoryWithoutAmperage)) {
-                return type;
-            }
-        }
-
-        if (lower.contains("coil")) return ComponentType.COIL;
-        if (lower.contains("casing")) return ComponentType.CASING;
-
-        GTCEUTerminalMod.LOGGER.warn("Unknown component type: {}", category);
-        return ComponentType.UNKNOWN;
     }
 
     public static Set<BlockPos> getMultiblockBlocks(IMultiController controller) {

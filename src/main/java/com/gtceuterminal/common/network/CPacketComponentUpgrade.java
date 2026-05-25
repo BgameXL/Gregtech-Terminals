@@ -5,7 +5,8 @@ import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.multiblock.ComponentType;
+import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.upgrade.ComponentUpgrader;
 
 import net.minecraft.core.BlockPos;
@@ -96,7 +97,7 @@ public class CPacketComponentUpgrade {
                 var state = player.level().getBlockState(pos);
                 var block = state.getBlock();
 
-                ComponentType type = detectComponentType(block);
+                ComponentGroup type = detectComponentType(block);
                 int currentTier = detectTier(block);
 
                 boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
@@ -105,7 +106,7 @@ public class CPacketComponentUpgrade {
                     continue;
                 }
 
-                if (type == ComponentType.COIL) {
+                if (type == ComponentGroupRegistry.COIL) {
                 }
 
                 ComponentInfo component = new ComponentInfo(type, currentTier, pos, state);
@@ -121,7 +122,7 @@ public class CPacketComponentUpgrade {
 
                 if (result.success) {
                     upgraded++;
-                    if (type == ComponentType.COIL) upgradedCoils = true;
+                    if (type == ComponentGroupRegistry.COIL) upgradedCoils = true;
                 } else {
                     failed++;
                 }
@@ -227,54 +228,54 @@ public class CPacketComponentUpgrade {
         return ItemStack.EMPTY;
     }
 
-    private ComponentType detectComponentType(net.minecraft.world.level.block.Block block) {
+    private ComponentGroup detectComponentType(net.minecraft.world.level.block.Block block) {
         String blockId = block.builtInRegistryHolder().key().location().toString().toLowerCase();
 
         if (blockId.contains("wireless")) {
             if (blockId.contains("energy")) {
-                if (blockId.contains("input")) return ComponentType.WIRELESS_ENERGY_INPUT;
-                if (blockId.contains("output")) return ComponentType.WIRELESS_ENERGY_OUTPUT;
+                if (blockId.contains("input")) return ComponentGroupRegistry.WIRELESS_ENERGY_INPUT;
+                if (blockId.contains("output")) return ComponentGroupRegistry.WIRELESS_ENERGY_OUTPUT;
             }
             if (blockId.contains("laser")) {
-                if (blockId.contains("target") || blockId.contains("input")) return ComponentType.WIRELESS_LASER_INPUT;
-                if (blockId.contains("source") || blockId.contains("output")) return ComponentType.WIRELESS_LASER_OUTPUT;
+                if (blockId.contains("target") || blockId.contains("input")) return ComponentGroupRegistry.WIRELESS_LASER_INPUT;
+                if (blockId.contains("source") || blockId.contains("output")) return ComponentGroupRegistry.WIRELESS_LASER_OUTPUT;
             }
         }
 
         if (blockId.contains("substation")) {
-            if (blockId.contains("input")) return ComponentType.SUBSTATION_INPUT_ENERGY;
-            if (blockId.contains("output")) return ComponentType.SUBSTATION_OUTPUT_ENERGY;
+            if (blockId.contains("input")) return ComponentGroupRegistry.SUBSTATION_INPUT;
+            if (blockId.contains("output")) return ComponentGroupRegistry.SUBSTATION_OUTPUT;
         }
 
         if (blockId.contains("laser")) {
-            if (blockId.contains("target") || blockId.contains("input")) return ComponentType.INPUT_LASER;
-            if (blockId.contains("source") || blockId.contains("output")) return ComponentType.OUTPUT_LASER;
+            if (blockId.contains("target") || blockId.contains("input")) return ComponentGroupRegistry.INPUT_LASER;
+            if (blockId.contains("source") || blockId.contains("output")) return ComponentGroupRegistry.OUTPUT_LASER;
         }
 
-        if (blockId.contains("energy") && blockId.contains("input")) return ComponentType.ENERGY_HATCH;
-        if (blockId.contains("dynamo")) return ComponentType.DYNAMO_HATCH;
-        if (blockId.contains("energy") && blockId.contains("output")) return ComponentType.DYNAMO_HATCH;
+        if (blockId.contains("energy") && blockId.contains("input")) return ComponentGroupRegistry.ENERGY_HATCH;
+        if (blockId.contains("dynamo")) return ComponentGroupRegistry.DYNAMO_HATCH;
+        if (blockId.contains("energy") && blockId.contains("output")) return ComponentGroupRegistry.DYNAMO_HATCH;
 
-        if (blockId.contains("coil")) return ComponentType.COIL;
+        if (blockId.contains("coil")) return ComponentGroupRegistry.COIL;
 
         if (blockId.contains("quadruple") && blockId.contains("input"))
-            return ComponentType.QUAD_INPUT_HATCH;
+            return ComponentGroupRegistry.QUAD_INPUT_HATCH;
         if (blockId.contains("quadruple") && blockId.contains("output"))
-            return ComponentType.QUAD_OUTPUT_HATCH;
+            return ComponentGroupRegistry.QUAD_OUTPUT_HATCH;
         if (blockId.contains("nonuple") && blockId.contains("input"))
-            return ComponentType.NONUPLE_INPUT_HATCH;
+            return ComponentGroupRegistry.NONUPLE_INPUT_HATCH;
         if (blockId.contains("nonuple") && blockId.contains("output"))
-            return ComponentType.NONUPLE_OUTPUT_HATCH;
+            return ComponentGroupRegistry.NONUPLE_OUTPUT_HATCH;
 
-        if (blockId.contains("input_hatch")) return ComponentType.INPUT_HATCH;
-        if (blockId.contains("output_hatch")) return ComponentType.OUTPUT_HATCH;
+        if (blockId.contains("input_hatch")) return ComponentGroupRegistry.INPUT_HATCH;
+        if (blockId.contains("output_hatch")) return ComponentGroupRegistry.OUTPUT_HATCH;
 
-        if (blockId.contains("input_bus")) return ComponentType.INPUT_BUS;
-        if (blockId.contains("output_bus")) return ComponentType.OUTPUT_BUS;
+        if (blockId.contains("input_bus")) return ComponentGroupRegistry.INPUT_BUS;
+        if (blockId.contains("output_bus")) return ComponentGroupRegistry.OUTPUT_BUS;
 
-        if (blockId.contains("maintenance")) return ComponentType.MAINTENANCE;
-        if (blockId.contains("muffler")) return ComponentType.MUFFLER;
-        if (blockId.contains("parallel")) return ComponentType.PARALLEL_HATCH;
+        if (blockId.contains("maintenance")) return ComponentGroupRegistry.MAINTENANCE;
+        if (blockId.contains("muffler")) return ComponentGroupRegistry.MUFFLER;
+        if (blockId.contains("parallel")) return ComponentGroupRegistry.PARALLEL_HATCH;
 
         return null;
     }

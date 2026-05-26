@@ -119,7 +119,9 @@ public class MultiblockInfo {
     }
 
     public void addComponent(ComponentInfo component) {
-        components.add(component);
+        boolean duplicate = components.stream()
+                .anyMatch(c -> c.getPosition().equals(component.getPosition()));
+        if (!duplicate) components.add(component);
     }
 
     public MultiblockStatus getStatus() {

@@ -93,7 +93,9 @@ public class CPacketComponentUpgrade {
             int upgraded = 0;
             int failed = 0;
 
+            java.util.Set<BlockPos> seen = new java.util.HashSet<>();
             for (BlockPos pos : positions) {
+                if (!seen.add(pos)) continue;
                 var state = player.level().getBlockState(pos);
                 var block = state.getBlock();
 

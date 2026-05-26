@@ -117,6 +117,8 @@ final class BlockIdClassifier {
             return new UniversalMultiblockScanner.ComponentData(group.id, name, tier, pos);
         }
 
+        if (blockState.getBlock() instanceof com.gregtechceu.gtceu.api.block.MetaMachineBlock) return null;
+
         return new UniversalMultiblockScanner.ComponentData(
                 "casing", blockState.getBlock().getName().getString(), 0, pos);
     }

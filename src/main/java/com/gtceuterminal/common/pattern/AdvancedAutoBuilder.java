@@ -1,9 +1,7 @@
 package com.gtceuterminal.common.pattern;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.ae2.MENetworkExtractor;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
@@ -182,9 +180,14 @@ public class AdvancedAutoBuilder {
                                         BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
                                 InteractionResult result = itemBlock.place(context);
                                 if (result != InteractionResult.FAIL) {
-                                    placedByUs.add(pos);
-                                    placedCount++;
-                                    if (handler != null) handler.extractItem(foundSlot, 1, false);
+                                    worldState.update(pos, predicate);
+                                    if (!predicate.test(worldState)) {
+                                        world.removeBlock(pos, false);
+                                    } else {
+                                        placedByUs.add(pos);
+                                        placedCount++;
+                                        if (handler != null) handler.extractItem(foundSlot, 1, false);
+                                    }
                                 }
 
                                 if (world.getBlockEntity(pos) instanceof IMachineBlockEntity mbe) blocks.put(pos, mbe.getMetaMachine());
@@ -231,15 +234,6 @@ public class AdvancedAutoBuilder {
         for (int i = 0; i < handler.getSlots(); i++) {
             ItemStack stack = handler.getStackInSlot(i);
             if (stack.isEmpty()) continue;
-
-            if (isUseAE == 1 && WirelessTerminalHandler.isWirelessTerminal(stack)
-                    && WirelessTerminalHandler.isLinked(stack)) {
-                ItemStack extracted = MENetworkExtractor.tryExtractCandidateFromLinkedTerminal(candidates, player);
-                if (extracted != null) {
-                    NonNullList<ItemStack> stacks = NonNullList.withSize(1, extracted);
-                    return IntObjectPair.of(0, new ItemStackHandler(stacks));
-                }
-            }
 
             if (candidates.stream().anyMatch(c -> ItemStack.isSameItemSameTags(c, stack))
                     && !stack.isEmpty() && stack.getItem() instanceof BlockItem) {

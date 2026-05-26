@@ -2,7 +2,6 @@ package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import com.gtceuterminal.common.upgrade.ComponentUpgrader;
 import com.gtceuterminal.common.config.ManagerSettings;
@@ -87,21 +86,18 @@ public class CPacketConfirmAutobuild {
         BlockEntity be = player.serverLevel().getBlockEntity(controllerPos);
         if (!(be instanceof com.gregtechceu.gtceu.api.machine.IMachineBlockEntity mbe)) {
             msg(player,
-                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.controller_not_found"),
-                    false);
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.controller_not_found"), false);
             return;
         }
         MetaMachine machine = mbe.getMetaMachine();
         if (!(machine instanceof IMultiController controller)) {
             msg(player,
-                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.target_not_multiblock_controller"),
-                    false);
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.target_not_multiblock_controller"), false);
             return;
         }
         if (controller.isFormed()) {
             msg(player,
-                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.multiblock_already_formed"),
-                    true);
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.multiblock_already_formed"), true);
             return;
         }
 
@@ -127,7 +123,7 @@ public class CPacketConfirmAutobuild {
             return;
         }
 
-        ItemStack terminal = findTerminal(player);
+        ItemStack terminal = ItemStack.EMPTY;
         int succeeded = 0, failed = 0;
 
         for (BlockPos pos : componentPositions) {
@@ -155,21 +151,14 @@ public class CPacketConfirmAutobuild {
         if (succeeded > 0) {
             if (failed > 0) {
                 msg(player,
-                        Component.translatable(
-                                "item.gtceuterminal.autocraft_confirm.message.upgrade_success_with_failed",
-                                succeeded, failed),
-                        false);
+                        Component.translatable("item.gtceuterminal.autocraft_confirm.message.upgrade_success_with_failed", succeeded, failed), false);
             } else {
                 msg(player,
-                        Component.translatable(
-                                "item.gtceuterminal.autocraft_confirm.message.upgrade_success_no_failed",
-                                succeeded),
-                        false);
+                        Component.translatable("item.gtceuterminal.autocraft_confirm.message.upgrade_success_no_failed", succeeded), false);
             }
         } else {
             msg(player,
-                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.upgrade_failed_check_materials"),
-                    false);
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.upgrade_failed_check_materials"), false);
         }
     }
 
@@ -189,16 +178,6 @@ public class CPacketConfirmAutobuild {
             }
         }
         return new ManagerSettings.AutoBuildSettings();
-    }
-
-    private static ItemStack findTerminal(ServerPlayer player) {
-        for (ItemStack s : player.getInventory().items) {
-            if (WirelessTerminalHandler.isWirelessTerminal(s)
-                    && WirelessTerminalHandler.isLinked(s)) return s;
-        }
-        ItemStack main = player.getMainHandItem();
-        if (WirelessTerminalHandler.isWirelessTerminal(main)) return main;
-        return ItemStack.EMPTY;
     }
 
     private static void msg(ServerPlayer p, Component component, boolean actionBar) {

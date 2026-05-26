@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ComponentRegistry;
 
@@ -225,7 +226,7 @@ public final class ComponentGroupRegistry {
             if (g.detector != null && g.detector.test(block)) return g;
         }
 
-        if (blockId.contains("coil"))   return COIL;
+        if (block instanceof CoilBlock)                                  return COIL;
         if (blockId.contains("casing")) return CASING;
 
         return UNKNOWN;
@@ -252,7 +253,7 @@ public final class ComponentGroupRegistry {
         }
         if (lower.contains("substation")) return lower.contains("output") ? SUBSTATION_OUTPUT : SUBSTATION_INPUT;
         if (lower.contains("laser"))      return lower.contains("output") ? OUTPUT_LASER : INPUT_LASER;
-        if (lower.contains("coil"))       return COIL;
+        if (lower.contains("coil") && !lower.contains("fusion") && !lower.contains("superconducting"))       return COIL;
         if (lower.contains("casing"))     return CASING;
 
         GTCEUTerminalMod.LOGGER.warn("ComponentGroupRegistry: unknown category '{}'", category);

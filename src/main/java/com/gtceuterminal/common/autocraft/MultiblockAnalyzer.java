@@ -1,11 +1,10 @@
 package com.gtceuterminal.common.autocraft;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
+import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import com.gtceuterminal.common.config.ManagerSettings;
-import com.gtceuterminal.common.pattern.CandidateFilter;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
@@ -18,17 +17,19 @@ import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
-import appeng.api.networking.IGrid;
-import appeng.api.networking.crafting.ICraftingService;
-import appeng.api.networking.storage.IStorageService;
-import appeng.api.stacks.AEItemKey;
+
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+
+import com.gtceuterminal.common.pattern.CandidateFilter;
+
 import net.minecraft.world.item.BlockItem;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 public final class MultiblockAnalyzer {
@@ -98,7 +99,7 @@ public final class MultiblockAnalyzer {
                 }
             }
 
-            return buildEntries(needed, player, controller.self().getPos(), settings.isUseAE);
+            return buildEntries(needed, player, controller.self().getPos(), 0);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForBuild failed", e);
@@ -123,7 +124,7 @@ public final class MultiblockAnalyzer {
         }
 
         try {
-            AnalysisResult base = buildEntries(needed, player, controllerPos);
+            AnalysisResult base = buildEntries(needed, player, controllerPos, 0);
             if (base == null) return null;
             return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId, positions);
         } catch (Exception e) {
@@ -134,65 +135,13 @@ public final class MultiblockAnalyzer {
 
     private static AnalysisResult buildEntries(Map<Item, Integer> needed,
                                                Player player,
-                                               BlockPos controllerPos) {
-        return buildEntries(needed, player, controllerPos, 1);
-    }
-
-    private static AnalysisResult buildEntries(Map<Item, Integer> needed,
-                                               Player player,
                                                BlockPos controllerPos,
                                                int isUseAE) {
-        IGrid grid = isUseAE == 1 ? getGrid(player) : null;
-        IStorageService   storage  = grid != null ? grid.getStorageService()   : null;
-        ICraftingService  crafting = grid != null ? grid.getCraftingService()   : null;
-
         List<AnalysisResult.Entry> entries = new ArrayList<>();
         for (Map.Entry<Item, Integer> e : needed.entrySet()) {
-            ItemStack stack = new ItemStack(e.getKey(), e.getValue());
-            long   inME     = 0;
-            boolean craftable = false;
-
-            if (storage != null) {
-                AEItemKey key = AEItemKey.of(stack);
-                inME      = storage.getInventory().getAvailableStacks().get(key);
-                if (crafting != null) {
-                    try {
-                        craftable = crafting.isCraftable(key);
-                    } catch (Exception ex) {
-                        GTCEUTerminalMod.LOGGER.debug(
-                                "MultiblockAnalyzer: isCraftable failed for {}: {}",
-                                stack.getItem().getDescriptionId(), ex.getMessage());
-                        craftable = false;
-                    }
-                }
-            }
-            entries.add(new AnalysisResult.Entry(stack, inME, craftable));
+            entries.add(new AnalysisResult.Entry(new ItemStack(e.getKey(), e.getValue()), 0, false));
         }
-
         return new AnalysisResult(entries, controllerPos);
-    }
-
-    private static IGrid getGrid(Player player) {
-        try {
-            for (ItemStack s : allStacks(player)) {
-                if (WirelessTerminalHandler.isWirelessTerminal(s)
-                        && WirelessTerminalHandler.isLinked(s)) {
-                    IGrid g = WirelessTerminalHandler.getLinkedGrid(s, player.level(), player);
-                    if (g != null) return g;
-                }
-            }
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.debug("MultiblockAnalyzer: could not resolve ME grid from wireless terminal", e);
-        }
-        return null;
-    }
-
-    private static Iterable<ItemStack> allStacks(Player player) {
-        List<ItemStack> all = new ArrayList<>();
-        all.add(player.getMainHandItem());
-        all.add(player.getOffhandItem());
-        all.addAll(player.getInventory().items);
-        return all;
     }
 
     private static int getRepetitions(int slice, int[][] aisleReps, int repeatCount) {

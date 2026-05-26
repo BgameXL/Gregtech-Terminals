@@ -7,6 +7,7 @@ import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
+import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gtceuterminal.common.upgrade.ComponentUpgrader;
 
 import net.minecraft.core.BlockPos;
@@ -256,7 +257,7 @@ public class CPacketComponentUpgrade {
         if (blockId.contains("dynamo")) return ComponentGroupRegistry.DYNAMO_HATCH;
         if (blockId.contains("energy") && blockId.contains("output")) return ComponentGroupRegistry.DYNAMO_HATCH;
 
-        if (blockId.contains("coil")) return ComponentGroupRegistry.COIL;
+        if (block instanceof CoilBlock) return ComponentGroupRegistry.COIL;
 
         if (blockId.contains("quadruple") && blockId.contains("input"))
             return ComponentGroupRegistry.QUAD_INPUT_HATCH;

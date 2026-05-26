@@ -37,20 +37,7 @@ public final class GTCEuReader {
                     .build());
         }
 
-        addFusionCoilEntry(entries, "gtceu:superconducting_coil", "Superconducting Coil Block", GTValues.UV);
-        addFusionCoilEntry(entries, "gtceu:fusion_coil",          "Fusion Coil Block",          GTValues.UV);
-
         return entries;
-    }
-
-    private static void addFusionCoilEntry(List<ComponentEntry> entries, String blockId, String displayName, int tier) {
-        var block = BuiltInRegistries.BLOCK.get(new net.minecraft.resources.ResourceLocation(
-                blockId.contains(":") ? blockId.split(":")[0] : "gtceu",
-                blockId.contains(":") ? blockId.split(":")[1] : blockId));
-        if (block == null || block == net.minecraft.world.level.block.Blocks.AIR) return;
-        entries.add(ComponentEntry.builder(blockId, displayName, GTValues.VN[tier], tier)
-                .attr("coilType", "fusion")
-                .build());
     }
 
     public static List<ComponentEntry> readFluidHatches() {

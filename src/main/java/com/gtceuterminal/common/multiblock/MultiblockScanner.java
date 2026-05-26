@@ -34,8 +34,6 @@ public class MultiblockScanner {
         BlockPos playerPos = player.blockPosition();
         Vec3 playerVec = player.position();
 
-        GTCEUTerminalMod.LOGGER.info("=== Universal Multiblock Scan Started ===");
-        // GTCEUTerminalMod.LOGGER.info("Position: {}, Radius: {}", playerPos, radius);
 
         List<DetectedMultiblock> detected = UniversalMultiblockScanner.scanForAllMultiblocks(
                 level,
@@ -67,9 +65,6 @@ public class MultiblockScanner {
                 .map(DetectedMultiblock::getModId)
                 .distinct()
                 .count();
-        // GTCEUTerminalMod.LOGGER.info("=== Scan Complete ===");
-        // GTCEUTerminalMod.LOGGER.info("Total multiblocks: {}", multiblocks.size());
-        // GTCEUTerminalMod.LOGGER.info("From {} different mods", uniqueMods);
         return multiblocks;
     }
 
@@ -119,12 +114,7 @@ public class MultiblockScanner {
 
         /**
          * DEBUG
-         GTCEUTerminalMod.LOGGER.info("=== Distance Calculation ===");
          GTCEUTerminalMod.LOGGER.info("Multiblock: {}", detected.getName());
-         GTCEUTerminalMod.LOGGER.info("Player Position: {}", playerPos);
-         GTCEUTerminalMod.LOGGER.info("Controller Position: {}", controllerPos);
-         GTCEUTerminalMod.LOGGER.info("Controller Center: {}", Vec3.atCenterOf(controllerPos));
-         GTCEUTerminalMod.LOGGER.info("Calculated Distance: {}m", String.format("%.2f", distance));
          */
 
         MultiblockInfo info = new MultiblockInfo(
@@ -143,8 +133,6 @@ public class MultiblockScanner {
                     .getMultiblockBlocksPublic(detected.getController(), level);
             if (allPos != null && !allPos.isEmpty()) {
                 info.setAllBlockPositions(allPos);
-                GTCEUTerminalMod.LOGGER.debug("Stored {} block positions for highlight of '{}'",
-                        allPos.size(), detected.getName());
             }
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.warn("Failed to pre-compute block positions for '{}': {}",

@@ -180,14 +180,9 @@ public class AdvancedAutoBuilder {
                                         BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
                                 InteractionResult result = itemBlock.place(context);
                                 if (result != InteractionResult.FAIL) {
-                                    worldState.update(pos, predicate);
-                                    if (!predicate.test(worldState)) {
-                                        world.removeBlock(pos, false);
-                                    } else {
-                                        placedByUs.add(pos);
-                                        placedCount++;
-                                        if (handler != null) handler.extractItem(foundSlot, 1, false);
-                                    }
+                                    placedByUs.add(pos);
+                                    placedCount++;
+                                    if (handler != null) handler.extractItem(foundSlot, 1, false);
                                 }
 
                                 if (world.getBlockEntity(pos) instanceof IMachineBlockEntity mbe) blocks.put(pos, mbe.getMetaMachine());

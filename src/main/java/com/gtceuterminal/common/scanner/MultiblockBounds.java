@@ -105,14 +105,15 @@ final class MultiblockBounds {
 
     private static boolean isCandidate(BlockState state) {
         if (state == null || state.isAir()) return false;
+        if (state.isAir()) return false;
+        if (com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(state.getBlock())
+                != com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) return true;
         try {
             String ns = state.getBlock().builtInRegistryHolder().key().location().getNamespace();
-            if ("gtceu".equals(ns)) return true;
+            return !"minecraft".equals(ns);
         } catch (IllegalStateException e) {
             GTCEUTerminalMod.LOGGER.debug("MultiblockBounds: could not read block namespace: {}", e.getMessage());
+            return false;
         }
-        if (ComponentRegistry.coilTier(state) >= 0) return true;
-        var group = com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(state.getBlock());
-        return group != com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN;
     }
 }

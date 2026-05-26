@@ -103,23 +103,18 @@ public class MachineInferencer {
             return new MachineSnapshot(0, MachineState.UNKNOWN);
         }
 
-        if (isDebug()) LOGGER.debug("{}", "=== MachineInferencer for " + pos + " ===");
 
         boolean isMultiblock = metaMachine instanceof IMultiController;
         boolean hasRecipeLogic = metaMachine instanceof IRecipeLogicMachine;
-        if (isDebug()) LOGGER.debug("{}", "  Is Multiblock: " + isMultiblock);
-        if (isDebug()) LOGGER.debug("{}", "  Has Recipe Logic: " + hasRecipeLogic);
 
         MachineSnapshot energySnapshot = inferFromEnergyContainerWithDelta(metaMachine, pos);
         if (energySnapshot != null && energySnapshot.euPerTick > 0) {
-            if (isDebug()) LOGGER.debug("{}", "  -> Used energy container delta: " + energySnapshot.euPerTick + " EU/t");
             return energySnapshot;
         }
 
         if (metaMachine instanceof IMultiController controller) {
             MachineSnapshot result = inferMultiblockController(controller);
             if (result.euPerTick > 0 || energySnapshot == null) {
-                if (isDebug()) LOGGER.debug("{}", "  -> Multiblock: " + result.euPerTick + " EU/t, state=" + result.state);
                 return result;
             }
         }
@@ -130,22 +125,17 @@ public class MachineInferencer {
 
         if (metaMachine instanceof IRecipeLogicMachine machine) {
             MachineSnapshot result = inferRecipeLogicMachine(machine);
-            if (isDebug()) LOGGER.debug("{}", "  -> Recipe machine: " + result.euPerTick + " EU/t");
             return result;
         }
 
-        if (isDebug()) LOGGER.debug("  -> Fallback: RUNNING with 0 EU/t");
         return new MachineSnapshot(0, MachineState.RUNNING);
     }
 
     private static MachineSnapshot inferFromEnergyContainerWithDelta(MetaMachine metaMachine, BlockPos pos) {
         try {
-            if (isDebug()) LOGGER.debug("  [DEBUG] Checking for Energy Container trait...");
 
             var traits = metaMachine.getTraits();
-            if (isDebug()) LOGGER.debug("{}", "  [DEBUG] Total traits: " + traits.size());
             for (var trait : traits) {
-                if (isDebug()) LOGGER.debug(String.valueOf("    [DEBUG] Trait: " + trait.getClass().getSimpleName()));
             }
 
             var energyContainerOpt = metaMachine.getTraits().stream()
@@ -153,17 +143,14 @@ public class MachineInferencer {
                     .map(IEnergyContainer.class::cast)
                     .findFirst();
 
-            if (isDebug()) LOGGER.debug("{}", "  [DEBUG] IEnergyContainer present: " + energyContainerOpt.isPresent());
 
             if (!energyContainerOpt.isPresent()) {
                 var powerStationOpt = metaMachine.getTraits().stream()
                         .filter(trait -> trait.getClass().getSimpleName().equals("PowerStationEnergyBank"))
                         .findFirst();
 
-                if (isDebug()) LOGGER.debug("{}", "  [DEBUG] PowerStationEnergyBank present: " + powerStationOpt.isPresent());
 
                 if (powerStationOpt.isPresent()) {
-                    if (isDebug()) LOGGER.debug("  [DEBUG] Detected Power Substation - attempting reflection access");
                     return inferFromPowerStationBank(powerStationOpt.get(), pos);
                 }
             }
@@ -178,10 +165,6 @@ public class MachineInferencer {
                 long inputVoltage = energyContainer.getInputVoltage();
                 long inputAmperage = energyContainer.getInputAmperage();
 
-                if (isDebug()) LOGGER.debug("  Energy Container found:");
-                if (isDebug()) LOGGER.debug("{}", "    Stored: " + storedEnergy + " / " + maxEnergy);
-                if (isDebug()) LOGGER.debug(String.valueOf("    Output: " + outputVoltage + "V × " + outputAmperage + "A = " + (outputVoltage * outputAmperage) + " EU/t"));
-                if (isDebug()) LOGGER.debug(String.valueOf("    Input: " + inputVoltage + "V × " + inputAmperage + "A = " + (inputVoltage * inputAmperage) + " EU/t"));
 
                 long theoreticalOutput = outputVoltage * outputAmperage;
 
@@ -196,7 +179,6 @@ public class MachineInferencer {
                         long energyDelta = Math.abs(storedEnergy - tracker.lastEnergy);
 
                         tracker.calculatedEuPerTick = (int) ((energyDelta * 1000) / (timeDelta * 20));
-                        if (isDebug()) LOGGER.debug(String.valueOf("    Delta calculated: " + tracker.calculatedEuPerTick + " EU/t (from " + energyDelta + " EU over " + timeDelta + "ms)"));
                     }
                 }
 
@@ -207,11 +189,9 @@ public class MachineInferencer {
 
                 if (tracker.calculatedEuPerTick > 0) {
                     eut = tracker.calculatedEuPerTick;
-                    if (isDebug()) LOGGER.debug("{}", "    Using delta EU/t: " + eut);
                 }
                 else if (theoreticalOutput > 0 || theoreticalInput > 0) {
                     eut = (int) Math.min(Math.max(theoreticalOutput, theoreticalInput), Integer.MAX_VALUE);
-                    if (isDebug()) LOGGER.debug(String.valueOf("    Using theoretical capacity: " + eut + " EU/t (buffer/battery)"));
                 }
 
                 MachineState state;
@@ -225,7 +205,6 @@ public class MachineInferencer {
                     state = MachineState.IDLE_NO_RECIPE;
                 }
 
-                if (isDebug()) LOGGER.debug("{}", "    Final EU/t: " + eut + ", State: " + state);
                 return new MachineSnapshot(
                         eut,
                         state,
@@ -303,20 +282,16 @@ public class MachineInferencer {
             } catch (Exception e) {
             }
 
-            if (isDebug()) LOGGER.debug(String.valueOf("    Stored: " + storedEnergy + " EU (" + fillPercent + "% full)"));
 
             long inputPerTick = inputPerSec / 20;
             long outputPerTick = Math.abs(outputPerSec) / 20;
 
             if (inputPerTick > 0 || outputPerTick > 0) {
-                if (isDebug()) LOGGER.debug(String.valueOf("    Input: " + inputPerTick + " EU/t (" + inputPerSec + " EU/s)"));
-                if (isDebug()) LOGGER.debug(String.valueOf("    Output: " + outputPerTick + " EU/t (" + outputPerSec + " EU/s)"));
             }
 
             long flowRate = Math.max(inputPerTick, outputPerTick);
 
             if (flowRate > 0) {
-                if (isDebug()) LOGGER.debug("{}", "    → Showing REAL flow rate: " + flowRate + " EU/t");
             } else {
                 long maxEnergy = bigCapacity.compareTo(java.math.BigInteger.valueOf(Long.MAX_VALUE)) > 0
                         ? Long.MAX_VALUE
@@ -340,7 +315,6 @@ public class MachineInferencer {
                 }
 
                 flowRate = eut;
-                if (isDebug()) LOGGER.debug(String.valueOf("    → Showing capacity estimate: " + flowRate + " EU/t (idle)"));
             }
 
             MachineState state;
@@ -388,7 +362,6 @@ public class MachineInferencer {
             int eut = getEuPerTick(logic);
 
             if (maxVoltageCapacity > eut) {
-                if (isDebug()) LOGGER.debug("{}", "  Multiblock running: using " + eut + " EU/t, capacity " + maxVoltageCapacity + " EU/t");
                 return new MachineSnapshot(maxVoltageCapacity, MachineState.RUNNING);
             }
 
@@ -421,7 +394,6 @@ public class MachineInferencer {
             }
 
             if (maxVoltage > 0) {
-                if (isDebug()) LOGGER.debug("{}", "  [DEBUG] Max energy hatch voltage: " + maxVoltage + "V");
             }
 
             return (int) Math.min(maxVoltage, Integer.MAX_VALUE);
@@ -452,32 +424,26 @@ public class MachineInferencer {
 
     private static int getEuPerTick(RecipeLogic logic) {
         try {
-            if (isDebug()) LOGGER.debug("  Getting EU/t from RecipeLogic...");
 
             var recipeField = logic.getClass().getDeclaredField("lastRecipe");
             recipeField.setAccessible(true);
             GTRecipe recipe = (GTRecipe) recipeField.get(logic);
 
             if (recipe == null) {
-                if (isDebug()) LOGGER.debug("    No recipe found");
                 return 0;
             }
 
-            if (isDebug()) LOGGER.debug("{}", "    Recipe found: " + recipe.id);
 
             var tickInputs = recipe.tickInputs;
             if (tickInputs != null && !tickInputs.isEmpty()) {
-                if (isDebug()) LOGGER.debug("    Checking tickInputs...");
                 for (var entry : tickInputs.entrySet()) {
                     var capability = entry.getKey();
-                    if (isDebug()) LOGGER.debug(String.valueOf("      Capability: " + capability.getClass().getSimpleName()));
 
                     if (capability.getClass().getSimpleName().contains("EU") ||
                             capability.getClass().getName().contains("Energy")) {
                         var contents = entry.getValue();
                         if (!contents.isEmpty()) {
                             var content = contents.get(0);
-                            if (isDebug()) LOGGER.debug("{}", "      Found EU content: " + content);
 
                             try {
                                 var contentObj = content.content;
@@ -486,10 +452,8 @@ public class MachineInferencer {
                                 long voltage = (long) voltageMethod.invoke(contentObj);
                                 long amperage = (long) amperageMethod.invoke(contentObj);
                                 long euPerTick = voltage * amperage;
-                                if (isDebug()) LOGGER.debug("{}", "      EU/t from energy stack: " + voltage + "V × " + amperage + "A = " + euPerTick);
                                 return (int) Math.min(euPerTick, Integer.MAX_VALUE);
                             } catch (Exception e) {
-                                if (isDebug()) LOGGER.debug("{}", "      Could not extract voltage/amperage: " + e.getMessage());
                             }
                         }
                     }
@@ -499,11 +463,9 @@ public class MachineInferencer {
             var data = recipe.data;
             if (data != null && data.contains("eut")) {
                 int eut = data.getInt("eut");
-                if (isDebug()) LOGGER.debug("{}", "    EU/t from NBT data: " + eut);
                 return eut;
             }
 
-            if (isDebug()) LOGGER.debug("    Could not determine EU/t from recipe");
             return 0;
 
         } catch (Exception e) {

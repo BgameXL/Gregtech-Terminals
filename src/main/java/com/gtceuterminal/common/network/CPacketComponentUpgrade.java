@@ -7,7 +7,6 @@ import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
-import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gtceuterminal.common.upgrade.ComponentUpgrader;
 
 import net.minecraft.core.BlockPos;
@@ -186,7 +185,6 @@ public class CPacketComponentUpgrade {
                         boolean formed = MultiblockMachineReflection.checkAndRecheckPattern(mm);
 
                         if (!formed) {
-                            GTCEUTerminalMod.LOGGER.debug("CPacketComponentUpgrade: structure did not reform after upgrade");
                         }
 
                         return;
@@ -257,7 +255,7 @@ public class CPacketComponentUpgrade {
         if (blockId.contains("dynamo")) return ComponentGroupRegistry.DYNAMO_HATCH;
         if (blockId.contains("energy") && blockId.contains("output")) return ComponentGroupRegistry.DYNAMO_HATCH;
 
-        if (block instanceof CoilBlock) return ComponentGroupRegistry.COIL;
+        if (blockId.contains("coil")) return ComponentGroupRegistry.COIL;
 
         if (blockId.contains("quadruple") && blockId.contains("input"))
             return ComponentGroupRegistry.QUAD_INPUT_HATCH;
@@ -277,6 +275,9 @@ public class CPacketComponentUpgrade {
         if (blockId.contains("maintenance")) return ComponentGroupRegistry.MAINTENANCE;
         if (blockId.contains("muffler")) return ComponentGroupRegistry.MUFFLER;
         if (blockId.contains("parallel")) return ComponentGroupRegistry.PARALLEL_HATCH;
+
+        ComponentGroup detected = ComponentGroupRegistry.detectFromBlock(block);
+        if (detected != ComponentGroupRegistry.UNKNOWN) return detected;
 
         return null;
     }

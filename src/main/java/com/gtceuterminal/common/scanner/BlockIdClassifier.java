@@ -91,6 +91,20 @@ final class BlockIdClassifier {
                     "CASING", blockState.getBlock().getName().getString(), 0, pos);
         }
 
+        if (net.minecraftforge.fml.ModList.get().isLoaded(com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.MOD_ID)) {
+            try {
+                Class<?> reflectorClass = Class.forName("com.startechnology.start_core.block.FusionReflectorBlock");
+                if (reflectorClass.isInstance(blockState.getBlock())) {
+                    Object reflectorType = reflectorClass.getField("reflectorType").get(blockState.getBlock());
+                    int tier = (int) reflectorType.getClass().getMethod("getTier").invoke(reflectorType);
+                    String name = blockState.getBlock().getName().getString();
+                    return new UniversalMultiblockScanner.ComponentData(
+                            com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.FUSION_REFLECTORS,
+                            name, tier, pos);
+                }
+            } catch (Exception ignored) {}
+        }
+
         com.gtceuterminal.common.multiblock.ComponentGroup group =
                 com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(blockState.getBlock());
         if (group != com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
@@ -103,7 +117,8 @@ final class BlockIdClassifier {
             return new UniversalMultiblockScanner.ComponentData(group.id, name, tier, pos);
         }
 
-        return null;
+        return new UniversalMultiblockScanner.ComponentData(
+                "casing", blockState.getBlock().getName().getString(), 0, pos);
     }
 
     static int detectCoilTier(String blockId) {

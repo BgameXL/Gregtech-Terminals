@@ -63,7 +63,6 @@ final class MultiblockAnalysisHelper {
             var def = controller.getDefinition();
             if (def != null) return def.getTier();
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.debug("Could not get tier from definition: {}", e.getMessage());
             try {
                 var parts = controller.getParts();
                 if (parts != null && !parts.isEmpty()) {
@@ -73,7 +72,6 @@ final class MultiblockAnalysisHelper {
                             .max().orElse(0);
                 }
             } catch (Exception e2) {
-                GTCEUTerminalMod.LOGGER.debug("Could not calculate tier from parts: {}", e2.getMessage());
             }
         }
         return 0;
@@ -141,7 +139,6 @@ final class MultiblockAnalysisHelper {
                 if (data != null) {
                     components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
                     scanned.add(pos.immutable());
-                    GTCEUTerminalMod.LOGGER.info("Detected addon component: {} at {}", blockId, pos);
                 }
             }
         } catch (Exception e) {
@@ -164,7 +161,6 @@ final class MultiblockAnalysisHelper {
             String name = def != null ? def.getDescriptionId() : "Unknown";
             return new UniversalMultiblockScanner.ComponentData(type, name, tier, machine.getPos());
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.debug("Error analyzing component: {}", e.getMessage());
             return null;
         }
     }
@@ -198,11 +194,9 @@ final class MultiblockAnalysisHelper {
             String detected = BlockIdClassifier.detectByImprovedAnalysis(id);
             if (detected != null) return detected;
 
-            GTCEUTerminalMod.LOGGER.debug("detectComponentType: no match for '{}', returning UNKNOWN", id);
             return ComponentGroupRegistry.UNKNOWN.id;
 
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.debug("Could not detect component type: {}", e.getMessage());
             return ComponentGroupRegistry.UNKNOWN.id;
         }
     }
@@ -221,8 +215,6 @@ final class MultiblockAnalysisHelper {
                     found++;
                 }
             }
-            GTCEUTerminalMod.LOGGER.info("Found {} structure components from {} blocks via flood fill",
-                    found, positions.size());
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Could not extract structure components: {}", e.getMessage());
         }

@@ -53,7 +53,6 @@ public class GTCEUTerminalMod {
         UIFactory.register(MultiStructureManagerUIFactory.INSTANCE);
         UIFactory.register(SchematicItemUIFactory.INSTANCE);
         UIFactory.register(DismantlerItemUIFactory.INSTANCE);
-        LOGGER.info("UI Factories registered");
 
         modEventBus.addListener(this::commonSetup);
 
@@ -73,32 +72,24 @@ public class GTCEUTerminalMod {
                 ServerConfig.SPEC,
                 ServerConfig.FILE_NAME);
 
-        LOGGER.info("GTCEu Terminal Addon initialized");
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-        LOGGER.info("Common setup started");
         TerminalNetwork.registerPackets();
-        LOGGER.info("Terminal Network packets registered");
 
         event.enqueueWork(() -> {
-            LOGGER.info("Initializing component configurations...");
             com.gtceuterminal.common.config.ItemsConfig.load();
 
             com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.init();
 
-            LOGGER.info("All component configurations initialized successfully");
-            LOGGER.info("Initializing AE2 integration...");
             if (net.minecraftforge.fml.ModList.get().isLoaded("ae2")) {
                 AE2Integration.init();
             } else {
-                LOGGER.info("AE2 not present — AE2 integration skipped");
             }
 
             com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.init();
         });
 
-        LOGGER.info("Common setup complete");
     }
 
     @SubscribeEvent

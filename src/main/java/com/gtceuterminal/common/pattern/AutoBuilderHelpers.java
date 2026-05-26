@@ -54,8 +54,8 @@ final class AutoBuilderHelpers {
     }
 
     static BlockInfo[] pickInfosForPredicate(TraceabilityPredicate predicate,
-                                              PredicateCountMap cacheGlobal,
-                                              PredicateCountMap cacheLayer) {
+                                             PredicateCountMap cacheGlobal,
+                                             PredicateCountMap cacheLayer) {
         boolean find = false;
         BlockInfo[] infos = new BlockInfo[0];
 
@@ -86,7 +86,11 @@ final class AutoBuilderHelpers {
         }
 
         if (!find) {
-            for (SimplePredicate limit : predicate.limited) {
+            java.util.List<SimplePredicate> sortedLimited = new java.util.ArrayList<>(predicate.limited);
+            sortedLimited.sort((a, b) -> Integer.compare(
+                    b.minCount == -1 ? 0 : b.minCount,
+                    a.minCount == -1 ? 0 : a.minCount));
+            for (SimplePredicate limit : sortedLimited) {
                 if (limit.maxLayerCount != -1 && cacheLayer.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxLayerCount) continue;
                 if (limit.maxCount != -1 && cacheGlobal.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxCount) continue;
                 cacheLayer.addTo(limit, 1);
@@ -102,9 +106,9 @@ final class AutoBuilderHelpers {
     }
 
     static BlockPos setActualRelativeOffset(RelativeDirection[] structureDir,
-                                             int x, int y, int z,
-                                             Direction facing, Direction upwardsFacing,
-                                             boolean isFlipped) {
+                                            int x, int y, int z,
+                                            Direction facing, Direction upwardsFacing,
+                                            boolean isFlipped) {
         int[] c0 = new int[]{ x, y, z }, c1 = new int[3];
 
         if (facing == Direction.UP || facing == Direction.DOWN) {
@@ -157,7 +161,7 @@ final class AutoBuilderHelpers {
     }
 
     static void resetFacing(BlockPos pos, BlockState blockState, Direction facing,
-                             BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
+                            BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
         if (blockState.hasProperty(BlockStateProperties.FACING)) {
             tryFacings(blockState, pos, checker, consumer, BlockStateProperties.FACING,
                     facing == null ? FACINGS : ArrayUtils.addAll(new Direction[]{ facing }, FACINGS));
@@ -169,7 +173,7 @@ final class AutoBuilderHelpers {
     }
 
     private static void tryFacings(BlockState blockState, BlockPos pos, BiPredicate<BlockPos, Direction> checker,
-                                    Consumer<BlockState> consumer, Property<Direction> property, Direction[] facings) {
+                                   Consumer<BlockState> consumer, Property<Direction> property, Direction[] facings) {
         Direction found = null;
         for (Direction f : facings) { if (checker.test(pos, f)) { found = f; break; } }
         if (found == null) found = Direction.NORTH;
@@ -177,8 +181,8 @@ final class AutoBuilderHelpers {
     }
 
     static ItemStack computeFallbackCasing(TraceabilityPredicate[][][] blockMatches,
-                                            Set<net.minecraft.world.level.block.Block> hatchBlocks,
-                                            net.minecraft.world.level.block.Block controllerBlock) {
+                                           Set<net.minecraft.world.level.block.Block> hatchBlocks,
+                                           net.minecraft.world.level.block.Block controllerBlock) {
         Object2IntOpenHashMap<net.minecraft.world.level.block.Block> freq = new Object2IntOpenHashMap<>();
         for (TraceabilityPredicate[][] slice : blockMatches)
             for (TraceabilityPredicate[] row : slice)
@@ -196,9 +200,9 @@ final class AutoBuilderHelpers {
     }
 
     private static void addCasingCandidates(Object2IntOpenHashMap<net.minecraft.world.level.block.Block> freq,
-                                             List<SimplePredicate> list,
-                                             Set<net.minecraft.world.level.block.Block> hatchBlocks,
-                                             net.minecraft.world.level.block.Block controllerBlock) {
+                                            List<SimplePredicate> list,
+                                            Set<net.minecraft.world.level.block.Block> hatchBlocks,
+                                            net.minecraft.world.level.block.Block controllerBlock) {
         if (list == null) return;
         for (SimplePredicate sp : list) {
             if (sp == null || sp.candidates == null) continue;

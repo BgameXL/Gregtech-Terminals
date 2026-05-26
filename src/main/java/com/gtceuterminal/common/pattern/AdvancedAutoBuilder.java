@@ -1,7 +1,9 @@
 package com.gtceuterminal.common.pattern;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkExtractor;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
@@ -100,8 +102,7 @@ public class AdvancedAutoBuilder {
             int placedCount = 0;
 
             IFluidHandler fluidStorage = null;
-            try { fluidStorage = getMENetworkFluidStorage(player); }
-            catch (Exception e) { GTCEUTerminalMod.LOGGER.debug("No ME Network fluid storage available"); }
+            try { fluidStorage = getMENetworkFluidStorage(player); } catch (Exception ignored) {}
 
             final int fingerLength = blockMatches.length;
             final int thumbLength  = fingerLength > 0 ? blockMatches[0].length : 0;
@@ -229,6 +230,15 @@ public class AdvancedAutoBuilder {
         for (int i = 0; i < handler.getSlots(); i++) {
             ItemStack stack = handler.getStackInSlot(i);
             if (stack.isEmpty()) continue;
+
+            if (isUseAE == 1 && WirelessTerminalHandler.isWirelessTerminal(stack)
+                    && WirelessTerminalHandler.isLinked(stack)) {
+                ItemStack extracted = MENetworkExtractor.tryExtractCandidateFromLinkedTerminal(candidates, player);
+                if (extracted != null) {
+                    NonNullList<ItemStack> stacks = NonNullList.withSize(1, extracted);
+                    return IntObjectPair.of(0, new ItemStackHandler(stacks));
+                }
+            }
 
             if (candidates.stream().anyMatch(c -> ItemStack.isSameItemSameTags(c, stack))
                     && !stack.isEmpty() && stack.getItem() instanceof BlockItem) {

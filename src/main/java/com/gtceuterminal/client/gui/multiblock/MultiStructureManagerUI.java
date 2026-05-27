@@ -244,8 +244,9 @@ public class MultiStructureManagerUI {
 
     private void openComponentDetail(MultiblockInfo mb) {
         if (multiblockScroll != null) multiblockScroll.setActive(false);
+        MultiblockInfo fresh = MultiblockScanner.scanSingle(mb, player, player.level());
         new com.gtceuterminal.client.gui.dialog.ComponentDetailDialog(
-                gui.mainGroup, player, mb,
+                gui.mainGroup, player, fresh,
                 () -> { if (multiblockScroll != null) multiblockScroll.setActive(true); },
                 theme);
     }

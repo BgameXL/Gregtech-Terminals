@@ -28,9 +28,9 @@ public final class GTCEuReader {
             if (supplier == null) continue;
             var block = supplier.get();
             if (block == null) continue;
-            String blockId = BuiltInRegistries.BLOCK.getKey(block).toString();
-            String tierName = "T" + coil.getTier();
-            String displayName = block.getDescriptionId();
+            String blockId      = BuiltInRegistries.BLOCK.getKey(block).toString();
+            String displayName  = net.minecraft.network.chat.Component.translatable(block.getDescriptionId()).getString();
+            String tierName     = "T" + coil.getTier();
             entries.add(ComponentEntry.builder(blockId, displayName, tierName, coil.getTier())
                     .attr("coilType", coil.getName())
                     .attr("heatCapacity", coil.getCoilTemperature() + "K")

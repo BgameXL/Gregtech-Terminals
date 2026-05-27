@@ -30,8 +30,8 @@ import java.util.List;
 
 public class ComponentDetailDialog extends DialogWidget {
 
-    private static final int DIALOG_W  = 460;
-    private static final int DIALOG_H  = 390;
+    private static final int DIALOG_W  = 600;
+    private static final int DIALOG_H  = 480;
     private static final int HEADER_H  = 28;
     private static final int INFO_H    = 32;
     private static final int ENTRY_H   = 40;
@@ -266,8 +266,7 @@ public class ComponentDetailDialog extends DialogWidget {
         entry.addWidget(subLabel);
 
         String countText = "×" + group.getCount();
-        int badgeW = 72;
-        int countX = entryW - 80;
+        int countX = entryW - 120;
         LabelWidget countLabel = new LabelWidget(countX, 6, "§e" + countText);
         countLabel.setTextColor(COLOR_TEXT_WHITE);
         entry.addWidget(countLabel);
@@ -318,7 +317,7 @@ public class ComponentDetailDialog extends DialogWidget {
             }
         }
         String result = sb.toString();
-        return result.length() > 24 ? result.substring(0, 23) + "…" : result;
+        return result.length() > 32 ? result.substring(0, 31) + "…" : result;
     }
 
     private static String tierNameForList(ComponentInfoGroup group, ComponentInfo rep) {

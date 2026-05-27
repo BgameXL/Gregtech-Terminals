@@ -56,7 +56,6 @@ public enum ComponentType {
     COIL("Heating Coil", "coil"),
     CASING("Casing", "casing"),
 
-    // This one is a VERY specific hatch
     MACHINE_HATCH("Machine Hatch", "machine_hatch"),
 
     DUAL_HATCH("Dual Hatch", "dual_hatch"),

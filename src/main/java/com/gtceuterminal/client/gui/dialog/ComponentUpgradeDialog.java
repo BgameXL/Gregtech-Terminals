@@ -40,8 +40,8 @@ import java.util.Map;
 
 public class ComponentUpgradeDialog extends DialogWidget {
 
-    private static final int DIALOG_W  = 460;
-    private static final int DIALOG_H  = 430;
+    private static final int DIALOG_W  = 600;
+    private static final int DIALOG_H  = 480;
     private static final int HEADER_H  = 28;
     private static final int INFO_H    = 38;
     private static final int PAD       = 10;

@@ -40,7 +40,7 @@ public class ComponentInfo {
         if (group == ComponentGroupRegistry.COIL) {
             var coilEntry = ComponentRegistry.coilByTier(tier);
             String name = coilEntry != null ? coilEntry.displayName : "Unknown Coil";
-            return name.replace(" Coil", "").trim();
+            return name.replace(" Coil", "").replace(" Block", "").trim();
         }
         if (tier < 0 || tier >= GTValues.VN.length) return "Unknown";
         return GTValues.VN[tier].toUpperCase(Locale.ROOT);

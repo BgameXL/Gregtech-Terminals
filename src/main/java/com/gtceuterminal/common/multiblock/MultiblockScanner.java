@@ -3,6 +3,7 @@ package com.gtceuterminal.common.multiblock;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.scanner.MultiblockAnalysisHelper;
 import com.gtceuterminal.common.scanner.UniversalMultiblockScanner;
 import com.gtceuterminal.common.scanner.UniversalMultiblockScanner.DetectedMultiblock;
 import com.gtceuterminal.common.scanner.UniversalMultiblockScanner.ComponentData;
@@ -103,6 +104,24 @@ public class MultiblockScanner {
         }
         return null;
     }
+
+    public static MultiblockInfo scanSingle(MultiblockInfo existing, Player player, Level level) {
+        try {
+            IMultiController controller = existing.getController();
+            var detected = MultiblockAnalysisHelper.analyzeMultiblock(
+                    (com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine) controller,
+                    existing.getControllerPos(), level);
+            if (detected == null) return existing;
+            MultiblockInfo fresh = convertToMultiblockInfo(detected, player.position(), level);
+            if (existing.getCustomDisplayName() != null)
+                fresh.setCustomDisplayName(existing.getCustomDisplayName());
+            return fresh;
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.warn("scanSingle failed for '{}', reusing cached info: {}", existing.getName(), e.getMessage());
+            return existing;
+        }
+    }
+
 
     private static MultiblockInfo convertToMultiblockInfo(
             DetectedMultiblock detected,

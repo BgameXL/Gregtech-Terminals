@@ -23,11 +23,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-final class MultiblockAnalysisHelper {
+public final class MultiblockAnalysisHelper {
 
     private MultiblockAnalysisHelper() {}
 
-    static UniversalMultiblockScanner.DetectedMultiblock analyzeMultiblock(
+    public static UniversalMultiblockScanner.DetectedMultiblock analyzeMultiblock(
             MultiblockControllerMachine controller, BlockPos pos, Level level) {
         try {
             String name  = getMultiblockName(controller);
@@ -63,17 +63,18 @@ final class MultiblockAnalysisHelper {
 
     private static int getMultiblockTier(MultiblockControllerMachine controller) {
         try {
-            var def = controller.getDefinition();
-            if (def != null) return def.getTier();
-        } catch (Exception ignored) {}
-        try {
             var parts = controller.getParts();
             if (parts != null && !parts.isEmpty()) {
-                return parts.stream()
+                int maxTier = parts.stream()
                         .filter(p -> p != null && p.self() != null && p.self().getDefinition() != null)
                         .mapToInt(p -> p.self().getDefinition().getTier())
-                        .max().orElse(0);
+                        .max().orElse(-1);
+                if (maxTier >= 0) return maxTier;
             }
+        } catch (Exception ignored) {}
+        try {
+            var def = controller.getDefinition();
+            if (def != null && def.getTier() > 0) return def.getTier();
         } catch (Exception ignored) {}
         return 0;
     }
@@ -109,6 +110,8 @@ final class MultiblockAnalysisHelper {
         return components;
     }
 
+    // Scans a small radius for wireless/addon parts not returned by getParts().
+    // Uses ComponentGroupRegistry (PartAbility-based) instead of string matching.
     private static void detectWirelessAndAddon(
             MultiblockControllerMachine controller, Level level,
             Map<String, List<UniversalMultiblockScanner.ComponentData>> components,
@@ -125,6 +128,7 @@ final class MultiblockAnalysisHelper {
                 if (!(machine instanceof MultiblockPartMachine part)) continue;
                 if (!isLinkedToController(part, controller.getPos())) continue;
 
+                // Filter: only non-standard parts not covered by getParts() are relevant here
                 ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
                 if (group == ComponentGroupRegistry.UNKNOWN) continue;
                 if (!group.isEnergyHandler && !group.isDataHandler) continue;
@@ -150,7 +154,9 @@ final class MultiblockAnalysisHelper {
             String type = detectComponentType(machine);
             var def = machine.getDefinition();
             int tier    = def != null ? def.getTier() : 0;
-            String name = def != null ? def.getDescriptionId() : "Unknown";
+            String name = def != null
+                    ? net.minecraft.network.chat.Component.translatable(def.getDescriptionId()).getString()
+                    : "Unknown";
             return new UniversalMultiblockScanner.ComponentData(type, name, tier, machine.getPos());
         } catch (Exception e) {
             return null;

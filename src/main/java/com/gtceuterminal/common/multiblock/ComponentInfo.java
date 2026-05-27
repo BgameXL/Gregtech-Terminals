@@ -30,12 +30,6 @@ public class ComponentInfo {
 
     public ComponentGroup getGroup() { return group; }
 
-    /** Kept for compatibility with code that hasn't been migrated yet. */
-    @Deprecated
-    public ComponentType getType() {
-        return ComponentType.fromGroup(group);
-    }
-
     public int getTier()           { return tier; }
     public BlockPos getPosition()  { return position; }
     public BlockState getState()   { return state; }
@@ -111,8 +105,6 @@ public class ComponentInfo {
         if (lower.contains("substation")) return "64A";
         return null;
     }
-
-    public Object getPos() { return position; }
 
     @Override
     public String toString() {

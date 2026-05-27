@@ -29,7 +29,7 @@ public class ComponentPatternRegistry {
                 for (ComponentPattern pattern : patterns) {
                     GTCEUTerminalMod.LOGGER.debug("Pattern: {} -> {} (priority: {})", 
                         pattern.getPattern(), 
-                        pattern.getComponentType(), 
+                        pattern.getGroup() != null ? pattern.getGroup().id : "null", 
                         pattern.getPriority());
                 }
             }

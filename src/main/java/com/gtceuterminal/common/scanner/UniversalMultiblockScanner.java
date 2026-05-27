@@ -5,23 +5,17 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Universal Multiblock Detection System.
- * Detects ANY multiblock using the GTCEu API, regardless of the mod that added it.
- */
 public class UniversalMultiblockScanner {
 
     public static List<DetectedMultiblock> scanForAllMultiblocks(Level level, BlockPos center, int radius) {
@@ -43,33 +37,27 @@ public class UniversalMultiblockScanner {
             BlockPos immutable = pos.immutable();
             scannedControllers.add(immutable);
 
-            if (isMultiblockFormed(controller)) {
+            if (isFormed(controller)) {
                 DetectedMultiblock detected = MultiblockAnalysisHelper.analyzeMultiblock(controller, immutable, level);
-                if (detected != null) {
-                    found.add(detected);
-                    GTCEUTerminalMod.LOGGER.info("Found multiblock: {} at {}", detected.getName(), immutable);
-                }
+                if (detected != null) found.add(detected);
             }
         }
 
-        GTCEUTerminalMod.LOGGER.info("Total multiblocks found: {}", found.size());
+        GTCEUTerminalMod.LOGGER.info("UniversalMultiblockScanner: found {} multiblocks in radius {} from {}", found.size(), radius, center);
         return found;
     }
 
-    private static boolean isMultiblockFormed(MultiblockControllerMachine controller) {
+    private static boolean isFormed(MultiblockControllerMachine controller) {
+        if (controller.isFormed()) return true;
         try {
-            if (controller.isFormed()) return true;
-            MultiblockState state = controller.getMultiblockState();
-            if (state != null && state.isNeededFlip()) return true;
             var parts = controller.getParts();
             return parts != null && !parts.isEmpty();
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("Error checking if multiblock is formed: {}", e.getMessage());
             return false;
         }
     }
 
-    public static Set<BlockPos> getMultiblockBlocksPublic(MultiblockControllerMachine controller, Level level) {
+    public static Set<BlockPos> getMultiblockBlocks(MultiblockControllerMachine controller, Level level) {
         return MultiblockBounds.getMultiblockBlocks(controller, level);
     }
 
@@ -80,12 +68,15 @@ public class UniversalMultiblockScanner {
         private final BlockPos position;
 
         public ComponentData(String category, String name, int tier, BlockPos position) {
-            this.category = category; this.name = name; this.tier = tier; this.position = position;
+            this.category = category;
+            this.name     = name;
+            this.tier     = tier;
+            this.position = position;
         }
 
-        public String getCategory() { return category; }
-        public String getName()     { return name; }
-        public int getTier()        { return tier; }
+        public String  getCategory() { return category; }
+        public String  getName()     { return name; }
+        public int     getTier()     { return tier; }
         public BlockPos getPosition() { return position; }
 
         @Override
@@ -103,14 +94,18 @@ public class UniversalMultiblockScanner {
         public DetectedMultiblock(String name, String modId, BlockPos position, int tier,
                                   Map<String, List<ComponentData>> components,
                                   MultiblockControllerMachine controller) {
-            this.name = name; this.modId = modId; this.position = position;
-            this.tier = tier; this.components = components; this.controller = controller;
+            this.name       = name;
+            this.modId      = modId;
+            this.position   = position;
+            this.tier       = tier;
+            this.components = components;
+            this.controller = controller;
         }
 
-        public String getName()     { return name; }
-        public String getModId()    { return modId; }
+        public String  getName()     { return name; }
+        public String  getModId()    { return modId; }
         public BlockPos getPosition() { return position; }
-        public int getTier()        { return tier; }
+        public int     getTier()     { return tier; }
         public Map<String, List<ComponentData>> getComponents() { return components; }
         public MultiblockControllerMachine getController() { return controller; }
 

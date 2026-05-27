@@ -1,11 +1,20 @@
 package com.gtceuterminal.common.scanner;
 
+import com.gtceuterminal.common.compat.integrations.StarTCoreIntegration;
+import com.gtceuterminal.common.config.ComponentEntry;
+import com.gtceuterminal.common.config.ComponentRegistry;
+import com.gtceuterminal.common.multiblock.ComponentGroup;
+import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
+
+import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.fml.ModList;
 
 import org.jetbrains.annotations.Nullable;
-
 
 final class BlockIdClassifier {
 
@@ -38,34 +47,22 @@ final class BlockIdClassifier {
                 return "Wireless Laser Hatch";
             }
         }
-
         if (id.contains("substation")) {
             if (id.contains("input"))  return "Substation Input Energy Hatch";
             if (id.contains("output")) return "Substation Output Energy Hatch";
         }
-
         if (id.contains("energy")) {
-            String amperage = detectAmperage(id);
-            String prefix = amperage != null ? amperage + " " : "";
+            String amp = detectAmperage(id);
+            String prefix = amp != null ? amp + " " : "";
             if (id.contains("output") || id.contains("dynamo")) return prefix + "Dynamo Hatch";
             if (id.contains("input"))                           return prefix + "Energy Hatch";
         }
-
         if (id.contains("dynamo")) {
-            String amperage = detectAmperage(id);
-            return (amperage != null ? amperage + " " : "") + "Dynamo Hatch";
+            String amp = detectAmperage(id);
+            return (amp != null ? amp + " " : "") + "Dynamo Hatch";
         }
-
         if (id.contains("casing")) return "Casing";
-
         return null;
-    }
-
-    static String getBaseComponentType(String id) {
-        if (id.contains("energy") && id.contains("input"))  return "Energy Hatch";
-        if (id.contains("energy") && id.contains("output")) return "Dynamo Hatch";
-        if (id.contains("dynamo"))                          return "Dynamo Hatch";
-        return "Component";
     }
 
     @Nullable
@@ -75,14 +72,12 @@ final class BlockIdClassifier {
         String blockId      = blockState.getBlock().builtInRegistryHolder().key().location().toString();
         String blockIdLower = blockId.toLowerCase();
 
-
         if (blockIdLower.contains("coil")) {
-            boolean isHeatingCoil = com.gregtechceu.gtceu.api.GTCEuAPI.HEATING_COILS.values().stream()
+            boolean isHeatingCoil = GTCEuAPI.HEATING_COILS.values().stream()
                     .anyMatch(s -> s.get() == blockState.getBlock());
             if (isHeatingCoil) {
-                int tier    = detectCoilTier(blockId);
-                String name = blockState.getBlock().getName().getString();
-                return new UniversalMultiblockScanner.ComponentData("COIL", name, tier, pos);
+                return new UniversalMultiblockScanner.ComponentData(
+                        "COIL", blockState.getBlock().getName().getString(), detectCoilTier(blockId), pos);
             }
         }
 
@@ -91,33 +86,29 @@ final class BlockIdClassifier {
                     "CASING", blockState.getBlock().getName().getString(), 0, pos);
         }
 
-        if (net.minecraftforge.fml.ModList.get().isLoaded(com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.MOD_ID)) {
+        if (ModList.get().isLoaded(StarTCoreIntegration.MOD_ID)) {
             try {
                 Class<?> reflectorClass = Class.forName("com.startechnology.start_core.block.FusionReflectorBlock");
                 if (reflectorClass.isInstance(blockState.getBlock())) {
                     Object reflectorType = reflectorClass.getField("reflectorType").get(blockState.getBlock());
                     int tier = (int) reflectorType.getClass().getMethod("getTier").invoke(reflectorType);
-                    String name = blockState.getBlock().getName().getString();
                     return new UniversalMultiblockScanner.ComponentData(
-                            com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.FUSION_REFLECTORS,
-                            name, tier, pos);
+                            StarTCoreIntegration.FUSION_REFLECTORS,
+                            blockState.getBlock().getName().getString(), tier, pos);
                 }
             } catch (Exception ignored) {}
         }
 
-        com.gtceuterminal.common.multiblock.ComponentGroup group =
-                com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(blockState.getBlock());
-        if (group != com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
+        ComponentGroup group = ComponentGroupRegistry.detectFromBlock(blockState.getBlock());
+        if (group != ComponentGroupRegistry.UNKNOWN) {
             String category = group.registryCategory != null ? group.registryCategory : group.id;
-            com.gtceuterminal.common.config.ComponentEntry entry =
-                    com.gtceuterminal.common.config.ComponentRegistry.first(
-                            category, e -> e.blockId.equalsIgnoreCase(blockId));
+            ComponentEntry entry = ComponentRegistry.first(category, e -> e.blockId.equalsIgnoreCase(blockId));
             int tier    = entry != null ? entry.tier : 0;
             String name = entry != null ? entry.displayName : blockState.getBlock().getName().getString();
             return new UniversalMultiblockScanner.ComponentData(group.id, name, tier, pos);
         }
 
-        if (blockState.getBlock() instanceof com.gregtechceu.gtceu.api.block.MetaMachineBlock) return null;
+        if (blockState.getBlock() instanceof MetaMachineBlock) return null;
 
         return new UniversalMultiblockScanner.ComponentData(
                 "casing", blockState.getBlock().getName().getString(), 0, pos);
@@ -129,8 +120,8 @@ final class BlockIdClassifier {
         if (lower.contains("kanthal"))                                  return 1;
         if (lower.contains("nichrome"))                                 return 2;
         if (lower.contains("rtm_alloy") || lower.contains("rtmalloy")) return 3;
-        if (lower.contains("hss_g") || lower.contains("hssg"))         return 4;
-        if (lower.contains("naquadah") && !lower.contains("enriched")) return 5;
+        if (lower.contains("hss_g")     || lower.contains("hssg"))     return 4;
+        if (lower.contains("naquadah")  && !lower.contains("enriched")) return 5;
         if (lower.contains("trinium"))                                  return 6;
         if (lower.contains("tritanium"))                                return 7;
         return 0;

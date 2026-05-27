@@ -99,7 +99,8 @@ public class CPacketComponentUpgrade {
                 var state = player.level().getBlockState(pos);
                 var block = state.getBlock();
 
-                ComponentGroup type = detectComponentType(block);
+                ComponentGroup type = ComponentGroupRegistry.detectFromBlock(block);
+                if (type == ComponentGroupRegistry.UNKNOWN) type = null;
                 int currentTier = detectTier(block);
 
                 boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
@@ -167,17 +168,13 @@ public class CPacketComponentUpgrade {
         ctx.get().setPacketHandled(true);
     }
 
-    //
     private static void refreshController(ServerLevel level, BlockPos controllerPos) {
         var be = level.getBlockEntity(controllerPos);
         if (be != null) {
             try {
-                // MetaMachineBlockEntity#getMetaMachine()
                 Object mm = MultiblockMachineReflection.getMetaMachine(be);
 
                 if (mm != null) {
-
-                    //
                     Object lock = null;
                     lock = MultiblockMachineReflection.acquirePatternLock(mm);
 
@@ -227,61 +224,6 @@ public class CPacketComponentUpgrade {
         }
 
         return ItemStack.EMPTY;
-    }
-
-    private ComponentGroup detectComponentType(net.minecraft.world.level.block.Block block) {
-        String blockId = block.builtInRegistryHolder().key().location().toString().toLowerCase();
-
-        if (blockId.contains("wireless")) {
-            if (blockId.contains("energy")) {
-                if (blockId.contains("input")) return ComponentGroupRegistry.WIRELESS_ENERGY_INPUT;
-                if (blockId.contains("output")) return ComponentGroupRegistry.WIRELESS_ENERGY_OUTPUT;
-            }
-            if (blockId.contains("laser")) {
-                if (blockId.contains("target") || blockId.contains("input")) return ComponentGroupRegistry.WIRELESS_LASER_INPUT;
-                if (blockId.contains("source") || blockId.contains("output")) return ComponentGroupRegistry.WIRELESS_LASER_OUTPUT;
-            }
-        }
-
-        if (blockId.contains("substation")) {
-            if (blockId.contains("input")) return ComponentGroupRegistry.SUBSTATION_INPUT;
-            if (blockId.contains("output")) return ComponentGroupRegistry.SUBSTATION_OUTPUT;
-        }
-
-        if (blockId.contains("laser")) {
-            if (blockId.contains("target") || blockId.contains("input")) return ComponentGroupRegistry.INPUT_LASER;
-            if (blockId.contains("source") || blockId.contains("output")) return ComponentGroupRegistry.OUTPUT_LASER;
-        }
-
-        if (blockId.contains("energy") && blockId.contains("input")) return ComponentGroupRegistry.ENERGY_HATCH;
-        if (blockId.contains("dynamo")) return ComponentGroupRegistry.DYNAMO_HATCH;
-        if (blockId.contains("energy") && blockId.contains("output")) return ComponentGroupRegistry.DYNAMO_HATCH;
-
-        if (blockId.contains("coil")) return ComponentGroupRegistry.COIL;
-
-        if (blockId.contains("quadruple") && blockId.contains("input"))
-            return ComponentGroupRegistry.QUAD_INPUT_HATCH;
-        if (blockId.contains("quadruple") && blockId.contains("output"))
-            return ComponentGroupRegistry.QUAD_OUTPUT_HATCH;
-        if (blockId.contains("nonuple") && blockId.contains("input"))
-            return ComponentGroupRegistry.NONUPLE_INPUT_HATCH;
-        if (blockId.contains("nonuple") && blockId.contains("output"))
-            return ComponentGroupRegistry.NONUPLE_OUTPUT_HATCH;
-
-        if (blockId.contains("input_hatch")) return ComponentGroupRegistry.INPUT_HATCH;
-        if (blockId.contains("output_hatch")) return ComponentGroupRegistry.OUTPUT_HATCH;
-
-        if (blockId.contains("input_bus")) return ComponentGroupRegistry.INPUT_BUS;
-        if (blockId.contains("output_bus")) return ComponentGroupRegistry.OUTPUT_BUS;
-
-        if (blockId.contains("maintenance")) return ComponentGroupRegistry.MAINTENANCE;
-        if (blockId.contains("muffler")) return ComponentGroupRegistry.MUFFLER;
-        if (blockId.contains("parallel")) return ComponentGroupRegistry.PARALLEL_HATCH;
-
-        ComponentGroup detected = ComponentGroupRegistry.detectFromBlock(block);
-        if (detected != ComponentGroupRegistry.UNKNOWN) return detected;
-
-        return null;
     }
 
     private int detectTier(net.minecraft.world.level.block.Block block) {

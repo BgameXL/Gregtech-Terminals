@@ -1,7 +1,6 @@
 package com.gtceuterminal.common.scanner;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.config.ComponentRegistry;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 
@@ -24,18 +23,15 @@ final class MultiblockBounds {
 
     static Set<BlockPos> getMultiblockBlocks(MultiblockControllerMachine controller, Level level) {
         try {
-            var state   = controller.getMultiblockState();
-            var cache   = state.getCache();
+            var cache = controller.getMultiblockState().getCache();
             if (cache != null && !cache.isEmpty()) {
                 Set<BlockPos> positions = new HashSet<>(cache);
                 positions.add(controller.getPos().immutable());
-                GTCEUTerminalMod.LOGGER.debug("Found {} blocks via multiblock state cache", positions.size());
                 return positions;
             }
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.debug("Multiblock state cache unavailable, falling back to flood fill: {}", e.getMessage());
+            GTCEUTerminalMod.LOGGER.debug("MultiblockBounds: cache unavailable, falling back to flood fill: {}", e.getMessage());
         }
-
         return floodFill(controller, level);
     }
 
@@ -94,10 +90,8 @@ final class MultiblockBounds {
                 }
             }
 
-            GTCEUTerminalMod.LOGGER.debug("Found {} blocks via flood fill", positions.size());
-
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.error("Error in flood fill fallback", e);
+            GTCEUTerminalMod.LOGGER.error("MultiblockBounds: flood fill error", e);
         }
 
         return positions;
@@ -105,7 +99,6 @@ final class MultiblockBounds {
 
     private static boolean isCandidate(BlockState state) {
         if (state == null || state.isAir()) return false;
-        if (state.isAir()) return false;
         if (com.gtceuterminal.common.multiblock.ComponentGroupRegistry.detectFromBlock(state.getBlock())
                 != com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) return true;
         try {

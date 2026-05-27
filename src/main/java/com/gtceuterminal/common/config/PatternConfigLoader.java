@@ -6,7 +6,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.multiblock.ComponentType;
 
 import net.minecraftforge.fml.loading.FMLPaths;
 
@@ -63,17 +62,23 @@ public class PatternConfigLoader {
 
     private static ComponentPattern parsePattern(JsonObject obj) {
         String pattern = obj.get("pattern").getAsString();
-        String componentTypeName = obj.get("componentType").getAsString();
+        String groupId = obj.get("componentType").getAsString().toLowerCase(java.util.Locale.ROOT);
 
-        ComponentType componentType;
-        try {
-            componentType = ComponentType.valueOf(componentTypeName);
-        } catch (IllegalArgumentException e) {
-            GTCEUTerminalMod.LOGGER.error("Invalid component type: {}", componentTypeName);
-            return null;
+        com.gtceuterminal.common.multiblock.ComponentGroup group =
+                com.gtceuterminal.common.multiblock.ComponentGroupRegistry.byId(groupId);
+        if (group == com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
+            try {
+                com.gtceuterminal.common.multiblock.ComponentType ct =
+                        com.gtceuterminal.common.multiblock.ComponentType.valueOf(obj.get("componentType").getAsString());
+                group = com.gtceuterminal.common.multiblock.ComponentGroupRegistry.byId(ct.getAbilityId());
+            } catch (IllegalArgumentException ignored) {}
+            if (group == com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
+                GTCEUTerminalMod.LOGGER.error("Invalid component type in pattern config: {}", groupId);
+                return null;
+            }
         }
 
-        ComponentPattern result = new ComponentPattern(pattern, componentType);
+        ComponentPattern result = new ComponentPattern(pattern, group);
         if (obj.has("priority"))      result.setPriority(obj.get("priority").getAsInt());
         if (obj.has("displayPrefix")) result.setDisplayPrefix(obj.get("displayPrefix").getAsString());
         if (obj.has("description"))   result.setDescription(obj.get("description").getAsString());

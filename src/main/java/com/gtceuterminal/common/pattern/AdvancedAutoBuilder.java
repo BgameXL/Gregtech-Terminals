@@ -74,9 +74,9 @@ public class AdvancedAutoBuilder {
             Level world = player.level();
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
-            int[][] aisleRepetitions = (int[][]) BlockPatternReflection.F_AISLE_REP.get(pattern);
-            RelativeDirection[] structureDir = (RelativeDirection[]) BlockPatternReflection.F_STRUCTURE_DIR.get(pattern);
             int[] centerOffset = (int[]) BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            int[][] aisleRepetitions = pattern.aisleRepetitions;
+            RelativeDirection[] structureDir = pattern.structureDir;
 
             if (blockMatches == null || aisleRepetitions == null || structureDir == null || centerOffset == null) {
                 GTCEUTerminalMod.LOGGER.error("AdvancedAutoBuilder: pattern internals are null");

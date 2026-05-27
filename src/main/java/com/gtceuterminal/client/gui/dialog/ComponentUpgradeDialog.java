@@ -211,9 +211,7 @@ public class ComponentUpgradeDialog extends DialogWidget {
         ComponentInfo rep = group.getRepresentative();
         if (rep == null) return panel;
 
-        String tierName = (rep.getGroup() == ComponentGroupRegistry.COIL)
-                ? com.gtceuterminal.common.multiblock.ComponentType.getCoilTierName(rep.getTier())
-                : rep.getTierName();
+        String tierName = rep.getTierName();
 
         LabelWidget l1 = new LabelWidget(10, 6, "§f" + Component.translatable(
                 "gui.gtceuterminal.component_upgrade_dialog.info.count_components", group.getCount()).getString());

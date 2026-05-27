@@ -318,11 +318,6 @@ public class ComponentDetailUI {
     }
 
     private static String tierNameForList(ComponentInfoGroup group, ComponentInfo rep) {
-        try {
-            if (group != null && group.getGroup() == ComponentGroupRegistry.COIL) {
-                return com.gtceuterminal.common.multiblock.ComponentType.getCoilTierName(rep.getTier());
-            }
-        } catch (Throwable ignored) {}
         String s = rep != null ? rep.getTierName() : "";
         return s != null ? s : "";
     }

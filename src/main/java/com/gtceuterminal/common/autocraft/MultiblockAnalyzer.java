@@ -47,9 +47,9 @@ public final class MultiblockAnalyzer {
             MultiblockState worldState  = controller.getMultiblockState();
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
-            int[][]                     aisleReps    = (int[][])                     BlockPatternReflection.F_AISLE_REP.get(pattern);
-            RelativeDirection[]         structDir    = (RelativeDirection[])         BlockPatternReflection.F_STRUCTURE_DIR.get(pattern);
             int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            int[][]                     aisleReps    = pattern.aisleRepetitions;
+            RelativeDirection[]         structDir    = pattern.structureDir;
 
             if (blockMatches == null) return null;
 

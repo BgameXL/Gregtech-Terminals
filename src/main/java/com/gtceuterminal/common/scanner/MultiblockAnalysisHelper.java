@@ -1,9 +1,9 @@
 package com.gtceuterminal.common.scanner;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.config.ComponentPattern;
 import com.gtceuterminal.common.config.ComponentPatternRegistry;
+import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,45 +48,44 @@ final class MultiblockAnalysisHelper {
             if (def != null) return def.getDescriptionId();
             String s = controller.toString();
             return (s != null && !s.isEmpty()) ? s : "Unknown Multiblock";
-        } catch (Exception e) { return "Unknown Multiblock"; }
+        } catch (Exception e) {
+            return "Unknown Multiblock";
+        }
     }
 
     private static String getMultiblockModId(MultiblockControllerMachine controller) {
         try {
             var def = controller.getDefinition();
-            if (def != null) { var rl = def.getId(); if (rl != null) return rl.getNamespace(); }
-            return "gtceu";
-        } catch (Exception e) { return "unknown"; }
+            if (def != null && def.getId() != null) return def.getId().getNamespace();
+        } catch (Exception ignored) {}
+        return "unknown";
     }
 
     private static int getMultiblockTier(MultiblockControllerMachine controller) {
         try {
             var def = controller.getDefinition();
             if (def != null) return def.getTier();
-        } catch (Exception e) {
-            try {
-                var parts = controller.getParts();
-                if (parts != null && !parts.isEmpty()) {
-                    return parts.stream()
-                            .filter(p -> p != null && p.self() != null && p.self().getDefinition() != null)
-                            .mapToInt(p -> p.self().getDefinition().getTier())
-                            .max().orElse(0);
-                }
-            } catch (Exception e2) {
+        } catch (Exception ignored) {}
+        try {
+            var parts = controller.getParts();
+            if (parts != null && !parts.isEmpty()) {
+                return parts.stream()
+                        .filter(p -> p != null && p.self() != null && p.self().getDefinition() != null)
+                        .mapToInt(p -> p.self().getDefinition().getTier())
+                        .max().orElse(0);
             }
-        }
+        } catch (Exception ignored) {}
         return 0;
     }
 
     static Map<String, List<UniversalMultiblockScanner.ComponentData>> extractAllComponents(
             MultiblockControllerMachine controller, Level level) {
         Map<String, List<UniversalMultiblockScanner.ComponentData>> components = new HashMap<>();
-        Set<BlockPos> scanned = new java.util.HashSet<>();
+        Set<BlockPos> scanned = new HashSet<>();
 
         try {
             var parts = controller.getParts();
             if (parts == null || parts.isEmpty()) {
-                GTCEUTerminalMod.LOGGER.warn("Multiblock has no parts, scanning for wireless components...");
                 detectWirelessAndAddon(controller, level, components, scanned);
                 return components;
             }
@@ -116,24 +116,18 @@ final class MultiblockAnalysisHelper {
         try {
             BlockPos cp = controller.getPos();
             int r = 5;
-            for (BlockPos pos : BlockPos.betweenClosed(
-                    cp.offset(-r, -r, -r), cp.offset(r, r, r))) {
+            for (BlockPos pos : BlockPos.betweenClosed(cp.offset(-r, -r, -r), cp.offset(r, r, r))) {
                 if (scanned.contains(pos)) continue;
                 BlockEntity be = level.getBlockEntity(pos);
                 if (!(be instanceof IMachineBlockEntity mbe)) continue;
                 MetaMachine machine = mbe.getMetaMachine();
                 if (machine == null || machine.getDefinition() == null) continue;
-
-                String blockId = machine.getDefinition().getId().toString().toLowerCase();
-
                 if (!(machine instanceof MultiblockPartMachine part)) continue;
                 if (!isLinkedToController(part, controller.getPos())) continue;
 
-                boolean relevant = blockId.contains("wireless") && blockId.contains("energy")
-                        || blockId.contains("laser") || blockId.contains("data")
-                        || blockId.contains("optical") || blockId.contains("computation");
-
-                if (!relevant) continue;
+                ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
+                if (group == ComponentGroupRegistry.UNKNOWN) continue;
+                if (!group.isEnergyHandler && !group.isDataHandler) continue;
 
                 UniversalMultiblockScanner.ComponentData data = analyzeComponent(machine, level);
                 if (data != null) {
@@ -147,17 +141,15 @@ final class MultiblockAnalysisHelper {
     }
 
     private static boolean isLinkedToController(MultiblockPartMachine part, BlockPos wanted) {
-        return MultiblockMachineReflection.getLinkedControllerPos(part)
-                .map(pos -> pos.equals(wanted))
-                .orElse(false);
+        return part.getControllers().stream()
+                .anyMatch(c -> c.self().getPos().equals(wanted));
     }
 
     static UniversalMultiblockScanner.ComponentData analyzeComponent(MetaMachine machine, Level level) {
         try {
             String type = detectComponentType(machine);
-            int tier = 0;
             var def = machine.getDefinition();
-            if (def != null) tier = def.getTier();
+            int tier    = def != null ? def.getTier() : 0;
             String name = def != null ? def.getDescriptionId() : "Unknown";
             return new UniversalMultiblockScanner.ComponentData(type, name, tier, machine.getPos());
         } catch (Exception e) {
@@ -172,33 +164,26 @@ final class MultiblockAnalysisHelper {
             String id = def.getId().toString().toLowerCase();
 
             if (machine instanceof MultiblockPartMachine) {
-                var block = machine.getBlockState().getBlock();
-                com.gtceuterminal.common.multiblock.ComponentGroup group =
-                        ComponentGroupRegistry.detectFromBlock(block);
+                ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
                 if (group != ComponentGroupRegistry.UNKNOWN) {
-                    String amperage = BlockIdClassifier.detectAmperage(id);
-                    if (amperage != null) return amperage + " " + group.displayName;
-                    return group.id;
+                    String amp = BlockIdClassifier.detectAmperage(id);
+                    return amp != null ? amp + " " + group.displayName : group.id;
                 }
             }
 
-            Optional<ComponentPattern> patternOpt = ComponentPatternRegistry.findMatch(id);
-            if (patternOpt.isPresent()) {
-                ComponentPattern pattern = patternOpt.get();
-                String displayName = pattern.getDisplayName();
-                String amperage = BlockIdClassifier.detectAmperage(id);
-                if (amperage != null && !displayName.contains(amperage)) displayName = amperage + " " + displayName;
+            Optional<ComponentPattern> pattern = ComponentPatternRegistry.findMatch(id);
+            if (pattern.isPresent()) {
+                String displayName = pattern.get().getDisplayName();
+                String amp = BlockIdClassifier.detectAmperage(id);
+                if (amp != null && !displayName.contains(amp)) displayName = amp + " " + displayName;
                 return displayName;
             }
 
             String detected = BlockIdClassifier.detectByImprovedAnalysis(id);
             if (detected != null) return detected;
 
-            return ComponentGroupRegistry.UNKNOWN.id;
-
-        } catch (Exception e) {
-            return ComponentGroupRegistry.UNKNOWN.id;
-        }
+        } catch (Exception ignored) {}
+        return ComponentGroupRegistry.UNKNOWN.id;
     }
 
     static void extractStructureComponents(
@@ -206,13 +191,11 @@ final class MultiblockAnalysisHelper {
             Map<String, List<UniversalMultiblockScanner.ComponentData>> components) {
         try {
             Set<BlockPos> positions = MultiblockBounds.getMultiblockBlocks(controller, level);
-            int found = 0;
             for (BlockPos pos : positions) {
                 UniversalMultiblockScanner.ComponentData data =
                         BlockIdClassifier.identifyStructureBlock(level.getBlockState(pos), pos, level);
                 if (data != null) {
                     components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
-                    found++;
                 }
             }
         } catch (Exception e) {

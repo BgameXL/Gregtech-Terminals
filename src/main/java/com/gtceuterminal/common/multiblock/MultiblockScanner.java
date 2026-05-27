@@ -130,7 +130,7 @@ public class MultiblockScanner {
 
         try {
             Set<BlockPos> allPos = com.gtceuterminal.common.scanner.UniversalMultiblockScanner
-                    .getMultiblockBlocksPublic(detected.getController(), level);
+                    .getMultiblockBlocks(detected.getController(), level);
             if (allPos != null && !allPos.isEmpty()) {
                 info.setAllBlockPositions(allPos);
             }

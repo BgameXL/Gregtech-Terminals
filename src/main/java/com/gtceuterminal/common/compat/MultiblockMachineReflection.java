@@ -2,10 +2,7 @@ package com.gtceuterminal.common.compat;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
-
-import java.util.Optional;
 
 public final class MultiblockMachineReflection {
 
@@ -72,20 +69,5 @@ public final class MultiblockMachineReflection {
         }
     }
 
-    public static Optional<BlockPos> getLinkedControllerPos(Object partMachine) {
-        try {
-            Object p = partMachine.getClass().getMethod("getControllerPos").invoke(partMachine);
-            if (p instanceof BlockPos bp) return Optional.of(bp);
-        } catch (Throwable ignored) {}
 
-        try {
-            Object ctrl = partMachine.getClass().getMethod("getController").invoke(partMachine);
-            if (ctrl != null) {
-                Object p = ctrl.getClass().getMethod("getPos").invoke(ctrl);
-                if (p instanceof BlockPos bp) return Optional.of(bp);
-            }
-        } catch (Throwable ignored) {}
-
-        return Optional.empty();
-    }
 }

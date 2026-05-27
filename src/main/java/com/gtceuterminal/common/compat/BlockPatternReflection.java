@@ -11,8 +11,6 @@ import java.lang.reflect.Field;
 public final class BlockPatternReflection {
 
     public static Field F_BLOCK_MATCHES;
-    public static Field F_AISLE_REP;
-    public static Field F_STRUCTURE_DIR;
     public static Field F_CENTER_OFFSET;
     public static boolean READY = false;
 
@@ -22,8 +20,6 @@ public final class BlockPatternReflection {
         if (READY) return;
         try {
             F_BLOCK_MATCHES = field("blockMatches");
-            F_AISLE_REP     = field("aisleRepetitions");
-            F_STRUCTURE_DIR = field("structureDir");
             F_CENTER_OFFSET = field("centerOffset");
             READY = true;
         } catch (Throwable t) {
@@ -44,20 +40,6 @@ public final class BlockPatternReflection {
         if (!READY) return null;
         try { return (TraceabilityPredicate[][][]) F_BLOCK_MATCHES.get(pattern); }
         catch (IllegalAccessException e) { GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getBlockMatches", e); return null; }
-    }
-
-    public static int[][] getAisleRepetitions(BlockPattern pattern) {
-        ensure();
-        if (!READY) return null;
-        try { return (int[][]) F_AISLE_REP.get(pattern); }
-        catch (IllegalAccessException e) { GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getAisleRepetitions", e); return null; }
-    }
-
-    public static RelativeDirection[] getStructureDir(BlockPattern pattern) {
-        ensure();
-        if (!READY) return null;
-        try { return (RelativeDirection[]) F_STRUCTURE_DIR.get(pattern); }
-        catch (IllegalAccessException e) { GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getStructureDir", e); return null; }
     }
 
     public static int[] getCenterOffset(BlockPattern pattern) {

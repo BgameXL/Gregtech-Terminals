@@ -150,14 +150,14 @@ final class SchematicPreviewPanel {
             return Component.translatable(
                     "gui.gtceuterminal.schematic_interface.fallback.multiblock_structure").getString();
         }
+
         for (Map.Entry<BlockPos, BlockState> e : schematic.getBlocks().entrySet()) {
-            String id = e.getValue().getBlock().getDescriptionId().toLowerCase();
-            if (id.contains("gtceu") && !id.contains("casing") && !id.contains("hatch")
-                    && !id.contains("pipe") && !id.contains("coil") && !id.contains("glass")) {
-                String n = e.getValue().getBlock().getName().getString();
-                return n.length() > 35 ? n.substring(0, 32) + "…" : n;
-            }
+            if (!(e.getValue().getBlock() instanceof com.gregtechceu.gtceu.api.block.MetaMachineBlock mmb)) continue;
+            if (!(mmb.definition instanceof com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition)) continue;
+            String n = e.getValue().getBlock().getName().getString();
+            return n.length() > 35 ? n.substring(0, 32) + "…" : n;
         }
+
         String type = schematic.getMultiblockType();
         if (type != null && !type.isEmpty()) {
             type = type.replace("WorkableElectricMultiblockMachine", "Electric Machine")
@@ -165,6 +165,7 @@ final class SchematicPreviewPanel {
                     .replace("ElectricMultiblockMachine", "Electric Machine");
             return type.length() > 35 ? type.substring(0, 32) + "…" : type;
         }
+
         return Component.translatable(
                 "gui.gtceuterminal.schematic_interface.fallback.multiblock_structure").getString();
     }

@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmScreen;
+import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmDialog;
 import com.gtceuterminal.client.gui.dismantler.DismantlerUI;
 import com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
@@ -16,11 +16,13 @@ import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.theme.DefaultThemeConfig;
 import com.gtceuterminal.common.theme.ItemTheme;
+import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -51,10 +53,19 @@ public final class ClientPacketHandlers {
 
     public static void handleAnalysisResult(AnalysisResult result) {
         try {
-            Minecraft mc = Minecraft.getInstance();
-            mc.setScreen(new AutocraftConfirmScreen(result, mc.screen));
+            Minecraft mc     = Minecraft.getInstance();
+            Player    player = mc.player;
+            if (player == null) return;
+
+            ModularUI ui = new ModularUI(IUIHolder.EMPTY, player);
+            ui.setFullScreen();
+            ui.mainGroup.setClientSideWidget();
+
+            new AutocraftConfirmDialog(ui.mainGroup, result, player);
+
+            openClientOnly(ui);
         } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.error("ClientPacketHandlers: failed to open confirm screen", e);
+            GTCEUTerminalMod.LOGGER.error("ClientPacketHandlers: failed to open confirm dialog", e);
         }
     }
 

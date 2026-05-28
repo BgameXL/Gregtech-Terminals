@@ -43,7 +43,6 @@ public class ComponentUpgrader {
     ) {
         boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
 
-        // Validate target block exists when an explicit id is given
         if (hasId) {
             ResourceLocation rl = ResourceLocation.tryParse(targetUpgradeId);
             if (rl == null)                              return fail("Invalid upgrade id: " + targetUpgradeId);

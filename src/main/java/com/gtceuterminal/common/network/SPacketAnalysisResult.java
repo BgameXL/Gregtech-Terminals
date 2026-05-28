@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.network.ClientPacketHandlers;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,7 +11,6 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
-
 
 public class SPacketAnalysisResult {
 
@@ -29,21 +29,14 @@ public class SPacketAnalysisResult {
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> handleClient(result));
-        });
+        ctx.get().enqueueWork(() ->
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+                    try {
+                        ClientPacketHandlers.handleAnalysisResult(result);
+                    } catch (Exception e) {
+                        GTCEUTerminalMod.LOGGER.error("SPacketAnalysisResult: failed to open dialog", e);
+                    }
+                }));
         ctx.get().setPacketHandled(true);
-    }
-
-    @net.minecraftforge.api.distmarker.OnlyIn(Dist.CLIENT)
-    private static void handleClient(AnalysisResult result) {
-        try {
-            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-            net.minecraft.client.gui.screens.Screen current = mc.screen;
-            mc.setScreen(new com.gtceuterminal.client.gui.autocraft.AutocraftConfirmScreen(
-                    result, current));
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.error("SPacketAnalysisResult: failed to open confirm screen", e);
-        }
     }
 }

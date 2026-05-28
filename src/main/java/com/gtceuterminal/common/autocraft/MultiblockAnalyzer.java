@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.autocraft;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MEQueryResult;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
@@ -17,9 +18,6 @@ import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
-
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -29,7 +27,6 @@ import com.gtceuterminal.common.pattern.CandidateFilter;
 
 import net.minecraft.world.item.BlockItem;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public final class MultiblockAnalyzer {
@@ -43,8 +40,8 @@ public final class MultiblockAnalyzer {
         if (!BlockPatternReflection.READY) return null;
 
         try {
-            BlockPattern pattern        = controller.getPattern();
-            MultiblockState worldState  = controller.getMultiblockState();
+            BlockPattern pattern       = controller.getPattern();
+            MultiblockState worldState = controller.getMultiblockState();
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
             int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
@@ -53,14 +50,14 @@ public final class MultiblockAnalyzer {
 
             if (blockMatches == null) return null;
 
-            BlockPos  centerPos     = controller.self().getPos();
-            var       facing        = controller.self().getFrontFacing();
-            var       upFacing      = controller.self().getUpwardsFacing();
-            boolean   isFlipped     = controller.self().isFlipped();
-            int       minZ          = -centerOff[4];
+            BlockPos  centerPos = controller.self().getPos();
+            var       facing    = controller.self().getFrontFacing();
+            var       upFacing  = controller.self().getUpwardsFacing();
+            boolean   isFlipped = controller.self().isFlipped();
+            int       minZ      = -centerOff[4];
 
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
-            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
+            PredicateCountMap cacheLayer  = GTCEuCompat.getLayerCount(worldState);
             GTCEuCompat.clean(worldState);
 
             Map<Item, Integer> needed = new LinkedHashMap<>();
@@ -82,7 +79,7 @@ public final class MultiblockAnalyzer {
                             }
 
                             BlockInfo[] infos = pickInfos(pred, cacheGlobal, cacheLayer);
-                            List<ItemStack> candidates = new java.util.ArrayList<>();
+                            List<ItemStack> candidates = new ArrayList<>();
                             if (infos != null) for (BlockInfo info : infos)
                                 if (info != null && !info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
 
@@ -99,7 +96,8 @@ public final class MultiblockAnalyzer {
                 }
             }
 
-            return buildEntries(needed, player, controller.self().getPos(), 0);
+            MEQueryResult meQuery = MEQueryResult.resolve(player);
+            return buildEntries(needed, meQuery, controller.self().getPos());
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForBuild failed", e);
@@ -112,21 +110,32 @@ public final class MultiblockAnalyzer {
                                                    int targetTier,
                                                    String upgradeId,
                                                    BlockPos controllerPos) {
-        Map<Item, Integer> needed = new LinkedHashMap<>();
+        Map<Item, Integer> needed    = new LinkedHashMap<>();
         List<BlockPos>     positions = new ArrayList<>();
+
+        // Per-unit ingredient map (used to identify the target item)
+        Map<Item, Integer> perUnit = (upgradeId != null && !upgradeId.isBlank())
+                ? ComponentUpgradeHelper.getUpgradeItemsForBlockId(upgradeId)
+                : (components.isEmpty() ? Map.of() : ComponentUpgradeHelper.getUpgradeItems(components.get(0), targetTier));
 
         for (ComponentInfo comp : components) {
             positions.add(comp.getPosition());
-            Map<Item, Integer> perComp = (upgradeId != null && !upgradeId.isBlank())
-                    ? ComponentUpgradeHelper.getUpgradeItemsForBlockId(upgradeId)
-                    : ComponentUpgradeHelper.getUpgradeItems(comp, targetTier);
-            perComp.forEach((item, count) -> needed.merge(item, count, Integer::sum));
+            perUnit.forEach((item, count) -> needed.merge(item, count, Integer::sum));
+        }
+
+        // Resolve the target hatch ItemStack — the first key in perUnit is the hatch itself
+        net.minecraft.world.item.ItemStack targetStack = net.minecraft.world.item.ItemStack.EMPTY;
+        if (!perUnit.isEmpty()) {
+            Item targetItem = perUnit.keySet().iterator().next();
+            targetStack = new net.minecraft.world.item.ItemStack(targetItem);
         }
 
         try {
-            AnalysisResult base = buildEntries(needed, player, controllerPos, 0);
+            MEQueryResult  meQuery = MEQueryResult.resolve(player);
+            AnalysisResult base    = buildEntries(needed, meQuery, controllerPos);
             if (base == null) return null;
-            return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId, positions);
+            return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId,
+                    positions, targetStack, components.size());
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForUpgrade failed", e);
             return null;
@@ -134,15 +143,22 @@ public final class MultiblockAnalyzer {
     }
 
     private static AnalysisResult buildEntries(Map<Item, Integer> needed,
-                                               Player player,
-                                               BlockPos controllerPos,
-                                               int isUseAE) {
+                                               MEQueryResult meQuery,
+                                               BlockPos controllerPos) {
         List<AnalysisResult.Entry> entries = new ArrayList<>();
         for (Map.Entry<Item, Integer> e : needed.entrySet()) {
-            entries.add(new AnalysisResult.Entry(new ItemStack(e.getKey(), e.getValue()), 0, false));
+            Item item     = e.getKey();
+            int  required = e.getValue();
+            long inME     = meQuery.getAvailable(item);
+            boolean craftable = !meQuery.hasGrid() ? false : (inME < required && meQuery.isCraftable(item));
+            entries.add(new AnalysisResult.Entry(new ItemStack(item, required), inME, craftable));
         }
         return new AnalysisResult(entries, controllerPos);
     }
+
+    // ------------------------------------------------------------------
+    // Internals (unchanged)
+    // ------------------------------------------------------------------
 
     private static int getRepetitions(int slice, int[][] aisleReps, int repeatCount) {
         if (aisleReps == null || slice >= aisleReps.length) return 1;
@@ -196,16 +212,6 @@ public final class MultiblockAnalyzer {
         return result;
     }
 
-    private static ItemStack firstBlockItem(BlockInfo[] infos) {
-        if (infos == null) return null;
-        for (BlockInfo info : infos) {
-            if (info == null || info.getBlockState().isAir()) continue;
-            ItemStack s = info.getItemStackForm();
-            if (!s.isEmpty()) return s;
-        }
-        return null;
-    }
-
     private static ItemStack firstUsableBlockItem(List<ItemStack> candidates) {
         for (ItemStack s : candidates) {
             if (!s.isEmpty() && s.getItem() instanceof BlockItem) return s;
@@ -219,7 +225,7 @@ public final class MultiblockAnalyzer {
                                            net.minecraft.core.Direction upFacing,
                                            boolean flipped) {
         int[] c0 = {x, y, z}, c1 = new int[3];
-        var up = net.minecraft.core.Direction.UP;
+        var up   = net.minecraft.core.Direction.UP;
         var down = net.minecraft.core.Direction.DOWN;
 
         if (facing == up || facing == down) {

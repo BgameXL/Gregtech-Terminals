@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.network.ClientPacketHandlers;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -73,7 +74,7 @@ public class SPacketOpenDismantlerUI {
     public static void handle(SPacketOpenDismantlerUI msg, Supplier<NetworkEvent.Context> ctx) {
         NetworkEvent.Context context = ctx.get();
         context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                com.gtceuterminal.client.network.ClientPacketHandlers.handleOpenDismantler(
+                ClientPacketHandlers.handleOpenDismantler(
                         msg.item, msg.controllerPos, msg.scannedPositions)));
         context.setPacketHandled(true);
     }

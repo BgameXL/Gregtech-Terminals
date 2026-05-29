@@ -3,6 +3,7 @@ package com.gtceuterminal.client.gui.dialog;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.multiblock.ComponentDetailUI;
 import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
+import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.material.MaterialAvailability;
 import com.gtceuterminal.common.material.MaterialCalculator;
@@ -18,6 +19,7 @@ import com.gtceuterminal.common.upgrade.UniversalUpgradeCatalogBuilder;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 
+import com.gtceuterminal.common.util.MiscUtil;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -32,6 +34,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.ModList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -511,6 +514,11 @@ public class ComponentUpgradeDialog extends DialogWidget {
         }
         for (ItemStack s : player.getInventory().items) {
             if (WirelessTerminalHandler.isWirelessTerminal(s)) return s;
+        }
+        if (MiscUtil.isCuriosLoaded) {
+            for (ItemStack s : CuriosCompat.getEquippedItems(player)) {
+                if (WirelessTerminalHandler.isWirelessTerminal(s)) return s;
+            }
         }
         return ItemStack.EMPTY;
     }

@@ -9,10 +9,10 @@ import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.fml.ModList;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -86,7 +86,7 @@ final class BlockIdClassifier {
                     "CASING", blockState.getBlock().getName().getString(), 0, pos);
         }
 
-        if (ModList.get().isLoaded(StarTCoreIntegration.MOD_ID)) {
+        if (MiscUtil.isStarTCoreLoaded) {
             try {
                 Class<?> reflectorClass = Class.forName("com.startechnology.start_core.block.FusionReflectorBlock");
                 if (reflectorClass.isInstance(blockState.getBlock())) {

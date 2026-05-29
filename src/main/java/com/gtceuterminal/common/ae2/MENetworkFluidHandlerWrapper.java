@@ -8,10 +8,17 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
+import appeng.me.helpers.PlayerSource;
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.util.MiscUtil;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,24 +46,25 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
         return new MENetworkFluidHandlerWrapper(storage.getInventory(), actionSource);
     }
 
-    @org.jetbrains.annotations.Nullable
-    public static MENetworkFluidHandlerWrapper getFromPlayer(net.minecraft.world.entity.player.Player player) {
+    @Nullable
+    public static MENetworkFluidHandlerWrapper getFromPlayer(Player player) {
         if (!MENetworkScanner.isAE2Available()) return null;
 
         try {
-            java.util.List<net.minecraft.world.item.ItemStack> toCheck = new java.util.ArrayList<>();
+            List<ItemStack> toCheck = new ArrayList<>();
             toCheck.add(player.getMainHandItem());
             toCheck.add(player.getOffhandItem());
-            for (net.minecraft.world.item.ItemStack s : player.getInventory().items) toCheck.add(s);
+            toCheck.addAll(player.getInventory().items);
+            if (MiscUtil.isCuriosLoaded) toCheck.addAll(CuriosCompat.getEquippedItems(player));
 
-            for (net.minecraft.world.item.ItemStack stack : toCheck) {
+            for (ItemStack stack : toCheck) {
                 if (stack.isEmpty()) continue;
                 if (!WirelessTerminalHandler.isLinked(stack)) continue;
 
                 IGrid grid = WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
                 if (grid == null) continue;
 
-                IActionSource actionSource = new appeng.me.helpers.PlayerSource(player, null);
+                IActionSource actionSource = new PlayerSource(player, null);
                 MENetworkFluidHandlerWrapper wrapper = fromGrid(grid, actionSource);
                 if (wrapper != null) {
                     GTCEUTerminalMod.LOGGER.debug("Connected to ME Network fluid storage via terminal");
@@ -203,7 +211,7 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
         return false;
     }
 
-    public int getFluidAmount(net.minecraft.world.level.material.Fluid fluid) {
+    public int getFluidAmount(Fluid fluid) {
         updateCache();
 
         for (FluidStack stored : cachedFluids) {

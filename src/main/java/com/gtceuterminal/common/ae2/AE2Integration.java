@@ -5,7 +5,7 @@ import appeng.api.features.GridLinkables;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.GTCEUTerminalItems;
 
-import net.minecraftforge.fml.ModList;
+import com.gtceuterminal.common.util.MiscUtil;
 
 /**
  * Registers GTCEu Terminal items with AE2's GridLinkables system.
@@ -21,7 +21,7 @@ public class AE2Integration {
 
         // Guard: this class uses appeng.* directly, so it must only be called
         // when AE2 is on the classpath.
-        if (!ModList.get().isLoaded("ae2")) {
+        if (!MiscUtil.isAE2Loaded) {
             GTCEUTerminalMod.LOGGER.info("AE2 not present — skipping AE2 integration");
             return;
         }

@@ -1,14 +1,14 @@
 package com.gtceuterminal.common.network;
 
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.CuriosCompat;
+import com.gtceuterminal.common.data.BlockReplacementData;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.BlockReplacer;
-import com.gtceuterminal.common.data.BlockReplacementData;
-
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -151,6 +151,15 @@ public class CPacketBlockReplacement {
             if (stack.getItem() instanceof MultiStructureManagerItem ||
                     stack.getItem() instanceof SchematicInterfaceItem) {
                 return stack;
+            }
+        }
+
+        if (MiscUtil.isCuriosLoaded) {
+            for (ItemStack stack : CuriosCompat.getEquippedItems(player)) {
+                if (stack.getItem() instanceof MultiStructureManagerItem ||
+                        stack.getItem() instanceof SchematicInterfaceItem) {
+                    return stack;
+                }
             }
         }
 

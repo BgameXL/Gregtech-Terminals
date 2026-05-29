@@ -1,12 +1,16 @@
 package com.gtceuterminal.common.ae2;
 
+import appeng.api.config.Actionable;
+import appeng.api.networking.IGrid;
+import appeng.api.stacks.AEItemKey;
+import appeng.items.tools.powered.WirelessTerminalItem;
 import com.gtceuterminal.GTCEUTerminalMod;
-
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MENetworkExtractor {
@@ -18,25 +22,26 @@ public class MENetworkExtractor {
         if (!MENetworkScanner.isAE2Available()) return null;
 
         try {
-            List<ItemStack> toCheck = new java.util.ArrayList<>();
+            List<ItemStack> toCheck = new ArrayList<>();
             toCheck.add(player.getMainHandItem());
             toCheck.add(player.getOffhandItem());
             toCheck.addAll(player.getInventory().items);
+            if (MiscUtil.isCuriosLoaded) toCheck.addAll(CuriosCompat.getEquippedItems(player));
 
             for (ItemStack stack : toCheck) {
                 if (stack.isEmpty()) continue;
-                if (!(stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem terminalItem)) continue;
+                if (!(stack.getItem() instanceof WirelessTerminalItem terminalItem)) continue;
                 if (!WirelessTerminalHandler.isLinked(stack)) continue;
 
-                appeng.api.networking.IGrid grid =
+                IGrid grid =
                         terminalItem.getLinkedGrid(stack, player.level(), player);
                 if (grid == null) continue;
 
                 var storage = grid.getStorageService().getInventory();
                 for (ItemStack candidate : candidates) {
                     long extracted = storage.extract(
-                            appeng.api.stacks.AEItemKey.of(candidate), 1,
-                            appeng.api.config.Actionable.MODULATE, null);
+                            AEItemKey.of(candidate), 1,
+                            Actionable.MODULATE, null);
                     if (extracted > 0) {
                         return candidate.copy();
                     }

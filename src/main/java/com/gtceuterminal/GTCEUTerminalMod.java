@@ -1,37 +1,34 @@
 package com.gtceuterminal;
 
-import com.gtceuterminal.api.TerminalAPI;
+import com.gtceuterminal.common.ae2.AE2Integration;
+import com.gtceuterminal.common.command.GTCETerminalCommands;
+import com.gtceuterminal.common.compat.integrations.StarTCoreIntegration;
+import com.gtceuterminal.common.config.ItemsConfig;
+import com.gtceuterminal.common.config.ServerConfig;
+import com.gtceuterminal.common.data.GTCEUTerminalItems;
+import com.gtceuterminal.common.data.GTCEUTerminalTabs;
 import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
-import com.gtceuterminal.common.ae2.AE2Integration;
-import com.gtceuterminal.common.command.GTCETerminalCommands;
-import com.gtceuterminal.common.config.*;
-import com.gtceuterminal.common.theme.DefaultThemeConfig;
-import com.gtceuterminal.common.data.GTCEUTerminalItems;
-import com.gtceuterminal.common.data.GTCEUTerminalTabs;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
+import com.gtceuterminal.common.theme.DefaultThemeConfig;
+import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
+import com.gtceuterminal.common.util.MiscUtil;
+import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
+import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-
-
-import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
-
-import com.mojang.logging.LogUtils;
-
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 import java.nio.file.Files;
@@ -78,16 +75,14 @@ public class GTCEUTerminalMod {
         TerminalNetwork.registerPackets();
 
         event.enqueueWork(() -> {
-            com.gtceuterminal.common.config.ItemsConfig.load();
+            ItemsConfig.load();
 
-            com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.init();
+            ThemeBundleRegistry.init();
 
-            if (net.minecraftforge.fml.ModList.get().isLoaded("ae2")) {
+            if (MiscUtil.isAE2Loaded) {
                 AE2Integration.init();
-            } else {
             }
-
-            com.gtceuterminal.common.compat.integrations.StarTCoreIntegration.init();
+            StarTCoreIntegration.init();
         });
 
     }
@@ -99,7 +94,7 @@ public class GTCEUTerminalMod {
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        com.gtceuterminal.common.config.ItemsConfig.load();
+        ItemsConfig.load();
         DefaultThemeConfig.reload();
     }
 }

@@ -57,6 +57,20 @@ repositories {
         url = 'https://maven.terraformersmc.com/'
     }
 
+    // AE2
+    maven {
+        url = uri("https://modmaven.dev/")
+        content {
+            includeGroup "appeng"
+        }
+    }
+
+    // Curios
+    maven {
+        name = "Illusive Soulworks maven"
+        url = "https://maven.theillusivec4.top/"
+    }
+
     // Modrinth maven
     maven { url = "https://api.modrinth.com/maven" }
 
@@ -138,8 +152,14 @@ dependencies {
     modRuntimeOnly("curse.maven:jade-324717:6271651")
 
     // AE2 and dependencies
-    modImplementation("curse.maven:applied-energistics-2-223794:7096071")
+    modImplementation("appeng:appliedenergistics2-forge:${ae2_version}")
     modRuntimeOnly("curse.maven:guideme-1173950:7127447")
+
+    // Curios & AE2 compat
+    modCompileOnly("top.theillusivec4.curios:curios-forge:${curios_version}:api")
+    modRuntimeOnly("top.theillusivec4.curios:curios-forge:${curios_version}")
+    modRuntimeOnly("curse.maven:cloth-config-348521:5729105")
+    modRuntimeOnly("curse.maven:applied-energistics-2-wireless-terminals-459929:7251206")
 
     //Compile
     modCompileOnly("curse.maven:kubejs-238086:5853326")

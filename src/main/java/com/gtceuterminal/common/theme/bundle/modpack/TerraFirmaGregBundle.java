@@ -33,7 +33,7 @@ public class TerraFirmaGregBundle extends ThemeBundle {
 
     @Override
     public String description() {
-        return "§dOfficial TerraFirmaGreg Theme.§8TerraFirmaGreg meets GTCEu Terminals.";
+        return "§dOfficial TerraFirmaGreg Theme. §8TerraFirmaGreg meets GTCEu Terminals.";
     }
 
     @Override public int accentColor() { return ACCENT; }

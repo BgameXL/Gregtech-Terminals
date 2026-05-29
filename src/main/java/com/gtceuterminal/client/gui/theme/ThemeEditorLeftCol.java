@@ -7,6 +7,7 @@ import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
@@ -111,14 +112,20 @@ final class ThemeEditorLeftCol {
             bundleCardBgs[i] = cardBg;
             bundleList.addWidget(cardBg);
 
-            bundleList.addWidget(new ImageWidget(11, cardY + (cardH - 12) / 2, 12, 12,
-                    new GuiTextureGroup(
+            IGuiTexture icon = bundle.iconTexture();
+            GuiTextureGroup iconTex = (icon != null)
+                    ? new GuiTextureGroup(
+                            new ColorRectTexture(bundle.bgColor() | 0xFF000000),
+                            icon,
+                            new ColorBorderTexture(1, 0xAA000000))
+                    : new GuiTextureGroup(
                             new ColorRectTexture(bundle.accentColor() | 0xFF000000),
-                            new ColorBorderTexture(1, 0xAA000000))));
+                            new ColorBorderTexture(1, 0xAA000000));
+            int iconSz = 24;
+            bundleList.addWidget(new ImageWidget(8, cardY + (cardH - iconSz) / 2, iconSz, iconSz, iconTex));
 
-            bundleList.addWidget(new LabelWidget(27, cardY + 5, "§f" + bundle.displayName()));
-            bundleList.addWidget(new LabelWidget(27, cardY + 17,
-                    bundle.hasSlideshow() ? "§7animated" : "§8static"));
+            bundleList.addWidget(new LabelWidget(8 + iconSz + 6, cardY + (cardH - 8) / 2,
+                    "§f" + bundle.displayName()));
 
             ButtonWidget btn = new ButtonWidget(6, cardY, COL_W - 10, cardH,
                     new ColorRectTexture(0x00000000), cd -> onBundleSelect.accept(bundle));

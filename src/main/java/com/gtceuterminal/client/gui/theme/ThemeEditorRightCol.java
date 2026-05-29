@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 @OnlyIn(Dist.CLIENT)
@@ -38,7 +39,11 @@ final class ThemeEditorRightCol {
             RGBSliderWidget[] sliderRefs,
             ImageWidget[] swatchRefs,
             ImageWidget[] tabBgRefs,
-            LabelWidget[] hexLabelRef,
+            Consumer<String> onHexEntered,
+            TextFieldWidget[] hexFieldRef,
+            Runnable onCycleParade,
+            ImageWidget[] animBgRef,
+            Runnable onToggleSource,
             Runnable onWallPrev,
             Runnable onWallNext,
             LabelWidget[] wallLabelRef,
@@ -101,13 +106,20 @@ final class ThemeEditorRightCol {
 
         col.addWidget(new LabelWidget(0, cy + 3, "§8hex"));
         int hexX = 22, hexW = 82;
-        col.addWidget(new ImageWidget(hexX, cy, hexW, 14,
-                new GuiTextureGroup(new ColorRectTexture(0xFF141414), new ColorBorderTexture(1, 0xFF333333))));
-        LabelWidget hexLabel = new LabelWidget(hexX + 3, cy + 3, () ->
-                "§f#" + String.format("%06X", currentColor(working, editTargetHolder[0]) & 0xFFFFFF));
-        hexLabel.setClientSideWidget();
-        hexLabelRef[0] = hexLabel;
-        col.addWidget(hexLabel);
+        TextFieldWidget hexField = new TextFieldWidget(hexX, cy, hexW, 14, null, onHexEntered);
+        hexField.setClientSideWidget();
+        hexField.setBordered(false);
+        hexField.setMaxStringLength(9);
+        hexField.setValidator(ThemeEditorRightCol::sanitizeHex);
+        hexField.setTextColor(0xFFFFFFFF);
+        hexField.setBackground(new GuiTextureGroup(
+                new ColorRectTexture(0xFF141414), new ColorBorderTexture(1, 0xFF333333)));
+        hexField.setHoverTexture(new GuiTextureGroup(
+                new ColorRectTexture(0xFF141414), new ColorBorderTexture(1, C_SEL_BR)));
+        hexField.setCurrentString(
+                String.format("%06X", currentColor(working, editTargetHolder[0]) & 0xFFFFFF));
+        hexFieldRef[0] = hexField;
+        col.addWidget(hexField);
         cy += 20;
 
         col.addWidget(new LabelWidget(0, cy, "§8Color swatches"));
@@ -126,22 +138,55 @@ final class ThemeEditorRightCol {
             col.addWidget(new LabelWidget(sx, cy + swSz + 2, "§8" + swNames[i]));
         }
         cy += swSz + 14;
+        col.addWidget(new LabelWidget(0, cy, "§8Options"));
+        cy += 12;
+        int optH = 16;
+
+        int animW = 96;
+        ImageWidget animBg = new ImageWidget(0, cy, animW, optH,
+                animToggleTex(working.paradeMode != ItemTheme.ParadeMode.NONE));
+        animBgRef[0] = animBg;
+        col.addWidget(animBg);
+        LabelWidget animLbl = new LabelWidget(6, cy + (optH - 8) / 2, () -> paradeLabel(working.paradeMode));
+        animLbl.setClientSideWidget();
+        col.addWidget(animLbl);
+        ButtonWidget animBtn = new ButtonWidget(0, cy, animW, optH,
+                new ColorRectTexture(0x00000000), cd -> onCycleParade.run());
+        animBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
+        animBtn.setHoverTooltips(
+                Component.literal("§eAnimations"),
+                Component.literal("§7Parade style: Off / Orbit / Bouncing"));
+        col.addWidget(animBtn);
+        int srcX = animW + 6;
+        int srcW = 70;
+        col.addWidget(new ImageWidget(srcX, cy, srcW, optH,
+                new GuiTextureGroup(new ColorRectTexture(C_PANEL), new ColorBorderTexture(1, C_BORDER))));
+        LabelWidget srcLbl = new LabelWidget(srcX + 6, cy + (optH - 8) / 2, () ->
+                working.slideshowSource == ItemTheme.SlideshowSource.CUSTOM ? "§fCustom" : "§fBuilt-in");
+        srcLbl.setClientSideWidget();
+        col.addWidget(srcLbl);
+        ButtonWidget srcBtn = new ButtonWidget(srcX, cy, srcW, optH,
+                new ColorRectTexture(0x00000000), cd -> onToggleSource.run());
+        srcBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
+        srcBtn.setHoverTooltips(
+                Component.literal("§eSlideshow source"),
+                Component.literal("§7Built-in bundle images or your custom wallpapers"),
+                Component.literal("§8(applies to bundle slideshows)"));
+        col.addWidget(srcBtn);
+        cy += optH + 6;
 
         col.addWidget(new LabelWidget(0, cy + 2, "§8Wallpaper"));
-
-        col.addWidget(makeSmallBtn(54, cy, 12, 12, "§7◀",
+        col.addWidget(makeSmallBtn(58, cy, 12, 12, "§7◀",
                 cd -> onWallPrev.run()));
-
-        LabelWidget wallLabel = new LabelWidget(70, cy + 2, () ->
+        col.addWidget(makeSmallBtn(72, cy, 12, 12, "§7▶",
+                cd -> onWallNext.run()));
+        LabelWidget wallLabel = new LabelWidget(90, cy + 2, () ->
                 working.hasWallpaper()
                         ? "§f" + truncate(working.wallpaper, 12)
                         : Component.translatable("gui.gtceuterminal.theme_editor.none").getString());
         wallLabel.setClientSideWidget();
         wallLabelRef[0] = wallLabel;
         col.addWidget(wallLabel);
-
-        col.addWidget(makeSmallBtn(colW - 14, cy, 12, 12, "§7▶",
-                cd -> onWallNext.run()));
         cy += 16;
 
         int previewH = colH - cy - 2;
@@ -154,6 +199,35 @@ final class ThemeEditorRightCol {
         }
 
         return col;
+    }
+
+    private static String paradeLabel(ItemTheme.ParadeMode m) {
+        return switch (m) {
+            case ORBITAL  -> "§dAnim: Orbit";
+            case BOUNCING -> "§dAnim: Bounce";
+            default       -> "§7Anim: Off";
+        };
+    }
+
+    private static String sanitizeHex(String s) {
+        if (s == null) return "";
+        StringBuilder sb = new StringBuilder(6);
+        for (int i = 0; i < s.length() && sb.length() < 6; i++) {
+            char c = Character.toUpperCase(s.charAt(i));
+            if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')) sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    static GuiTextureGroup animToggleTex(boolean on) {
+        return new GuiTextureGroup(
+                new ColorRectTexture(on ? C_SEL : C_PANEL),
+                new ColorBorderTexture(1, on ? C_SEL_BR : C_BORDER));
+    }
+
+    static void refreshAnimToggle(ImageWidget[] ref, boolean on) {
+        if (ref == null || ref[0] == null) return;
+        ref[0].setImage(animToggleTex(on));
     }
 
     private static int currentColor(ItemTheme t, int editTarget) {

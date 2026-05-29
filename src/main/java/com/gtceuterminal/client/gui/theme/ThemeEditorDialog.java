@@ -50,11 +50,12 @@ public class ThemeEditorDialog {
     private final int[] editTargetHolder = {0};
     private final int[] channels         = new int[4];
 
-    private ImageWidget[] swatches      = new ImageWidget[3];
-    private ImageWidget[] tabBgs        = new ImageWidget[3];
-    private LabelWidget[] hexLabel      = new LabelWidget[1];
+    private ImageWidget[]     swatches    = new ImageWidget[3];
+    private ImageWidget[]     tabBgs      = new ImageWidget[3];
+    private TextFieldWidget[] hexFieldRef = new TextFieldWidget[1];
     private ImageWidget[] wallThumbRef  = new ImageWidget[1];
     private LabelWidget[] wallLabelRef  = new LabelWidget[1];
+    private ImageWidget[] animToggleBg  = new ImageWidget[1];
     private ImageWidget[] bundleCardBgs;
 
     private int dw, dh;
@@ -97,7 +98,6 @@ public class ThemeEditorDialog {
                 .collect(Collectors.toList());
         bundleCardBgs = new ImageWidget[bundles.size()];
 
-        // Left col: presets + bundle list
         panel.addWidget(ThemeEditorLeftCol.build(
                 PAD, contentY, contentH,
                 activeBundleId,
@@ -105,17 +105,19 @@ public class ThemeEditorDialog {
                 this::applyBundle,
                 bundleCardBgs));
 
-        // Vertical divider
         panel.addWidget(new ImageWidget(divX, contentY, 1, contentH,
                 new ColorRectTexture(C_BORDER)));
 
-        // Right col: sliders + swatches + wallpaper
         RGBSliderWidget[] sliders = new RGBSliderWidget[4];
         panel.addWidget(ThemeEditorRightCol.build(
                 colRx, contentY, colRw, contentH,
                 working, editTargetHolder, channels,
                 this::onChannelOrTabChanged,
-                sliders, swatches, tabBgs, hexLabel,
+                sliders, swatches, tabBgs,
+                this::onHexEntered, hexFieldRef,
+                this::cycleParade,
+                animToggleBg,
+                this::toggleSource,
                 () -> navigateWallpaper(-1),
                 () -> navigateWallpaper(+1),
                 wallLabelRef,
@@ -170,6 +172,7 @@ public class ThemeEditorDialog {
 
     private void applyBundle(ThemeBundle bundle) {
         bundle.applyTo(working);
+        working.slideshowMode = true; // bundles drive the wallpaper slideshow automatically
         activeBundleId = bundle.id();
         syncChannels(working.accentColor);
         refreshAll();
@@ -180,6 +183,36 @@ public class ThemeEditorDialog {
         p.applyTo(working);
         syncChannels(currentColor());
         refreshAll();
+    }
+
+    private void onHexEntered(String hex) {
+        if (hex == null) return;
+        String s = hex.startsWith("#") ? hex.substring(1) : hex;
+        if (s.length() != 6) return;
+        int rgb;
+        try { rgb = Integer.parseInt(s, 16); }
+        catch (NumberFormatException e) { return; }
+        channels[0] = (rgb >> 16) & 0xFF;
+        channels[1] = (rgb >>  8) & 0xFF;
+        channels[2] =  rgb        & 0xFF;
+        applyChannels();
+        refreshAll();
+    }
+
+    private void cycleParade() {
+        working.paradeMode = switch (working.paradeMode) {
+            case NONE     -> ItemTheme.ParadeMode.ORBITAL;
+            case ORBITAL  -> ItemTheme.ParadeMode.BOUNCING;
+            case BOUNCING -> ItemTheme.ParadeMode.NONE;
+        };
+        ThemeEditorRightCol.refreshAnimToggle(animToggleBg,
+                working.paradeMode != ItemTheme.ParadeMode.NONE);
+    }
+
+    private void toggleSource() {
+        working.slideshowSource = (working.slideshowSource == ItemTheme.SlideshowSource.CUSTOM)
+                ? ItemTheme.SlideshowSource.BUILTIN
+                : ItemTheme.SlideshowSource.CUSTOM;
     }
 
     private void navigateWallpaper(int delta) {
@@ -265,9 +298,10 @@ public class ThemeEditorDialog {
             default -> working.accentColor = color;
         }
         if (working.isBundleStyle()) {
-            working.uiStyle  = ItemTheme.UiStyle.DARK;
-            working.bundleId = "";
-            activeBundleId   = "";
+            working.uiStyle       = ItemTheme.UiStyle.DARK;
+            working.bundleId      = "";
+            working.slideshowMode = false;
+            activeBundleId        = "";
         }
     }
 
@@ -289,7 +323,14 @@ public class ThemeEditorDialog {
     private void refreshAll() {
         refreshSwatches();
         refreshTabHighlights();
+        refreshHexField();
+        ThemeEditorRightCol.refreshAnimToggle(animToggleBg, working.paradeMode != ItemTheme.ParadeMode.NONE);
         ThemeEditorLeftCol.refreshBundleCards(bundleCardBgs, activeBundleId);
+    }
+
+    private void refreshHexField() {
+        if (hexFieldRef[0] != null)
+            hexFieldRef[0].setCurrentString(String.format("%06X", currentColor() & 0xFFFFFF));
     }
 
     private void refreshSwatches() {

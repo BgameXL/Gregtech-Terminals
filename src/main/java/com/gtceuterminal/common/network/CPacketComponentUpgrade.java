@@ -1,14 +1,15 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
-import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
+import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.upgrade.ComponentUpgrader;
-
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -16,7 +17,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
@@ -220,6 +220,15 @@ public class CPacketComponentUpgrade {
             if (stack.getItem() instanceof MultiStructureManagerItem ||
                     stack.getItem() instanceof SchematicInterfaceItem) {
                 return stack;
+            }
+        }
+
+        if (MiscUtil.isCuriosLoaded) {
+            for (ItemStack stack : CuriosCompat.getEquippedItems(player)) {
+                if (stack.getItem() instanceof MultiStructureManagerItem ||
+                        stack.getItem() instanceof SchematicInterfaceItem) {
+                    return stack;
+                }
             }
         }
 

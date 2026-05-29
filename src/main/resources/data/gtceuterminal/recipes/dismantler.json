@@ -7,7 +7,7 @@
   ],
   "key": {
     "S": {
-      "item": "gtceu:damascus_steel_screw"
+      "item": "gtceu:black_bronze_screw"
     },
     "P": {
       "item": "gtceu:mv_sensor"
@@ -19,7 +19,7 @@
       "item": "gtceu:computer_monitor_cover"
     },
     "W": {
-      "item": "gtceu:damascus_steel_plate"
+      "item": "gtceu:black_steel_plate"
     },
     "R": {
       "item": "gtceu:data_stick"

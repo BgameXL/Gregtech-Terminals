@@ -1,14 +1,14 @@
 package com.gtceuterminal.common.material;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
-import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
-import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
-
+import com.gtceuterminal.common.multiblock.ComponentInfo;
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -17,7 +17,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // Calculates material requirements and checks availability
 public class MaterialCalculator {
@@ -218,25 +221,25 @@ public class MaterialCalculator {
 
     private static ItemStack findWirelessTerminal(Player player) {
         ItemStack mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof MultiStructureManagerItem ||
-                mainHand.getItem() instanceof SchematicInterfaceItem) {
-            return mainHand;
-        }
+        if (isTerminal(mainHand)) return mainHand;
 
         ItemStack offHand = player.getOffhandItem();
-        if (offHand.getItem() instanceof MultiStructureManagerItem ||
-                offHand.getItem() instanceof SchematicInterfaceItem) {
-            return offHand;
-        }
+        if (isTerminal(offHand)) return offHand;
 
-        for (ItemStack stack : player.getInventory().items) {
-            if (stack.getItem() instanceof MultiStructureManagerItem ||
-                    stack.getItem() instanceof SchematicInterfaceItem) {
-                return stack;
-            }
+        for (ItemStack stack : player.getInventory().items)
+            if (isTerminal(stack)) return stack;
+
+        if (MiscUtil.isCuriosLoaded) {
+            for (ItemStack stack : CuriosCompat.getEquippedItems(player))
+                if (isTerminal(stack)) return stack;
         }
 
         return ItemStack.EMPTY;
+    }
+
+    private static boolean isTerminal(ItemStack terminal) {
+        return terminal.getItem() instanceof MultiStructureManagerItem ||
+                terminal.getItem() instanceof SchematicInterfaceItem;
     }
 
     public static List<MaterialAvailability> checkMaterialsAvailability(

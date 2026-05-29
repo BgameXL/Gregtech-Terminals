@@ -8,13 +8,11 @@ import com.gtceuterminal.common.multiblock.ComponentGroup;
 
 import com.gregtechceu.gtceu.api.GTValues;
 
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraftforge.fml.ModList;
 
 public final class StarTCoreIntegration {
-
-    public static final String MOD_ID = "start_core";
-
     public static final String SOLAR_CELLS       = "start_solar_cells";
     public static final String FUSION_REFLECTORS = "start_fusion_reflectors";
     public static final String FUSION_COILS      = "start_fusion_coils";
@@ -24,7 +22,7 @@ public final class StarTCoreIntegration {
     private StarTCoreIntegration() {}
 
     public static void init() {
-        if (!ModList.get().isLoaded(MOD_ID)) {
+        if (!MiscUtil.isStarTCoreLoaded) {
             GTCEUTerminalMod.LOGGER.debug("[StarTCoreIntegration] start_core not installed, skipping.");
             return;
         }

@@ -36,6 +36,10 @@ public final class MEQueryResult {
         return grid != null;
     }
 
+    public IGrid getGrid() {
+        return grid;
+    }
+
     public long getAvailable(Item item) {
         if (cachedInventory == null) return 0;
         return cachedInventory.get(AEItemKey.of(item));
@@ -62,7 +66,6 @@ public final class MEQueryResult {
 
     private static IGrid tryStack(ItemStack stack, net.minecraft.world.entity.player.Player player) {
         if (stack.isEmpty()) return null;
-        if (!(stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem terminal)) return null;
-        return terminal.getLinkedGrid(stack, player.level(), null);
+        return WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
     }
 }

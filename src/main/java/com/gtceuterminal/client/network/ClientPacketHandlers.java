@@ -4,6 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmDialog;
 import com.gtceuterminal.client.gui.dismantler.DismantlerUI;
 import com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI;
+import com.gtceuterminal.client.gui.multiblock.InlineUpgradePanel;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
 import com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI;
 import com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI;
@@ -69,6 +70,10 @@ public final class ClientPacketHandlers {
         }
     }
 
+    public static void handleUpgradeAvailability(int requestId, AnalysisResult result) {
+        InlineUpgradePanel.handleAvailabilityResult(requestId, result);
+    }
+
     public static void handleOpenMultiStructureManager(String mode, ItemStack item) {
         try {
             Minecraft mc = Minecraft.getInstance();
@@ -118,13 +123,13 @@ public final class ClientPacketHandlers {
     }
 
     public static void handleOpenEnergyAnalyzer(int initialIndex, List<EnergySnapshot> snapshots,
-                                                List<LinkedMachineData> machines, ItemTheme theme) {
+                                                List<LinkedMachineData> machines, ItemStack itemStack, ItemTheme theme) {
         try {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null) return;
 
             EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder =
-                    new EnergyAnalyzerUIFactory.EnergyAnalyzerHolder(true, snapshots, machines, initialIndex, theme);
+                    new EnergyAnalyzerUIFactory.EnergyAnalyzerHolder(true, itemStack, snapshots, machines, initialIndex, theme);
             holder.attach(mc.player);
             openClientOnly(EnergyAnalyzerUI.create(holder, mc.player));
         } catch (Throwable t) {

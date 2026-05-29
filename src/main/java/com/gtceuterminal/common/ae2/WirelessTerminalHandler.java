@@ -17,7 +17,8 @@ public class WirelessTerminalHandler {
 
     private static final String TAG_ACCESS_POINT_POS = "accessPoint";
     public static boolean isWirelessTerminal(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem;
+        return !stack.isEmpty()
+                && (stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem || isLinked(stack));
     }
 
     public static boolean isLinked(ItemStack stack) {
@@ -26,6 +27,11 @@ public class WirelessTerminalHandler {
 
     @Nullable
     public static IGrid getLinkedGrid(ItemStack stack, Level level, Player player) {
+        if (stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem terminal) {
+            IGrid grid = terminal.getLinkedGrid(stack, level, player);
+            if (grid != null) return grid;
+        }
+
         if (!isLinked(stack)) {
             return null;
         }

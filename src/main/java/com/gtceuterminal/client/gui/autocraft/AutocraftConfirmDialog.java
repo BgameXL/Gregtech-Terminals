@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -33,7 +34,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private static final int HEADER_H = 28;
     private static final int FOOTER_H = 36;
 
-    // Colors
     private static final int C_GREEN  = 0xFF2D6B2D;
     private static final int C_GREEN_T= 0x441a3a1a;
     private static final int C_ORANGE = 0xFF8a5a10;
@@ -60,6 +60,17 @@ public class AutocraftConfirmDialog extends DialogWidget {
         initDialog();
     }
 
+    @Override
+    public void close() {
+        super.close();
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            mc.player.closeContainer();
+        } else {
+            mc.setScreen(null);
+        }
+    }
+
     private void initDialog() {
         var mc  = Minecraft.getInstance();
         int sw  = mc.screen != null ? mc.screen.width  : mc.getWindow().getGuiScaledWidth();
@@ -77,10 +88,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
         addWidget(buildFooter());
     }
 
-    // ------------------------------------------------------------------
-    // Header
-    // ------------------------------------------------------------------
-
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, W - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
@@ -93,18 +100,10 @@ public class AutocraftConfirmDialog extends DialogWidget {
         lbl.setTextColor(C_WHITE);
         header.addWidget(lbl);
 
-        ButtonWidget close = new ButtonWidget(W - 32, 4, 22, 20,
-                new GuiTextureGroup(new ColorRectTexture(colorPanel), new ColorBorderTexture(1, colorBorder)),
-                cd -> close());
-        close.setButtonTexture(new TextTexture("§c✕").setWidth(22).setType(TextTexture.TextType.NORMAL));
-        close.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(0xFFAA0000), new ColorBorderTexture(1, C_WHITE)));
+        ButtonWidget close = TerminalButton.close(W - 28, 4, 20, colorPanel, colorBorder, cd -> close());
         header.addWidget(close);
         return header;
     }
-
-    // ------------------------------------------------------------------
-    // Body: left column (hatch + ingredients) | right column (availability)
-    // ------------------------------------------------------------------
 
     private WidgetGroup buildBody() {
         int bodyY = 2 + HEADER_H + 3;
@@ -115,7 +114,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int colL = (W - PAD * 2) * 6 / 10;
         int colR = (W - PAD * 2) - colL - 1;
 
-        // Left panel
         WidgetGroup left = new WidgetGroup(0, 0, colL, bodyH);
         left.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(colorPanel),
@@ -124,10 +122,8 @@ public class AutocraftConfirmDialog extends DialogWidget {
         left.addWidget(buildIngredientList(colL, bodyH));
         body.addWidget(left);
 
-        // Divider
         body.addWidget(new ImageWidget(colL, 0, 1, bodyH, new ColorRectTexture(colorBorder)));
 
-        // Right panel
         WidgetGroup right = new WidgetGroup(colL + 1, 0, colR, bodyH);
         right.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(colorPanel),
@@ -138,7 +134,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
         return body;
     }
 
-    /** Top section of left panel — the hatch slot + name + count. */
     private WidgetGroup buildTargetHatch(int panelW) {
         int hatchH = 48;
         WidgetGroup group = new WidgetGroup(0, 0, panelW, hatchH);
@@ -171,7 +166,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
         return group;
     }
 
-    /** Scrollable ingredient list in the left panel. */
     private WidgetGroup buildIngredientList(int panelW, int panelH) {
         int offsetY = 48;
         int listH   = panelH - offsetY;
@@ -218,7 +212,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
         return row;
     }
 
-    /** Right panel: availability badges aligned to each ingredient row. */
     private WidgetGroup buildAvailabilityList(int panelW, int panelH) {
         int headerH = 48 + 16;
         DraggableScrollableWidgetGroup scroll = new DraggableScrollableWidgetGroup(
@@ -269,7 +262,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         LabelWidget qty = new LabelWidget(5, 5, label);
         row.addWidget(qty);
 
-        String tag = entry.hasAll() ? "ME" : (entry.craftable ? "craftable" : "missing");
+        String tag = entry.hasAll() ? "ME" : (entry.craftable ? "craft" : "missing");
         String tagColor = entry.hasAll() ? "§a" : (entry.craftable ? "§6" : "§c");
         LabelWidget tagLbl = new LabelWidget(rowW - 60, 5, tagColor + tag);
         row.addWidget(tagLbl);
@@ -277,45 +270,27 @@ public class AutocraftConfirmDialog extends DialogWidget {
         return row;
     }
 
-    // ------------------------------------------------------------------
-    // Footer
-    // ------------------------------------------------------------------
-
     private WidgetGroup buildFooter() {
         int footerY = H - FOOTER_H - 2;
         WidgetGroup footer = new WidgetGroup(PAD, footerY, W - PAD * 2, FOOTER_H);
 
         int btnH = 24;
         int cancelW = 110;
-        ButtonWidget cancel = new ButtonWidget(0, 4, cancelW, btnH,
-                new GuiTextureGroup(new ColorRectTexture(0xFF6b3fa0), new ColorBorderTexture(1, 0xFF8a55c0)),
-                cd -> close());
-        cancel.setButtonTexture(new TextTexture(
-                Component.translatable("gui.gtceuterminal.autocraft.cancel").getString())
-                .setWidth(cancelW).setType(TextTexture.TextType.NORMAL));
-        cancel.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0xFF7a4eb0), new ColorBorderTexture(1, C_WHITE)));
+        ButtonWidget cancel = TerminalButton.action(0, 4, cancelW, btnH,
+                Component.translatable("gui.gtceuterminal.autocraft.cancel").getString(),
+                0xFF6b3fa0, 0xFF8a55c0, cd -> close());
         footer.addWidget(cancel);
 
         boolean hasMissing = result.anyMissing();
         int requestW = 160;
         int requestX = W - PAD * 2 - requestW;
 
-        ButtonWidget request = new ButtonWidget(requestX, 4, requestW, btnH,
-                new GuiTextureGroup(
-                        new ColorRectTexture(hasMissing ? 0xFF3a3a3a : 0xFF1a3a8a),
-                        new ColorBorderTexture(1, hasMissing ? 0xFF555555 : 0xFF2a5acc)),
-                cd -> {
-                    if (!hasMissing) onRequest();
-                });
-        request.setButtonTexture(new TextTexture(
+        ButtonWidget request = hasMissing
+                ? TerminalButton.disabled(requestX, 4, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString())
-                .setWidth(requestW).setType(TextTexture.TextType.NORMAL));
-        if (!hasMissing) {
-            request.setHoverTexture(new GuiTextureGroup(
-                    new ColorRectTexture(0xFF243A8a), new ColorBorderTexture(1, C_WHITE)));
-        }
-        request.setActive(!hasMissing);
+                : TerminalButton.action(requestX, 4, requestW, btnH,
+                Component.translatable("gui.gtceuterminal.autocraft.request").getString(),
+                0xFF1a3a8a, 0xFF2a5acc, cd -> onRequest());
         footer.addWidget(request);
 
         if (hasMissing) {

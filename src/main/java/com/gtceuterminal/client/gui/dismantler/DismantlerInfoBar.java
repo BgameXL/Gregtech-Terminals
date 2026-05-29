@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
@@ -9,16 +10,15 @@ import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Block;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Map;
+
 @OnlyIn(Dist.CLIENT)
 final class DismantlerInfoBar {
-
-    private static final int C_SUCCESS = 0xFF00CC00;
-    private static final int C_WARNING = 0xFFFFAA00;
-    private static final int C_WHITE   = 0xFFFFFFFF;
 
     private DismantlerInfoBar() {}
 
@@ -33,27 +33,72 @@ final class DismantlerInfoBar {
         bar.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(colorBgMedium),
                 new ColorBorderTexture(1, colorBorderDark)));
+        int total = 0, collectable = 0, skipped = 0, requiredSlots = 0;
+        if (scanResult != null) {
+            for (Map.Entry<Block, Integer> e : scanResult.getBlockCounts().entrySet()) {
+                total += e.getValue();
+                if (ItemsConfig.isDismantlerBlacklisted(e.getKey())) {
+                    skipped += e.getValue();
+                } else {
+                    collectable += e.getValue();
+                    requiredSlots += (e.getValue() + 63) / 64;
+                }
+            }
+        }
 
         int emptySlots = 0;
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             if (player.getInventory().getItem(i).isEmpty()) emptySlots++;
         }
 
-        LabelWidget slotsLabel = new LabelWidget(10, 8,
-                Component.translatable("gui.gtceuterminal.dismantler.inventory_empty_slots", emptySlots).getString());
-        slotsLabel.setTextColor(C_WHITE);
-        bar.addWidget(slotsLabel);
+        int xPos = 12;
+        LabelWidget totalLabel = new LabelWidget(xPos, h / 2 - 4, "§8Total: §f" + total + " blocks");
+        totalLabel.setTextColor(0xFFAAAAAA);
+        bar.addWidget(totalLabel);
+        xPos += 96;
 
-        int slotsNeeded = (scanResult != null) ? scanResult.getItemsToRecover().size() : 0;
-        boolean hasSpace = emptySlots >= slotsNeeded;
+        LabelWidget dot1 = new LabelWidget(xPos, h / 2 - 4, "§8·");
+        dot1.setTextColor(0xFF555555);
+        bar.addWidget(dot1);
+        xPos += 14;
 
-        LabelWidget spaceLabel = new LabelWidget(10, 22,
-                Component.translatable(hasSpace
-                        ? "gui.gtceuterminal.dismantler.enough_space"
-                        : "gui.gtceuterminal.dismantler.warning_not_enough_space").getString());
-        spaceLabel.setTextColor(hasSpace ? C_SUCCESS : C_WARNING);
-        bar.addWidget(spaceLabel);
+        boolean enough = emptySlots >= requiredSlots;
+        boolean partial = emptySlots > 0 && !enough;
+        String invState = enough ? "§aenough" : (partial ? "§epartial fit" : "§cno space");
+        LabelWidget invLabel = new LabelWidget(xPos, h / 2 - 4, "§8Inventory space: " + invState);
+        invLabel.setTextColor(0xFFAAAAAA);
+        bar.addWidget(invLabel);
+        xPos += 150;
+
+        LabelWidget dot2 = new LabelWidget(xPos, h / 2 - 4, "§8·");
+        dot2.setTextColor(0xFF555555);
+        bar.addWidget(dot2);
+        xPos += 14;
+
+        String dropsState = enough ? "§adisabled" : "§6enabled";
+        LabelWidget dropsLabel = new LabelWidget(xPos, h / 2 - 4, "§8Drops to ground: " + dropsState);
+        dropsLabel.setTextColor(0xFFAAAAAA);
+        bar.addWidget(dropsLabel);
+
+        if (skipped > 0) {
+            LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4, "§8skipped §6" + skipped);
+            skipLabel.setTextColor(0xFFAAAAAA);
+            bar.addWidget(skipLabel);
+        }
 
         return bar;
+    }
+
+    private static int addStat(WidgetGroup parent, int x, int y, int w, int h,
+                               String val, String lbl, int valColor) {
+        LabelWidget value = new LabelWidget(x, y, val);
+        value.setTextColor(valColor);
+        parent.addWidget(value);
+
+        LabelWidget label = new LabelWidget(x, y + 14, "§8" + lbl);
+        label.setTextColor(0xFF555555);
+        parent.addWidget(label);
+
+        return x + w;
     }
 }

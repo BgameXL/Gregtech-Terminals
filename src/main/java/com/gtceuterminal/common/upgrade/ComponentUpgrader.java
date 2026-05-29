@@ -28,10 +28,6 @@ import java.util.Map;
 
 public class ComponentUpgrader {
 
-    // -------------------------------------------------------------------------
-    // Single upgrade
-    // -------------------------------------------------------------------------
-
     public static UpgradeResult upgradeComponent(
             ComponentInfo component,
             int targetTier,
@@ -100,8 +96,9 @@ public class ComponentUpgrader {
         }
 
         String targetLabel = hasId ? targetUpgradeId : com.gregtechceu.gtceu.api.GTValues.VN[targetTier];
+        String groupLabel = component.getGroup() != null ? component.getGroup().id : "unknown";
         GTCEUTerminalMod.LOGGER.info("Upgraded {} at {} from {} to {} (Block: {} -> {}){}",
-                component.getGroup().id, pos, component.getTierName(), targetLabel,
+                groupLabel, pos, component.getTierName(), targetLabel,
                 oldBlock.getDescriptionId(), newBlock.getDescriptionId(),
                 extractionSource.replace("§a", "").replace("§7", ""));
 
@@ -275,10 +272,6 @@ public class ComponentUpgrader {
         }
         return sb.toString();
     }
-
-    // -------------------------------------------------------------------------
-    // Result types
-    // -------------------------------------------------------------------------
 
     public static class UpgradeResult {
         public final boolean success;

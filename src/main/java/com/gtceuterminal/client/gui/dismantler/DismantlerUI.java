@@ -18,6 +18,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class DismantlerUI {
     private static final int C_BORDER_DARK = 0xFF0A0A0A;
 
     private final IUIHolder uiHolder;
+    private final ItemStack itemStack;
     private final BlockPos  controllerPos;
     private final Player    player;
     private final ItemTheme theme;
@@ -56,9 +58,10 @@ public class DismantlerUI {
 
     public DismantlerUI(HeldItemUIFactory.HeldItemHolder heldHolder, BlockPos controllerPos) {
         this.uiHolder      = heldHolder;
+        this.itemStack     = heldHolder.held;
         this.controllerPos = controllerPos;
         this.player        = heldHolder.player;
-        this.theme         = ItemTheme.load(heldHolder.held);
+        this.theme         = ItemTheme.load(this.itemStack);
         this.colorBgLight    = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
         this.colorBgMedium   = theme.panelColor;
         this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
@@ -67,9 +70,10 @@ public class DismantlerUI {
 
     public DismantlerUI(DismantlerItemUIFactory.Holder holder, Player player) {
         this.uiHolder      = holder;
+        this.itemStack     = holder.item;
         this.controllerPos = holder.controllerPos;
         this.player        = player;
-        this.theme         = ItemTheme.load(holder.item);
+        this.theme         = ItemTheme.load(this.itemStack);
         this.colorBgLight    = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
         this.colorBgMedium   = theme.panelColor;
         this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
@@ -119,7 +123,7 @@ public class DismantlerUI {
 
         mainGroup.addWidget(buildOuterBorder());
         mainGroup.addWidget(DismantlerHeader.build(
-                GUI_W, HEADER_H, controllerPos, theme, mainGroup, player, this::closeUI));
+                GUI_W, HEADER_H, controllerPos, itemStack, theme, mainGroup, player, this::closeUI));
 
         int previewW = SPLIT_X - PAD - 4;
         mainGroup.addWidget(DismantlerPreviewPanel.build(

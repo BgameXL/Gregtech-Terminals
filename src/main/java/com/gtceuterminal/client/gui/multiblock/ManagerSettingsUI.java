@@ -1,6 +1,7 @@
 package com.gtceuterminal.client.gui.multiblock;
 
 import com.gtceuterminal.common.ae2.MENetworkScanner;
+import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 
@@ -134,18 +135,23 @@ public class ManagerSettingsUI {
         header.setBackground(theme.headerTexture());
 
         int titleX = 10;
+        int iconSize = 18;
+        int iconY = (HEADER_H - iconSize) / 2;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
                     com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
             if (bundle != null) {
-                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture icon = bundle.iconTexture();
-                if (icon != null) {
-                    int iconSize = 18;
-                    int iconY    = (HEADER_H - iconSize) / 2;
-                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
+                if (bundleIcon != null) {
+                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
                     titleX += iconSize + 4;
                 }
             }
+        } else {
+            header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
+                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
+                    COLOR_BORDER_LIGHT));
+            titleX += iconSize + 6;
         }
 
         LabelWidget title = new LabelWidget(titleX, 9,

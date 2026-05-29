@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TerminalNetwork {
 
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "6";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,
@@ -89,6 +89,12 @@ public class TerminalNetwork {
                 .consumerMainThread(CPacketRequestUpgradeAnalysis::handle)
                 .add();
 
+        CHANNEL.messageBuilder(CPacketRequestUpgradeAvailability.class, id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(CPacketRequestUpgradeAvailability::encode)
+                .decoder(CPacketRequestUpgradeAvailability::new)
+                .consumerMainThread(CPacketRequestUpgradeAvailability::handle)
+                .add();
+
         CHANNEL.messageBuilder(SPacketOpenMultiStructureManagerUI.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketOpenMultiStructureManagerUI::encode)
                 .decoder(SPacketOpenMultiStructureManagerUI::new)
@@ -123,6 +129,12 @@ public class TerminalNetwork {
                 .encoder(SPacketAnalysisResult::encode)
                 .decoder(SPacketAnalysisResult::new)
                 .consumerMainThread(SPacketAnalysisResult::handle)
+                .add();
+
+        CHANNEL.messageBuilder(SPacketUpgradeAvailability.class,     id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketUpgradeAvailability::encode)
+                .decoder(SPacketUpgradeAvailability::new)
+                .consumerMainThread(SPacketUpgradeAvailability::handle)
                 .add();
 
         CHANNEL.messageBuilder(CPacketSaveManagerSettings.class,     id++, NetworkDirection.PLAY_TO_SERVER)

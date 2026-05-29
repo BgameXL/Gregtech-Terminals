@@ -66,7 +66,7 @@ public class EnergyAnalyzerUI {
         }
 
         rootGroup.addWidget(EnergyAnalyzerHeader.build(
-                W, HEADER_H, PAD, holder.machines.size(), theme, rootGroup, player));
+                W, HEADER_H, PAD, holder.machines.size(), holder.itemStack, theme, rootGroup, player));
 
         WidgetGroup div = new WidgetGroup(SIDEBAR_W + 2, HEADER_H, 2, H - HEADER_H);
         div.setBackground(new ColorRectTexture(theme.isNativeStyle() ? 0x40000000 : theme.accent(0x80)));

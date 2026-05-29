@@ -49,7 +49,7 @@ public class ComponentUpgradeHelper {
     public static Map<Item, Integer> getUpgradeItems(ComponentInfo component, int targetTier) {
         Map<Item, Integer> items = new HashMap<>();
 
-        Block targetBlock = getComponentBlock(component.getGroup(), targetTier);
+        Block targetBlock = getComponentBlock(component.getGroup(), targetTier, component);
         if (targetBlock != null && targetBlock.asItem() != null) {
             items.put(targetBlock.asItem(), 1);
         }
@@ -58,7 +58,11 @@ public class ComponentUpgradeHelper {
     }
 
     private static Block getComponentBlock(ComponentGroup type, int tier) {
-        String blockId = getBlockIdFromConfig(type, tier, null);
+        return getComponentBlock(type, tier, null);
+    }
+
+    private static Block getComponentBlock(ComponentGroup type, int tier, ComponentInfo component) {
+        String blockId = getBlockIdFromConfig(type, tier, component);
         if (blockId == null) return null;
 
         try {
@@ -255,7 +259,7 @@ public class ComponentUpgradeHelper {
             return false;
         }
 
-        return getComponentBlock(component.getGroup(), targetTier) != null;
+        return getComponentBlock(component.getGroup(), targetTier, component) != null;
     }
 
     public static String getUpgradeName(ComponentInfo component, int targetTier) {

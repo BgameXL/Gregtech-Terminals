@@ -238,7 +238,8 @@ public class MaterialCalculator {
     }
 
     private static boolean isTerminal(ItemStack terminal) {
-        return terminal.getItem() instanceof MultiStructureManagerItem ||
+        return WirelessTerminalHandler.isWirelessTerminal(terminal) ||
+                terminal.getItem() instanceof MultiStructureManagerItem ||
                 terminal.getItem() instanceof SchematicInterfaceItem;
     }
 

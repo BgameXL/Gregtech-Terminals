@@ -34,7 +34,7 @@ final class MultiblockRenameDialog {
             DraggableScrollableWidgetGroup listScroll,
             Runnable onConfirm
     ) {
-        final int DW = 260, DH = 92;
+        final int DW = 280, DH = 104;
 
         DialogWidget dialog = new DialogWidget(rootGroup, true);
         dialog.setBackground(new ColorRectTexture(0xA0000000));
@@ -48,35 +48,54 @@ final class MultiblockRenameDialog {
                 ColorPattern.GRAY.borderTexture(-1)));
         dialog.addWidget(panel);
 
-        WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 20);
+        WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 26);
         titleBar.setBackground(new ColorRectTexture(0xFF2A2A2A));
         panel.addWidget(titleBar);
 
-        LabelWidget titleLbl = new LabelWidget(8, 5,
+        LabelWidget titleLbl = new LabelWidget(8, 7,
                 Component.translatable("gui.gtceuterminal.multiblock_manager.rename_dialog.title").getString());
         titleLbl.setTextColor(C_GOLD);
         titleBar.addWidget(titleLbl);
 
-        LabelWidget sub = new LabelWidget(8, 24, "§7" + truncate(mb.getMachineTypeName(), 35));
+        ButtonWidget closeBtn = new ButtonWidget(DW - 20, 5, 14, 14,
+                new ColorRectTexture(0x00000000), cd -> {
+                    dialog.close();
+                    if (listScroll != null) listScroll.setActive(true);
+                });
+        closeBtn.setButtonTexture(new TextTexture("§c✕").setWidth(14).setType(TextTexture.TextType.NORMAL));
+        closeBtn.setHoverTexture(new ColorRectTexture(0x33FF0000));
+        titleBar.addWidget(closeBtn);
+
+        LabelWidget sub = new LabelWidget(8, 32, "§7" + truncate(mb.getMachineTypeName(), 38));
         sub.setTextColor(C_GRAY);
         panel.addWidget(sub);
 
-        TextFieldWidget textField = new TextFieldWidget(8, 38, DW - 16, 16, null, s -> {});
+        TextFieldWidget textField = new TextFieldWidget(8, 46, DW - 16, 16, null, s -> {});
         textField.setMaxStringLength(32);
         textField.setBordered(true);
         textField.setCurrentString(mb.getCustomDisplayName());
         panel.addWidget(textField);
 
-        int btnW = (DW - 20) / 2;
+        int btnW = (DW - 22) / 2;
 
-        ButtonWidget confirmBtn = new ButtonWidget(8, 60, btnW, 18,
+        ButtonWidget cancelBtn = new ButtonWidget(8, 74, btnW, 18,
+                new ColorRectTexture(0xFF2A2A2A),
+                cd -> {
+                    dialog.close();
+                    if (listScroll != null) listScroll.setActive(true);
+                });
+        cancelBtn.setButtonTexture(new TextTexture("§7Cancel").setWidth(btnW).setType(TextTexture.TextType.NORMAL));
+        cancelBtn.setHoverTexture(new ColorRectTexture(0xFF333333));
+        panel.addWidget(cancelBtn);
+
+        ButtonWidget confirmBtn = new ButtonWidget(14 + btnW, 74, btnW, 18,
                 new ColorRectTexture(0xFF1A4A1A),
                 cd -> {
                     String dimId = LinkedMachineData.dimId(player.level());
                     String name  = textField.getCurrentString().trim();
                     TerminalNetwork.CHANNEL.sendToServer(
-                            new CPacketSetCustomMultiblockName(null, mb.posKey(dimId), name, false));
-                    mb.setCustomDisplayName(name);
+                            new CPacketSetCustomMultiblockName(null, mb.posKey(dimId), name, name.isEmpty()));
+                    mb.setCustomDisplayName(name.isEmpty() ? null : name);
                     dialog.close();
                     if (listScroll != null) listScroll.setActive(true);
                     onConfirm.run();
@@ -86,23 +105,6 @@ final class MultiblockRenameDialog {
                 .setWidth(btnW).setType(TextTexture.TextType.NORMAL));
         confirmBtn.setHoverTexture(new ColorRectTexture(0xFF1E6A1E));
         panel.addWidget(confirmBtn);
-
-        ButtonWidget clearBtn = new ButtonWidget(DW / 2 + 2, 60, btnW, 18,
-                new ColorRectTexture(0xFF3A2A2A),
-                cd -> {
-                    String dimId = LinkedMachineData.dimId(player.level());
-                    TerminalNetwork.CHANNEL.sendToServer(
-                            new CPacketSetCustomMultiblockName(null, mb.posKey(dimId), "", true));
-                    mb.setCustomDisplayName(null);
-                    dialog.close();
-                    if (listScroll != null) listScroll.setActive(true);
-                    onConfirm.run();
-                });
-        clearBtn.setButtonTexture(new TextTexture(
-                Component.translatable("gui.gtceuterminal.multiblock_manager.rename_dialog.clear_name").getString())
-                .setWidth(btnW).setType(TextTexture.TextType.NORMAL));
-        clearBtn.setHoverTexture(new ColorRectTexture(0xFF5A3A3A));
-        panel.addWidget(clearBtn);
     }
 
     private static String truncate(String s, int max) {

@@ -48,9 +48,6 @@ public class MENetworkItemExtractor {
         return true;
     }
 
-    /**
-     * Tries ME network first, then falls back to player inventory.
-     */
     public static ExtractResult tryExtractFromMEOrInventory(IGrid grid, Map<Item, Integer> required, Player player) {
         if (grid != null && extractItems(grid, required, player)) {
             return new ExtractResult(true, ExtractionSource.ME_NETWORK);
@@ -69,8 +66,10 @@ public class MENetworkItemExtractor {
                                                             net.minecraft.world.level.Level level,
                                                             Player player,
                                                             Map<Item, Integer> required) {
-        MEQueryResult me = MEQueryResult.resolve(player);
-        IGrid grid = me.hasGrid() ? resolveGrid(terminalStack, level, player) : null;
+        IGrid grid = resolveGrid(terminalStack, level, player);
+        if (grid == null) {
+            grid = MEQueryResult.resolve(player).getGrid();
+        }
         return tryExtractFromMEOrInventory(grid, required, player);
     }
 
@@ -83,8 +82,10 @@ public class MENetworkItemExtractor {
                                              Player player,
                                              Item item) {
         if (!MENetworkScanner.isAE2Available()) return 0;
-        if (!(terminalStack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem terminal)) return 0;
-        IGrid grid = terminal.getLinkedGrid(terminalStack, level, null);
+        IGrid grid = resolveGrid(terminalStack, level, player);
+        if (grid == null) {
+            grid = MEQueryResult.resolve(player).getGrid();
+        }
         if (grid == null) return 0;
         return grid.getStorageService().getCachedInventory().get(appeng.api.stacks.AEItemKey.of(item));
     }
@@ -92,13 +93,9 @@ public class MENetworkItemExtractor {
     private static IGrid resolveGrid(ItemStack terminalStack,
                                      net.minecraft.world.level.Level level,
                                      Player player) {
-        if (terminalStack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem terminal) {
-            return terminal.getLinkedGrid(terminalStack, level, null);
-        }
-        return null;
+        if (terminalStack == null || terminalStack.isEmpty()) return null;
+        return WirelessTerminalHandler.getLinkedGrid(terminalStack, level, player);
     }
-
-    // ------------------------------------------------------------------
 
     private static void rollback(IStorageService storage, Map<Item, Long> extracted, IActionSource src) {
         for (Map.Entry<Item, Long> e : extracted.entrySet()) {

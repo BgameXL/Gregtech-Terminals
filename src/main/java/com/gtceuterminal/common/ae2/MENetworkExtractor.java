@@ -3,7 +3,6 @@ package com.gtceuterminal.common.ae2;
 import appeng.api.config.Actionable;
 import appeng.api.networking.IGrid;
 import appeng.api.stacks.AEItemKey;
-import appeng.items.tools.powered.WirelessTerminalItem;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.world.entity.player.Player;
@@ -30,11 +29,9 @@ public class MENetworkExtractor {
 
             for (ItemStack stack : toCheck) {
                 if (stack.isEmpty()) continue;
-                if (!(stack.getItem() instanceof WirelessTerminalItem terminalItem)) continue;
-                if (!WirelessTerminalHandler.isLinked(stack)) continue;
+                if (!WirelessTerminalHandler.isWirelessTerminal(stack)) continue;
 
-                IGrid grid =
-                        terminalItem.getLinkedGrid(stack, player.level(), player);
+                IGrid grid = WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
                 if (grid == null) continue;
 
                 var storage = grid.getStorageService().getInventory();

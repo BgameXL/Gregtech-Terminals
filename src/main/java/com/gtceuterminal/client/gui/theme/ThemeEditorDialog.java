@@ -21,6 +21,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class ThemeEditorDialog {
@@ -29,35 +30,34 @@ public class ThemeEditorDialog {
     private static final int FTR_H = 30;
     private static final int PAD   = 8;
 
-    private static final int COL_L  = ThemeEditorLeftCol.COL_W;
-    private static final int COL_RX = COL_L + PAD * 2;
+    private static final int COL_L = ThemeEditorLeftCol.COL_W;
 
     private static final int C_BG     = 0xFF1C1C1C;
     private static final int C_PANEL  = 0xFF272727;
     private static final int C_BORDER = 0xFF3A3A3A;
+    private static final int C_SEL    = 0xFF2A1A4A;
+    private static final int C_SEL_BR = 0xFF7A3FBF;
     private static final int C_SAVE   = 0xFF1E6B1E;
     private static final int C_RESET  = 0xFF6B1E1E;
 
     private final WidgetGroup rootGroup;
     private final ItemTheme   working;
 
-    private String activeBundleId;
+    private String       activeBundleId;
     private List<String> wallpapers;
-    private int wallpaperIdx;
+    private int          wallpaperIdx;
 
     private final int[] editTargetHolder = {0};
-    private final int[] channels = new int[4];
+    private final int[] channels         = new int[4];
 
-    private RGBSliderWidget[] sliders   = new RGBSliderWidget[4];
-    private ImageWidget[]     swatches  = new ImageWidget[3];
-    private ImageWidget[]     tabBgs    = new ImageWidget[3];
-    private LabelWidget[]     hexLabel  = new LabelWidget[1];
-    private ImageWidget[]     previewRefs = new ImageWidget[5];
-    private ImageWidget[]     wallpaperThumbRef = new ImageWidget[1];
-    private LabelWidget[]     wallpaperLabelRef = new LabelWidget[1];
-    private ImageWidget[]     bundleCardBgs;
+    private ImageWidget[] swatches      = new ImageWidget[3];
+    private ImageWidget[] tabBgs        = new ImageWidget[3];
+    private LabelWidget[] hexLabel      = new LabelWidget[1];
+    private ImageWidget[] wallThumbRef  = new ImageWidget[1];
+    private LabelWidget[] wallLabelRef  = new LabelWidget[1];
+    private ImageWidget[] bundleCardBgs;
 
-    private int dw, dh, colR;
+    private int dw, dh;
 
     public static void open(WidgetGroup rootGroup, ItemTheme current) {
         new ThemeEditorDialog(rootGroup, current).buildAndShow();
@@ -77,9 +77,8 @@ public class ThemeEditorDialog {
         dialog.setBackground(new ColorRectTexture(0xB0000000));
         dialog.setClickClose(false);
 
-        this.dw   = rootGroup.getSize().width;
-        this.dh   = rootGroup.getSize().height;
-        this.colR = dw - COL_RX - PAD;
+        this.dw = rootGroup.getSize().width;
+        this.dh = rootGroup.getSize().height;
 
         WidgetGroup panel = new WidgetGroup(0, 0, dw, dh);
         panel.setBackground(new GuiTextureGroup(
@@ -87,45 +86,42 @@ public class ThemeEditorDialog {
 
         panel.addWidget(buildHeader(dialog));
 
+        int contentY = HDR_H + PAD;
+        int contentH = dh - contentY - FTR_H - PAD;
+        int divX     = PAD + COL_L;
+        int colRx    = divX + 1 + PAD;
+        int colRw    = dw - colRx - PAD;
+
         List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
                 .filter(ThemeBundle::isAvailable)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
         bundleCardBgs = new ImageWidget[bundles.size()];
-        panel.addWidget(ThemeBundleBar.build(0, HDR_H, dw, activeBundleId, this::applyBundle, bundleCardBgs));
-        panel.addWidget(new ImageWidget(0, HDR_H + ThemeBundleBar.BAR_H - 2, dw, 1, new ColorRectTexture(C_BORDER)));
 
-        int contentY = HDR_H + ThemeBundleBar.BAR_H + 2;
-        int scrollH  = dh - contentY - FTR_H;
-
-        DraggableScrollableWidgetGroup scroll =
-                new DraggableScrollableWidgetGroup(0, contentY, dw, scrollH);
-        scroll.setYScrollBarWidth(6);
-        scroll.setYBarStyle(new ColorRectTexture(0xFF1A1A1A), new ColorRectTexture(C_BORDER));
-
-        int colH = scrollH;
-        WidgetGroup content = new WidgetGroup(0, 0, dw, colH);
-
-        content.addWidget(ThemeEditorLeftCol.build(
-                PAD, PAD, colH - PAD * 2,
-                working, wallpapers,
+        // Left col: presets + bundle list
+        panel.addWidget(ThemeEditorLeftCol.build(
+                PAD, contentY, contentH,
+                activeBundleId,
                 this::applyPreset,
-                () -> navigateWallpaper(-1),
-                () -> navigateWallpaper(+1),
-                this::clearWallpaper,
-                wallpaperThumbRef,
-                wallpaperLabelRef,
-                previewRefs));
+                this::applyBundle,
+                bundleCardBgs));
 
-        content.addWidget(ThemeEditorRightCol.build(
-                COL_RX, PAD, colR, colH - PAD * 2,
+        // Vertical divider
+        panel.addWidget(new ImageWidget(divX, contentY, 1, contentH,
+                new ColorRectTexture(C_BORDER)));
+
+        // Right col: sliders + swatches + wallpaper
+        RGBSliderWidget[] sliders = new RGBSliderWidget[4];
+        panel.addWidget(ThemeEditorRightCol.build(
+                colRx, contentY, colRw, contentH,
                 working, editTargetHolder, channels,
                 this::onChannelOrTabChanged,
-                sliders, swatches, tabBgs, hexLabel));
+                sliders, swatches, tabBgs, hexLabel,
+                () -> navigateWallpaper(-1),
+                () -> navigateWallpaper(+1),
+                wallLabelRef,
+                wallThumbRef));
 
-        scroll.addWidget(content);
-        panel.addWidget(scroll);
         panel.addWidget(buildFooter(dw, dh, dialog));
-
         dialog.addWidget(panel);
     }
 
@@ -146,25 +142,28 @@ public class ThemeEditorDialog {
         WidgetGroup ftr = new WidgetGroup(0, h - FTR_H, w, FTR_H);
         ftr.setBackground(new ColorRectTexture(C_PANEL));
 
-        int btnW = 80, btnH = 18, btnY = (FTR_H - btnH) / 2;
+        int btnH   = 18, btnY = (FTR_H - btnH) / 2;
+        int totalW = w - PAD * 2;
+        int resetW = totalW / 3;
+        int saveW  = totalW - resetW - PAD;
 
-        ButtonWidget save = new ButtonWidget(w / 2 - btnW - 4, btnY, btnW, btnH,
-                new GuiTextureGroup(new ColorRectTexture(C_SAVE), new ColorBorderTexture(1, 0xFF2E8B2E)),
-                cd -> saveAndClose(dialog));
-        save.setButtonTexture(new TextTexture(
-                Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString())
-                .setWidth(btnW).setType(TextTexture.TextType.NORMAL));
-        save.setHoverTexture(new ColorRectTexture(0x2200FF00));
-        ftr.addWidget(save);
-
-        ButtonWidget reset = new ButtonWidget(w / 2 + 4, btnY, btnW, btnH,
+        ButtonWidget reset = new ButtonWidget(PAD, btnY, resetW, btnH,
                 new GuiTextureGroup(new ColorRectTexture(C_RESET), new ColorBorderTexture(1, 0xFF8B2E2E)),
                 cd -> resetDefaults());
         reset.setButtonTexture(new TextTexture(
                 Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString())
-                .setWidth(btnW).setType(TextTexture.TextType.NORMAL));
+                .setWidth(resetW).setType(TextTexture.TextType.NORMAL));
         reset.setHoverTexture(new ColorRectTexture(0x22FF0000));
         ftr.addWidget(reset);
+
+        ButtonWidget save = new ButtonWidget(PAD + resetW + PAD, btnY, saveW, btnH,
+                new GuiTextureGroup(new ColorRectTexture(C_SAVE), new ColorBorderTexture(1, 0xFF2E8B2E)),
+                cd -> saveAndClose(dialog));
+        save.setButtonTexture(new TextTexture(
+                Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString())
+                .setWidth(saveW).setType(TextTexture.TextType.NORMAL));
+        save.setHoverTexture(new ColorRectTexture(0x2200FF00));
+        ftr.addWidget(save);
 
         return ftr;
     }
@@ -187,12 +186,6 @@ public class ThemeEditorDialog {
         if (wallpapers == null || wallpapers.isEmpty()) return;
         wallpaperIdx = Math.floorMod(wallpaperIdx + delta, wallpapers.size());
         working.wallpaper = wallpapers.get(wallpaperIdx);
-        refreshWallpaperThumb();
-    }
-
-    private void clearWallpaper() {
-        working.wallpaper = "";
-        wallpaperIdx = -1;
         refreshWallpaperThumb();
     }
 
@@ -239,7 +232,7 @@ public class ThemeEditorDialog {
         catch (Exception e) { GTCEUTerminalMod.LOGGER.warn("ThemeEditorDialog: failed to send save packet", e); }
 
         dialog.setVisible(false);
-        mc.setScreen(null);
+        net.minecraft.client.Minecraft.getInstance().setScreen(null);
     }
 
     private void resetDefaults() {
@@ -261,6 +254,7 @@ public class ThemeEditorDialog {
         wallpaperIdx            = -1;
         syncChannels(currentColor());
         refreshAll();
+        refreshWallpaperThumb();
     }
 
     private void applyChannels() {
@@ -274,7 +268,6 @@ public class ThemeEditorDialog {
             working.uiStyle  = ItemTheme.UiStyle.DARK;
             working.bundleId = "";
             activeBundleId   = "";
-            ThemeBundleBar.refreshCardBgs(bundleCardBgs, activeBundleId);
         }
     }
 
@@ -295,34 +288,31 @@ public class ThemeEditorDialog {
 
     private void refreshAll() {
         refreshSwatches();
-        refreshPreview();
         refreshTabHighlights();
-        ThemeBundleBar.refreshCardBgs(bundleCardBgs, activeBundleId);
+        ThemeEditorLeftCol.refreshBundleCards(bundleCardBgs, activeBundleId);
     }
 
     private void refreshSwatches() {
-        if (swatches[0] != null) swatches[0].setImage(new ColorRectTexture(working.accentColor));
-        if (swatches[1] != null) swatches[1].setImage(new ColorRectTexture(working.bgColor));
-        if (swatches[2] != null) swatches[2].setImage(new ColorRectTexture(working.panelColor));
-    }
-
-    private void refreshPreview() {
-        if (previewRefs[0] != null) previewRefs[0].setImage(new ColorRectTexture(working.bgColor));
-        if (previewRefs[1] != null) previewRefs[1].setImage(new ColorRectTexture(working.accentColor | 0xFF000000));
-        if (previewRefs[2] != null) previewRefs[2].setImage(new ColorRectTexture(working.panelColor));
-        if (previewRefs[3] != null) previewRefs[3].setImage(new ColorRectTexture(working.panelColor));
-        if (previewRefs[4] != null) previewRefs[4].setImage(new ColorRectTexture(working.accentColor | 0xFF000000));
+        if (swatches[0] != null) swatches[0].setImage(new GuiTextureGroup(
+                new ColorRectTexture(working.bgColor), new ColorBorderTexture(1, 0xFF555555)));
+        if (swatches[1] != null) swatches[1].setImage(new GuiTextureGroup(
+                new ColorRectTexture(working.panelColor), new ColorBorderTexture(1, 0xFF555555)));
+        if (swatches[2] != null) swatches[2].setImage(new GuiTextureGroup(
+                new ColorRectTexture(working.accentColor), new ColorBorderTexture(1, 0xFF555555)));
     }
 
     private void refreshTabHighlights() {
         for (int i = 0; i < 3; i++) {
-            if (tabBgs[i] != null)
-                tabBgs[i].setImage(new ColorRectTexture(i == editTargetHolder[0] ? C_PANEL + 0x202030 : C_PANEL));
+            if (tabBgs[i] == null) continue;
+            boolean sel = i == editTargetHolder[0];
+            tabBgs[i].setImage(new GuiTextureGroup(
+                    new ColorRectTexture(sel ? C_SEL : C_PANEL),
+                    new ColorBorderTexture(1, sel ? C_SEL_BR : C_BORDER)));
         }
     }
 
     private void refreshWallpaperThumb() {
-        ImageWidget thumb = wallpaperThumbRef[0];
+        ImageWidget thumb = wallThumbRef[0];
         if (thumb == null) return;
         if (working.hasWallpaper()) {
             WallpaperManager.getTexture(working.wallpaper).ifPresentOrElse(

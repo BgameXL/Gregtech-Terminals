@@ -23,13 +23,15 @@ public class SPacketOpenEnergyAnalyzerUI {
     public final int initialIndex;
     public final List<EnergySnapshot> snapshots;
     public final List<LinkedMachineData> machines;
+    public final ItemStack itemStack;
     public final ItemTheme theme;
 
     public SPacketOpenEnergyAnalyzerUI(int initialIndex, List<EnergySnapshot> snapshots,
-                                       List<LinkedMachineData> machines, ItemTheme theme) {
+                                       List<LinkedMachineData> machines, ItemStack itemStack, ItemTheme theme) {
         this.initialIndex = initialIndex;
         this.snapshots = snapshots != null ? snapshots : List.of();
         this.machines = machines != null ? machines : List.of();
+        this.itemStack = itemStack != null ? itemStack : ItemStack.EMPTY;
         this.theme = theme != null ? theme : new ItemTheme();
     }
 
@@ -50,6 +52,7 @@ public class SPacketOpenEnergyAnalyzerUI {
         }
         this.machines = decodedMachines;
 
+        this.itemStack = buf.readItem();
         this.theme = ItemTheme.fromNBT(buf.readNbt());
     }
 
@@ -63,6 +66,7 @@ public class SPacketOpenEnergyAnalyzerUI {
         for (LinkedMachineData machine : msg.machines) {
             buf.writeNbt(machine.toNBT());
         }
+        buf.writeItem(msg.itemStack);
         buf.writeNbt(msg.theme.toNBT());
     }
 
@@ -94,7 +98,7 @@ public class SPacketOpenEnergyAnalyzerUI {
             }
         }
 
-        TerminalNetwork.sendToPlayer(new SPacketOpenEnergyAnalyzerUI(initialIndex, snapshots, machines, theme), player);
+        TerminalNetwork.sendToPlayer(new SPacketOpenEnergyAnalyzerUI(initialIndex, snapshots, machines, stack, theme), player);
     }
 
     private static ItemStack findAnalyzerItem(ServerPlayer player) {
@@ -111,7 +115,7 @@ public class SPacketOpenEnergyAnalyzerUI {
         NetworkEvent.Context context = ctx.get();
         context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
                 com.gtceuterminal.client.network.ClientPacketHandlers.handleOpenEnergyAnalyzer(
-                        msg.initialIndex, msg.snapshots, msg.machines, msg.theme)));
+                        msg.initialIndex, msg.snapshots, msg.machines, msg.itemStack, msg.theme)));
         context.setPacketHandled(true);
     }
 }

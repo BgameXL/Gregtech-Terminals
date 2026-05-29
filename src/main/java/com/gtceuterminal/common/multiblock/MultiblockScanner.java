@@ -142,10 +142,15 @@ public class MultiblockScanner {
                 controllerPos,
                 detected.getTier(),
                 distance,
-                true
+                detected.isFormed()
         );
 
         info.setSourceMod(detected.getModId());
+
+        if (!detected.isFormed()) {
+            info.setStatus(MultiblockStatus.UNFORMED);
+            return info;
+        }
 
         try {
             Set<BlockPos> allPos = com.gtceuterminal.common.scanner.UniversalMultiblockScanner

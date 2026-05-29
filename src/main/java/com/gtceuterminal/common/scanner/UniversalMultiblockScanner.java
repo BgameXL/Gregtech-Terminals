@@ -40,6 +40,8 @@ public class UniversalMultiblockScanner {
             if (isFormed(controller)) {
                 DetectedMultiblock detected = MultiblockAnalysisHelper.analyzeMultiblock(controller, immutable, level);
                 if (detected != null) found.add(detected);
+            } else {
+                found.add(DetectedMultiblock.unformed(controller, immutable));
             }
         }
 
@@ -84,6 +86,11 @@ public class UniversalMultiblockScanner {
     }
 
     public static class DetectedMultiblock {
+        private boolean formed = true;
+
+        public boolean isFormed() { return formed; }
+        public void setFormed(boolean formed) { this.formed = formed; }
+
         private final String name;
         private final String modId;
         private final BlockPos position;
@@ -108,6 +115,28 @@ public class UniversalMultiblockScanner {
         public int     getTier()     { return tier; }
         public Map<String, List<ComponentData>> getComponents() { return components; }
         public MultiblockControllerMachine getController() { return controller; }
+
+        public static DetectedMultiblock unformed(MultiblockControllerMachine controller, BlockPos pos) {
+            String name  = "Unknown Multiblock";
+            String modId = "unknown";
+            int    tier  = 0;
+            try {
+                var def = controller.getDefinition();
+                if (def != null) name = def.getDescriptionId();
+            } catch (Exception ignored) {}
+            try {
+                var def = controller.getDefinition();
+                if (def != null && def.getId() != null) modId = def.getId().getNamespace();
+            } catch (Exception ignored) {}
+            try {
+                var def = controller.getDefinition();
+                if (def != null && def.getTier() > 0) tier = def.getTier();
+            } catch (Exception ignored) {}
+            DetectedMultiblock stub = new DetectedMultiblock(
+                    name, modId, pos, tier, new java.util.HashMap<>(), controller);
+            stub.setFormed(false);
+            return stub;
+        }
 
         public int getTotalComponentCount() { return components.values().stream().mapToInt(List::size).sum(); }
         public List<String> getComponentCategories() { return new ArrayList<>(components.keySet()); }

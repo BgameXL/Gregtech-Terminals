@@ -1,10 +1,10 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
@@ -70,10 +70,15 @@ final class EnergyAnalyzerSidebar {
             LabelWidget name = new LabelWidget(pad + 12, y + 4,
                     () -> EnergyDisplayHelper.truncate(m.getDisplayNameComponent().getString(), 14));
             name.setClientSideWidget();
-            name.setTextColor(colorGray);
+            name.setTextColor(0xFFDDDDDD);
             g.addWidget(name);
 
-            LabelWidget rate = new LabelWidget(pad + 12, y + 18, () -> {
+            LabelWidget status = new LabelWidget(pad + 12, y + 16, () -> statusText(snapAt.apply(idx)));
+            status.setClientSideWidget();
+            status.setTextColor(colorGray);
+            g.addWidget(status);
+
+            LabelWidget rate = new LabelWidget(pad + 12, y + 27, () -> {
                 EnergySnapshot s = snapAt.apply(idx);
                 return (s != null && s.isFormed) ? EnergyDisplayHelper.formatEU(s.inputPerSec / 20) + "/t" : "---";
             });
@@ -85,13 +90,17 @@ final class EnergyAnalyzerSidebar {
                     new ColorRectTexture(0x00000000), cd -> onSelect.accept(idx));
             g.addWidget(rowBtn);
 
-            ButtonWidget gearBtn = new ButtonWidget(sidebarW - 20, y + 8, 16, 16,
-                    new ColorRectTexture(0x00000000), cd -> onGear.accept(idx));
-            gearBtn.setButtonTexture(new TextTexture("§7⚙").setWidth(16).setType(TextTexture.TextType.NORMAL));
-            gearBtn.setHoverTexture(new ColorRectTexture(0x33FFFFFF));
+            ButtonWidget gearBtn = TerminalButton.ghostIcon(sidebarW - 20, y + 8, 16, "⚙", "§7",
+                    cd -> onGear.accept(idx));
             g.addWidget(gearBtn);
         }
 
         return g;
+    }
+
+    private static String statusText(EnergySnapshot s) {
+        if (s == null || !s.isFormed) return "§c● NO POWER";
+        if (s.inputPerSec > 0 || s.outputPerSec > 0) return "§a● ACTIVE";
+        return "§e● IDLE";
     }
 }

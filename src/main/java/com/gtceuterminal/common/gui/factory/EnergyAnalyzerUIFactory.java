@@ -62,7 +62,7 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
             }
         }
 
-        EnergyAnalyzerHolder holder = new EnergyAnalyzerHolder(false, snapshots, machines, initialIndex, theme);
+        EnergyAnalyzerHolder holder = new EnergyAnalyzerHolder(false, stack, snapshots, machines, initialIndex, theme);
         super.openUI(holder, player);
     }
 
@@ -97,9 +97,10 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         List<LinkedMachineData> machines = new ArrayList<>();
         for (int i = 0; i < mcount; i++) machines.add(LinkedMachineData.fromNBT(buf.readNbt()));
 
+        ItemStack itemStack = buf.readItem();
         net.minecraft.nbt.CompoundTag themeTag = buf.readNbt();
         ItemTheme theme = ItemTheme.fromNBT(themeTag);
-        return new EnergyAnalyzerHolder(true, snapshots, machines, index, theme);
+        return new EnergyAnalyzerHolder(true, itemStack, snapshots, machines, index, theme);
     }
 
     @Override
@@ -109,6 +110,7 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         for (EnergySnapshot s : holder.snapshots) s.encode(buf);
         buf.writeInt(holder.machines.size());
         for (LinkedMachineData m : holder.machines) buf.writeNbt(m.toNBT());
+        buf.writeItem(holder.itemStack);
         buf.writeNbt(holder.theme.toNBT());
     }
 
@@ -127,11 +129,13 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         public final List<EnergySnapshot> snapshots;
         public final List<LinkedMachineData> machines;
         public final int initialIndex;
+        public final ItemStack itemStack;
         public final ItemTheme theme;
 
-        public EnergyAnalyzerHolder(boolean remote, List<EnergySnapshot> snapshots,
+        public EnergyAnalyzerHolder(boolean remote, ItemStack itemStack, List<EnergySnapshot> snapshots,
                                     List<LinkedMachineData> machines, int initialIndex, ItemTheme theme) {
             this.remote = remote;
+            this.itemStack = itemStack != null ? itemStack : ItemStack.EMPTY;
             this.snapshots = snapshots;
             this.machines = machines;
             this.initialIndex = initialIndex;

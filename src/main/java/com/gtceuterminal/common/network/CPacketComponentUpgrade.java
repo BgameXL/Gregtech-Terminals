@@ -2,6 +2,7 @@ package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
+import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
@@ -21,6 +22,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 public class CPacketComponentUpgrade {
@@ -205,19 +207,22 @@ public class CPacketComponentUpgrade {
 
     private ItemStack findWirelessTerminal(ServerPlayer player) {
         ItemStack mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof MultiStructureManagerItem ||
+        if (WirelessTerminalHandler.isWirelessTerminal(mainHand) ||
+                mainHand.getItem() instanceof MultiStructureManagerItem ||
                 mainHand.getItem() instanceof SchematicInterfaceItem) {
             return mainHand;
         }
 
         ItemStack offHand = player.getOffhandItem();
-        if (offHand.getItem() instanceof MultiStructureManagerItem ||
+        if (WirelessTerminalHandler.isWirelessTerminal(offHand) ||
+                offHand.getItem() instanceof MultiStructureManagerItem ||
                 offHand.getItem() instanceof SchematicInterfaceItem) {
             return offHand;
         }
 
         for (ItemStack stack : player.getInventory().items) {
-            if (stack.getItem() instanceof MultiStructureManagerItem ||
+            if (WirelessTerminalHandler.isWirelessTerminal(stack) ||
+                    stack.getItem() instanceof MultiStructureManagerItem ||
                     stack.getItem() instanceof SchematicInterfaceItem) {
                 return stack;
             }
@@ -236,29 +241,22 @@ public class CPacketComponentUpgrade {
     }
 
     private int detectTier(net.minecraft.world.level.block.Block block) {
-        String blockId = block.builtInRegistryHolder().key().location().toString().toLowerCase();
+        String blockId = block.builtInRegistryHolder().key().location().getPath().toLowerCase(Locale.ROOT);
 
-        if (blockId.contains("ulv")) return 0;
-        if (blockId.contains("lv")) return 1;
-        if (blockId.contains("mv")) return 2;
-        if (blockId.contains("hv")) return 3;
-        if (blockId.contains("ev")) return 4;
-        if (blockId.contains("iv")) return 5;
-        if (blockId.contains("luv")) return 6;
-        if (blockId.contains("zpm")) return 7;
-        if (blockId.contains("uv")) return 8;
-        if (blockId.contains("uhv")) return 9;
-        if (blockId.contains("uev")) return 10;
-        if (blockId.contains("uiv")) return 11;
-        if (blockId.contains("uxv")) return 12;
-        if (blockId.contains("opv")) return 13;
-        if (blockId.contains("max")) return 14;
+        String[] tierTokens = {"ulv", "lv", "mv", "hv", "ev", "iv", "luv", "zpm", "uv", "uhv", "uev", "uiv", "uxv", "opv", "max"};
+        for (int i = tierTokens.length - 1; i >= 0; i--) {
+            String token = tierTokens[i];
+            if (blockId.equals(token) || blockId.startsWith(token + "_")
+                    || blockId.contains("_" + token + "_") || blockId.endsWith("_" + token)) {
+                return i;
+            }
+        }
 
         if (blockId.contains("cupronickel")) return 0;
         if (blockId.contains("kanthal")) return 1;
         if (blockId.contains("nichrome")) return 2;
         if (blockId.contains("rtm_alloy")) return 3;
-        if (blockId.contains("hssg")) return 4;
+        if (blockId.contains("hssg") || blockId.contains("hss_g")) return 4;
         if (blockId.contains("naquadah")) return 5;
         if (blockId.contains("trinium")) return 6;
         if (blockId.contains("tritanium")) return 7;

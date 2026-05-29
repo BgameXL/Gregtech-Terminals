@@ -1,19 +1,19 @@
 package com.gtceuterminal.client.gui.energy;
 
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
+import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.common.theme.bundle.ThemeBundle;
-import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -28,6 +28,7 @@ final class EnergyAnalyzerHeader {
             int headerH,
             int pad,
             int machineCount,
+            ItemStack itemStack,
             ItemTheme theme,
             WidgetGroup rootGroup,
             Player player
@@ -38,17 +39,23 @@ final class EnergyAnalyzerHeader {
                 : new ColorRectTexture(semi(theme.panelColor)));
 
         int titleX = pad;
+        int iconSize = 18;
+        int iconY = (headerH - iconSize) / 2;
         if (theme.isBundleStyle()) {
-            ThemeBundle bundle = ThemeBundleRegistry.get(theme.bundleId);
+            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
+                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
             if (bundle != null) {
-                IGuiTexture icon = bundle.iconTexture();
-                if (icon != null) {
-                    int iconSize = 18;
-                    int iconY = (headerH - iconSize) / 2;
-                    g.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, icon));
+                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
+                if (bundleIcon != null) {
+                    g.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
                     titleX += iconSize + 4;
                 }
             }
+        } else {
+            g.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
+                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
+                    theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF)));
+            titleX += iconSize + 4;
         }
 
         LabelWidget title = new LabelWidget(titleX, 8,
@@ -61,11 +68,8 @@ final class EnergyAnalyzerHeader {
         sub.setTextColor(0xFFAAAAAA);
         g.addWidget(sub);
 
-        ButtonWidget gearBtn = new ButtonWidget(guiW - 44, (headerH - 14) / 2, 14, 14,
-                new ColorRectTexture(0x00000000),
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 44, (headerH - 14) / 2, 14, "⚙", "§7",
                 cd -> ThemeEditorDialog.open(rootGroup, theme));
-        gearBtn.setButtonTexture(new TextTexture("§7⚙").setWidth(14).setType(TextTexture.TextType.NORMAL));
-        gearBtn.setHoverTexture(new ColorRectTexture(0x33FFFFFF));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         g.addWidget(gearBtn);
 

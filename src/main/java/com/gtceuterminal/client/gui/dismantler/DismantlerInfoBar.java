@@ -64,21 +64,11 @@ final class DismantlerInfoBar {
 
         boolean enough = emptySlots >= requiredSlots;
         boolean partial = emptySlots > 0 && !enough;
-        String invState = enough ? "§aenough" : (partial ? "§epartial fit" : "§cno space");
+        String slotColor = enough ? "§a" : (partial ? "§e" : "§c");
+        String invState = slotColor + emptySlots + " free §8/ " + requiredSlots + " needed";
         LabelWidget invLabel = new LabelWidget(xPos, h / 2 - 4, "§8Inventory space: " + invState);
         invLabel.setTextColor(0xFFAAAAAA);
         bar.addWidget(invLabel);
-        xPos += 150;
-
-        LabelWidget dot2 = new LabelWidget(xPos, h / 2 - 4, "§8·");
-        dot2.setTextColor(0xFF555555);
-        bar.addWidget(dot2);
-        xPos += 14;
-
-        String dropsState = enough ? "§adisabled" : "§6enabled";
-        LabelWidget dropsLabel = new LabelWidget(xPos, h / 2 - 4, "§8Drops to ground: " + dropsState);
-        dropsLabel.setTextColor(0xFFAAAAAA);
-        bar.addWidget(dropsLabel);
 
         if (skipped > 0) {
             LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4, "§8skipped §6" + skipped);

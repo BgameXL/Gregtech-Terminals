@@ -90,7 +90,7 @@ final class EnergyAnalyzerSidebar {
                     new ColorRectTexture(0x00000000), cd -> onSelect.accept(idx));
             g.addWidget(rowBtn);
 
-            ButtonWidget gearBtn = TerminalButton.ghostIcon(sidebarW - 20, y + 8, 16, "⚙", "§7",
+            ButtonWidget gearBtn = TerminalButton.ghostIcon(sidebarW - 20, y + 8, 16, "S", "§7",
                     cd -> onGear.accept(idx));
             g.addWidget(gearBtn);
         }
@@ -99,8 +99,8 @@ final class EnergyAnalyzerSidebar {
     }
 
     private static String statusText(EnergySnapshot s) {
-        if (s == null || !s.isFormed) return "§c● NO POWER";
-        if (s.inputPerSec > 0 || s.outputPerSec > 0) return "§a● ACTIVE";
-        return "§e● IDLE";
+        if (s == null || !s.isFormed) return "§cNO POWER";
+        if (s.inputPerSec > 0 || s.outputPerSec > 0) return "§aACTIVE";
+        return "§eIDLE";
     }
 }

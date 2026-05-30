@@ -63,7 +63,7 @@ final class DismantlerHeader {
         title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : 0xFFFFFFFF);
         header.addWidget(title);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 50, 6, 18, "⚙", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 50, 6, 18, "S", "§7",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);

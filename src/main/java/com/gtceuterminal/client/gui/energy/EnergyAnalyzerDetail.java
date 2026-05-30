@@ -114,7 +114,7 @@ final class EnergyAnalyzerDetail {
         g.addWidget(recipeBarFill);
         y += 12;
 
-        recipeBtn = TerminalButton.action(pad, y, 112, 18, "§7☰ Recipe History",
+        recipeBtn = TerminalButton.action(pad, y, 112, 18, "§7Recipe History",
                 0xFF2A2A2A, 0xFF3A3A3A, cd -> onRecipeHistoryClick.run());
         g.addWidget(recipeBtn);
         y += 24;
@@ -168,7 +168,6 @@ final class EnergyAnalyzerDetail {
         slot.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(0xFF1A1A1A),
                 new ColorBorderTexture(1, 0xFF333333)));
-        slot.addWidget(new LabelWidget(6, 6, "⚡"));
         row.addWidget(slot);
 
         LabelWidget nameLbl = new LabelWidget(30, 7, () -> {

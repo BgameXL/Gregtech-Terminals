@@ -184,12 +184,12 @@ public class MultiStructureManagerUI {
         header.addWidget(title);
 
         ButtonWidget refreshBtn = TerminalButton.icon(GUI_W - 54, 5, 20,
-                "↻", "§7", colorBgMedium, colorBorderLight, cd -> refreshUI());
+                "R", "§7", colorBgMedium, colorBorderLight, cd -> refreshUI());
         refreshBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.refresh_tooltip").getString());
         header.addWidget(refreshBtn);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 30, 7, 16, "⚙", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 30, 7, 16, "S", "§7",
                 cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalRef)));
         gearBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());

@@ -68,7 +68,7 @@ final class EnergyAnalyzerHeader {
         sub.setTextColor(0xFFAAAAAA);
         g.addWidget(sub);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 44, (headerH - 14) / 2, 14, "⚙", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 44, (headerH - 14) / 2, 14, "S", "§7",
                 cd -> ThemeEditorDialog.open(rootGroup, theme));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         g.addWidget(gearBtn);

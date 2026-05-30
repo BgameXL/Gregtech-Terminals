@@ -139,7 +139,7 @@ final class MultiblockListPanel {
 
         // Sub line: status · tier · distance, matching the compact mockup row.
         MultiblockStatus status = mb.getStatus();
-        String sub = "§" + statusColorCode(status) + "● " + status.getDisplayName().toLowerCase()
+        String sub = "§" + statusColorCode(status) + status.getDisplayName().toLowerCase()
                 + " §8" + mb.getTierName() + " · " + mb.getDistanceString();
         LabelWidget subLabel = new LabelWidget(8, 21, sub);
         subLabel.setTextColor(colorTextGray);
@@ -158,14 +158,14 @@ final class MultiblockListPanel {
         WidgetGroup footer = new WidgetGroup(x, y, panelW, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(colorBorderDark)));
 
-        ButtonWidget highlightBtn = TerminalButton.action(6, 5, panelW - 40, 18, "§e⬡ Highlight",
+        ButtonWidget highlightBtn = TerminalButton.action(6, 5, panelW - 40, 18, "§eHighlight",
                 0xFF222222, 0xFF3A3A3A,
                 cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onHighlight.accept(sel); });
         highlightBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.highlight_tooltip").getString());
         footer.addWidget(highlightBtn);
 
-        ButtonWidget renameBtn = TerminalButton.icon(panelW - 28, 4, 20, "✎", "§7",
+        ButtonWidget renameBtn = TerminalButton.icon(panelW - 28, 4, 20, "E", "§7",
                 0xFF222222, 0xFF3A3A3A,
                 cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onRename.accept(sel); });
         renameBtn.setHoverTooltips(

@@ -160,11 +160,11 @@ public class SchematicInterfaceUI {
 
         ButtonWidget refreshBtn = new ButtonWidget(GUI_W - 76, btnY, 16, 16,
                 new ColorRectTexture(0x00000000), cd -> { loadSchematics(); refreshLeft(); });
-        refreshBtn.setButtonTexture(new TextTexture("§7↻").setWidth(16).setType(TextTexture.TextType.NORMAL));
+        refreshBtn.setButtonTexture(new TextTexture("§7R").setWidth(16).setType(TextTexture.TextType.NORMAL));
         refreshBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
         header.addWidget(refreshBtn);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 54, btnY, 16, "⚙", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 54, btnY, 16, "S", "§7",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
         gearBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());

@@ -204,14 +204,18 @@ final class EnergyAnalyzerDetail {
         return EnergyDisplayHelper.formatEU(peak / 20) + "/t";
     }
 
+    private static String pct(int value) {
+        return value + "%%";
+    }
+
     private static String storedPercent(EnergySnapshot s) {
         if (s == null || !s.isFormed) return "---";
-        return Math.round(Math.max(0f, Math.min(1f, s.chargePercent())) * 100f) + "%";
+        return pct(Math.round(Math.max(0f, Math.min(1f, s.chargePercent())) * 100f));
     }
 
     private static String recipeProgressText(EnergySnapshot s) {
-        if (s == null || !s.isFormed || !s.isRecipeActive) return "§80%";
-        return "§a" + Math.round(Math.max(0f, Math.min(1f, s.recipeProgress)) * 100f) + "%";
+        if (s == null || !s.isFormed || !s.isRecipeActive) return "§8" + pct(0);
+        return "§a" + pct(Math.round(Math.max(0f, Math.min(1f, s.recipeProgress)) * 100f));
     }
 
     void updateDynamic(EnergySnapshot snap) {

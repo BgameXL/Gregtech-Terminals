@@ -165,7 +165,7 @@ final class MultiblockListPanel {
                 Component.translatable("gui.gtceuterminal.multiblock_manager.highlight_tooltip").getString());
         footer.addWidget(highlightBtn);
 
-        ButtonWidget renameBtn = TerminalButton.icon(panelW - 28, 4, 20, "E", "§7",
+        ButtonWidget renameBtn = TerminalButton.icon(panelW - 28, 4, 20, "rename",
                 0xFF222222, 0xFF3A3A3A,
                 cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onRename.accept(sel); });
         renameBtn.setHoverTooltips(

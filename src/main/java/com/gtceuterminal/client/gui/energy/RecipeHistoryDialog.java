@@ -1,11 +1,12 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.widget.TerminalButton;
+
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.RecipeHistoryEntry;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
@@ -51,8 +52,8 @@ public final class RecipeHistoryDialog {
 
         ButtonWidget closeBtn = new ButtonWidget(dW - 18, 1, 16, 16,
                 new ColorRectTexture(0x80FF0000), cd -> dialog.close());
-        closeBtn.setButtonTexture(
-                new TextTexture("§fX").setWidth(16).setType(TextTexture.TextType.NORMAL));
+        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new ColorRectTexture(0xFFFF3333));
         panel.addWidget(closeBtn);
 

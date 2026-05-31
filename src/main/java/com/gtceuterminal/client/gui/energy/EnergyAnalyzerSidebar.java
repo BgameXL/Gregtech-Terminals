@@ -90,8 +90,9 @@ final class EnergyAnalyzerSidebar {
                     new ColorRectTexture(0x00000000), cd -> onSelect.accept(idx));
             g.addWidget(rowBtn);
 
-            ButtonWidget gearBtn = TerminalButton.ghostIcon(sidebarW - 20, y + 8, 16, "S", "§7",
+            ButtonWidget gearBtn = TerminalButton.ghostIcon(sidebarW - 20, y + 8, 16, "config",
                     cd -> onGear.accept(idx));
+            gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
             g.addWidget(gearBtn);
         }
 

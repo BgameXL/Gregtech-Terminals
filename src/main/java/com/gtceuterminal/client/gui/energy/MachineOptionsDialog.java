@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.network.CPacketEnergyAnalyzerAction;
 import com.gtceuterminal.common.network.TerminalNetwork;
@@ -55,7 +56,8 @@ final class MachineOptionsDialog {
 
         ButtonWidget closeBtn = new ButtonWidget(DW - 18, 1, 16, 16,
                 new ColorRectTexture(0x80FF0000), cd -> dialog.close());
-        closeBtn.setButtonTexture(new TextTexture("§fX").setWidth(16).setType(TextTexture.TextType.NORMAL));
+        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new ColorRectTexture(0xFFFF3333));
         titleBar.addWidget(closeBtn);
 

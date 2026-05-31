@@ -4,6 +4,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
@@ -23,21 +24,28 @@ public final class TerminalButton {
 
     private static final int C_WHITE = 0xFFFFFFFF;
 
+    private static final String ICON_ROOT = "gtceuterminal:textures/gui/buttons/";
+
     private TerminalButton() {}
+
+    public static IGuiTexture iconTex(String iconName) {
+        return new ResourceTexture(ICON_ROOT + iconName + ".png");
+    }
+
     public static ButtonWidget icon(int x, int y, int size,
-                                    String glyph, String glyphColor,
+                                    String iconName,
                                     int bgColor, int borderColor,
                                     Consumer<ClickData> action) {
         IGuiTexture normal = new GuiTextureGroup(
                 new ColorRectTexture(bgColor),
                 new ColorBorderTexture(1, borderColor),
-                iconGlyph(glyph, glyphColor, size));
+                iconTex(iconName));
 
         IGuiTexture hover = new GuiTextureGroup(
                 new ColorRectTexture(bgColor),
                 new ColorBorderTexture(1, C_WHITE),
                 new ColorRectTexture(HOVER_OVERLAY),
-                iconGlyph(glyph, glyphColor, size));
+                iconTex(iconName));
 
         ButtonWidget btn = new ButtonWidget(x, y, size, size, normal, action);
         btn.setHoverTexture(hover);
@@ -45,21 +53,19 @@ public final class TerminalButton {
     }
 
     public static ButtonWidget icon(int x, int y,
-                                    String glyph, String glyphColor,
+                                    String iconName,
                                     int bgColor, int borderColor,
                                     Consumer<ClickData> action) {
-        return icon(x, y, 20, glyph, glyphColor, bgColor, borderColor, action);
+        return icon(x, y, 20, iconName, bgColor, borderColor, action);
     }
 
     public static ButtonWidget ghostIcon(int x, int y, int size,
-                                         String glyph, String glyphColor,
+                                         String iconName,
                                          Consumer<ClickData> action) {
-        IGuiTexture txt = iconGlyph(glyph, glyphColor, size);
-
         ButtonWidget btn = new ButtonWidget(x, y, size, size,
                 new ColorRectTexture(0x00000000), action);
-        btn.setButtonTexture(txt);
-        btn.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(HOVER_ICON), txt));
+        btn.setButtonTexture(iconTex(iconName));
+        btn.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(HOVER_ICON), iconTex(iconName)));
         return btn;
     }
 
@@ -151,29 +157,16 @@ public final class TerminalButton {
         IGuiTexture normal = new GuiTextureGroup(
                 new ColorRectTexture(bgColor),
                 new ColorBorderTexture(1, borderColor),
-                iconGlyph("✕", "§c", size));
+                iconTex("close"));
 
         IGuiTexture hover = new GuiTextureGroup(
                 new ColorRectTexture(0xFF8B0000),
                 new ColorBorderTexture(1, 0xFFFF4444),
-                iconGlyph("✕", "§c", size));
+                iconTex("close"));
 
         ButtonWidget btn = new ButtonWidget(x, y, size, size, normal, action);
         btn.setHoverTexture(hover);
         return btn;
-    }
-
-    private static IGuiTexture iconGlyph(String glyph, String glyphColor, int size) {
-        TextTexture texture = new TextTexture(glyphColor + glyph)
-                .setWidth(size)
-                .setType(TextTexture.TextType.NORMAL);
-        texture.setDropShadow(false);
-        texture.scale(iconScale(size));
-        return texture;
-    }
-
-    private static float iconScale(int size) {
-        return Math.max(1.25f, Math.min(1.6f, size / 12.0f));
     }
 
     private static String stripFormatting(String s) {

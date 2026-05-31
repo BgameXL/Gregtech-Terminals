@@ -160,11 +160,12 @@ public class SchematicInterfaceUI {
 
         ButtonWidget refreshBtn = new ButtonWidget(GUI_W - 76, btnY, 16, 16,
                 new ColorRectTexture(0x00000000), cd -> { loadSchematics(); refreshLeft(); });
-        refreshBtn.setButtonTexture(new TextTexture("§7R").setWidth(16).setType(TextTexture.TextType.NORMAL));
+        refreshBtn.setButtonTexture(TerminalButton.iconTex("refresh"));
+        refreshBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.refresh").getString());
         refreshBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
         header.addWidget(refreshBtn);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 54, btnY, 16, "S", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 54, btnY, 16, "config",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
         gearBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());
@@ -173,7 +174,8 @@ public class SchematicInterfaceUI {
         ButtonWidget closeBtn = new ButtonWidget(GUI_W - 30, btnY, 20, 16,
                 new GuiTextureGroup(new ColorRectTexture(theme.panelColor), new ColorBorderTexture(1, colorBorderLight)),
                 cd -> gui.entityPlayer.closeContainer());
-        closeBtn.setButtonTexture(new TextTexture("§c✕").setWidth(20).setType(TextTexture.TextType.NORMAL));
+        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new GuiTextureGroup(
                 new ColorRectTexture(0xFFAA0000), new ColorBorderTexture(1, C_TEXT_WHITE)));
         header.addWidget(closeBtn);

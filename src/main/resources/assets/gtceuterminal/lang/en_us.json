@@ -1,12 +1,10 @@
 {
   "itemGroup.gtceuterminal": "GregTechCEu Terminal",
-
   "item.gtceuterminal.terminal.success": "Multiblock Built Successfully",
   "item.gtceuterminal.terminal.failed": "Failed to Build Multiblock",
   "item.gtceuterminal.terminal.cooldown": "Terminal on Cooldown",
   "item.gtceuterminal.terminal.not_controller": "Not a Multiblock Controller",
   "item.gtceuterminal.terminal.already_formed": "Multiblock Already Formed",
-
   "item.gtceuterminal.multi_structure_manager": "§4Multi-Structure Manager",
   "item.gtceuterminal.multi_structure_manager.tooltip": "Manage and Upgrade Nearby Multiblocks",
   "item.gtceuterminal.multi_structure_manager.tooltip.tool": "§6Multiblock Management Tool",
@@ -102,7 +100,6 @@
 
   "item.gtceuterminal.schematic_copier.failed_to_scan_multiblock": "§cFailed to scan multiblock!",
   "item.gtceuterminal.schematic_copier.multiblock_copied": "§aMultiblock copied! %d blocks",
-
   "item.gtceuterminal.schematic_paster.no_schematic_in_clipboard": "§cNo schematic in clipboard!",
   "item.gtceuterminal.schematic_paster.nothing_to_paste": "§eNothing to paste here. Area may be occupied (or identical).",
   "item.gtceuterminal.schematic_paster.paste_success.no_skipped": "§aSchematic pasted! §f%d blocks placed",
@@ -135,6 +132,14 @@
   "gui.gtceuterminal.autocraft.confirm.unavailable": "§8Unavailable",
   "gui.gtceuterminal.autocraft.cancel": "§cCancel",
   "gui.gtceuterminal.autocraft.entry.right": "§7need §f%s  §7ME: %s%s",
+  "gui.gtceuterminal.autocraft.title.build": "Build Multiblock",
+  "gui.gtceuterminal.autocraft.title.upgrade": "Upgrade Components",
+  "gui.gtceuterminal.autocraft.unknown_component": "Unknown Component",
+  "gui.gtceuterminal.autocraft.replace_count": "Replacing %s components",
+  "gui.gtceuterminal.autocraft.ingredients_total": "Ingredients",
+  "gui.gtceuterminal.autocraft.available": "Available",
+  "gui.gtceuterminal.autocraft.request": "Request",
+  "gui.gtceuterminal.autocraft.missing_items": "%s missing",
 
   "gui.gtceuterminal.blueprint.library.title": "§f§lBlueprint Library",
   "gui.gtceuterminal.blueprint.library.close": "§c✕",
@@ -297,7 +302,6 @@
   "gui.gtceuterminal.component_detail.notifications.bulk_not_implemented": "§7Bulk upgrade not yet implemented",
   "gui.gtceuterminal.component_detail.notifications.rescanned": "§aRescanned components",
   "gui.gtceuterminal.component_detail.notifications.use_esc_to_close": "§7Use ESC to close",
-
   "gui.gtceuterminal.component_detail_dialog.unknown_multiblock": "Unknown Multiblock",
   "gui.gtceuterminal.component_detail_dialog.header.title": "§l§f%s - Components",
   "gui.gtceuterminal.component_detail_dialog.info.multiblock": "§7Multiblock: §f%s",
@@ -449,5 +453,11 @@
   "gui.gtceuterminal.theme_editor.preset.orange": "Orange",
   "gui.gtceuterminal.theme_editor.preset.mono": "Mono",
   "gui.gtceuterminal.theme_editor.preset.gtceu_native": "GTCEu Native",
-  "gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix": " §7(GTCEu style)"
+  "gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix": " §7(GTCEu style)",
+  "gui.gtceuterminal.theme_editor.wallpaper_prev": "Previous Wallpaper",
+  "gui.gtceuterminal.theme_editor.wallpaper_next": "Next Wallpaper",
+
+  "gui.gtceuterminal.close": "Close",
+  "gui.gtceuterminal.refresh": "Refresh"
+
 }

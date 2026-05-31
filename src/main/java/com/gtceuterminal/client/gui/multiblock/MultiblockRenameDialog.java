@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.multiblock;
 
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.network.CPacketSetCustomMultiblockName;
@@ -59,10 +60,11 @@ final class MultiblockRenameDialog {
 
         ButtonWidget closeBtn = new ButtonWidget(DW - 20, 5, 14, 14,
                 new ColorRectTexture(0x00000000), cd -> {
-                    dialog.close();
-                    if (listScroll != null) listScroll.setActive(true);
-                });
-        closeBtn.setButtonTexture(new TextTexture("§c✕").setWidth(14).setType(TextTexture.TextType.NORMAL));
+            dialog.close();
+            if (listScroll != null) listScroll.setActive(true);
+        });
+        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new ColorRectTexture(0x33FF0000));
         titleBar.addWidget(closeBtn);
 

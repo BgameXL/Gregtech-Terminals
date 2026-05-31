@@ -101,6 +101,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         header.addWidget(lbl);
 
         ButtonWidget close = TerminalButton.close(W - 28, 4, 20, colorPanel, colorBorder, cd -> close());
+        close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         header.addWidget(close);
         return header;
     }

@@ -8,7 +8,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
@@ -68,7 +67,7 @@ final class EnergyAnalyzerHeader {
         sub.setTextColor(0xFFAAAAAA);
         g.addWidget(sub);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 44, (headerH - 14) / 2, 14, "S", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 44, (headerH - 14) / 2, 14, "config",
                 cd -> ThemeEditorDialog.open(rootGroup, theme));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         g.addWidget(gearBtn);
@@ -77,7 +76,8 @@ final class EnergyAnalyzerHeader {
         ButtonWidget closeBtn = new ButtonWidget(guiW - 26, (headerH - 14) / 2, 20, 14,
                 new GuiTextureGroup(new ColorRectTexture(theme.panelColor), new ColorBorderTexture(1, accent80)),
                 cd -> player.closeContainer());
-        closeBtn.setButtonTexture(new TextTexture("§c✕").setWidth(20).setType(TextTexture.TextType.NORMAL));
+        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new GuiTextureGroup(
                 new ColorRectTexture(0xFFAA0000),
                 new ColorBorderTexture(1, 0xFFFFFFFF)));

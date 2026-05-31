@@ -1,12 +1,12 @@
 package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ItemTheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
@@ -75,9 +75,9 @@ final class ThemeEditorRightCol {
 
             ButtonWidget btn = new ButtonWidget(bx, cy, tBtnW, tBtnH,
                     new ColorRectTexture(0x00000000), cd -> {
-                        editTargetHolder[0] = ti;
-                        onChannelChanged.accept(ti);
-                    });
+                editTargetHolder[0] = ti;
+                onChannelChanged.accept(ti);
+            });
             btn.setHoverTexture(new ColorRectTexture(C_HOVER));
             col.addWidget(btn);
         }
@@ -132,7 +132,7 @@ final class ThemeEditorRightCol {
             int sx = i * (swSz + 6);
             ImageWidget sw = new ImageWidget(sx, cy, swSz, swSz,
                     new GuiTextureGroup(new ColorRectTexture(swColors[i]),
-                                        new ColorBorderTexture(1, 0xFF555555)));
+                            new ColorBorderTexture(1, 0xFF555555)));
             swatchRefs[i] = sw;
             col.addWidget(sw);
             col.addWidget(new LabelWidget(sx, cy + swSz + 2, "§8" + swNames[i]));
@@ -176,9 +176,11 @@ final class ThemeEditorRightCol {
         cy += optH + 6;
 
         col.addWidget(new LabelWidget(0, cy + 2, "§8Wallpaper"));
-        col.addWidget(makeSmallBtn(58, cy, 12, 12, "§7◀",
+        col.addWidget(makeSmallBtn(58, cy, 12, 12, "arrow_left",
+                "gui.gtceuterminal.theme_editor.wallpaper_prev",
                 cd -> onWallPrev.run()));
-        col.addWidget(makeSmallBtn(72, cy, 12, 12, "§7▶",
+        col.addWidget(makeSmallBtn(72, cy, 12, 12, "arrow_right",
+                "gui.gtceuterminal.theme_editor.wallpaper_next",
                 cd -> onWallNext.run()));
         LabelWidget wallLabel = new LabelWidget(90, cy + 2, () ->
                 working.hasWallpaper()
@@ -238,13 +240,15 @@ final class ThemeEditorRightCol {
         };
     }
 
-    private static ButtonWidget makeSmallBtn(int x, int y, int w, int h, String label,
-            java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
+    private static ButtonWidget makeSmallBtn(int x, int y, int w, int h, String iconName,
+                                             String tooltipKey,
+                                             java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
                 new GuiTextureGroup(new ColorRectTexture(C_PANEL), new ColorBorderTexture(1, C_BORDER)),
                 action);
-        btn.setButtonTexture(new TextTexture(label).setWidth(w).setType(TextTexture.TextType.NORMAL));
+        btn.setButtonTexture(TerminalButton.iconTex(iconName));
         btn.setHoverTexture(new ColorRectTexture(0x33FFFFFF));
+        btn.setHoverTooltips(net.minecraft.network.chat.Component.translatable(tooltipKey).getString());
         return btn;
     }
 

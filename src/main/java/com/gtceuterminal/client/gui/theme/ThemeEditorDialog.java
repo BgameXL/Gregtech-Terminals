@@ -2,6 +2,7 @@ package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.network.CPacketSaveTheme;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
@@ -134,7 +135,8 @@ public class ThemeEditorDialog {
                 Component.translatable("gui.gtceuterminal.theme_editor.title").getString()));
         ButtonWidget close = new ButtonWidget(dw - 20, (HDR_H - 14) / 2, 14, 14,
                 new ColorRectTexture(0x00000000), cd -> dialog.setVisible(false));
-        close.setButtonTexture(new TextTexture("§c✖").setWidth(14).setType(TextTexture.TextType.NORMAL));
+        close.setButtonTexture(TerminalButton.iconTex("close"));
+        close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         close.setHoverTexture(new ColorRectTexture(0x33FF0000));
         g.addWidget(close);
         return g;

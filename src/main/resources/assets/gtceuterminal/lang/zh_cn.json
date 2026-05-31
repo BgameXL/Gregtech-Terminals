@@ -135,6 +135,14 @@
   "gui.gtceuterminal.autocraft.confirm.unavailable": "§8不可用",
   "gui.gtceuterminal.autocraft.cancel": "§c取消",
   "gui.gtceuterminal.autocraft.entry.right": "§7需要 §f%s  §7ME： %s%s",
+  "gui.gtceuterminal.autocraft.title.build": "Build Multiblock",
+  "gui.gtceuterminal.autocraft.title.upgrade": "Upgrade Components",
+  "gui.gtceuterminal.autocraft.unknown_component": "Unknown Component",
+  "gui.gtceuterminal.autocraft.replace_count": "Replacing %s components",
+  "gui.gtceuterminal.autocraft.ingredients_total": "Ingredients",
+  "gui.gtceuterminal.autocraft.available": "Available",
+  "gui.gtceuterminal.autocraft.request": "Request",
+  "gui.gtceuterminal.autocraft.missing_items": "%s missing",
 
   "gui.gtceuterminal.blueprint.library.title": "§f§l蓝图库",
   "gui.gtceuterminal.blueprint.library.close": "§c✕",
@@ -449,5 +457,8 @@
   "gui.gtceuterminal.theme_editor.preset.orange": "橙色",
   "gui.gtceuterminal.theme_editor.preset.mono": "单色",
   "gui.gtceuterminal.theme_editor.preset.gtceu_native": "GTCEu 原生",
-  "gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix": " §7(GTCEu 风格)"
+  "gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix": " §7(GTCEu 风格)",
+
+  "gui.gtceuterminal.close": "Close",
+  "gui.gtceuterminal.refresh": "Refresh"
 }

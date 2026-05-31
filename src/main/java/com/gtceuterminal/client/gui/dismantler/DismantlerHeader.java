@@ -8,7 +8,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.core.BlockPos;
@@ -63,7 +62,7 @@ final class DismantlerHeader {
         title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : 0xFFFFFFFF);
         header.addWidget(title);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 50, 6, 18, "S", "§7",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 50, 6, 18, "config",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
@@ -74,7 +73,8 @@ final class DismantlerHeader {
                         new ColorRectTexture(theme.panelColor),
                         new ColorBorderTexture(1, (accentColor & 0x00FFFFFF) | 0x80000000)),
                 cd -> onClose.run());
-        closeBtn.setButtonTexture(new TextTexture("§c✕").setWidth(20).setType(TextTexture.TextType.NORMAL));
+        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new GuiTextureGroup(
                 new ColorRectTexture(0xFFAA0000),
                 new ColorBorderTexture(1, 0xFFFFFFFF)));

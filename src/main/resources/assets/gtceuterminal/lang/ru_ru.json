@@ -135,6 +135,14 @@
   "gui.gtceuterminal.autocraft.confirm.unavailable": "§8Unavailable",
   "gui.gtceuterminal.autocraft.cancel": "§cCancel",
   "gui.gtceuterminal.autocraft.entry.right": "§7need §f%s  §7ME: %s%s",
+  "gui.gtceuterminal.autocraft.title.build": "Build Multiblock",
+  "gui.gtceuterminal.autocraft.title.upgrade": "Upgrade Components",
+  "gui.gtceuterminal.autocraft.unknown_component": "Unknown Component",
+  "gui.gtceuterminal.autocraft.replace_count": "Replacing %s components",
+  "gui.gtceuterminal.autocraft.ingredients_total": "Ingredients",
+  "gui.gtceuterminal.autocraft.available": "Available",
+  "gui.gtceuterminal.autocraft.request": "Request",
+  "gui.gtceuterminal.autocraft.missing_items": "%s missing",
 
   "gui.gtceuterminal.blueprint.library.title": "§f§lBlueprint Library",
   "gui.gtceuterminal.blueprint.library.close": "§c✕",
@@ -319,6 +327,7 @@
   "gui.gtceuterminal.group_upgrade_dialog.confirm_missing_materials": "Missing Materials",
   "gui.gtceuterminal.group_upgrade_dialog.cancel": "Cancel",
   "gui.gtceuterminal.group_upgrade_dialog.unknown_coil": "Unknown Coil",
+  "gui.gtceuterminal.group_upgrade_dialog.type_with_tier": "%s (%s)",
 
   "component.gtceuterminal.component_type.energy_hatch": "Energy Hatch",
   "component.gtceuterminal.component_type.dynamo_hatch": "Dynamo Hatch",
@@ -438,5 +447,8 @@
   "gui.gtceuterminal.theme_editor.preset.orange": "Orange",
   "gui.gtceuterminal.theme_editor.preset.mono": "Mono",
   "gui.gtceuterminal.theme_editor.preset.gtceu_native": "GTCEu Native",
-  "gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix": " §7(GTCEu style)"
+  "gui.gtceuterminal.theme_editor.preset.gtceu_native_suffix": " §7(GTCEu style)",
+
+  "gui.gtceuterminal.close": "Close",
+  "gui.gtceuterminal.refresh": "Refresh"
 }

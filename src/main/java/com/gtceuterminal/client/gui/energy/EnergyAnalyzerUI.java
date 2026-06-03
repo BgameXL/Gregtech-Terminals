@@ -60,6 +60,9 @@ public class EnergyAnalyzerUI {
     private ModularUI buildUI() {
         rootGroup = new WidgetGroup(0, 0, W, H);
         rootGroup.setBackground(new ColorRectTexture(0x00000000));
+        EnergyUpdateWidget updater = new EnergyUpdateWidget(holder);
+        updater.setRebuildCallback(this::onDataRefresh);
+        rootGroup.addWidget(updater);
 
         if (!theme.isNativeStyle()) {
             rootGroup.addWidget(new WallpaperWidget(0, 0, W, H, () -> this.theme));
@@ -87,10 +90,6 @@ public class EnergyAnalyzerUI {
                 DETAIL_X, HEADER_H, H, PAD,
                 this::selSnap,
                 () -> { EnergySnapshot s = selSnap(); if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H); }));
-
-        EnergyUpdateWidget updater = new EnergyUpdateWidget(holder);
-        updater.setRebuildCallback(this::onDataRefresh);
-        rootGroup.addWidget(updater);
 
         setupParade();
         return wrapUI(rootGroup);

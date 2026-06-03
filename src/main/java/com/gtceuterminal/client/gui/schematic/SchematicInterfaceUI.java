@@ -158,12 +158,6 @@ public class SchematicInterfaceUI {
 
         int btnY = (HEADER_H - 16) / 2;
 
-        ButtonWidget refreshBtn = new ButtonWidget(GUI_W - 76, btnY, 16, 16,
-                new ColorRectTexture(0x00000000), cd -> { loadSchematics(); refreshLeft(); });
-        refreshBtn.setButtonTexture(TerminalButton.iconTex("refresh"));
-        refreshBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.refresh").getString());
-        refreshBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
-        header.addWidget(refreshBtn);
 
         ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 54, btnY, 16, "config",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
@@ -177,7 +171,8 @@ public class SchematicInterfaceUI {
         closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0xFFAA0000), new ColorBorderTexture(1, C_TEXT_WHITE)));
+                new ColorRectTexture(0x66AA0000), new ColorBorderTexture(1, C_TEXT_WHITE),
+                TerminalButton.iconTex("close")));
         header.addWidget(closeBtn);
 
         return header;
@@ -247,8 +242,8 @@ public class SchematicInterfaceUI {
         nameField.setMaxStringLength(32);
         nameField.setTextColor(C_TEXT_WHITE);
         nameField.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF141414),
-                new ColorBorderTexture(1, 0xFF333333)));
+                new ColorRectTexture(0xFF141414)));
+
         nameField.setCurrentString(selectedIndex >= 0 && selectedIndex < schematics.size()
                 ? schematics.get(selectedIndex).getName() : "");
         this.nameInput = nameField;
@@ -274,9 +269,10 @@ public class SchematicInterfaceUI {
         panel.addWidget(makeBtn(x, btnY, 60, btnH, 0xFF2A2A2A,
                 "Export",
                 cd -> player.displayClientMessage(
-                        Component.literal("Export not yet implemented"), true)));
-    }
+                        Component.literal("Export not yet implemented"), true))
+                .setHoverTooltips(Component.literal("§7Not yet implemented")));
 
+    }
 
     private ButtonWidget makeBtn(int x, int y, int w, int h, int color, String label,
                                  java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
@@ -285,7 +281,7 @@ public class SchematicInterfaceUI {
                 action);
         btn.setButtonTexture(new TextTexture(label).setWidth(w).setType(TextTexture.TextType.NORMAL));
         btn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(color), new ColorBorderTexture(2, C_TEXT_WHITE)));
+                new ColorRectTexture((color & 0x00FFFFFF) | 0x55000000), new ColorBorderTexture(2, C_TEXT_WHITE)));
         return btn;
     }
 

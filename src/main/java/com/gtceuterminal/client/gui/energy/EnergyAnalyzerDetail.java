@@ -98,11 +98,11 @@ final class EnergyAnalyzerDetail {
         LabelWidget progressHdr = new LabelWidget(pad, y, "§8Recipe Progress");
         progressHdr.setTextColor(0xFF666666);
         g.addWidget(progressHdr);
-        LabelWidget progressPct = new LabelWidget(detailW - pad - 36, y, () -> recipeProgressText(selSnap.get()));
+        LabelWidget progressPct = new LabelWidget(detailW - pad - 60, y, () -> recipeProgressText(selSnap.get()));
         progressPct.setClientSideWidget();
         progressPct.setTextColor(C_GREEN);
         g.addWidget(progressPct);
-        y += 14;
+        y += 10;
 
         recipeBarBg = new WidgetGroup(pad, y, graphW - pad, 8);
         recipeBarBg.setBackground(new GuiTextureGroup(

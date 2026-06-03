@@ -160,7 +160,7 @@ public final class TerminalButton {
                 iconTex("close"));
 
         IGuiTexture hover = new GuiTextureGroup(
-                new ColorRectTexture(0xFF8B0000),
+                new ColorRectTexture(0x668B0000),
                 new ColorBorderTexture(1, 0xFFFF4444),
                 iconTex("close"));
 

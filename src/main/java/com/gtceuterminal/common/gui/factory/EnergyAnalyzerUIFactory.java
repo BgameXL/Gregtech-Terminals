@@ -10,6 +10,8 @@ import com.gtceuterminal.common.item.EnergyAnalyzerItem;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -81,7 +83,9 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
                 return null;
             }
         }
-        return new ModularUI(600, 480, holder, entityPlayer);
+        WidgetGroup serverRoot = new WidgetGroup(0, 0, 600, 480);
+        serverRoot.addWidget(new EnergyUpdateWidget(holder));
+        return new ModularUI(600, 480, holder, entityPlayer).widget(serverRoot);
 
     }
 

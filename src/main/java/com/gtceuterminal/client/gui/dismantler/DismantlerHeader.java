@@ -76,8 +76,9 @@ final class DismantlerHeader {
         closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0xFFAA0000),
-                new ColorBorderTexture(1, 0xFFFFFFFF)));
+                new ColorRectTexture(0x66AA0000),
+                new ColorBorderTexture(1, 0xFFFFFFFF),
+                TerminalButton.iconTex("close")));
         header.addWidget(closeBtn);
 
         return header;

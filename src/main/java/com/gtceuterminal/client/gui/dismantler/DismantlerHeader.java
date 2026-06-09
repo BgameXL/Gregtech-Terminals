@@ -62,13 +62,13 @@ final class DismantlerHeader {
         title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : 0xFFFFFFFF);
         header.addWidget(title);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 50, 6, 18, "config",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 42, 6, 14, "config",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
 
         int accentColor = theme.accentColor;
-        ButtonWidget closeBtn = new ButtonWidget(guiW - 28, 6, 20, 18,
+        ButtonWidget closeBtn = new ButtonWidget(guiW - 24, 6, 14, 14,
                 new GuiTextureGroup(
                         new ColorRectTexture(theme.panelColor),
                         new ColorBorderTexture(1, (accentColor & 0x00FFFFFF) | 0x80000000)),

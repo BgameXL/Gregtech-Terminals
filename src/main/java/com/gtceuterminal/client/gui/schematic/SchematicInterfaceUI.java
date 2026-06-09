@@ -158,14 +158,13 @@ public class SchematicInterfaceUI {
 
         int btnY = (HEADER_H - 16) / 2;
 
-
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 54, btnY, 16, "config",
+        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 38, btnY, 14, "config",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
         gearBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
 
-        ButtonWidget closeBtn = new ButtonWidget(GUI_W - 30, btnY, 20, 16,
+        ButtonWidget closeBtn = new ButtonWidget(GUI_W - 20, btnY, 14, 14,
                 new GuiTextureGroup(new ColorRectTexture(theme.panelColor), new ColorBorderTexture(1, colorBorderLight)),
                 cd -> gui.entityPlayer.closeContainer());
         closeBtn.setButtonTexture(TerminalButton.iconTex("close"));

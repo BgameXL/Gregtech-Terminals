@@ -65,7 +65,6 @@ final class MultiblockDetailPanel {
 
         int listY = DETAIL_HEADER_H + 1;
         int listH = h - listY - FOOTER_H - 1;
-        // Pass null onUpgrade for unformed — groups render but aren't clickable
         BiConsumer<ComponentInfoGroup, MultiblockInfo> upgradeHandler =
                 mb.getStatus() == MultiblockStatus.UNFORMED ? null : onUpgrade;
         panel.addWidget(buildGroupList(0, listY, w, listH, mb,

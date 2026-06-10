@@ -13,8 +13,8 @@
   "item.gtceuterminal.multi_structure_manager.tooltip.linked": "§a✓ 已连接到ME网络",
   "item.gtceuterminal.multi_structure_manager.tooltip.not_linked": "§7✗ 未连接",
   "item.gtceuterminal.multi_structure_manager.tooltip.place_in_me_wireless_access_point": "§8  放入ME无线访问点以进行连接",
-  "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8右键：§b设置",
-  "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + 右键：§c管理多方块",
+  "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8右键：§b管理多方块",
+  "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + 右键：§c自动建造多方块",
 
   "item.gtceuterminal.schematic_interface": "结构蓝图接口",
   "item.gtceuterminal.schematic_interface.tooltip": "复制与粘贴多方块结构蓝图",
@@ -271,6 +271,7 @@
   "gui.gtceuterminal.energy_analyzer.mode.generator": "[发电机]",
   "gui.gtceuterminal.energy_analyzer.mode.storage": "[储存]",
   "gui.gtceuterminal.energy_analyzer.mode.unknown": "[未知]",
+  "gui.gtceuterminal.energy_analyzer.mode.config": "Configs",
 
   "gui.gtceuterminal.manager_settings.title": "§l管理设置",
   "gui.gtceuterminal.manager_settings.common.yes": "§a是",

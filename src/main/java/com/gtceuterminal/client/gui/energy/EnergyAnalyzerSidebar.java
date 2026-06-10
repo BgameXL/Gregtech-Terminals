@@ -92,7 +92,7 @@ final class EnergyAnalyzerSidebar {
 
             ButtonWidget gearBtn = TerminalButton.ghostIcon(sidebarW - 20, y + 8, 16, "config",
                     cd -> onGear.accept(idx));
-            gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
+            gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.energy_analyzer.mode.config").getString());
             g.addWidget(gearBtn);
         }
 

@@ -72,6 +72,14 @@ public class ManagerSettingsUI {
         applyTheme();
     }
 
+    private ManagerSettingsUI(ItemStack itemStack, Player player) {
+        this.uiHolder  = null;
+        this.itemStack = itemStack;
+        this.player    = player;
+        loadFromItem();
+        applyTheme();
+    }
+
     private void loadFromItem() {
         CompoundTag tag = itemStack.getTag();
         this.noHatchMode = tag != null && tag.contains("NoHatchMode")  ? tag.getInt("NoHatchMode")  : 0;
@@ -115,6 +123,48 @@ public class ManagerSettingsUI {
         gui.widget(root);
         gui.background(theme.modularUIBackground());
         return gui;
+    }
+
+    public static void openDialog(WidgetGroup rootGroup, int parentW, int parentH,
+                                  ItemStack item, Player player) {
+        new ManagerSettingsUI(item, player).buildDialog(rootGroup, parentW, parentH);
+    }
+
+    private void buildDialog(WidgetGroup rootGroup, int parentW, int parentH) {
+        DialogWidget dialog = new DialogWidget(rootGroup, true);
+        dialog.setBackground(new ColorRectTexture(0xB0000000));
+        dialog.setClickClose(false);
+
+        int ox = (parentW - GUI_W) / 2;
+        int oy = (parentH - GUI_H) / 2;
+
+        WidgetGroup root = new WidgetGroup(ox, oy, GUI_W, GUI_H);
+        root.setBackground(new ColorRectTexture(0x00000000));
+
+        if (!theme.isNativeStyle()) {
+            root.addWidget(new com.gtceuterminal.client.gui.widget.WallpaperWidget(
+                    0, 0, GUI_W, GUI_H, () -> this.theme));
+        } else {
+            root.setBackground(theme.backgroundTexture());
+        }
+
+        root.addWidget(new ImageWidget(0,        0,        GUI_W, 2,     new ColorRectTexture(COLOR_BORDER_LIGHT)));
+        root.addWidget(new ImageWidget(0,        0,        2,     GUI_H, new ColorRectTexture(COLOR_BORDER_LIGHT)));
+        root.addWidget(new ImageWidget(GUI_W - 2, 0,       2,     GUI_H, new ColorRectTexture(COLOR_BORDER_DARK)));
+        root.addWidget(new ImageWidget(0,        GUI_H - 2, GUI_W, 2,   new ColorRectTexture(COLOR_BORDER_DARK)));
+
+        WidgetGroup header = buildHeader();
+        ButtonWidget close = new ButtonWidget(header.getSize().width - 20, (HEADER_H - 14) / 2, 14, 14,
+                new ColorRectTexture(0x00000000), cd -> dialog.close());
+        close.setButtonTexture(com.gtceuterminal.client.gui.widget.TerminalButton.iconTex("close"));
+        close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
+        close.setHoverTexture(new ColorRectTexture(0x33FF0000));
+        header.addWidget(close);
+        root.addWidget(header);
+
+        root.addWidget(buildSettingsPanel());
+
+        dialog.addWidget(root);
     }
 
     private void setupParade(com.lowdragmc.lowdraglib.gui.widget.WidgetGroup root) {

@@ -99,7 +99,7 @@ legacyForge {
             data()
             gameDirectory = project.file('run')
             programArguments.addAll(
-                    '--mod', mod_id,
+                    '--mod', mod_id as String,
                     '--all',
                     '--output', file('src/generated/resources/').absolutePath,
                     '--existing', file('src/main/resources/').absolutePath
@@ -178,7 +178,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-// Configuración unificada de processResources
 processResources {
     def replaceProperties = [
             minecraft_version: project.minecraft_version,

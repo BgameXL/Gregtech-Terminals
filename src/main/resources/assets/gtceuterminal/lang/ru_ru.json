@@ -13,8 +13,8 @@
   "item.gtceuterminal.multi_structure_manager.tooltip.linked": "§a✓ Linked to ME Network",
   "item.gtceuterminal.multi_structure_manager.tooltip.not_linked": "§7✗ Not Linked",
   "item.gtceuterminal.multi_structure_manager.tooltip.place_in_me_wireless_access_point": "§8  Place in ME Wireless Access Point to link",
-  "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8Right-click: §bSettings",
-  "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + Right-click: §cManage Multiblocks",
+  "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8Right-click: §bManage Multiblocks",
+  "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + Right-click: §cAuto-build multiblock",
 
   "item.gtceuterminal.schematic_interface": "Интерфейс схематик",
   "item.gtceuterminal.schematic_interface.tooltip": "Копирование и вставка многоблоков",
@@ -271,6 +271,7 @@
   "gui.gtceuterminal.energy_analyzer.mode.generator": "[Generator]",
   "gui.gtceuterminal.energy_analyzer.mode.storage": "[Storage]",
   "gui.gtceuterminal.energy_analyzer.mode.unknown": "[Unknown]",
+  "gui.gtceuterminal.energy_analyzer.mode.config": "Configs",
 
   "gui.gtceuterminal.manager_settings.title": "§lManager Settings",
   "gui.gtceuterminal.manager_settings.common.yes": "§aYes",

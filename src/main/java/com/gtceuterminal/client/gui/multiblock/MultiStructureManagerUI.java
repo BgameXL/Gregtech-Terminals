@@ -183,6 +183,12 @@ public class MultiStructureManagerUI {
         title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : C_TEXT_WHITE);
         header.addWidget(title);
 
+        ButtonWidget settingsBtn = TerminalButton.ghostIcon(GUI_W - 50, 7, 14, "sliders",
+                cd -> ManagerSettingsUI.openDialog(rootGroup, GUI_W, GUI_H, terminalRef, player));
+        settingsBtn.setHoverTooltips(
+                Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
+        header.addWidget(settingsBtn);
+
         ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 30, 7, 14, "config",
                 cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalRef)));
         gearBtn.setHoverTooltips(

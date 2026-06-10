@@ -1,11 +1,18 @@
 package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkCrafting;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
+import com.gtceuterminal.common.autocraft.MultiblockAnalyzer;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import com.gtceuterminal.common.upgrade.ComponentUpgrader;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
+
+import net.minecraft.world.item.Item;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -102,16 +109,28 @@ public class CPacketConfirmAutobuild {
         }
 
         ManagerSettings.AutoBuildSettings settings = getSettings(player);
+        settings.isUseAE = 1;
 
-        boolean ok = AdvancedAutoBuilder.autoBuild(player, controller, settings);
-        if (ok) {
-            msg(player,
-                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.multiblock_built"),
-                    true);
-        } else {
-            msg(player,
-                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.build_failed_check_materials"),
-                    false);
+        AnalysisResult analysis = MultiblockAnalyzer.analyzeForBuild(player, controller, settings);
+        FulfillResult fr = analysis == null
+                ? new FulfillResult(Fulfillment.READY, 0)
+                : evaluate(player, analysis.entries);
+
+        switch (fr.status) {
+            case MISSING -> msg(player,
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.build_failed_check_materials"), false);
+            case CRAFTING -> msg(player,
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.crafting_started", fr.craftCount), false);
+            case READY -> {
+                boolean ok = AdvancedAutoBuilder.autoBuild(player, controller, settings);
+                if (ok) {
+                    msg(player,
+                            Component.translatable("item.gtceuterminal.autocraft_confirm.message.multiblock_built"), true);
+                } else {
+                    msg(player,
+                            Component.translatable("item.gtceuterminal.autocraft_confirm.message.build_failed_check_materials"), false);
+                }
+            }
         }
     }
 
@@ -123,19 +142,34 @@ public class CPacketConfirmAutobuild {
             return;
         }
 
-        ItemStack terminal = ItemStack.EMPTY;
-        int succeeded = 0, failed = 0;
-
+        List<ComponentInfo> components = new ArrayList<>();
         for (BlockPos pos : componentPositions) {
             net.minecraft.world.level.block.state.BlockState state =
                     player.serverLevel().getBlockState(pos);
+            components.add(new ComponentInfo(
+                    com.gtceuterminal.common.multiblock.ComponentGroupRegistry.CASING, 0, pos, state));
+        }
 
-            ComponentInfo info = new ComponentInfo(
-                    com.gtceuterminal.common.multiblock.ComponentGroupRegistry.CASING,
-                    0,
-                    pos,
-                    state);
+        AnalysisResult analysis = MultiblockAnalyzer.analyzeForUpgrade(player, components, targetTier,
+                upgradeId.isEmpty() ? null : upgradeId, controllerPos);
+        FulfillResult fr = analysis == null
+                ? new FulfillResult(Fulfillment.READY, 0)
+                : evaluate(player, analysis.entries);
+        if (fr.status == Fulfillment.MISSING) {
+            msg(player,
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.upgrade_failed_check_materials"), false);
+            return;
+        }
+        if (fr.status == Fulfillment.CRAFTING) {
+            msg(player,
+                    Component.translatable("item.gtceuterminal.autocraft_confirm.message.crafting_started", fr.craftCount), false);
+            return;
+        }
 
+        ItemStack terminal = ItemStack.EMPTY;
+        int succeeded = 0, failed = 0;
+
+        for (ComponentInfo info : components) {
             ComponentUpgrader.UpgradeResult result = ComponentUpgrader.upgradeComponent(
                     info,
                     targetTier,
@@ -178,6 +212,43 @@ public class CPacketConfirmAutobuild {
             }
         }
         return new ManagerSettings.AutoBuildSettings();
+    }
+
+    private enum Fulfillment { READY, CRAFTING, MISSING }
+
+    private record FulfillResult(Fulfillment status, int craftCount) {}
+
+    private static FulfillResult evaluate(ServerPlayer player, List<AnalysisResult.Entry> entries) {
+        Map<Item, Integer> craftDeficits = new LinkedHashMap<>();
+        boolean hardMissing = false;
+        boolean anyDeficit  = false;
+
+        for (AnalysisResult.Entry e : entries) {
+            int  needed = e.needed();
+            long avail  = e.inME + countInInventory(player, e.stack.getItem());
+            if (avail >= needed) continue;
+
+            anyDeficit = true;
+            if (e.craftable) {
+                craftDeficits.merge(e.stack.getItem(), (int) (needed - avail), Integer::sum);
+            } else {
+                hardMissing = true;
+            }
+        }
+
+        if (!anyDeficit) return new FulfillResult(Fulfillment.READY, 0);
+        if (hardMissing) return new FulfillResult(Fulfillment.MISSING, 0);
+
+        int queued = MENetworkCrafting.requestCrafts(player, craftDeficits);
+        return new FulfillResult(queued > 0 ? Fulfillment.CRAFTING : Fulfillment.MISSING, queued);
+    }
+
+    private static int countInInventory(ServerPlayer player, Item item) {
+        int count = 0;
+        for (ItemStack s : player.getInventory().items) {
+            if (s.getItem() == item) count += s.getCount();
+        }
+        return count;
     }
 
     private static void msg(ServerPlayer p, Component component, boolean actionBar) {

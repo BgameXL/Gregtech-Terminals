@@ -70,17 +70,18 @@ public class EnergySnapshot {
         }
     }
 
-    public record HatchInfo(String blockNameKey, long voltage, long amperage, boolean isInput) {
+    public record HatchInfo(String blockNameKey, String blockId, long voltage, long amperage, boolean isInput) {
 
         public void encode(FriendlyByteBuf buf) {
             buf.writeUtf(blockNameKey);
+            buf.writeUtf(blockId);
             buf.writeLong(voltage);
             buf.writeLong(amperage);
             buf.writeBoolean(isInput);
         }
 
         public static HatchInfo decode(FriendlyByteBuf buf) {
-            return new HatchInfo(buf.readUtf(), buf.readLong(), buf.readLong(), buf.readBoolean());
+            return new HatchInfo(buf.readUtf(), buf.readUtf(), buf.readLong(), buf.readLong(), buf.readBoolean());
         }
     }
 

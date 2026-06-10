@@ -171,8 +171,8 @@ public class MultiStructureManagerBehavior {
         }
 
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            GTCEUTerminalMod.LOGGER.info("Server: opening Manager Settings UI");
-            TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_SETTINGS, itemStack), sp);
+            GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
+            TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -180,18 +180,9 @@ public class MultiStructureManagerBehavior {
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Item item, @NotNull Level level,
                                                            @NotNull Player player, @NotNull InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
-
-        if (player.isShiftKeyDown()) {
-            if (!level.isClientSide && player instanceof ServerPlayer sp) {
-                GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
-                TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
-            }
-            return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
-        }
-
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            GTCEUTerminalMod.LOGGER.info("Server: opening Manager Settings UI");
-            TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_SETTINGS, itemStack), sp);
+            GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
+            TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
     }

@@ -7,10 +7,18 @@ import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+
+import net.minecraftforge.registries.ForgeRegistries;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -168,6 +176,9 @@ final class EnergyAnalyzerDetail {
         slot.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(0xFF1A1A1A),
                 new ColorBorderTexture(1, 0xFF333333)));
+        ImageWidget icon = new ImageWidget(1, 1, 18, 18, hatchIconSupplier(index, selSnap));
+        icon.setClientSideWidget();
+        slot.addWidget(icon);
         row.addWidget(slot);
 
         LabelWidget nameLbl = new LabelWidget(30, 7, () -> {
@@ -193,6 +204,37 @@ final class EnergyAnalyzerDetail {
         row.addWidget(euLbl);
 
         return row;
+    }
+
+    private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(0x00000000);
+
+    private static Supplier<IGuiTexture> hatchIconSupplier(int index, Supplier<EnergySnapshot> selSnap) {
+        final String[] lastId = { null };
+        final IGuiTexture[] cached = { EMPTY_TEX };
+        return () -> {
+            EnergySnapshot s = selSnap.get();
+            String id = (s != null && index < s.hatches.size()) ? s.hatches.get(index).blockId() : null;
+            if (id == null || id.isBlank()) {
+                lastId[0] = null;
+                return cached[0] = EMPTY_TEX;
+            }
+            if (!id.equals(lastId[0])) {
+                lastId[0] = id;
+                cached[0] = hatchTexture(id);
+            }
+            return cached[0];
+        };
+    }
+
+    private static IGuiTexture hatchTexture(String blockId) {
+        try {
+            Block b = ForgeRegistries.BLOCKS.getValue(ResourceLocation.parse(blockId));
+            if (b != null && b != Blocks.AIR) {
+                ItemStack stack = new ItemStack(b);
+                if (!stack.isEmpty()) return new ItemStackTexture(stack);
+            }
+        } catch (Exception ignored) {}
+        return EMPTY_TEX;
     }
 
     private static String peakText(EnergySnapshot s) {

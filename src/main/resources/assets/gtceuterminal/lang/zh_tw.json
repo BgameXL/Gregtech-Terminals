@@ -13,8 +13,8 @@
   "item.gtceuterminal.multi_structure_manager.tooltip.linked": "§a✓ 已連線到ME網路",
   "item.gtceuterminal.multi_structure_manager.tooltip.not_linked": "§7✗ 未連線",
   "item.gtceuterminal.multi_structure_manager.tooltip.place_in_me_wireless_access_point": "§8  放入ME無線訪問點以進行連線",
-  "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8右鍵：§b設定",
-  "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + 右鍵：§c管理多方塊",
+  "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8右鍵：§b管理多方塊",
+  "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + 右鍵：§c自動建造多方塊",
 
   "item.gtceuterminal.schematic_interface": "結構藍圖介面",
   "item.gtceuterminal.schematic_interface.tooltip": "複製與貼上多方塊結構藍圖",
@@ -271,6 +271,7 @@
   "gui.gtceuterminal.energy_analyzer.mode.generator": "[發電機]",
   "gui.gtceuterminal.energy_analyzer.mode.storage": "[儲存]",
   "gui.gtceuterminal.energy_analyzer.mode.unknown": "[未知]",
+  "gui.gtceuterminal.energy_analyzer.mode.config": "Configs",
 
   "gui.gtceuterminal.manager_settings.title": "§l管理設定",
   "gui.gtceuterminal.manager_settings.common.yes": "§a是",

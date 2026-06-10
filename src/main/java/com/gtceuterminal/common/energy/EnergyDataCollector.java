@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -89,6 +90,10 @@ public class EnergyDataCollector {
                     snap.outputAmperage = ec.getOutputAmperage();
                     if (snap.inputPerSec == 0)  snap.inputPerSec  = ec.getInputPerSec();
                     if (snap.outputPerSec == 0) snap.outputPerSec = ec.getOutputPerSec();
+                }
+
+                if (ItemsConfig.getEAShowPerHatchDetails() && snap.isFormed) {
+                    collectHatchInfo(substation, snap);
                 }
             }
 
@@ -249,7 +254,7 @@ public class EnergyDataCollector {
         return sb.toString().trim();
     }
 
-    private static void collectHatchInfo(WorkableElectricMultiblockMachine ctrl, EnergySnapshot snap) {
+    private static void collectHatchInfo(IMultiController ctrl, EnergySnapshot snap) {
         try {
             for (IMultiPart part : ctrl.getParts()) {
                 BlockPos partPos = part.self().getPos();
@@ -277,7 +282,7 @@ public class EnergyDataCollector {
                         long amp = isInput ? ec.getInputAmperage() : ec.getOutputAmperage();
                         if (vol > 0) {
                             Block hb = part.self().getBlockState().getBlock();
-                            snap.hatches.add(new EnergySnapshot.HatchInfo(hb.getDescriptionId(), vol, amp, isInput));
+                            snap.hatches.add(new EnergySnapshot.HatchInfo(hb.getDescriptionId(), blockRegistryId(hb), vol, amp, isInput));
                             continue;
                         }
                     }
@@ -288,11 +293,16 @@ public class EnergyDataCollector {
                 if (voltage <= 0) continue;
 
                 Block hatchBlock = part.self().getBlockState().getBlock();
-                snap.hatches.add(new EnergySnapshot.HatchInfo(hatchBlock.getDescriptionId(), voltage, amperage, isInput));
+                snap.hatches.add(new EnergySnapshot.HatchInfo(hatchBlock.getDescriptionId(), blockRegistryId(hatchBlock), voltage, amperage, isInput));
             }
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.debug("Error collecting hatch info", e);
         }
+    }
+
+    private static String blockRegistryId(Block block) {
+        ResourceLocation key = ForgeRegistries.BLOCKS.getKey(block);
+        return key != null ? key.toString() : "";
     }
 
     private static long[] updateHistory(Map<String, Deque<Long>> map, String key,

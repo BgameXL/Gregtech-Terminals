@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TerminalNetwork {
 
-    private static final String PROTOCOL = "6";
+    private static final String PROTOCOL = "7";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,

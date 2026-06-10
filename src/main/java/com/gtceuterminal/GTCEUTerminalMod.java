@@ -81,6 +81,7 @@ public class GTCEUTerminalMod {
 
             if (MiscUtil.isAE2Loaded) {
                 AE2Integration.init();
+                com.gtceuterminal.common.ae2.MENetworkCrafting.init();
             }
             StarTCoreIntegration.init();
         });

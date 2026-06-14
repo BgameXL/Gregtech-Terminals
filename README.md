@@ -5,11 +5,11 @@
 
 ### What makes our terminals so great?
 
-GregTech Terminals offers three very useful Quality of Life gadgets for your modpack experience; the Multi-Structure Manager, the Schematic Interface, and the Dismantler.
+GregTech Terminals offers three very useful Quality of Life gadgets for your modpack experience; the Multi-Structure Manager, the Schematic Interface, the Dismantler, and the Energy Analyzer.
 
 **Multi-Structure Manager**:
 
-This gadget sees all multiblocks within a 32-block radius and allows you to upgrade any tiered blocks such as Coils, I/O Hatches, I/0 Buses, Energy Hatches, Parallel Hatches, Mufflers, and even custom Tiered Casings, directly from the player's inventory or AE2! It connects straight to your ME Network through a ME Wireless Access Point just like a Wireless Terminal, and also has the ability to request blocks for you. (requesting is currently a planned feature and not complete)
+This gadget sees all multiblocks within a 32-block radius and allows you to upgrade any tiered blocks such as Coils, I/O Hatches, I/0 Buses, Energy Hatches, Parallel Hatches, Mufflers, and even custom Tiered Casings, directly from the player's inventory or AE2! It connects straight to your ME Network through a ME Wireless Access Point just like a Wireless Terminal, and can also request blocks for you.
 
 **Schematic Interface**:
 
@@ -31,8 +31,9 @@ Any mods or modpacks listed below will have specially-tailored integrations for 
 *   **TerraFirmaGreg**
 *   **Phoenix Forge Technologies**
 *   **GTM Things**
+*   **Star Technology: Beyond**
 
-Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion [here](https://github.com/BgameXL/GTCEu-Terminals/issues) on GitHub or contact us on [Discord](https://discord.gg/r7PeUvMytZ).
+Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion here on [GitHub](https://github.com/BgameXL/GTCEu-Terminals/issues) or contact us on [Discord](https://discord.gg/r7PeUvMytZ).
 
 ### Credits
 

@@ -29,7 +29,7 @@ public class MENetworkExtractor {
 
             for (ItemStack stack : toCheck) {
                 if (stack.isEmpty()) continue;
-                if (!WirelessTerminalHandler.isWirelessTerminal(stack)) continue;
+                if (!WirelessTerminalHandler.isOurLinkedManager(stack)) continue;
 
                 IGrid grid = WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
                 if (grid == null) continue;

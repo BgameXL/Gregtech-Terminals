@@ -2,11 +2,40 @@ package com.gtceuterminal.common.compat;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class MultiblockMachineReflection {
 
     private MultiblockMachineReflection() {}
+
+    public static void refreshController(ServerLevel level, BlockPos controllerPos) {
+        if (level == null || controllerPos == null) return;
+        BlockEntity be = level.getBlockEntity(controllerPos);
+        if (be != null) {
+            try {
+                Object mm = getMetaMachine(be);
+                if (mm != null) {
+                    Object lock = acquirePatternLock(mm);
+                    try {
+                        invalidateStructure(mm);
+                        checkAndRecheckPattern(mm);
+                        return;
+                    } finally {
+                        releasePatternLock(lock);
+                    }
+                }
+            } catch (Exception e) {
+                GTCEUTerminalMod.LOGGER.error("MultiblockMachineReflection: refreshController failed at {}", controllerPos, e);
+            }
+        }
+
+        var state = level.getBlockState(controllerPos);
+        level.sendBlockUpdated(controllerPos, state, state, 3);
+        level.updateNeighborsAt(controllerPos, state.getBlock());
+        level.blockUpdated(controllerPos, state.getBlock());
+    }
 
     public static Object getMetaMachine(BlockEntity be) {
         try {

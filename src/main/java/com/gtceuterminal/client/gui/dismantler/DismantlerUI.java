@@ -171,39 +171,10 @@ public class DismantlerUI {
     }
 
     private ModularUI buildModularUI(WidgetGroup content) {
-        try {
-            var mc     = net.minecraft.client.Minecraft.getInstance();
-            int sw     = mc.getWindow().getGuiScaledWidth();
-            int sh     = mc.getWindow().getGuiScaledHeight();
-            int margin = 10, maxW = sw - margin * 2, maxH = sh - margin * 2;
-
-            if (GUI_W <= maxW && GUI_H <= maxH) {
-                ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
-                ui.widget(content);
-                ui.background(theme.modularUIBackground());
-                return ui;
-            }
-
-            int viewW = Math.min(GUI_W, maxW), viewH = Math.min(GUI_H, maxH);
-            DraggableScrollableWidgetGroup viewport =
-                    new DraggableScrollableWidgetGroup(0, 0, viewW, viewH);
-            viewport.setYScrollBarWidth(8);
-            viewport.setYBarStyle(
-                    new ColorRectTexture(C_BORDER_DARK),
-                    new ColorRectTexture(colorBorderLight));
-            viewport.addWidget(content);
-            WidgetGroup root = new WidgetGroup(0, 0, viewW, viewH);
-            root.addWidget(viewport);
-            ModularUI ui = new ModularUI(new Size(viewW, viewH), uiHolder, player);
-            ui.widget(root);
-            ui.background(theme.modularUIBackground());
-            return ui;
-        } catch (Throwable t) {
-            ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
-            ui.widget(content);
-            ui.background(theme.modularUIBackground());
-            return ui;
-        }
+        ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
+        ui.widget(content);
+        ui.background(theme.modularUIBackground());
+        return ui;
     }
 
     private void performDismantle() {

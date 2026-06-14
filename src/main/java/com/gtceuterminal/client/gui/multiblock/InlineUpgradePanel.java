@@ -441,7 +441,8 @@ public final class InlineUpgradePanel {
 
             boolean ready = entry.hasAll();
             int countColor = ready ? 0xFF6FCF6F : 0xFFE0A050;
-            LabelWidget count = new LabelWidget(8, 54, "ME §f" + entry.inME + " / " + entry.needed());
+            LabelWidget count = new LabelWidget(8, 54,
+                    "ME §f" + entry.inME + " §7· Inv §f" + entry.inInventory + " §7/ " + entry.needed());
             count.setTextColor(countColor);
             panel.addWidget(count);
 
@@ -452,15 +453,15 @@ public final class InlineUpgradePanel {
             if (ready) {
                 badgeBg = 0xFF153A18;
                 badgeBorder = 0xFF2E7D32;
-                badgeText = "§aavailable";
-            } else if (entry.inME > 0) {
+                badgeText = entry.inInventory >= entry.needed() ? "§ain inventory" : "§aavailable";
+            } else if (entry.totalAvailable() > 0) {
                 badgeBg = 0xFF3A2A0A;
                 badgeBorder = 0xFF9A6A18;
                 badgeText = "§6partial";
             } else {
                 badgeBg = 0xFF3A1010;
                 badgeBorder = 0xFF8A2020;
-                badgeText = "§cnot in ME";
+                badgeText = "§cmissing";
             }
             badge.setBackground(new GuiTextureGroup(new ColorRectTexture(badgeBg), new ColorBorderTexture(1, badgeBorder)));
             badge.addWidget(new LabelWidget(5, 4, badgeText));
@@ -632,12 +633,14 @@ public final class InlineUpgradePanel {
             onBack.run();
         }
 
+        // Manager-only: this panel belongs to the Multi-Structure Manager, so its ME availability
+        // must come from a linked manager — not a linked Schematic Interface in the inventory.
         private ItemStack findTerminal() {
             for (ItemStack s : new ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
-                if (WirelessTerminalHandler.isWirelessTerminal(s)) return s;
+                if (WirelessTerminalHandler.isOurLinkedManager(s)) return s;
             }
             for (ItemStack s : player.getInventory().items) {
-                if (WirelessTerminalHandler.isWirelessTerminal(s)) return s;
+                if (WirelessTerminalHandler.isOurLinkedManager(s)) return s;
             }
             return ItemStack.EMPTY;
         }

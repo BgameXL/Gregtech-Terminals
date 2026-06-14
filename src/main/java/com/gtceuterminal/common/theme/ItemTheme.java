@@ -84,7 +84,7 @@ public class ItemTheme {
         wallpaper    = "";
         uiStyle      = UiStyle.DARK;
         bundleId     = "";
-        paradeMode      = ParadeMode.ORBITAL;
+        paradeMode      = ParadeMode.NONE;
         slideshowMode   = false;
         slideshowSource = SlideshowSource.BUILTIN;
     }
@@ -100,7 +100,7 @@ public class ItemTheme {
         wallpaper    = other.wallpaper;
         uiStyle      = other.uiStyle;
         bundleId     = other.bundleId != null ? other.bundleId : "";
-        paradeMode      = other.paradeMode != null ? other.paradeMode : ParadeMode.ORBITAL;
+        paradeMode      = other.paradeMode != null ? other.paradeMode : ParadeMode.NONE;
         slideshowMode   = other.slideshowMode;
         slideshowSource = other.slideshowSource != null ? other.slideshowSource : SlideshowSource.BUILTIN;
     }
@@ -117,7 +117,7 @@ public class ItemTheme {
         tag.putString (TAG_WALLPAPER, wallpaper != null ? wallpaper : "");
         tag.putString (TAG_STYLE,       uiStyle != null ? uiStyle.name() : UiStyle.DARK.name());
         tag.putString (TAG_BUNDLE,      bundleId != null ? bundleId : "");
-        tag.putString (TAG_PARADE_MODE,   paradeMode != null ? paradeMode.name() : ParadeMode.ORBITAL.name());
+        tag.putString (TAG_PARADE_MODE,   paradeMode != null ? paradeMode.name() : ParadeMode.NONE.name());
         tag.putBoolean(TAG_SLIDESHOW,     slideshowMode);
         tag.putString (TAG_SLIDESHOW_SRC, slideshowSource != null ? slideshowSource.name() : SlideshowSource.BUILTIN.name());
         return tag;
@@ -137,7 +137,7 @@ public class ItemTheme {
         if (tag.contains(TAG_BUNDLE))    t.bundleId     = tag.getString (TAG_BUNDLE);
         if (tag.contains(TAG_PARADE_MODE)) {
             try   { t.paradeMode = ParadeMode.valueOf(tag.getString(TAG_PARADE_MODE)); }
-            catch (IllegalArgumentException e) { t.paradeMode = ParadeMode.ORBITAL; }
+            catch (IllegalArgumentException e) { t.paradeMode = ParadeMode.NONE; }
         }
         if (tag.contains(TAG_SLIDESHOW))     t.slideshowMode = tag.getBoolean(TAG_SLIDESHOW);
         if (tag.contains(TAG_SLIDESHOW_SRC)) {

@@ -6,7 +6,6 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.data.BlockReplacementData;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
-import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.BlockReplacer;
 import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
@@ -135,31 +134,16 @@ public class CPacketBlockReplacement {
     }
 
     private ItemStack findWirelessTerminal(ServerPlayer player) {
-        ItemStack mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof MultiStructureManagerItem ||
-                mainHand.getItem() instanceof SchematicInterfaceItem) {
-            return mainHand;
-        }
-
-        ItemStack offHand = player.getOffhandItem();
-        if (offHand.getItem() instanceof MultiStructureManagerItem ||
-                offHand.getItem() instanceof SchematicInterfaceItem) {
-            return offHand;
-        }
+        if (player.getMainHandItem().getItem() instanceof MultiStructureManagerItem) return player.getMainHandItem();
+        if (player.getOffhandItem().getItem() instanceof MultiStructureManagerItem) return player.getOffhandItem();
 
         for (ItemStack stack : player.getInventory().items) {
-            if (stack.getItem() instanceof MultiStructureManagerItem ||
-                    stack.getItem() instanceof SchematicInterfaceItem) {
-                return stack;
-            }
+            if (stack.getItem() instanceof MultiStructureManagerItem) return stack;
         }
 
         if (MiscUtil.isCuriosLoaded) {
             for (ItemStack stack : CuriosCompat.getEquippedItems(player)) {
-                if (stack.getItem() instanceof MultiStructureManagerItem ||
-                        stack.getItem() instanceof SchematicInterfaceItem) {
-                    return stack;
-                }
+                if (stack.getItem() instanceof MultiStructureManagerItem) return stack;
             }
         }
 

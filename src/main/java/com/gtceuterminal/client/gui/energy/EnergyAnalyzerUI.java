@@ -134,17 +134,7 @@ public class EnergyAnalyzerUI {
     }
 
     private ModularUI wrapUI(WidgetGroup content) {
-        int w = W, h = H;
-        try {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc != null && mc.getWindow() != null) {
-                w = Math.min(W, mc.getWindow().getGuiScaledWidth()  - 16);
-                h = Math.min(H, mc.getWindow().getGuiScaledHeight() - 16);
-            }
-        } catch (RuntimeException e) {
-            GTCEUTerminalMod.LOGGER.warn("EnergyAnalyzerUI: could not read window size: {}", e.getMessage());
-        }
-        ModularUI ui = new ModularUI(new Size(w, h), holder, player);
+        ModularUI ui = new ModularUI(new Size(W, H), holder, player);
         ui.widget(content);
         ui.background(theme.modularUIBackground());
         return ui;

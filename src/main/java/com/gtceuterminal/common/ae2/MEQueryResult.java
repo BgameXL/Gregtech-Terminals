@@ -61,11 +61,18 @@ public final class MEQueryResult {
             grid = tryStack(stack, player);
             if (grid != null) return grid;
         }
+
+        if (com.gtceuterminal.common.util.MiscUtil.isCuriosLoaded) {
+            for (ItemStack stack : CuriosCompat.getEquippedItems(player)) {
+                grid = tryStack(stack, player);
+                if (grid != null) return grid;
+            }
+        }
         return null;
     }
 
     private static IGrid tryStack(ItemStack stack, net.minecraft.world.entity.player.Player player) {
-        if (stack.isEmpty()) return null;
+        if (!WirelessTerminalHandler.isOurLinkedManager(stack)) return null;
         return WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
     }
 }

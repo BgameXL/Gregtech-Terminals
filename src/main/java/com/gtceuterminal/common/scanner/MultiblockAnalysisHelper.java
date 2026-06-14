@@ -151,16 +151,31 @@ public final class MultiblockAnalysisHelper {
 
     static UniversalMultiblockScanner.ComponentData analyzeComponent(MetaMachine machine, Level level) {
         try {
-            String type = detectComponentType(machine);
-            var def = machine.getDefinition();
+            BlockPos pos = machine.getPos();
+            MetaMachine live = liveMachineAt(level, pos, machine);
+            String type = detectComponentType(live);
+            var def = live.getDefinition();
             int tier    = def != null ? def.getTier() : 0;
             String name = def != null
                     ? net.minecraft.network.chat.Component.translatable(def.getDescriptionId()).getString()
                     : "Unknown";
-            return new UniversalMultiblockScanner.ComponentData(type, name, tier, machine.getPos());
+            return new UniversalMultiblockScanner.ComponentData(type, name, tier, pos);
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private static MetaMachine liveMachineAt(Level level, BlockPos pos, MetaMachine fallback) {
+        try {
+            if (level != null && pos != null) {
+                BlockEntity be = level.getBlockEntity(pos);
+                if (be instanceof IMachineBlockEntity mbe) {
+                    MetaMachine m = mbe.getMetaMachine();
+                    if (m != null) return m;
+                }
+            }
+        } catch (Exception ignored) {}
+        return fallback;
     }
 
     private static String detectComponentType(MetaMachine machine) {

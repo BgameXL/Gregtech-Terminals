@@ -48,6 +48,11 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private final ItemTheme      theme;
     private final int colorBg, colorPanel, colorBorder;
 
+    private DraggableScrollableWidgetGroup ingredientScroll;
+    private int ingredientRowW;
+    private final java.util.Set<Integer> expanded = new java.util.HashSet<>();
+    private final java.util.Map<Integer, com.gtceuterminal.common.compat.RecipeReader.RecipeView> recipeCache = new java.util.HashMap<>();
+
     public AutocraftConfirmDialog(WidgetGroup parent, AnalysisResult result, Player player) {
         super(parent, true);
         this.result = result;
@@ -175,33 +180,68 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 Component.translatable("gui.gtceuterminal.autocraft.ingredients_total").getString());
         header.setTextColor(C_GRAY);
 
-        DraggableScrollableWidgetGroup scroll = new DraggableScrollableWidgetGroup(
+        ingredientRowW   = panelW - 10;
+        ingredientScroll = new DraggableScrollableWidgetGroup(
                 0, offsetY + 16, panelW, listH - 16);
-        scroll.setYScrollBarWidth(6);
-        scroll.setYBarStyle(new ColorRectTexture(C_DARK), new ColorRectTexture(colorBorder));
-
-        int y = 0;
-        for (AnalysisResult.Entry entry : result.entries) {
-            scroll.addWidget(buildIngredientRow(entry, panelW - 10, y));
-            y += 22;
-        }
+        ingredientScroll.setYScrollBarWidth(6);
+        ingredientScroll.setYBarStyle(new ColorRectTexture(C_DARK), new ColorRectTexture(colorBorder));
+        populateIngredients();
 
         WidgetGroup wrapper = new WidgetGroup(0, 0, panelW, panelH);
         wrapper.addWidget(header);
-        wrapper.addWidget(scroll);
+        wrapper.addWidget(ingredientScroll);
         return wrapper;
     }
 
-    private WidgetGroup buildIngredientRow(AnalysisResult.Entry entry, int rowW, int y) {
+    private void populateIngredients() {
+        ingredientScroll.clearAllWidgets();
+        int y = 0;
+        for (int i = 0; i < result.entries.size(); i++) {
+            AnalysisResult.Entry entry = result.entries.get(i);
+            ingredientScroll.addWidget(buildIngredientRow(i, entry, ingredientRowW, y));
+            y += 22;
+
+            if (expanded.contains(i)) {
+                com.gtceuterminal.common.compat.RecipeReader.RecipeView recipe = recipeFor(i, entry.stack);
+                if (recipe.isEmpty()) {
+                    LabelWidget none = new LabelWidget(28, y + 3, "§8" +
+                            Component.translatable("gui.gtceuterminal.autocraft.no_recipe").getString());
+                    ingredientScroll.addWidget(none);
+                    y += 16;
+                } else {
+                    for (ItemStack ing : recipe.items) {
+                        ingredientScroll.addWidget(buildRecipeSubRow(ing, ingredientRowW, y));
+                        y += 18;
+                    }
+                    for (var fluid : recipe.fluids) {
+                        ingredientScroll.addWidget(buildFluidSubRow(fluid, ingredientRowW, y));
+                        y += 18;
+                    }
+                }
+            }
+        }
+        ingredientScroll.computeMax();
+    }
+
+    private WidgetGroup buildIngredientRow(int index, AnalysisResult.Entry entry, int rowW, int y) {
         WidgetGroup row = new WidgetGroup(4, y, rowW, 20);
 
+        boolean isOpen = expanded.contains(index);
+        ButtonWidget toggle = TerminalButton.ghost(0, 2, 16, 16,
+                isOpen ? "§e[-]" : "§7[+]", cd -> {
+                    if (!expanded.add(index)) expanded.remove(index);
+                    populateIngredients();
+                });
+        toggle.setHoverTooltips(Component.translatable("gui.gtceuterminal.autocraft.show_recipe").getString());
+        row.addWidget(toggle);
+
         ItemStackTransfer transfer = new ItemStackTransfer(entry.stack.copy());
-        SlotWidget slot = new SlotWidget(transfer, 0, 0, 1, false, false);
+        SlotWidget slot = new SlotWidget(transfer, 0, 16, 1, false, false);
         slot.setBackgroundTexture(new ColorBorderTexture(1, 0xFF333333));
         row.addWidget(slot);
 
         String name = entry.stack.getHoverName().getString();
-        LabelWidget nameLbl = new LabelWidget(22, 5, "§f" + name);
+        LabelWidget nameLbl = new LabelWidget(38, 5, "§f" + name);
         nameLbl.setTextColor(C_WHITE);
         row.addWidget(nameLbl);
 
@@ -213,8 +253,52 @@ public class AutocraftConfirmDialog extends DialogWidget {
         return row;
     }
 
+    private WidgetGroup buildRecipeSubRow(ItemStack ing, int rowW, int y) {
+        WidgetGroup row = new WidgetGroup(24, y, rowW - 24, 16);
+
+        ItemStackTransfer transfer = new ItemStackTransfer(ing.copy());
+        SlotWidget slot = new SlotWidget(transfer, 0, 0, 0, false, false);
+        slot.setBackgroundTexture(new ColorBorderTexture(1, 0xFF2A2A2A));
+        row.addWidget(slot);
+
+        LabelWidget nameLbl = new LabelWidget(20, 4, "§7" + ing.getHoverName().getString());
+        nameLbl.setTextColor(C_GRAY);
+        row.addWidget(nameLbl);
+
+        LabelWidget qtyLbl = new LabelWidget(rowW - 24 - 30, 4, "§8× " + ing.getCount());
+        row.addWidget(qtyLbl);
+
+        return row;
+    }
+
+    private WidgetGroup buildFluidSubRow(com.gtceuterminal.common.compat.RecipeReader.FluidLine fluid, int rowW, int y) {
+        WidgetGroup row = new WidgetGroup(24, y, rowW - 24, 16);
+
+        ImageWidget marker = new ImageWidget(2, 3, 10, 10, new GuiTextureGroup(
+                new ColorRectTexture(0xFF1a4a8a), new ColorBorderTexture(1, 0xFF2a5acc)));
+        row.addWidget(marker);
+
+        LabelWidget nameLbl = new LabelWidget(20, 4, "§b" + fluid.name());
+        nameLbl.setTextColor(0xFF66CCFF);
+        row.addWidget(nameLbl);
+
+        LabelWidget qtyLbl = new LabelWidget(rowW - 24 - 52, 4, "§8× " + fluid.amount() + " mB");
+        row.addWidget(qtyLbl);
+
+        return row;
+    }
+
+    private com.gtceuterminal.common.compat.RecipeReader.RecipeView recipeFor(int index, ItemStack out) {
+        return recipeCache.computeIfAbsent(index, i -> {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.level == null) return com.gtceuterminal.common.compat.RecipeReader.RecipeView.EMPTY;
+            return com.gtceuterminal.common.compat.RecipeReader.findIngredients(
+                    mc.level.getRecipeManager(), mc.level.registryAccess(), out);
+        });
+    }
+
     private WidgetGroup buildAvailabilityList(int panelW, int panelH) {
-        int headerH = 48 + 16;
+        int headerH = 18;
         DraggableScrollableWidgetGroup scroll = new DraggableScrollableWidgetGroup(
                 0, headerH, panelW, panelH - headerH);
         scroll.setYScrollBarWidth(6);
@@ -228,7 +312,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         WidgetGroup wrapper = new WidgetGroup(0, 0, panelW, panelH);
 
-        LabelWidget hdr = new LabelWidget(6, 48 + 4, "§7" +
+        LabelWidget hdr = new LabelWidget(6, 4, "§7" +
                 Component.translatable("gui.gtceuterminal.autocraft.available").getString());
         hdr.setTextColor(C_GRAY);
         wrapper.addWidget(hdr);
@@ -242,18 +326,19 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int bgColor, borderColor;
         String label;
 
+        long have = entry.totalAvailable();
         if (entry.hasAll()) {
             bgColor     = C_GREEN_T;
             borderColor = C_GREEN;
-            label       = "§a" + entry.inME + " / " + entry.needed();
+            label       = "§a" + have + " / " + entry.needed();
         } else if (entry.craftable) {
             bgColor     = C_ORANGE_T;
             borderColor = C_ORANGE;
-            label       = "§6" + entry.inME + " / " + entry.needed();
+            label       = "§6" + have + " / " + entry.needed();
         } else {
             bgColor     = C_RED_T;
             borderColor = C_RED;
-            label       = "§c" + entry.inME + " / " + entry.needed();
+            label       = "§c" + have + " / " + entry.needed();
         }
 
         row.setBackground(new GuiTextureGroup(
@@ -263,7 +348,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         LabelWidget qty = new LabelWidget(5, 5, label);
         row.addWidget(qty);
 
-        String tag = entry.hasAll() ? "ME" : (entry.craftable ? "craft" : "missing");
+        String tag = entry.hasAll() ? "have" : (entry.craftable ? "craft" : "missing");
         String tagColor = entry.hasAll() ? "§a" : (entry.craftable ? "§6" : "§c");
         LabelWidget tagLbl = new LabelWidget(rowW - 60, 5, tagColor + tag);
         row.addWidget(tagLbl);
@@ -273,31 +358,31 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildFooter() {
         int footerY = H - FOOTER_H - 2;
-        WidgetGroup footer = new WidgetGroup(PAD, footerY, W - PAD * 2, FOOTER_H);
+        int innerW  = W - PAD * 2;
+        WidgetGroup footer = new WidgetGroup(PAD, footerY, innerW, FOOTER_H);
 
         int btnH = 24;
-        int cancelW = 110;
-        ButtonWidget cancel = TerminalButton.action(0, 4, cancelW, btnH,
-                Component.translatable("gui.gtceuterminal.autocraft.cancel").getString(),
-                0xFF6b3fa0, 0xFF8a55c0, cd -> close());
-        footer.addWidget(cancel);
 
         boolean hasMissing = result.anyMissing();
         int requestW = 160;
-        int requestX = W - PAD * 2 - requestW;
-
         ButtonWidget request = hasMissing
-                ? TerminalButton.disabled(requestX, 4, requestW, btnH,
+                ? TerminalButton.disabled(0, 4, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString())
-                : TerminalButton.action(requestX, 4, requestW, btnH,
+                : TerminalButton.action(0, 4, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString(),
                 0xFF1a3a8a, 0xFF2a5acc, cd -> onRequest());
         footer.addWidget(request);
 
+        int cancelW = 110;
+        ButtonWidget cancel = TerminalButton.action(innerW - cancelW, 4, cancelW, btnH,
+                Component.translatable("gui.gtceuterminal.autocraft.cancel").getString(),
+                0xFF6b3fa0, 0xFF8a55c0, cd -> close());
+        footer.addWidget(cancel);
+
         if (hasMissing) {
             String missing = Component.translatable("gui.gtceuterminal.autocraft.missing_items",
                     result.missingCount()).getString();
-            LabelWidget warn = new LabelWidget(cancelW + 8, 10, "§c" + missing);
+            LabelWidget warn = new LabelWidget(requestW + 8, 10, "§c" + missing);
             warn.setTextColor(0xFFFF4444);
             footer.addWidget(warn);
         }

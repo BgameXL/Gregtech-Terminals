@@ -3,8 +3,6 @@ package com.gtceuterminal.common.pattern;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MENetworkExtractor;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
-import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
@@ -19,7 +17,6 @@ import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
-import com.gtceuterminal.common.util.MiscUtil;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
@@ -229,34 +226,21 @@ public class AdvancedAutoBuilder {
         IItemHandler handler = cap.resolve().orElse(null);
         if (handler == null) return null;
 
-        if (isUseAE == 1 && MiscUtil.isCuriosLoaded) {
-            for (ItemStack stack : CuriosCompat.getEquippedItems(player)) {
-                if (WirelessTerminalHandler.isWirelessTerminal(stack) && WirelessTerminalHandler.isLinked(stack)) {
-                    ItemStack extracted = MENetworkExtractor.tryExtractCandidateFromLinkedTerminal(candidates, player);
-                    if (extracted != null) {
-                        NonNullList<ItemStack> stacks = NonNullList.withSize(1, extracted);
-                        return IntObjectPair.of(0, new ItemStackHandler(stacks));
-                    }
-                    break;
-                }
+        if (isUseAE == 1) {
+            ItemStack extracted = MENetworkExtractor.tryExtractCandidateFromLinkedTerminal(candidates, player);
+            if (extracted != null) {
+                NonNullList<ItemStack> stacks = NonNullList.withSize(1, extracted);
+                return IntObjectPair.of(0, new ItemStackHandler(stacks));
             }
+            return null;
         }
 
         for (int i = 0; i < handler.getSlots(); i++) {
             ItemStack stack = handler.getStackInSlot(i);
             if (stack.isEmpty()) continue;
 
-            if (isUseAE == 1 && WirelessTerminalHandler.isWirelessTerminal(stack)
-                    && WirelessTerminalHandler.isLinked(stack)) {
-                ItemStack extracted = MENetworkExtractor.tryExtractCandidateFromLinkedTerminal(candidates, player);
-                if (extracted != null) {
-                    NonNullList<ItemStack> stacks = NonNullList.withSize(1, extracted);
-                    return IntObjectPair.of(0, new ItemStackHandler(stacks));
-                }
-            }
-
             if (candidates.stream().anyMatch(c -> ItemStack.isSameItemSameTags(c, stack))
-                    && !stack.isEmpty() && stack.getItem() instanceof BlockItem) {
+                    && stack.getItem() instanceof BlockItem) {
                 return IntObjectPair.of(i, handler);
             }
         }

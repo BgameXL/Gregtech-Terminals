@@ -47,6 +47,21 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
     }
 
     @Nullable
+    public static MENetworkFluidHandlerWrapper fromTerminal(ItemStack terminalStack, Player player) {
+        if (!MENetworkScanner.isAE2Available()) return null;
+        if (!WirelessTerminalHandler.isOurLinkedTerminal(terminalStack)) return null;
+
+        try {
+            IGrid grid = WirelessTerminalHandler.getLinkedGrid(terminalStack, player.level(), player);
+            if (grid == null) return null;
+            return fromGrid(grid, new PlayerSource(player, null));
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.error("MENetworkFluidHandlerWrapper.fromTerminal failed", e);
+            return null;
+        }
+    }
+
+    @Nullable
     public static MENetworkFluidHandlerWrapper getFromPlayer(Player player) {
         if (!MENetworkScanner.isAE2Available()) return null;
 
@@ -59,7 +74,7 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
             for (ItemStack stack : toCheck) {
                 if (stack.isEmpty()) continue;
-                if (!WirelessTerminalHandler.isLinked(stack)) continue;
+                if (!WirelessTerminalHandler.isOurLinkedManager(stack)) continue;
 
                 IGrid grid = WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
                 if (grid == null) continue;

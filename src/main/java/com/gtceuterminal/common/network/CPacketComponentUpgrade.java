@@ -2,10 +2,8 @@ package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
-import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
@@ -90,8 +88,6 @@ public class CPacketComponentUpgrade {
 
             ItemStack wirelessTerminal = findWirelessTerminal(player);
 
-            boolean upgradedCoils = false;
-
             int upgraded = 0;
             int failed = 0;
 
@@ -127,7 +123,6 @@ public class CPacketComponentUpgrade {
 
                 if (result.success) {
                     upgraded++;
-                    if (type == ComponentGroupRegistry.COIL) upgradedCoils = true;
                 } else {
                     failed++;
                 }
@@ -144,8 +139,8 @@ public class CPacketComponentUpgrade {
                 player.playSound(SoundEvents.ANVIL_USE, 1.0F, 1.0F);
             }
 
-            if (upgradedCoils) {
-                refreshController((ServerLevel) player.level(), controllerPos);
+            if (upgraded > 0) {
+                MultiblockMachineReflection.refreshController((ServerLevel) player.level(), controllerPos);
             }
 
             if (upgraded > 0) {
@@ -170,70 +165,19 @@ public class CPacketComponentUpgrade {
         ctx.get().setPacketHandled(true);
     }
 
-    private static void refreshController(ServerLevel level, BlockPos controllerPos) {
-        var be = level.getBlockEntity(controllerPos);
-        if (be != null) {
-            try {
-                Object mm = MultiblockMachineReflection.getMetaMachine(be);
-
-                if (mm != null) {
-                    Object lock = null;
-                    lock = MultiblockMachineReflection.acquirePatternLock(mm);
-
-                    try {
-                        MultiblockMachineReflection.invalidateStructure(mm);
-
-                        boolean formed = MultiblockMachineReflection.checkAndRecheckPattern(mm);
-
-                        if (!formed) {
-                        }
-
-                        return;
-
-                    } finally {
-                        MultiblockMachineReflection.releasePatternLock(lock);
-                    }
-                }
-            } catch (Exception e) {
-                GTCEUTerminalMod.LOGGER.error("CPacketComponentUpgrade: error notifying multiblock state change at {}", controllerPos, e);
-            }
-        }
-
-        var state = level.getBlockState(controllerPos);
-        level.sendBlockUpdated(controllerPos, state, state, 3);
-        level.updateNeighborsAt(controllerPos, state.getBlock());
-        level.blockUpdated(controllerPos, state.getBlock());
-    }
-
+    // Manager-only: a manager upgrade resolves ME strictly from a Multi-Structure Manager. A linked
+    // Schematic Interface (or the player's AE2 wireless terminal) must not bridge it to the network.
     private ItemStack findWirelessTerminal(ServerPlayer player) {
-        ItemStack mainHand = player.getMainHandItem();
-        if (WirelessTerminalHandler.isWirelessTerminal(mainHand) ||
-                mainHand.getItem() instanceof MultiStructureManagerItem ||
-                mainHand.getItem() instanceof SchematicInterfaceItem) {
-            return mainHand;
-        }
-
-        ItemStack offHand = player.getOffhandItem();
-        if (WirelessTerminalHandler.isWirelessTerminal(offHand) ||
-                offHand.getItem() instanceof MultiStructureManagerItem ||
-                offHand.getItem() instanceof SchematicInterfaceItem) {
-            return offHand;
-        }
+        if (player.getMainHandItem().getItem() instanceof MultiStructureManagerItem) return player.getMainHandItem();
+        if (player.getOffhandItem().getItem() instanceof MultiStructureManagerItem) return player.getOffhandItem();
 
         for (ItemStack stack : player.getInventory().items) {
-            if (WirelessTerminalHandler.isWirelessTerminal(stack) ||
-                    stack.getItem() instanceof MultiStructureManagerItem ||
-                    stack.getItem() instanceof SchematicInterfaceItem) {
-                return stack;
-            }
+            if (stack.getItem() instanceof MultiStructureManagerItem) return stack;
         }
 
         if (MiscUtil.isCuriosLoaded) {
             for (ItemStack stack : CuriosCompat.getEquippedItems(player)) {
-                if (stack.getItem() instanceof MultiStructureManagerItem ||
-                        stack.getItem() instanceof SchematicInterfaceItem) {
-                    return stack;
-                }
+                if (stack.getItem() instanceof MultiStructureManagerItem) return stack;
             }
         }
 

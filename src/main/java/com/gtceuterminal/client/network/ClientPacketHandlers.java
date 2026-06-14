@@ -4,6 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmDialog;
 import com.gtceuterminal.client.gui.dismantler.DismantlerUI;
 import com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI;
+import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
 import com.gtceuterminal.client.gui.multiblock.InlineUpgradePanel;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
 import com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI;
@@ -137,13 +138,27 @@ public final class ClientPacketHandlers {
         }
     }
 
+    public static void handleEnergyUpdate(List<EnergySnapshot> snapshots) {
+        try {
+            EnergyUpdateWidget.onServerUpdate(snapshots);
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.error("ClientPacketHandlers: failed to apply energy update", t);
+        }
+    }
+
+    private static final int CLIENT_ONLY_CONTAINER_ID = 30000;
+
     private static void openClientOnly(ModularUI ui) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || ui == null) return;
 
+        if (mc.player.containerMenu != mc.player.inventoryMenu) {
+            mc.player.closeContainer();
+        }
+
         ui.initWidgets();
-        int windowId = mc.player.containerMenu != null ? mc.player.containerMenu.containerId : 0;
-        ModularUIGuiContainer screen = new ModularUIGuiContainer(ui, windowId);
+        ModularUIGuiContainer screen = new com.gtceuterminal.client.gui.widget.ScaledModularUIGuiContainer(
+                ui, CLIENT_ONLY_CONTAINER_ID);
         mc.setScreen(screen);
         mc.player.containerMenu = screen.getMenu();
     }

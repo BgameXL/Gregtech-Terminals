@@ -138,7 +138,7 @@ public final class SchematicPaster {
         net.minecraftforge.items.IItemHandler playerInventory = null;
 
         if (!player.getAbilities().instabuild) {
-            try { fluidStorage = MENetworkFluidHandlerWrapper.getFromPlayer(player); }
+            try { fluidStorage = MENetworkFluidHandlerWrapper.fromTerminal(itemStack, player); }
             catch (RuntimeException e) {
                 GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not resolve AE2 fluid storage: {}", e.getMessage());
             }

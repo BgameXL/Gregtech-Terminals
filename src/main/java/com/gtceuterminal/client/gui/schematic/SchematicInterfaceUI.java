@@ -270,17 +270,35 @@ public class SchematicInterfaceUI {
                 cd -> player.displayClientMessage(
                         Component.literal("Export not yet implemented"), true))
                 .setHoverTooltips(Component.literal("§7Not yet implemented")));
+        if (com.gtceuterminal.common.config.ItemsConfig.isSchPlannerBuildAllEnabled()) {
+            x += 60 + spacing;
+            panel.addWidget(makeBtn(x, btnY, 64, btnH, C_INFO,
+                    "Planner",
+                    cd -> openPlanner())
+                    .setHoverTooltips(Component.literal("§7Open the placement planner")));
+        }
+    }
 
+    private void openPlanner() {
+        List<SchematicData> snapshot = new ArrayList<>(schematics);
+        int sel = Math.max(0, selectedIndex);
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        mc.execute(() -> {
+            if (mc.player != null) mc.player.closeContainer();
+            mc.setScreen(new com.gtceuterminal.client.gui.planner.PlannerScreen(snapshot, sel, 0));
+        });
     }
 
     private ButtonWidget makeBtn(int x, int y, int w, int h, int color, String label,
                                  java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
+        TextTexture txt = new TextTexture(label).setWidth(w).setType(TextTexture.TextType.NORMAL);
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(1, colorBorderLight)),
+                new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(1, colorBorderLight), txt),
                 action);
-        btn.setButtonTexture(new TextTexture(label).setWidth(w).setType(TextTexture.TextType.NORMAL));
         btn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture((color & 0x00FFFFFF) | 0x55000000), new ColorBorderTexture(2, C_TEXT_WHITE)));
+                new ColorRectTexture((color & 0x00FFFFFF) | 0x55000000),
+                new ColorBorderTexture(2, C_TEXT_WHITE),
+                txt));
         return btn;
     }
 
@@ -387,37 +405,10 @@ public class SchematicInterfaceUI {
     }
 
     private ModularUI buildModularUI(WidgetGroup content) {
-        try {
-            var mc = net.minecraft.client.Minecraft.getInstance();
-            int sw = mc.getWindow().getGuiScaledWidth();
-            int sh = mc.getWindow().getGuiScaledHeight();
-            int margin = 10, maxW = sw - margin * 2, maxH = sh - margin * 2;
-
-            if (GUI_W <= maxW && GUI_H <= maxH) {
-                ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
-                ui.widget(content);
-                ui.background(theme.modularUIBackground());
-                return ui;
-            }
-
-            int viewW = Math.min(GUI_W, maxW), viewH = Math.min(GUI_H, maxH);
-            DraggableScrollableWidgetGroup viewport =
-                    new DraggableScrollableWidgetGroup(0, 0, viewW, viewH);
-            viewport.setYScrollBarWidth(8);
-            viewport.setYBarStyle(new ColorRectTexture(C_BORDER_DARK), new ColorRectTexture(colorBorderLight));
-            viewport.addWidget(content);
-            WidgetGroup root = new WidgetGroup(0, 0, viewW, viewH);
-            root.addWidget(viewport);
-            ModularUI ui = new ModularUI(new Size(viewW, viewH), uiHolder, player);
-            ui.widget(root);
-            ui.background(theme.modularUIBackground());
-            return ui;
-        } catch (Throwable t) {
-            ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
-            ui.widget(content);
-            ui.background(theme.modularUIBackground());
-            return ui;
-        }
+        ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
+        ui.widget(content);
+        ui.background(theme.modularUIBackground());
+        return ui;
     }
 
     public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {

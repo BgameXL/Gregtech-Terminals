@@ -152,7 +152,14 @@ public class WallpaperWidget extends Widget {
         if (theme.slideshowSource == ItemTheme.SlideshowSource.BUILTIN) {
             ThemeBundle bundle = ThemeBundleRegistry.get(theme.bundleId);
             if (bundle != null) {
-                slideList.addAll(bundle.slideshowWallpapers());
+                for (ResourceLocation rl : bundle.slideshowWallpapers()) {
+                    if (textureExists(rl)) {
+                        slideList.add(rl);
+                    } else {
+                        GTCEUTerminalMod.LOGGER.debug(
+                                "WallpaperWidget: skipping missing slideshow frame {}", rl);
+                    }
+                }
             }
         } else {
             List<String> files = WallpaperManager.listWallpapers();
@@ -164,6 +171,10 @@ public class WallpaperWidget extends Widget {
         com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
                 "WallpaperWidget: built slideshow list ({} images, source={})",
                 slideList.size(), theme.slideshowSource);
+    }
+
+    private static boolean textureExists(ResourceLocation rl) {
+        return Minecraft.getInstance().getResourceManager().getResource(rl).isPresent();
     }
 
     private void drawImage(GuiGraphics graphics, ResourceLocation rl,

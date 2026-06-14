@@ -73,8 +73,19 @@ public class SPacketOpenEnergyAnalyzerUI {
     public static void openFor(ServerPlayer player, int initialIndex) {
         ItemStack stack = findAnalyzerItem(player);
         ItemTheme theme = ItemTheme.load(stack);
-        List<EnergySnapshot> snapshots = new ArrayList<>();
         List<LinkedMachineData> machines = EnergyAnalyzerItem.loadMachines(stack);
+        List<EnergySnapshot> snapshots = collectSnapshots(player, machines);
+
+        TerminalNetwork.sendToPlayer(new SPacketOpenEnergyAnalyzerUI(initialIndex, snapshots, machines, stack, theme), player);
+    }
+
+    public static List<EnergySnapshot> collectSnapshots(ServerPlayer player) {
+        ItemStack stack = findAnalyzerItem(player);
+        return collectSnapshots(player, EnergyAnalyzerItem.loadMachines(stack));
+    }
+
+    public static List<EnergySnapshot> collectSnapshots(ServerPlayer player, List<LinkedMachineData> machines) {
+        List<EnergySnapshot> snapshots = new ArrayList<>();
 
         for (LinkedMachineData machine : machines) {
             String dimId = machine.getDimensionId();
@@ -98,7 +109,7 @@ public class SPacketOpenEnergyAnalyzerUI {
             }
         }
 
-        TerminalNetwork.sendToPlayer(new SPacketOpenEnergyAnalyzerUI(initialIndex, snapshots, machines, stack, theme), player);
+        return snapshots;
     }
 
     private static ItemStack findAnalyzerItem(ServerPlayer player) {

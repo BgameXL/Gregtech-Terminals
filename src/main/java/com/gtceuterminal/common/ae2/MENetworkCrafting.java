@@ -64,7 +64,7 @@ public final class MENetworkCrafting {
                 GTCEUTerminalMod.LOGGER.info("MENetworkCrafting: {} is not craftable in the ME network", e.getKey());
                 continue;
             }
-            if (cs.isRequesting(key)) { handled++; continue; }
+            if (cs.isRequesting(key) || hasPending(player, e.getKey())) { handled++; continue; }
 
             try {
                 Future<ICraftingPlan> future = cs.beginCraftingCalculation(
@@ -77,6 +77,13 @@ public final class MENetworkCrafting {
             }
         }
         return handled;
+    }
+
+    private static boolean hasPending(ServerPlayer player, Item item) {
+        for (Pending p : PENDING) {
+            if (p.item == item && p.player == player) return true;
+        }
+        return false;
     }
 
     private static void onServerTick(TickEvent.ServerTickEvent event) {

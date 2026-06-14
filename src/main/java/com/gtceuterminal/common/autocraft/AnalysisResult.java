@@ -11,25 +11,29 @@ public final class AnalysisResult {
     public static final class Entry {
         public final ItemStack stack;
         public final long      inME;
+        public final long      inInventory;
         public final boolean   craftable;
 
-        public Entry(ItemStack stack, long inME, boolean craftable) {
-            this.stack     = stack;
-            this.inME      = inME;
-            this.craftable = craftable;
+        public Entry(ItemStack stack, long inME, long inInventory, boolean craftable) {
+            this.stack       = stack;
+            this.inME        = inME;
+            this.inInventory = inInventory;
+            this.craftable   = craftable;
         }
 
-        public int     needed()  { return stack.getCount(); }
-        public boolean hasAll()  { return inME >= needed(); }
+        public int     needed()         { return stack.getCount(); }
+        public long    totalAvailable() { return inME + inInventory; }
+        public boolean hasAll()         { return totalAvailable() >= needed(); }
 
         public void encode(FriendlyByteBuf buf) {
             buf.writeItem(stack);
             buf.writeLong(inME);
+            buf.writeLong(inInventory);
             buf.writeBoolean(craftable);
         }
 
         public static Entry decode(FriendlyByteBuf buf) {
-            return new Entry(buf.readItem(), buf.readLong(), buf.readBoolean());
+            return new Entry(buf.readItem(), buf.readLong(), buf.readLong(), buf.readBoolean());
         }
     }
 
@@ -41,11 +45,7 @@ public final class AnalysisResult {
     public final String                     upgradeId;
     public final List<net.minecraft.core.BlockPos> componentPositions;
     public final int                        targetTier;
-
-    /** The hatch/component being requested. Only set for UPGRADE, empty for BUILD. */
     public final ItemStack                  targetItemStack;
-
-    /** Number of components being replaced — needed to show "× N" in the dialog. */
     public final int                        componentCount;
 
     // BUILD constructor

@@ -97,7 +97,7 @@ public final class MultiblockAnalyzer {
             }
 
             MEQueryResult meQuery = MEQueryResult.resolve(player);
-            return buildEntries(needed, meQuery, controller.self().getPos());
+            return buildEntries(needed, meQuery, controller.self().getPos(), player);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForBuild failed", e);
@@ -132,7 +132,7 @@ public final class MultiblockAnalyzer {
 
         try {
             MEQueryResult  meQuery = MEQueryResult.resolve(player);
-            AnalysisResult base    = buildEntries(needed, meQuery, controllerPos);
+            AnalysisResult base    = buildEntries(needed, meQuery, controllerPos, player);
             if (base == null) return null;
             return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId,
                     positions, targetStack, components.size());
@@ -144,21 +144,29 @@ public final class MultiblockAnalyzer {
 
     private static AnalysisResult buildEntries(Map<Item, Integer> needed,
                                                MEQueryResult meQuery,
-                                               BlockPos controllerPos) {
+                                               BlockPos controllerPos,
+                                               Player player) {
         List<AnalysisResult.Entry> entries = new ArrayList<>();
         for (Map.Entry<Item, Integer> e : needed.entrySet()) {
             Item item     = e.getKey();
             int  required = e.getValue();
             long inME     = meQuery.getAvailable(item);
-            boolean craftable = !meQuery.hasGrid() ? false : (inME < required && meQuery.isCraftable(item));
-            entries.add(new AnalysisResult.Entry(new ItemStack(item, required), inME, craftable));
+            long inInv    = countInInventory(player, item);
+            boolean craftable = meQuery.hasGrid()
+                    && (inME + inInv < required) && meQuery.isCraftable(item);
+            entries.add(new AnalysisResult.Entry(new ItemStack(item, required), inME, inInv, craftable));
         }
         return new AnalysisResult(entries, controllerPos);
     }
 
-    // ------------------------------------------------------------------
-    // Internals (unchanged)
-    // ------------------------------------------------------------------
+    private static long countInInventory(Player player, Item item) {
+        if (player == null) return 0;
+        long count = 0;
+        for (ItemStack s : player.getInventory().items) {
+            if (s.getItem() == item) count += s.getCount();
+        }
+        return count;
+    }
 
     private static int getRepetitions(int slice, int[][] aisleReps, int repeatCount) {
         if (aisleReps == null || slice >= aisleReps.length) return 1;

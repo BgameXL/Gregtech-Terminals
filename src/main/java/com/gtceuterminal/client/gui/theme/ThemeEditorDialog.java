@@ -151,16 +151,7 @@ public class ThemeEditorDialog {
         int resetW = totalW / 3;
         int saveW  = totalW - resetW - PAD;
 
-        ButtonWidget reset = new ButtonWidget(PAD, btnY, resetW, btnH,
-                new GuiTextureGroup(new ColorRectTexture(C_RESET), new ColorBorderTexture(1, 0xFF8B2E2E)),
-                cd -> resetDefaults());
-        reset.setButtonTexture(new TextTexture(
-                Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString())
-                .setWidth(resetW).setType(TextTexture.TextType.NORMAL));
-        reset.setHoverTexture(new ColorRectTexture(0x22FF0000));
-        ftr.addWidget(reset);
-
-        ButtonWidget save = new ButtonWidget(PAD + resetW + PAD, btnY, saveW, btnH,
+        ButtonWidget save = new ButtonWidget(PAD, btnY, saveW, btnH,
                 new GuiTextureGroup(new ColorRectTexture(C_SAVE), new ColorBorderTexture(1, 0xFF2E8B2E)),
                 cd -> saveAndClose(dialog));
         save.setButtonTexture(new TextTexture(
@@ -168,6 +159,15 @@ public class ThemeEditorDialog {
                 .setWidth(saveW).setType(TextTexture.TextType.NORMAL));
         save.setHoverTexture(new ColorRectTexture(0x2200FF00));
         ftr.addWidget(save);
+
+        ButtonWidget reset = new ButtonWidget(PAD + saveW + PAD, btnY, resetW, btnH,
+                new GuiTextureGroup(new ColorRectTexture(C_RESET), new ColorBorderTexture(1, 0xFF8B2E2E)),
+                cd -> resetDefaults());
+        reset.setButtonTexture(new TextTexture(
+                Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString())
+                .setWidth(resetW).setType(TextTexture.TextType.NORMAL));
+        reset.setHoverTexture(new ColorRectTexture(0x22FF0000));
+        ftr.addWidget(reset);
 
         return ftr;
     }
@@ -218,9 +218,10 @@ public class ThemeEditorDialog {
     }
 
     private void navigateWallpaper(int delta) {
-        if (wallpapers == null || wallpapers.isEmpty()) return;
-        wallpaperIdx = Math.floorMod(wallpaperIdx + delta, wallpapers.size());
-        working.wallpaper = wallpapers.get(wallpaperIdx);
+        if (wallpapers == null) return;
+        int n = wallpapers.size();
+        wallpaperIdx = Math.floorMod((wallpaperIdx + 1) + delta, n + 1) - 1;
+        working.wallpaper = (wallpaperIdx < 0 || n == 0) ? "" : wallpapers.get(wallpaperIdx);
         refreshWallpaperThumb();
     }
 
@@ -282,7 +283,7 @@ public class ThemeEditorDialog {
         working.wallpaper       = "";
         working.uiStyle         = ItemTheme.UiStyle.DARK;
         working.bundleId        = "";
-        working.paradeMode      = ItemTheme.ParadeMode.ORBITAL;
+        working.paradeMode      = ItemTheme.ParadeMode.NONE;
         working.slideshowMode   = false;
         working.slideshowSource = ItemTheme.SlideshowSource.BUILTIN;
         activeBundleId          = "";

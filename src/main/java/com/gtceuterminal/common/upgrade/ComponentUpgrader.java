@@ -79,7 +79,9 @@ public class ComponentUpgrader {
         ItemStack    oldStack = itemStackFor(oldBlock, player);
         BlockState   newState = copyFacing(oldState, newBlock.defaultBlockState());
 
-        if (!level.setBlock(pos, newState, 11)) {
+        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+
+        if (!level.setBlock(pos, newState, 3)) {
             refund(required, player, consumeMaterials);
             return fail("Failed to place upgraded block");
         }

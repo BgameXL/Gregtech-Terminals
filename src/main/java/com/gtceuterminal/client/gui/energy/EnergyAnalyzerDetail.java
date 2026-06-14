@@ -2,6 +2,7 @@ package com.gtceuterminal.client.gui.energy;
 
 import com.gtceuterminal.client.gui.widget.EnergyGraphWidget;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
@@ -68,7 +69,10 @@ final class EnergyAnalyzerDetail {
 
         int y = pad;
 
-        LabelWidget graphHdr = new LabelWidget(pad, y, "§8EU/t — last 60s");
+        // Graphed window = history samples × seconds-per-sample (one sample per refresh interval).
+        int windowSec = Math.max(1, Math.round(
+                ItemsConfig.getEAHistorySeconds() * ItemsConfig.getEARefreshIntervalTicks() / 20f));
+        LabelWidget graphHdr = new LabelWidget(pad, y, "§8EU/t — last " + windowSec + "s");
         graphHdr.setTextColor(0xFF666666);
         g.addWidget(graphHdr);
         y += 13;
@@ -127,18 +131,20 @@ final class EnergyAnalyzerDetail {
         g.addWidget(recipeBtn);
         y += 24;
 
-        LabelWidget hatchesHdr = new LabelWidget(pad, y, () -> {
-            EnergySnapshot s = selSnap.get();
-            int count = s == null ? 0 : s.hatches.size();
-            return "§8Energy Hatches (" + count + ")";
-        });
-        hatchesHdr.setClientSideWidget();
-        hatchesHdr.setTextColor(0xFF666666);
-        g.addWidget(hatchesHdr);
-        y += 13;
+        if (ItemsConfig.getEAShowPerHatchDetails()) {
+            LabelWidget hatchesHdr = new LabelWidget(pad, y, () -> {
+                EnergySnapshot s = selSnap.get();
+                int count = s == null ? 0 : s.hatches.size();
+                return "§8Energy Hatches (" + count + ")";
+            });
+            hatchesHdr.setClientSideWidget();
+            hatchesHdr.setTextColor(0xFF666666);
+            g.addWidget(hatchesHdr);
+            y += 13;
 
-        for (int i = 0; i < MAX_HATCHES; i++) {
-            g.addWidget(buildHatchRow(pad, y + i * HATCH_ROW_H, detailW - pad * 2, i, selSnap));
+            for (int i = 0; i < MAX_HATCHES; i++) {
+                g.addWidget(buildHatchRow(pad, y + i * HATCH_ROW_H, detailW - pad * 2, i, selSnap));
+            }
         }
 
         energyBarFill = null;

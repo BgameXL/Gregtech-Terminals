@@ -58,34 +58,20 @@ public class MENetworkItemExtractor {
         return new ExtractResult(false, ExtractionSource.NONE);
     }
 
-    /**
-     * Overload for callers that pass a terminal ItemStack instead of an already-resolved grid.
-     * Resolves the grid from the player's inventory via {@link MEQueryResult}.
-     */
     public static ExtractResult tryExtractFromMEOrInventory(ItemStack terminalStack,
                                                             net.minecraft.world.level.Level level,
                                                             Player player,
                                                             Map<Item, Integer> required) {
         IGrid grid = resolveGrid(terminalStack, level, player);
-        if (grid == null) {
-            grid = MEQueryResult.resolve(player).getGrid();
-        }
         return tryExtractFromMEOrInventory(grid, required, player);
     }
 
-    /**
-     * Returns how many of {@code item} are available in the ME network reachable from {@code terminalStack}.
-     * Returns 0 if AE2 is absent, the terminal is unlinked, or out of range.
-     */
     public static long checkItemAvailability(ItemStack terminalStack,
                                              net.minecraft.world.level.Level level,
                                              Player player,
                                              Item item) {
         if (!MENetworkScanner.isAE2Available()) return 0;
         IGrid grid = resolveGrid(terminalStack, level, player);
-        if (grid == null) {
-            grid = MEQueryResult.resolve(player).getGrid();
-        }
         if (grid == null) return 0;
         return grid.getStorageService().getCachedInventory().get(appeng.api.stacks.AEItemKey.of(item));
     }

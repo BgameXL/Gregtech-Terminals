@@ -5,6 +5,8 @@ import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
+import com.gtceuterminal.common.network.CPacketRequestEnergyUpdate;
+import com.gtceuterminal.common.network.TerminalNetwork;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -21,9 +23,11 @@ import java.util.function.Consumer;
 public class EnergyUpdateWidget extends Widget {
 
     private static final int UPDATE_ID = 1;
+    private static EnergyUpdateWidget activeClient;
 
     private final EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder;
     private int tickCounter = 0;
+    private int clientTickCounter = 0;
 
     private Runnable rebuildCallback;
 
@@ -34,6 +38,28 @@ public class EnergyUpdateWidget extends Widget {
 
     public void setRebuildCallback(Runnable callback) {
         this.rebuildCallback = callback;
+        activeClient = this;
+    }
+
+    public static void onServerUpdate(List<EnergySnapshot> fresh) {
+        EnergyUpdateWidget w = activeClient;
+        if (w != null) w.applyUpdate(fresh);
+    }
+
+    private void applyUpdate(List<EnergySnapshot> fresh) {
+        holder.snapshots.clear();
+        holder.snapshots.addAll(fresh);
+        if (rebuildCallback != null) rebuildCallback.run();
+    }
+
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        clientTickCounter++;
+        int interval = Math.max(5, ItemsConfig.getEARefreshIntervalTicks());
+        if (clientTickCounter < interval) return;
+        clientTickCounter = 0;
+        TerminalNetwork.sendToServer(new CPacketRequestEnergyUpdate());
     }
 
     @Override
@@ -89,11 +115,6 @@ public class EnergyUpdateWidget extends Widget {
             fresh.add(EnergySnapshot.decode(buffer));
         }
 
-        holder.snapshots.clear();
-        holder.snapshots.addAll(fresh);
-
-        if (rebuildCallback != null) {
-            rebuildCallback.run();
-        }
+        applyUpdate(fresh);
     }
 }

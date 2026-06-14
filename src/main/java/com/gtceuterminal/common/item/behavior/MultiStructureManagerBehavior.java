@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MEQueryResult;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 
@@ -88,6 +89,14 @@ public class MultiStructureManagerBehavior {
                         }
                         ManagerSettings.Settings settings = new ManagerSettings.Settings(itemStack);
                         ManagerSettings.AutoBuildSettings buildSettings = settings.toAutoBuildSettings();
+                        if (buildSettings.isUseAE == 1 && !player.isCreative()
+                                && !MEQueryResult.resolve(player).hasGrid()) {
+                            sendMessage(player,
+                                    Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.not_connected_to_me"),
+                                    false);
+                            playSound(level, blockPos, SoundEvents.ANVIL_LAND, 0.5f, 0.8f);
+                            return InteractionResult.FAIL;
+                        }
                         try {
                             boolean success = AdvancedAutoBuilder.autoBuild(player, controller, buildSettings);
                             if (success) {

@@ -5,7 +5,6 @@ import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
-import com.gtceuterminal.common.item.SchematicInterfaceItem;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.util.MiscUtil;
@@ -238,9 +237,7 @@ public class MaterialCalculator {
     }
 
     private static boolean isTerminal(ItemStack terminal) {
-        return WirelessTerminalHandler.isWirelessTerminal(terminal) ||
-                terminal.getItem() instanceof MultiStructureManagerItem ||
-                terminal.getItem() instanceof SchematicInterfaceItem;
+        return terminal.getItem() instanceof MultiStructureManagerItem;
     }
 
     public static List<MaterialAvailability> checkMaterialsAvailability(

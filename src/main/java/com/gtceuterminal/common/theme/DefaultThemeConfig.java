@@ -107,7 +107,7 @@ public class DefaultThemeConfig {
         o.addProperty("wallpaper",    t.wallpaper != null ? t.wallpaper : "");
         o.addProperty("uiStyle",      t.uiStyle != null ? t.uiStyle.name() : ItemTheme.UiStyle.DARK.name());
         o.addProperty("bundleId",     t.bundleId != null ? t.bundleId : "");
-        o.addProperty("paradeMode",   t.paradeMode != null ? t.paradeMode.name() : ItemTheme.ParadeMode.ORBITAL.name());
+        o.addProperty("paradeMode",   t.paradeMode != null ? t.paradeMode.name() : ItemTheme.ParadeMode.NONE.name());
         o.addProperty("slideshowMode", t.slideshowMode);
         o.addProperty("slideshowSource", t.slideshowSource != null ? t.slideshowSource.name() : ItemTheme.SlideshowSource.BUILTIN.name());
         return o;
@@ -130,7 +130,7 @@ public class DefaultThemeConfig {
         }
         if (o.has("paradeMode")) {
             try { t.paradeMode = ItemTheme.ParadeMode.valueOf(o.get("paradeMode").getAsString()); }
-            catch (IllegalArgumentException ignored) { t.paradeMode = ItemTheme.ParadeMode.ORBITAL; }
+            catch (IllegalArgumentException ignored) { t.paradeMode = ItemTheme.ParadeMode.NONE; }
         }
         if (o.has("slideshowMode")) t.slideshowMode = o.get("slideshowMode").getAsBoolean();
         if (o.has("slideshowSource")) {

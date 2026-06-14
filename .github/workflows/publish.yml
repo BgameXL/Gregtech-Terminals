@@ -2,11 +2,10 @@ name: Publish (Modrinth + CurseForge)
 
 on:
   release:
-    types: [published]
+    types: [published, prereleased]
 
 jobs:
   publish:
-    if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -46,6 +45,7 @@ jobs:
         run: ./gradlew build
 
       - name: Publish to Modrinth + CurseForge
+        if: ${{ !github.event.release.prerelease }}
         uses: Kir-Antipov/mc-publish@v3.3.0
         with:
           files: |

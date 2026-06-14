@@ -126,7 +126,8 @@ final class MultiblockDetailPanel {
         }
 
         if (groups.isEmpty()) {
-            LabelWidget empty = new LabelWidget(10, 10, "§8No upgradeable components");
+            LabelWidget empty = new LabelWidget(10, 10,
+                    Component.translatable("gui.gtceuterminal.component_detail.no_upgradeable").getString());
             empty.setTextColor(colorTextGray);
             scroll.addWidget(empty);
         }
@@ -190,10 +191,12 @@ final class MultiblockDetailPanel {
             badge.setBackground(new GuiTextureGroup(
                     new ColorRectTexture(0xFF1A3A1A),
                     new ColorBorderTexture(1, 0xFF2D6B2D)));
-            badge.addWidget(new LabelWidget(4, 2, "§aupgrade ›"));
+            badge.addWidget(new LabelWidget(4, 2,
+                    Component.translatable("gui.gtceuterminal.component_detail.upgrade_badge").getString()));
             entry.addWidget(badge);
         } else {
-            LabelWidget fixed = new LabelWidget(badgeX + 4, badgeY + 2, "§8fixed");
+            LabelWidget fixed = new LabelWidget(badgeX + 4, badgeY + 2,
+                    Component.translatable("gui.gtceuterminal.component_detail.fixed_badge").getString());
             fixed.setTextColor(0xFF444444);
             entry.addWidget(fixed);
         }
@@ -206,7 +209,8 @@ final class MultiblockDetailPanel {
         int footerY = panelH - FOOTER_H;
         WidgetGroup footer = new WidgetGroup(0, footerY, w, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, w, 1, new ColorRectTexture(colorBorderDark)));
-        LabelWidget hint = new LabelWidget(8, 6, "§8click a group to upgrade · green = upgradeable");
+        LabelWidget hint = new LabelWidget(8, 6,
+                Component.translatable("gui.gtceuterminal.component_detail.upgrade_hint").getString());
         hint.setTextColor(colorTextGray);
         footer.addWidget(hint);
         return footer;

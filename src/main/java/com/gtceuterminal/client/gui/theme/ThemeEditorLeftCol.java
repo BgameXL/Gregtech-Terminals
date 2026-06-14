@@ -45,7 +45,8 @@ final class ThemeEditorLeftCol {
 
         int cy = 6;
 
-        col.addWidget(new LabelWidget(6, cy, "§8Color Presets"));
+        col.addWidget(new LabelWidget(6, cy,
+                Component.translatable("gui.gtceuterminal.theme_editor.color_presets").getString()));
         cy += 12;
 
         ThemePreset[] presets = ThemePreset.values();
@@ -79,7 +80,8 @@ final class ThemeEditorLeftCol {
         col.addWidget(new ImageWidget(6, cy, COL_W - 12, 1, new ColorRectTexture(C_BORDER)));
         cy += 6;
 
-        col.addWidget(new LabelWidget(6, cy, "§8Bundle Themes"));
+        col.addWidget(new LabelWidget(6, cy,
+                Component.translatable("gui.gtceuterminal.theme_editor.bundle_themes").getString()));
         cy += 12;
 
         List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
@@ -133,12 +135,13 @@ final class ThemeEditorLeftCol {
             btn.setHoverTooltips(
                     Component.literal("§e" + bundle.displayName()),
                     Component.literal(bundle.description()),
-                    Component.literal("§7Click to apply"));
+                    Component.translatable("gui.gtceuterminal.theme_editor.click_to_apply"));
             bundleList.addWidget(btn);
         }
 
         if (bundles.isEmpty())
-            bundleList.addWidget(new LabelWidget(6, 0, "§8No modpack themes installed"));
+            bundleList.addWidget(new LabelWidget(6, 0,
+                    Component.translatable("gui.gtceuterminal.theme_editor.no_modpack_themes").getString()));
 
         bundleScroll.addWidget(bundleList);
         col.addWidget(bundleScroll);

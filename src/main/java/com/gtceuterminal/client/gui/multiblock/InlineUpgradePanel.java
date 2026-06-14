@@ -187,7 +187,8 @@ public final class InlineUpgradePanel {
             int listW = innerW - statusW - gap;
 
             if (special) {
-                LabelWidget lbl = new LabelWidget(PAD, 6, "§8select option");
+                LabelWidget lbl = new LabelWidget(PAD, 6,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.select_option").getString());
                 lbl.setTextColor(C_GRAY);
                 optionsPanel.addWidget(lbl);
 
@@ -203,7 +204,8 @@ public final class InlineUpgradePanel {
                 populateScroll(rep);
                 requestAvailabilityPreview();
             } else {
-                LabelWidget tierLbl = new LabelWidget(PAD, 6, "§8target tier");
+                LabelWidget tierLbl = new LabelWidget(PAD, 6,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.target_tier").getString());
                 tierLbl.setTextColor(C_GRAY);
                 optionsPanel.addWidget(tierLbl);
 
@@ -215,7 +217,8 @@ public final class InlineUpgradePanel {
                 optionsPanel.addWidget(new ImageWidget(PAD, divY, innerW, 1,
                         new ColorRectTexture(colorBorder)));
 
-                LabelWidget varLbl = new LabelWidget(PAD, divY + 4, "§8variant");
+                LabelWidget varLbl = new LabelWidget(PAD, divY + 4,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.variant").getString());
                 varLbl.setTextColor(C_GRAY);
                 optionsPanel.addWidget(varLbl);
 
@@ -229,7 +232,8 @@ public final class InlineUpgradePanel {
                 }
 
                 if (selectedTier == null) {
-                    optionsScroll.addWidget(new LabelWidget(4, 4, "§8select a tier above"));
+                    optionsScroll.addWidget(new LabelWidget(4, 4,
+                            Component.translatable("gui.gtceuterminal.inline_upgrade.select_tier_above").getString()));
                 } else {
                     autoSelectFirstExplicitOption(rep);
                     populateScroll(rep);
@@ -285,7 +289,8 @@ public final class InlineUpgradePanel {
 
         private void buildVariantList(List<UpgradeCandidateGrid.UpgradeOption> options) {
             if (options.isEmpty()) {
-                LabelWidget empty = new LabelWidget(4, 4, "§8no variants for this selection");
+                LabelWidget empty = new LabelWidget(4, 4,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.no_variants").getString());
                 empty.setTextColor(C_GRAY);
                 optionsScroll.addWidget(empty);
                 return;
@@ -305,7 +310,8 @@ public final class InlineUpgradePanel {
 
         private void buildFallbackList(ComponentInfo rep) {
             if (selectedTier == null) {
-                LabelWidget empty = new LabelWidget(4, 4, "§8select a tier above");
+                LabelWidget empty = new LabelWidget(4, 4,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.select_tier_above").getString());
                 empty.setTextColor(C_GRAY);
                 optionsScroll.addWidget(empty);
                 return;
@@ -400,7 +406,8 @@ public final class InlineUpgradePanel {
             int panelW = panel.getSizeWidth();
             int panelH = panel.getSizeHeight();
 
-            LabelWidget title = new LabelWidget(8, 6, "§8ME Network");
+            LabelWidget title = new LabelWidget(8, 6,
+                    Component.translatable("gui.gtceuterminal.inline_upgrade.me_network").getString());
             title.setTextColor(C_GRAY);
             panel.addWidget(title);
 

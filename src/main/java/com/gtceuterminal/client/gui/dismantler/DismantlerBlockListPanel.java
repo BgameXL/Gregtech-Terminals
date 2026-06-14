@@ -45,11 +45,12 @@ final class DismantlerBlockListPanel {
             int types = scanResult.getBlockCounts().size();
             int total = scanResult.getTotalBlocks();
             LabelWidget blocksLabel = new LabelWidget(8, 9,
-                    "§8blocks to collect  §7" + types + " types · " + total + " total");
+                    Component.translatable("gui.gtceuterminal.dismantler.blocks_to_collect_count", types, total).getString());
             blocksLabel.setTextColor(0xFF888888);
             colHeader.addWidget(blocksLabel);
         } else {
-            LabelWidget blocksLabel = new LabelWidget(8, 9, "§8blocks to collect");
+            LabelWidget blocksLabel = new LabelWidget(8, 9,
+                    Component.translatable("gui.gtceuterminal.dismantler.blocks_to_collect").getString());
             blocksLabel.setTextColor(0xFF888888);
             colHeader.addWidget(blocksLabel);
         }

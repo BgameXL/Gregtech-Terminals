@@ -72,7 +72,8 @@ final class EnergyAnalyzerDetail {
         // Graphed window = history samples × seconds-per-sample (one sample per refresh interval).
         int windowSec = Math.max(1, Math.round(
                 ItemsConfig.getEAHistorySeconds() * ItemsConfig.getEARefreshIntervalTicks() / 20f));
-        LabelWidget graphHdr = new LabelWidget(pad, y, "§8EU/t — last " + windowSec + "s");
+        LabelWidget graphHdr = new LabelWidget(pad, y,
+                Component.translatable("gui.gtceuterminal.energy_analyzer.graph_window", windowSec).getString());
         graphHdr.setTextColor(0xFF666666);
         g.addWidget(graphHdr);
         y += 13;
@@ -80,10 +81,12 @@ final class EnergyAnalyzerDetail {
         graphWidget = new EnergyGraphWidget(pad, y, graphW - pad, GRAPH_H_WIDGET, new long[0], new long[0]);
         g.addWidget(graphWidget);
 
-        LabelWidget legIn = new LabelWidget(pad, y + GRAPH_H_WIDGET + 3, "§ain");
+        LabelWidget legIn = new LabelWidget(pad, y + GRAPH_H_WIDGET + 3,
+                Component.translatable("gui.gtceuterminal.energy_analyzer.legend_in_short").getString());
         legIn.setTextColor(0xFF00CC55);
         g.addWidget(legIn);
-        LabelWidget legOut = new LabelWidget(pad + 24, y + GRAPH_H_WIDGET + 3, "§cout");
+        LabelWidget legOut = new LabelWidget(pad + 24, y + GRAPH_H_WIDGET + 3,
+                Component.translatable("gui.gtceuterminal.energy_analyzer.legend_out_short").getString());
         legOut.setTextColor(0xFFDD3333);
         g.addWidget(legOut);
         y += GRAPH_H_WIDGET + 16;
@@ -107,7 +110,8 @@ final class EnergyAnalyzerDetail {
         g.addWidget(new ImageWidget(pad, y, detailW - pad * 2, 1, new ColorRectTexture(0xFF222222)));
         y += 6;
 
-        LabelWidget progressHdr = new LabelWidget(pad, y, "§8Recipe Progress");
+        LabelWidget progressHdr = new LabelWidget(pad, y,
+                Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_progress").getString());
         progressHdr.setTextColor(0xFF666666);
         g.addWidget(progressHdr);
         LabelWidget progressPct = new LabelWidget(detailW - pad - 60, y, () -> recipeProgressText(selSnap.get()));

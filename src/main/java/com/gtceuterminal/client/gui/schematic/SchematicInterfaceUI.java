@@ -266,16 +266,16 @@ public class SchematicInterfaceUI {
         x += 60 + spacing;
 
         panel.addWidget(makeBtn(x, btnY, 60, btnH, 0xFF2A2A2A,
-                "Export",
+                Component.translatable("gui.gtceuterminal.schematic_interface.button.export").getString(),
                 cd -> player.displayClientMessage(
-                        Component.literal("Export not yet implemented"), true))
-                .setHoverTooltips(Component.literal("§7Not yet implemented")));
+                        Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))
+                .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.not_yet_implemented")));
         if (com.gtceuterminal.common.config.ItemsConfig.isSchPlannerBuildAllEnabled()) {
             x += 60 + spacing;
             panel.addWidget(makeBtn(x, btnY, 64, btnH, C_INFO,
-                    "Planner",
+                    Component.translatable("gui.gtceuterminal.schematic_interface.planner_button").getString(),
                     cd -> openPlanner())
-                    .setHoverTooltips(Component.literal("§7Open the placement planner")));
+                    .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.open_planner_tooltip")));
         }
     }
 

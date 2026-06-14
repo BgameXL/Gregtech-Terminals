@@ -104,7 +104,8 @@ final class ThemeEditorRightCol {
         }
         cy += 4 * 18 + 4;
 
-        col.addWidget(new LabelWidget(0, cy + 3, "§8hex"));
+        col.addWidget(new LabelWidget(0, cy + 3,
+                Component.translatable("gui.gtceuterminal.theme_editor.hex").getString()));
         int hexX = 22, hexW = 82;
         TextFieldWidget hexField = new TextFieldWidget(hexX, cy, hexW, 14, null, onHexEntered);
         hexField.setClientSideWidget();
@@ -122,7 +123,8 @@ final class ThemeEditorRightCol {
         col.addWidget(hexField);
         cy += 20;
 
-        col.addWidget(new LabelWidget(0, cy, "§8Color swatches"));
+        col.addWidget(new LabelWidget(0, cy,
+                Component.translatable("gui.gtceuterminal.theme_editor.color_swatches").getString()));
         cy += 12;
 
         int swSz = 22;
@@ -135,10 +137,12 @@ final class ThemeEditorRightCol {
                             new ColorBorderTexture(1, 0xFF555555)));
             swatchRefs[i] = sw;
             col.addWidget(sw);
-            col.addWidget(new LabelWidget(sx, cy + swSz + 2, "§8" + swNames[i]));
+            col.addWidget(new LabelWidget(sx, cy + swSz + 2,
+                    Component.translatable("gui.gtceuterminal.theme_editor.swatch." + swNames[i]).getString()));
         }
         cy += swSz + 14;
-        col.addWidget(new LabelWidget(0, cy, "§8Options"));
+        col.addWidget(new LabelWidget(0, cy,
+                Component.translatable("gui.gtceuterminal.theme_editor.options_header").getString()));
         cy += 12;
         int optH = 16;
 
@@ -154,8 +158,8 @@ final class ThemeEditorRightCol {
                 new ColorRectTexture(0x00000000), cd -> onCycleParade.run());
         animBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
         animBtn.setHoverTooltips(
-                Component.literal("§eAnimations"),
-                Component.literal("§7Parade style: Off / Orbit / Bouncing"));
+                Component.translatable("gui.gtceuterminal.theme_editor.animations"),
+                Component.translatable("gui.gtceuterminal.theme_editor.animations_desc"));
         col.addWidget(animBtn);
         int srcX = animW + 6;
         int srcW = 70;
@@ -169,13 +173,14 @@ final class ThemeEditorRightCol {
                 new ColorRectTexture(0x00000000), cd -> onToggleSource.run());
         srcBtn.setHoverTexture(new ColorRectTexture(C_HOVER));
         srcBtn.setHoverTooltips(
-                Component.literal("§eSlideshow source"),
-                Component.literal("§7Built-in bundle images or your custom wallpapers"),
-                Component.literal("§8(applies to bundle slideshows)"));
+                Component.translatable("gui.gtceuterminal.theme_editor.slideshow_source"),
+                Component.translatable("gui.gtceuterminal.theme_editor.slideshow_source_desc1"),
+                Component.translatable("gui.gtceuterminal.theme_editor.slideshow_source_desc2"));
         col.addWidget(srcBtn);
         cy += optH + 6;
 
-        col.addWidget(new LabelWidget(0, cy + 2, "§8Wallpaper"));
+        col.addWidget(new LabelWidget(0, cy + 2,
+                Component.translatable("gui.gtceuterminal.theme_editor.wallpaper_header").getString()));
         col.addWidget(makeSmallBtn(58, cy, 12, 12, "arrow_left",
                 "gui.gtceuterminal.theme_editor.wallpaper_prev",
                 cd -> onWallPrev.run()));

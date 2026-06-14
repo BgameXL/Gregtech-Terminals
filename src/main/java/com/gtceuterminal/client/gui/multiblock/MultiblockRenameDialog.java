@@ -86,7 +86,9 @@ final class MultiblockRenameDialog {
                     dialog.close();
                     if (listScroll != null) listScroll.setActive(true);
                 });
-        cancelBtn.setButtonTexture(new TextTexture("§7Cancel").setWidth(btnW).setType(TextTexture.TextType.NORMAL));
+        cancelBtn.setButtonTexture(new TextTexture(
+                Component.translatable("gui.gtceuterminal.multiblock_manager.rename_dialog.cancel").getString())
+                .setWidth(btnW).setType(TextTexture.TextType.NORMAL));
         cancelBtn.setHoverTexture(new ColorRectTexture(0xFF333333));
         panel.addWidget(cancelBtn);
 

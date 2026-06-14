@@ -52,7 +52,8 @@ final class DismantlerInfoBar {
         }
 
         int xPos = 12;
-        LabelWidget totalLabel = new LabelWidget(xPos, h / 2 - 4, "§8Total: §f" + total + " blocks");
+        LabelWidget totalLabel = new LabelWidget(xPos, h / 2 - 4,
+                Component.translatable("gui.gtceuterminal.dismantler.bar.total", total).getString());
         totalLabel.setTextColor(0xFFAAAAAA);
         bar.addWidget(totalLabel);
         xPos += 96;
@@ -65,13 +66,15 @@ final class DismantlerInfoBar {
         boolean enough = emptySlots >= requiredSlots;
         boolean partial = emptySlots > 0 && !enough;
         String slotColor = enough ? "§a" : (partial ? "§e" : "§c");
-        String invState = slotColor + emptySlots + " free §8/ " + requiredSlots + " needed";
-        LabelWidget invLabel = new LabelWidget(xPos, h / 2 - 4, "§8Inventory space: " + invState);
+        LabelWidget invLabel = new LabelWidget(xPos, h / 2 - 4,
+                Component.translatable("gui.gtceuterminal.dismantler.bar.inventory_space",
+                        slotColor, emptySlots, requiredSlots).getString());
         invLabel.setTextColor(0xFFAAAAAA);
         bar.addWidget(invLabel);
 
         if (skipped > 0) {
-            LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4, "§8skipped §6" + skipped);
+            LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4,
+                    Component.translatable("gui.gtceuterminal.dismantler.bar.skipped", skipped).getString());
             skipLabel.setTextColor(0xFFAAAAAA);
             bar.addWidget(skipLabel);
         }

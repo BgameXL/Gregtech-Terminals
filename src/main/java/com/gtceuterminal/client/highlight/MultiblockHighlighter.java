@@ -83,9 +83,6 @@ public class MultiblockHighlighter {
 
         HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
         activeHighlights.put(controllerPos, info);
-
-        com.gtceuterminal.GTCEUTerminalMod.LOGGER.info("Added highlight for {} blocks at {} (color: 0x{}, duration: {}ms)",
-                blocks.size(), controllerPos, Integer.toHexString(color), durationMs);
     }
 
     public static void highlight(MultiblockInfo multiblock, int color, int durationMs) {
@@ -130,7 +127,7 @@ public class MultiblockHighlighter {
     }
 
     public static void highlight(IMultiController controller) {
-        highlight(controller, 0xFFFF00, 10000); // Yellow, 10 seconds
+        highlight(controller, 0xFFFF00, 10000); // 10 seconds
     }
 
     public static void clearHighlight(BlockPos controllerPos) {

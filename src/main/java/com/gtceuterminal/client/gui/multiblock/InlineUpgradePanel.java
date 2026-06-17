@@ -1,6 +1,5 @@
 package com.gtceuterminal.client.gui.multiblock;
 
-import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
@@ -44,6 +43,11 @@ public final class InlineUpgradePanel {
     private static final int HEADER_H  = 36;
     private static final int FOOTER_H  = 36;
     private static final int PAD       = 8;
+    
+    private static final int TIER_BTN_MIN_W = 20;
+    private static final int TIER_BTN_MAX_W = 44;
+    private static final int TIER_BTN_H     = 22;
+    private static final int TIER_GAP       = 2;
 
     private static final int C_SUCCESS  = 0xFF00FF00;
     private static final int C_WHITE    = 0xFFFFFFFF;
@@ -208,12 +212,13 @@ public final class InlineUpgradePanel {
                         Component.translatable("gui.gtceuterminal.inline_upgrade.target_tier").getString());
                 tierLbl.setTextColor(C_GRAY);
                 optionsPanel.addWidget(tierLbl);
-
-                tierButtonsRow = new WidgetGroup(PAD, 18, innerW, 22);
+                
+                int tierRowH = tierRowHeight(availableTiers(rep).size(), innerW);
+                tierButtonsRow = new WidgetGroup(PAD, 18, innerW, tierRowH);
                 optionsPanel.addWidget(tierButtonsRow);
                 populateTierRow(rep);
 
-                int divY = 18 + 22 + 3;
+                int divY = 18 + tierRowH + 3;
                 optionsPanel.addWidget(new ImageWidget(PAD, divY, innerW, 1,
                         new ColorRectTexture(colorBorder)));
 
@@ -247,22 +252,39 @@ public final class InlineUpgradePanel {
         private void populateTierRow(ComponentInfo rep) {
             tierButtonsRow.clearAllWidgets();
             List<Integer> tiers = availableTiers(rep);
-            int btnW = tiers.isEmpty() ? 30 : Math.min(44, (w - PAD * 2 - 2 * (tiers.size() - 1)) / tiers.size());
-            int xp = 0;
-            for (int tier : tiers) {
+            if (tiers.isEmpty()) return;
+            int innerW = tierButtonsRow.getSizeWidth();
+            int cols = tierCols(tiers.size(), innerW);
+            int btnW = Math.min(TIER_BTN_MAX_W, (innerW - TIER_GAP * (cols - 1)) / cols);
+            for (int i = 0; i < tiers.size(); i++) {
+                int tier = tiers.get(i);
+                int xp = (i % cols) * (btnW + TIER_GAP);
+                int yp = (i / cols) * (TIER_BTN_H + TIER_GAP);
                 boolean sel = selectedTier != null && selectedTier == tier;
                 int bg = sel ? 0x6600FF00 : colorBgLight, brd = sel ? C_SUCCESS : colorBorder;
                 TextTexture txt = new TextTexture("§f" + UpgradeCandidateGrid.tierName(tier))
                         .setWidth(btnW).setType(TextTexture.TextType.NORMAL);
                 final int t = tier;
-                ButtonWidget btn = new ButtonWidget(xp, 0, btnW, 22,
+                ButtonWidget btn = new ButtonWidget(xp, yp, btnW, TIER_BTN_H,
                         new GuiTextureGroup(new ColorRectTexture(bg), new ColorBorderTexture(1, brd), txt),
                         cd -> onTierClicked(t));
                 btn.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(bg),
                         new ColorBorderTexture(1, C_WHITE), txt));
                 tierButtonsRow.addWidget(btn);
-                xp += btnW + 2;
             }
+        }
+        
+        private static int tierCols(int count, int innerW) {
+            if (count <= 0) return 1;
+            int cols = Math.max(1, (innerW + TIER_GAP) / (TIER_BTN_MIN_W + TIER_GAP));
+            return Math.min(count, cols);
+        }
+
+        private static int tierRowHeight(int count, int innerW) {
+            if (count <= 0) return TIER_BTN_H;
+            int cols = tierCols(count, innerW);
+            int rows = (count + cols - 1) / cols;
+            return rows * (TIER_BTN_H + TIER_GAP) - TIER_GAP;
         }
 
         private void populateScroll(ComponentInfo rep) {

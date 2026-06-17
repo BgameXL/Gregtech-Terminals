@@ -1,6 +1,5 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.energy.EnergySnapshot;
@@ -8,10 +7,10 @@ import com.gtceuterminal.common.theme.ItemTheme;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
@@ -36,6 +35,7 @@ public class EnergyAnalyzerUI {
     private static final int C_ORANGE = 0xFFFF8800;
     private static final int C_GREEN  = 0xFF55FF55;
     private static final int C_GRAY   = 0xFFAAAAAA;
+    private static final int C_BORDER_DARK = 0xFF0A0A0A;
 
     private final EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder;
     private final Player player;
@@ -90,9 +90,21 @@ public class EnergyAnalyzerUI {
                 DETAIL_X, HEADER_H, H, PAD,
                 this::selSnap,
                 () -> { EnergySnapshot s = selSnap(); if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H); }));
+        
+        rootGroup.addWidget(buildOuterBorder());
 
         setupParade();
         return wrapUI(rootGroup);
+    }
+
+    private WidgetGroup buildOuterBorder() {
+        int light = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        WidgetGroup g = new WidgetGroup(0, 0, W, H);
+        g.addWidget(new ImageWidget(0,     0,     W, 2, new ColorRectTexture(light)));
+        g.addWidget(new ImageWidget(0,     0,     2, H, new ColorRectTexture(light)));
+        g.addWidget(new ImageWidget(W - 2, 0,     2, H, new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0,     H - 2, W, 2, new ColorRectTexture(C_BORDER_DARK)));
+        return g;
     }
 
     private void setupParade() {

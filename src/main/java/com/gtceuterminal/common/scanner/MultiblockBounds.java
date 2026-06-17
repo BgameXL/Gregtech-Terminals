@@ -54,19 +54,19 @@ final class MultiblockBounds {
                 }
             }
 
-            int minX = anchors.stream().mapToInt(BlockPos::getX).min().orElse(controllerPos.getX()) - BOUNDS_PADDING;
-            int minY = anchors.stream().mapToInt(BlockPos::getY).min().orElse(controllerPos.getY()) - BOUNDS_PADDING;
-            int minZ = anchors.stream().mapToInt(BlockPos::getZ).min().orElse(controllerPos.getZ()) - BOUNDS_PADDING;
-            int maxX = anchors.stream().mapToInt(BlockPos::getX).max().orElse(controllerPos.getX()) + BOUNDS_PADDING;
-            int maxY = anchors.stream().mapToInt(BlockPos::getY).max().orElse(controllerPos.getY()) + BOUNDS_PADDING;
-            int maxZ = anchors.stream().mapToInt(BlockPos::getZ).max().orElse(controllerPos.getZ()) + BOUNDS_PADDING;
+            int anchorMinX = anchors.stream().mapToInt(BlockPos::getX).min().orElse(controllerPos.getX());
+            int anchorMinY = anchors.stream().mapToInt(BlockPos::getY).min().orElse(controllerPos.getY());
+            int anchorMinZ = anchors.stream().mapToInt(BlockPos::getZ).min().orElse(controllerPos.getZ());
+            int anchorMaxX = anchors.stream().mapToInt(BlockPos::getX).max().orElse(controllerPos.getX());
+            int anchorMaxY = anchors.stream().mapToInt(BlockPos::getY).max().orElse(controllerPos.getY());
+            int anchorMaxZ = anchors.stream().mapToInt(BlockPos::getZ).max().orElse(controllerPos.getZ());
 
-            minX = Math.max(minX, controllerPos.getX() - MAX_SCAN_SIZE_XZ);
-            minY = Math.max(minY, controllerPos.getY() - MAX_SCAN_SIZE_Y);
-            minZ = Math.max(minZ, controllerPos.getZ() - MAX_SCAN_SIZE_XZ);
-            maxX = Math.min(maxX, controllerPos.getX() + MAX_SCAN_SIZE_XZ);
-            maxY = Math.min(maxY, controllerPos.getY() + MAX_SCAN_SIZE_Y);
-            maxZ = Math.min(maxZ, controllerPos.getZ() + MAX_SCAN_SIZE_XZ);
+            int minX = Math.min(anchorMinX - BOUNDS_PADDING, controllerPos.getX() - MAX_SCAN_SIZE_XZ);
+            int minY = Math.min(anchorMinY - BOUNDS_PADDING, controllerPos.getY() - MAX_SCAN_SIZE_Y);
+            int minZ = Math.min(anchorMinZ - BOUNDS_PADDING, controllerPos.getZ() - MAX_SCAN_SIZE_XZ);
+            int maxX = Math.max(anchorMaxX + BOUNDS_PADDING, controllerPos.getX() + MAX_SCAN_SIZE_XZ);
+            int maxY = Math.max(anchorMaxY + BOUNDS_PADDING, controllerPos.getY() + MAX_SCAN_SIZE_Y);
+            int maxZ = Math.max(anchorMaxZ + BOUNDS_PADDING, controllerPos.getZ() + MAX_SCAN_SIZE_XZ);
 
             final int fMinX = minX, fMinY = minY, fMinZ = minZ;
             final int fMaxX = maxX, fMaxY = maxY, fMaxZ = maxZ;

@@ -17,7 +17,6 @@ import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -28,8 +27,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class AutocraftConfirmDialog extends DialogWidget {
 
-    private static final int W       = 480;
-    private static final int H       = 380;
+    private static final int DESIGN_W = 480;
+    private static final int DESIGN_H = 380;
     private static final int PAD     = 10;
     private static final int HEADER_H = 28;
     private static final int FOOTER_H = 36;
@@ -47,6 +46,9 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private final AnalysisResult result;
     private final ItemTheme      theme;
     private final int colorBg, colorPanel, colorBorder;
+    
+    private int w = DESIGN_W;
+    private int h = DESIGN_H;
 
     private DraggableScrollableWidgetGroup ingredientScroll;
     private int ingredientRowW;
@@ -81,11 +83,14 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int sw  = mc.screen != null ? mc.screen.width  : mc.getWindow().getGuiScaledWidth();
         int sh  = mc.screen != null ? mc.screen.height : mc.getWindow().getGuiScaledHeight();
 
+        w = Math.min(DESIGN_W, sw - 20);
+        h = Math.min(DESIGN_H, sh - 20);
+
         Position abs = parent.getPosition();
         setSelfPosition(new Position(
-                (sw - W) / 2 - abs.x,
-                Mth.clamp((sh - H) / 2, 10, sh - H - 10) - abs.y));
-        setSize(new Size(W, H));
+                Math.max(0, (sw - w) / 2) - abs.x,
+                Math.max(0, (sh - h) / 2) - abs.y));
+        setSize(new Size(w, h));
         setBackground(theme.backgroundTexture());
 
         addWidget(buildHeader());
@@ -94,7 +99,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
     }
 
     private WidgetGroup buildHeader() {
-        WidgetGroup header = new WidgetGroup(2, 2, W - 4, HEADER_H);
+        WidgetGroup header = new WidgetGroup(2, 2, w - 4, HEADER_H);
         header.setBackground(theme.headerTexture());
 
         String title = result.kind == AnalysisResult.Kind.UPGRADE
@@ -105,7 +110,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         lbl.setTextColor(C_WHITE);
         header.addWidget(lbl);
 
-        ButtonWidget close = TerminalButton.close(W - 28, 4, 20, colorPanel, colorBorder, cd -> close());
+        ButtonWidget close = TerminalButton.close(w - 28, 4, 20, colorPanel, colorBorder, cd -> close());
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         header.addWidget(close);
         return header;
@@ -113,12 +118,12 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildBody() {
         int bodyY = 2 + HEADER_H + 3;
-        int bodyH = H - bodyY - FOOTER_H - 6;
-        WidgetGroup body = new WidgetGroup(PAD, bodyY, W - PAD * 2, bodyH);
+        int bodyH = h - bodyY - FOOTER_H - 6;
+        WidgetGroup body = new WidgetGroup(PAD, bodyY, w - PAD * 2, bodyH);
         body.setBackground(new ColorRectTexture(colorBg));
 
-        int colL = (W - PAD * 2) * 6 / 10;
-        int colR = (W - PAD * 2) - colL - 1;
+        int colL = (w - PAD * 2) * 6 / 10;
+        int colR = (w - PAD * 2) - colL - 1;
 
         WidgetGroup left = new WidgetGroup(0, 0, colL, bodyH);
         left.setBackground(new GuiTextureGroup(
@@ -357,8 +362,8 @@ public class AutocraftConfirmDialog extends DialogWidget {
     }
 
     private WidgetGroup buildFooter() {
-        int footerY = H - FOOTER_H - 2;
-        int innerW  = W - PAD * 2;
+        int footerY = h - FOOTER_H - 2;
+        int innerW  = w - PAD * 2;
         WidgetGroup footer = new WidgetGroup(PAD, footerY, innerW, FOOTER_H);
 
         int btnH = 24;

@@ -15,20 +15,23 @@ import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.DefaultThemeConfig;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 import com.gtceuterminal.common.util.MiscUtil;
+
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
+
 import com.mojang.logging.LogUtils;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+
 import org.slf4j.Logger;
 
 import java.nio.file.Files;

@@ -52,6 +52,9 @@ public class SchematicInterfaceUI {
     private static final int C_HOVER       = 0x40FFFFFF;
     private static final int C_SUCCESS     = 0xFF4CAF50;
     private static final int C_INFO        = 0xFF42A5F5;
+    private  static final  int C_DELETE    = 0xFFE53935;
+    private static final  int C_EXPORT     = 0xFF9C27B0;
+    private static final  int C_IMPORT     = 0xFF54927;
     private static final int C_ERROR       = 0xFFFF5252;
 
     private final IUIHolder uiHolder;
@@ -110,9 +113,9 @@ public class SchematicInterfaceUI {
             mainGroup.addWidget(new WallpaperWidget(0, 0, GUI_W, GUI_H, () -> this.theme));
         }
 
-        mainGroup.addWidget(buildOuterBorder());
         mainGroup.addWidget(buildHeader());
         mainGroup.addWidget(buildBody());
+        mainGroup.addWidget(buildOuterBorder());
 
         setupParade();
         this.gui = buildModularUI(mainGroup);
@@ -260,12 +263,12 @@ public class SchematicInterfaceUI {
                 cd -> saveSchematic()));
         x += 80 + spacing;
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, 0xFF2A2A2A,
+        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_DELETE,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.delete").getString(),
                 cd -> deleteSchematic()));
         x += 60 + spacing;
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, 0xFF2A2A2A,
+        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_EXPORT ,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.export").getString(),
                 cd -> player.displayClientMessage(
                         Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))

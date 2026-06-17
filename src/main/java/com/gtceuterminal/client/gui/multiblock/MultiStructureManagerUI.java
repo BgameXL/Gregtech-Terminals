@@ -32,7 +32,6 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class MultiStructureManagerUI {
 
-    private static final int MARGIN      = 16;
     private static final int HEADER_H    = 30;
     private static final int LEFT_W      = 210;
     private static final int DIVIDER_W   = 1;
@@ -103,9 +102,8 @@ public class MultiStructureManagerUI {
     }
 
     public ModularUI createUI() {
-        var mc = net.minecraft.client.Minecraft.getInstance();
-        GUI_W = Math.min(640, mc.getWindow().getGuiScaledWidth()  - MARGIN * 2);
-        GUI_H = Math.min(460, mc.getWindow().getGuiScaledHeight() - MARGIN * 2);
+        GUI_W = 640;
+        GUI_H = 460;
 
         this.bodyH  = GUI_H - 2 - HEADER_H - 2;
         this.rightX = LEFT_W + DIVIDER_W;

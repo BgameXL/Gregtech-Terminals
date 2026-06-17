@@ -34,8 +34,8 @@ public class HighlightRenderer {
     // Stores raw float data: x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4, r,g,b per quad.
     private static float[] cachedVerts = null;
     private static int cachedVertCount = 0;
-    // Key: snapshot of highlight state used to detect changes.
     private static int cachedHighlightVersion = -1;
+    float alphaMod = 1.0f;
 
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
@@ -61,7 +61,7 @@ public class HighlightRenderer {
         if (cachedVertCount == 0) return;
 
         float pulse = (System.currentTimeMillis() % 2000) / 2000f;
-        float alphaMod = 0.25f + Math.abs((pulse * 2) - 1) * 0.20f;
+        float alphaMod = 0.55f + Math.abs((pulse * 2) - 1) * 0.35f;
 
         Vec3 cam = event.getCamera().getPosition();
         PoseStack ps = event.getPoseStack();
@@ -72,17 +72,20 @@ public class HighlightRenderer {
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
+        RenderSystem.lineWidth(2.5f);
+
+        alphaMod = Math.min(alphaMod, 1.0f);
 
         Tesselator tess = Tesselator.getInstance();
         BufferBuilder buf = tess.getBuilder();
-        buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         ps.pushPose();
         ps.translate(-cam.x, -cam.y, -cam.z);
         Matrix4f mat = ps.last().pose();
 
-        // Replay cached verts with live alpha
-        // Layout per quad: 4 × (x, y, z, r, g, b) = 24 floats
+        // Replay cached line verts with live alpha.
+        // Layout: pairs of vertices, each (x, y, z, r, g, b) = 6 floats.
         int stride = 6; // floats per vertex
         for (int i = 0; i < cachedVertCount; i++) {
             int base = i * stride;
@@ -97,6 +100,7 @@ public class HighlightRenderer {
         ps.popPose();
         tess.end();
 
+        RenderSystem.lineWidth(1.0f);
         RenderSystem.enableCull();
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
@@ -104,7 +108,6 @@ public class HighlightRenderer {
     }
 
     private static void rebuildCache(Map<BlockPos, MultiblockHighlighter.HighlightInfo> highlights) {
-        // Count exposed faces first to allocate exactly
         int faceCount = 0;
         for (var hl : highlights.values()) {
             Set<BlockPos> blockSet = hl.blocks;
@@ -115,9 +118,10 @@ public class HighlightRenderer {
             }
         }
 
-        // 4 verts per face, 6 floats per vert (x,y,z,r,g,b)
-        cachedVerts = new float[faceCount * 4 * 6];
-        cachedVertCount = faceCount * 4;
+        // Worst case: each exposed face contributes 4 edges = 4 line segments = 8 verts,
+        // 6 floats per vert (x,y,z,r,g,b). Most edges are culled (only the silhouette/
+        // contour edges survive), so the actual vertex count is tracked separately.
+        cachedVerts = new float[faceCount * 8 * 6];
         int idx = 0;
 
         for (var hl : highlights.values()) {
@@ -130,70 +134,54 @@ public class HighlightRenderer {
             for (BlockPos pos : blockSet) {
                 for (Direction dir : Direction.values()) {
                     if (blockSet.contains(pos.relative(dir))) continue;
-                    idx = writeFace(cachedVerts, idx, pos, dir, r, g, b);
+                    idx = writeFace(cachedVerts, idx, blockSet, pos, dir, r, g, b);
                 }
             }
         }
+
+        cachedVertCount = idx / 6;
     }
 
-    private static int writeFace(float[] buf, int idx, BlockPos pos, Direction dir, float r, float g, float b) {
-        float x = pos.getX();
-        float y = pos.getY();
-        float z = pos.getZ();
-        float i = INSET;
+    private static int writeFace(float[] buf, int idx, Set<BlockPos> blockSet,
+                                 BlockPos pos, Direction dir, float r, float g, float b) {
+        float h = 0.5f - INSET;
+        float cx = pos.getX() + 0.5f;
+        float cy = pos.getY() + 0.5f;
+        float cz = pos.getZ() + 0.5f;
 
-        float ax, ay, az, bx, by, bz, cx, cy, cz, dx, dy, dz;
+        Direction.Axis nAxis = dir.getAxis();
+        float fcx = cx + dir.getStepX() * h;
+        float fcy = cy + dir.getStepY() * h;
+        float fcz = cz + dir.getStepZ() * h;
 
-        switch (dir) {
-            case UP -> {
-                float fy = y + 1 - i;
-                ax = x+i;   ay = fy; az = z+i;
-                bx = x+i;   by = fy; bz = z+1-i;
-                cx = x+1-i; cy = fy; cz = z+1-i;
-                dx = x+1-i; dy = fy; dz = z+i;
+        for (Direction s : Direction.values()) {
+            if (s.getAxis() == nAxis) continue;
+
+            BlockPos sideNeighbor = pos.relative(s);
+            if (blockSet.contains(sideNeighbor) && !blockSet.contains(sideNeighbor.relative(dir))) {
+                continue;
             }
-            case DOWN -> {
-                float fy = y + i;
-                ax = x+i;   ay = fy; az = z+i;
-                bx = x+1-i; by = fy; bz = z+i;
-                cx = x+1-i; cy = fy; cz = z+1-i;
-                dx = x+i;   dy = fy; dz = z+1-i;
-            }
-            case NORTH -> {
-                float fz = z + i;
-                ax = x+i;   ay = y+i;   az = fz;
-                bx = x+1-i; by = y+i;   bz = fz;
-                cx = x+1-i; cy = y+1-i; cz = fz;
-                dx = x+i;   dy = y+1-i; dz = fz;
-            }
-            case SOUTH -> {
-                float fz = z + 1 - i;
-                ax = x+i;   ay = y+i;   az = fz;
-                bx = x+i;   by = y+1-i; bz = fz;
-                cx = x+1-i; cy = y+1-i; cz = fz;
-                dx = x+1-i; dy = y+i;   dz = fz;
-            }
-            case WEST -> {
-                float fx = x + i;
-                ax = fx; ay = y+i;   az = z+i;
-                bx = fx; by = y+1-i; bz = z+i;
-                cx = fx; cy = y+1-i; cz = z+1-i;
-                dx = fx; dy = y+i;   dz = z+1-i;
-            }
-            default -> { // EAST
-                float fx = x + 1 - i;
-                ax = fx; ay = y+i;   az = z+i;
-                bx = fx; by = y+i;   bz = z+1-i;
-                cx = fx; cy = y+1-i; cz = z+1-i;
-                dx = fx; dy = y+1-i; dz = z+i;
-            }
+
+            Direction.Axis perpAxis = perpendicularAxis(nAxis, s.getAxis());
+            float px = perpAxis == Direction.Axis.X ? 1f : 0f;
+            float py = perpAxis == Direction.Axis.Y ? 1f : 0f;
+            float pz = perpAxis == Direction.Axis.Z ? 1f : 0f;
+
+            float ex = fcx + s.getStepX() * h;
+            float ey = fcy + s.getStepY() * h;
+            float ez = fcz + s.getStepZ() * h;
+
+            idx = writeVert(buf, idx, ex + px * h, ey + py * h, ez + pz * h, r, g, b);
+            idx = writeVert(buf, idx, ex - px * h, ey - py * h, ez - pz * h, r, g, b);
         }
-
-        idx = writeVert(buf, idx, ax, ay, az, r, g, b);
-        idx = writeVert(buf, idx, bx, by, bz, r, g, b);
-        idx = writeVert(buf, idx, cx, cy, cz, r, g, b);
-        idx = writeVert(buf, idx, dx, dy, dz, r, g, b);
         return idx;
+    }
+
+    private static Direction.Axis perpendicularAxis(Direction.Axis a, Direction.Axis b) {
+        for (Direction.Axis axis : Direction.Axis.values()) {
+            if (axis != a && axis != b) return axis;
+        }
+        return Direction.Axis.X;
     }
 
     private static int writeVert(float[] buf, int idx, float x, float y, float z, float r, float g, float b) {

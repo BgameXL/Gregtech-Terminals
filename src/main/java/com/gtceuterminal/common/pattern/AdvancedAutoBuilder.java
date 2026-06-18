@@ -20,7 +20,6 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,7 +36,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -83,7 +81,6 @@ public class AdvancedAutoBuilder {
             }
 
             int minZ = -centerOffset[4];
-            LongOpenHashSet savedCache = new LongOpenHashSet(worldState.cache);
             GTCEuCompat.clean(worldState);
 
             BlockPos centerPos = controller.self().getPos();

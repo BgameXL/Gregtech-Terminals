@@ -114,7 +114,8 @@ final class EnergyAnalyzerDetail {
                 Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_progress").getString());
         progressHdr.setTextColor(0xFF666666);
         g.addWidget(progressHdr);
-        LabelWidget progressPct = new LabelWidget(detailW - pad - 60, y, () -> recipeProgressText(selSnap.get()));
+        
+        LabelWidget progressPct = new LabelWidget(detailW - pad - 60, y + 10, () -> recipeProgressText(selSnap.get()));
         progressPct.setClientSideWidget();
         progressPct.setTextColor(C_GREEN);
         g.addWidget(progressPct);

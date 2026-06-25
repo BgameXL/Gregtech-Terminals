@@ -8,6 +8,7 @@ import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import com.gtceuterminal.common.config.ManagerSettings;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
@@ -22,6 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import com.gtceuterminal.common.pattern.CandidateFilter;
 
@@ -166,6 +168,47 @@ public final class MultiblockAnalyzer {
             if (s.getItem() == item) count += s.getCount();
         }
         return count;
+    }
+
+    public static Set<BlockPos> collectStructurePositions(MultiblockControllerMachine controller, Level level) {
+        BlockPatternReflection.ensure();
+        Set<BlockPos> positions = new HashSet<>();
+        if (!BlockPatternReflection.READY) return positions;
+
+        try {
+            BlockPattern pattern = controller.getPattern();
+            if (pattern == null) return positions;
+
+            TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
+            int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            if (blockMatches == null || centerOff == null) return positions;
+
+            int[][]             aisleReps = pattern.aisleRepetitions;
+            RelativeDirection[] structDir = pattern.structureDir;
+
+            BlockPos centerPos = controller.self().getPos();
+            var      facing    = controller.self().getFrontFacing();
+            var      upFacing  = controller.self().getUpwardsFacing();
+            boolean  isFlipped = controller.self().isFlipped();
+            int      minZ      = -centerOff[4];
+
+            for (int c = 0, z = minZ++; c < blockMatches.length; c++) {
+                int reps = getRepetitions(c, aisleReps, 0);
+                for (int r = 0; r < reps; r++, z++) {
+                    for (int b = 0, y = -centerOff[1]; b < blockMatches[c].length; b++, y++) {
+                        for (int a = 0, x = -centerOff[0]; a < blockMatches[c][b].length; a++, x++) {
+                            BlockPos pos = relativeOffset(structDir, x, y, z, facing, upFacing, isFlipped)
+                                    .offset(centerPos);
+                            if (level != null && level.isEmptyBlock(pos)) continue;
+                            positions.add(pos.immutable());
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.debug("MultiblockAnalyzer.collectStructurePositions failed: {}", t.toString());
+        }
+        return positions;
     }
 
     private static int getRepetitions(int slice, int[][] aisleReps, int repeatCount) {

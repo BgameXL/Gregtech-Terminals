@@ -15,6 +15,11 @@ public class SPacketDefaultTheme {
     private final int bgColor;
     private final int panelColor;
     private final int textColor;
+    private final int textMutedColor;
+    private final int borderColor;
+    private final int successColor;
+    private final int warningColor;
+    private final int errorColor;
     private final boolean compactMode;
     private final boolean showTooltips;
     private final boolean showBorders;
@@ -25,6 +30,11 @@ public class SPacketDefaultTheme {
         this.bgColor = theme.bgColor;
         this.panelColor = theme.panelColor;
         this.textColor = theme.textColor;
+        this.textMutedColor = theme.textMutedColor;
+        this.borderColor = theme.borderColor;
+        this.successColor = theme.successColor;
+        this.warningColor = theme.warningColor;
+        this.errorColor = theme.errorColor;
         this.compactMode = theme.compactMode;
         this.showTooltips = theme.showTooltips;
         this.showBorders = theme.showBorders;
@@ -36,6 +46,11 @@ public class SPacketDefaultTheme {
         this.bgColor = buf.readInt();
         this.panelColor = buf.readInt();
         this.textColor = buf.readInt();
+        this.textMutedColor = buf.readInt();
+        this.borderColor = buf.readInt();
+        this.successColor = buf.readInt();
+        this.warningColor = buf.readInt();
+        this.errorColor = buf.readInt();
         this.compactMode = buf.readBoolean();
         this.showTooltips = buf.readBoolean();
         this.showBorders = buf.readBoolean();
@@ -47,6 +62,11 @@ public class SPacketDefaultTheme {
         buf.writeInt(msg.bgColor);
         buf.writeInt(msg.panelColor);
         buf.writeInt(msg.textColor);
+        buf.writeInt(msg.textMutedColor);
+        buf.writeInt(msg.borderColor);
+        buf.writeInt(msg.successColor);
+        buf.writeInt(msg.warningColor);
+        buf.writeInt(msg.errorColor);
         buf.writeBoolean(msg.compactMode);
         buf.writeBoolean(msg.showTooltips);
         buf.writeBoolean(msg.showBorders);
@@ -59,6 +79,8 @@ public class SPacketDefaultTheme {
                         net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () ->
                                 com.gtceuterminal.client.network.ClientPacketHandlers.handleDefaultTheme(
                                         msg.accentColor, msg.bgColor, msg.panelColor, msg.textColor,
+                                        msg.textMutedColor, msg.borderColor, msg.successColor,
+                                        msg.warningColor, msg.errorColor,
                                         msg.compactMode, msg.showTooltips, msg.showBorders, msg.wallpaper)));
         ctx.get().setPacketHandled(true);
     }

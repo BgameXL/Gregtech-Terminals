@@ -17,6 +17,11 @@ public class ItemTheme {
     private static final String TAG_BG = "bgColor";
     private static final String TAG_PANEL = "panelColor";
     private static final String TAG_TEXT = "textColor";
+    private static final String TAG_TEXT_MUTED = "textMutedColor";
+    private static final String TAG_BORDER = "borderColor";
+    private static final String TAG_SUCCESS = "successColor";
+    private static final String TAG_WARNING = "warningColor";
+    private static final String TAG_ERROR = "errorColor";
     private static final String TAG_COMPACT = "compactMode";
     private static final String TAG_TOOLTIPS = "showTooltips";
     private static final String TAG_BORDERS = "showBorders";
@@ -32,6 +37,11 @@ public class ItemTheme {
     public static final int DEFAULT_BG = 0xFF1A1A1A;
     public static final int DEFAULT_PANEL = 0xFF252525;
     public static final int DEFAULT_TEXT = 0xFFFFFFFF;
+    public static final int DEFAULT_TEXT_MUTED = 0xFFAAAAAA;
+    public static final int DEFAULT_BORDER = DEFAULT_ACCENT;
+    public static final int DEFAULT_SUCCESS = 0xFF57C07A;
+    public static final int DEFAULT_WARNING = 0xFFD8A43C;
+    public static final int DEFAULT_ERROR = 0xFFD05656;
 
     public enum UiStyle {
         DARK("Dark"),
@@ -72,6 +82,11 @@ public class ItemTheme {
     public int bgColor;
     public int panelColor;
     public int textColor;
+    public int textMutedColor;
+    public int borderColor;
+    public int successColor;
+    public int warningColor;
+    public int errorColor;
     public boolean compactMode;
     public boolean showTooltips;
     public boolean showBorders;
@@ -87,6 +102,11 @@ public class ItemTheme {
         bgColor = DEFAULT_BG;
         panelColor = DEFAULT_PANEL;
         textColor = DEFAULT_TEXT;
+        textMutedColor = DEFAULT_TEXT_MUTED;
+        borderColor = DEFAULT_BORDER;
+        successColor = DEFAULT_SUCCESS;
+        warningColor = DEFAULT_WARNING;
+        errorColor = DEFAULT_ERROR;
         compactMode = false;
         showTooltips = true;
         showBorders = true;
@@ -103,6 +123,11 @@ public class ItemTheme {
         bgColor = other.bgColor;
         panelColor = other.panelColor;
         textColor = other.textColor;
+        textMutedColor = other.textMutedColor;
+        borderColor = other.borderColor;
+        successColor = other.successColor;
+        warningColor = other.warningColor;
+        errorColor = other.errorColor;
         compactMode = other.compactMode;
         showTooltips = other.showTooltips;
         showBorders = other.showBorders;
@@ -120,6 +145,11 @@ public class ItemTheme {
         tag.putInt(TAG_BG, bgColor);
         tag.putInt(TAG_PANEL, panelColor);
         tag.putInt(TAG_TEXT, textColor);
+        tag.putInt(TAG_TEXT_MUTED, textMutedColor);
+        tag.putInt(TAG_BORDER, borderColor);
+        tag.putInt(TAG_SUCCESS, successColor);
+        tag.putInt(TAG_WARNING, warningColor);
+        tag.putInt(TAG_ERROR, errorColor);
         tag.putBoolean(TAG_COMPACT, compactMode);
         tag.putBoolean(TAG_TOOLTIPS, showTooltips);
         tag.putBoolean(TAG_BORDERS, showBorders);
@@ -139,6 +169,11 @@ public class ItemTheme {
         if (tag.contains(TAG_BG)) t.bgColor = tag.getInt(TAG_BG);
         if (tag.contains(TAG_PANEL)) t.panelColor = tag.getInt(TAG_PANEL);
         if (tag.contains(TAG_TEXT)) t.textColor = tag.getInt(TAG_TEXT);
+        if (tag.contains(TAG_TEXT_MUTED)) t.textMutedColor = tag.getInt(TAG_TEXT_MUTED);
+        if (tag.contains(TAG_BORDER)) t.borderColor = tag.getInt(TAG_BORDER);
+        if (tag.contains(TAG_SUCCESS)) t.successColor = tag.getInt(TAG_SUCCESS);
+        if (tag.contains(TAG_WARNING)) t.warningColor = tag.getInt(TAG_WARNING);
+        if (tag.contains(TAG_ERROR)) t.errorColor = tag.getInt(TAG_ERROR);
         if (tag.contains(TAG_COMPACT)) t.compactMode = tag.getBoolean(TAG_COMPACT);
         if (tag.contains(TAG_TOOLTIPS)) t.showTooltips = tag.getBoolean(TAG_TOOLTIPS);
         if (tag.contains(TAG_BORDERS)) t.showBorders = tag.getBoolean(TAG_BORDERS);
@@ -179,18 +214,16 @@ public class ItemTheme {
     public static ItemTheme loadFromPlayer(net.minecraft.world.entity.player.Player player) {
         if (player == null) return DefaultThemeConfig.get();
 
-        for (ItemStack stack : new ItemStack[]{
-                player.getMainHandItem(), player.getOffhandItem()}) {
-            ItemTheme t = load(stack);
-            if (t.uiStyle != UiStyle.DARK || t.bgColor != DEFAULT_BG) return t;
+        for (ItemStack stack : new ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
+            CompoundTag root = stack.getTag();
+            if (root != null && root.contains(TAG_ROOT)) return fromNBT(root.getCompound(TAG_ROOT));
         }
 
         for (ItemStack stack : player.getInventory().items) {
             if (stack.isEmpty()) continue;
             CompoundTag root = stack.getTag();
             if (root == null || !root.contains(TAG_ROOT)) continue;
-            ItemTheme t = fromNBT(root.getCompound(TAG_ROOT));
-            if (t.uiStyle != UiStyle.DARK || t.bgColor != DEFAULT_BG) return t;
+            return fromNBT(root.getCompound(TAG_ROOT));
         }
 
         return DefaultThemeConfig.get();
@@ -244,7 +277,7 @@ public class ItemTheme {
         if (b != null) return b.resolvedButton();
         return new GuiTextureGroup(
                 new ColorRectTexture(panelColor),
-                new ColorBorderTexture(1, accentColor));
+                new ColorBorderTexture(1, borderColor));
     }
 
     public IGuiTexture headerTexture() {
@@ -258,7 +291,7 @@ public class ItemTheme {
         if (isNativeStyle()) return IGuiTexture.EMPTY;
         com.gtceuterminal.common.theme.bundle.ThemeBundle b = activeBundle();
         if (b != null) return b.resolvedBorder();
-        return new ColorBorderTexture(1, accentColor);
+        return new ColorBorderTexture(1, borderColor);
     }
 
     public IGuiTexture panelWithBorderTexture() {
@@ -267,7 +300,7 @@ public class ItemTheme {
         if (b != null) return b.resolvedPanelWithBorder();
         return new GuiTextureGroup(
                 new ColorRectTexture(panelColor),
-                new ColorBorderTexture(1, accentColor));
+                new ColorBorderTexture(1, borderColor));
     }
 
     public int labelColor() {
@@ -278,12 +311,12 @@ public class ItemTheme {
     }
 
     public int dimColor() {
-        return 0xFFAAAAAA;
+        return textMutedColor;
     }
 
     public int borderColor() {
         if (isNativeStyle()) return 0x00000000;
-        return accentColor;
+        return borderColor;
     }
 
     public int bgFillColor() {

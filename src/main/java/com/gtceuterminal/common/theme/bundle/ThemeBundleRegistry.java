@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.theme.ItemTheme;
 import com.gtceuterminal.common.theme.bundle.modpack.TerraFirmaGregBundle;
 
 import javax.annotation.Nullable;
@@ -104,7 +105,7 @@ public class ThemeBundleRegistry {
 
     private static final class JsonOverrideBundle extends ThemeBundle {
         private final ThemeBundle base;
-        private final int accent, bg, panel, text;
+        private final int accent, bg, panel, text, textMuted, border, success, warning, error;
         private final String overrideName;
 
         JsonOverrideBundle(ThemeBundle base, JsonObject json) {
@@ -113,6 +114,11 @@ public class ThemeBundleRegistry {
             this.bg = readColor(json, "bgColor", base.bgColor());
             this.panel = readColor(json, "panelColor", base.panelColor());
             this.text = readColor(json, "textColor", base.textColor());
+            this.textMuted = readColor(json, "textMutedColor", base.textMutedColor());
+            this.border = readColor(json, "borderColor", base.borderColor());
+            this.success = readColor(json, "successColor", base.successColor());
+            this.warning = readColor(json, "warningColor", base.warningColor());
+            this.error = readColor(json, "errorColor", base.errorColor());
             this.overrideName = json.has("displayName")
                     ? json.get("displayName").getAsString()
                     : base.displayName();
@@ -154,6 +160,31 @@ public class ThemeBundleRegistry {
         }
 
         @Override
+        public int textMutedColor() {
+            return textMuted;
+        }
+
+        @Override
+        public int borderColor() {
+            return border;
+        }
+
+        @Override
+        public int successColor() {
+            return success;
+        }
+
+        @Override
+        public int warningColor() {
+            return warning;
+        }
+
+        @Override
+        public int errorColor() {
+            return error;
+        }
+
+        @Override
         public net.minecraft.resources.ResourceLocation builtinWallpaper() {
             return base.builtinWallpaper();
         }
@@ -191,7 +222,7 @@ public class ThemeBundleRegistry {
 
     private static final class JsonOnlyBundle extends ThemeBundle {
         private final String id, name, desc;
-        private final int accent, bg, panel, text;
+        private final int accent, bg, panel, text, textMuted, border, success, warning, error;
 
         JsonOnlyBundle(String id, JsonObject json) {
             this.id = id;
@@ -201,6 +232,11 @@ public class ThemeBundleRegistry {
             this.bg = readColor(json, "bgColor", 0xFF1A1A1A);
             this.panel = readColor(json, "panelColor", 0xFF252525);
             this.text = readColor(json, "textColor", 0xFFFFFFFF);
+            this.textMuted = readColor(json, "textMutedColor", ItemTheme.DEFAULT_TEXT_MUTED);
+            this.border = readColor(json, "borderColor", accent);
+            this.success = readColor(json, "successColor", ItemTheme.DEFAULT_SUCCESS);
+            this.warning = readColor(json, "warningColor", ItemTheme.DEFAULT_WARNING);
+            this.error = readColor(json, "errorColor", ItemTheme.DEFAULT_ERROR);
         }
 
         @Override
@@ -236,6 +272,31 @@ public class ThemeBundleRegistry {
         @Override
         public int textColor() {
             return text;
+        }
+
+        @Override
+        public int textMutedColor() {
+            return textMuted;
+        }
+
+        @Override
+        public int borderColor() {
+            return border;
+        }
+
+        @Override
+        public int successColor() {
+            return success;
+        }
+
+        @Override
+        public int warningColor() {
+            return warning;
+        }
+
+        @Override
+        public int errorColor() {
+            return error;
         }
     }
 

@@ -22,6 +22,11 @@ public class ThemeCodec {
         o.addProperty("b", colorToHex(theme.bgColor));
         o.addProperty("p", colorToHex(theme.panelColor));
         o.addProperty("t", colorToHex(theme.textColor));
+        o.addProperty("tm", colorToHex(theme.textMutedColor));
+        o.addProperty("br", colorToHex(theme.borderColor));
+        o.addProperty("ok", colorToHex(theme.successColor));
+        o.addProperty("wa", colorToHex(theme.warningColor));
+        o.addProperty("er", colorToHex(theme.errorColor));
         o.addProperty("c", theme.compactMode);
         o.addProperty("s", theme.showTooltips);
         o.addProperty("r", theme.showBorders);
@@ -42,6 +47,11 @@ public class ThemeCodec {
             if (o.has("b")) t.bgColor = hexToColor(o.get("b").getAsString());
             if (o.has("p")) t.panelColor = hexToColor(o.get("p").getAsString());
             if (o.has("t")) t.textColor = hexToColor(o.get("t").getAsString());
+            if (o.has("tm")) t.textMutedColor = hexToColor(o.get("tm").getAsString());
+            if (o.has("br")) t.borderColor = hexToColor(o.get("br").getAsString());
+            if (o.has("ok")) t.successColor = hexToColor(o.get("ok").getAsString());
+            if (o.has("wa")) t.warningColor = hexToColor(o.get("wa").getAsString());
+            if (o.has("er")) t.errorColor = hexToColor(o.get("er").getAsString());
             if (o.has("c")) t.compactMode = o.get("c").getAsBoolean();
             if (o.has("s")) t.showTooltips = o.get("s").getAsBoolean();
             if (o.has("r")) t.showBorders = o.get("r").getAsBoolean();

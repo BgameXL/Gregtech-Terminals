@@ -29,7 +29,27 @@ public abstract class ThemeBundle {
     public abstract int panelColor();
 
     public int textColor() {
-        return 0xFFFFFFFF;
+        return ItemTheme.DEFAULT_TEXT;
+    }
+
+    public int textMutedColor() {
+        return ItemTheme.DEFAULT_TEXT_MUTED;
+    }
+
+    public int borderColor() {
+        return accentColor();
+    }
+
+    public int successColor() {
+        return ItemTheme.DEFAULT_SUCCESS;
+    }
+
+    public int warningColor() {
+        return ItemTheme.DEFAULT_WARNING;
+    }
+
+    public int errorColor() {
+        return ItemTheme.DEFAULT_ERROR;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -97,7 +117,7 @@ public abstract class ThemeBundle {
     }
 
     public int separatorColor() {
-        return (accentColor() & 0x00FFFFFF) | 0x55000000;
+        return (borderColor() & 0x00FFFFFF) | 0x55000000;
     }
 
     public void applyTo(ItemTheme theme) {
@@ -105,6 +125,11 @@ public abstract class ThemeBundle {
         theme.bgColor = bgColor();
         theme.panelColor = panelColor();
         theme.textColor = textColor();
+        theme.textMutedColor = textMutedColor();
+        theme.borderColor = borderColor();
+        theme.successColor = successColor();
+        theme.warningColor = warningColor();
+        theme.errorColor = errorColor();
         theme.uiStyle = ItemTheme.UiStyle.BUNDLE;
         theme.bundleId = id();
         ResourceLocation wp = builtinWallpaper();
@@ -130,7 +155,7 @@ public abstract class ThemeBundle {
                 : new ColorRectTexture(panelColor());
         return new GuiTextureGroup(
                 base,
-                new ColorBorderTexture(1, accentColor())
+                new ColorBorderTexture(1, borderColor())
         );
     }
 
@@ -182,14 +207,14 @@ public abstract class ThemeBundle {
         if (t != null) return t;
         return new GuiTextureGroup(
                 new ColorRectTexture(panelColor()),
-                new ColorBorderTexture(1, accentColor())
+                new ColorBorderTexture(1, borderColor())
         );
     }
 
     @OnlyIn(Dist.CLIENT)
     public final IGuiTexture resolvedBorder() {
         IGuiTexture t = borderTexture();
-        return t != null ? t : new ColorBorderTexture(1, accentColor());
+        return t != null ? t : new ColorBorderTexture(1, borderColor());
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -201,7 +226,7 @@ public abstract class ThemeBundle {
                 : new ColorRectTexture(panelColor());
         IGuiTexture rim = (border != null)
                 ? border
-                : new ColorBorderTexture(1, accentColor());
+                : new ColorBorderTexture(1, borderColor());
         return new GuiTextureGroup(base, rim);
     }
 }

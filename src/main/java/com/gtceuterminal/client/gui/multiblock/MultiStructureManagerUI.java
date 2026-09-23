@@ -37,7 +37,10 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class MultiStructureManagerUI {
 
-    private static final int TAB_H = 24;
+    private static final int TITLE_Y = 2;
+    private static final int TITLE_H = 30;
+    private static final int BODY_Y = TITLE_Y + TITLE_H - 1;
+    private static final int BODY_H = 456;
     private static final int CARD_INSET = 2;
     private static final int LEFT_W = 210;
     private static final int DIVIDER_W = 1;
@@ -97,22 +100,22 @@ public class MultiStructureManagerUI {
 
     public ModularUI createUI() {
         GUI_W = 640;
-        GUI_H = 460;
+        GUI_H = BODY_Y + BODY_H + 2;
 
         WidgetGroup main = new WidgetGroup(0, 0, GUI_W, GUI_H);
         this.rootGroup = main;
-        main.setBackground(new ColorRectTexture(0x00000000));
+        main.setBackground(new ColorRectTexture(Palette.CLEAR));
 
         if (!theme.isNativeStyle()) {
-            main.addWidget(new WallpaperWidget(0, 0, GUI_W, GUI_H, () -> this.theme));
+            main.addWidget(new WallpaperWidget(2, BODY_Y, GUI_W - 4, BODY_H, () -> this.theme));
         }
 
+        main.addWidget(buildTitleCard());
         main.addWidget(buildBodyCard());
-        addThemeButton(main);
 
         this.gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(main);
-        gui.background(theme.modularUIBackground());
+        gui.background(new ColorRectTexture(Palette.CLEAR));
 
         setupParade();
         return gui;
@@ -132,24 +135,20 @@ public class MultiStructureManagerUI {
     }
 
     private WidgetGroup buildBodyCard() {
-        WidgetGroup card = new WidgetGroup(2, 2, GUI_W - 4, GUI_H - 4);
+        WidgetGroup card = new WidgetGroup(2, BODY_Y, GUI_W - 4, BODY_H);
         card.setBackground(TerminalUI.cardBg());
         this.bodyGroup = card;
 
         int innerW = (GUI_W - 4) - CARD_INSET * 2;
-        int innerH = (GUI_H - 4) - CARD_INSET * 2;
+        int innerH = BODY_H - CARD_INSET * 2;
         this.bodyH = innerH;
         this.rightX = CARD_INSET + LEFT_W + DIVIDER_W;
         this.rightW = innerW - LEFT_W - DIVIDER_W;
 
-        card.addWidget(buildHeaderTab());
-
-        int listY = CARD_INSET + TAB_H;
-        int listH = innerH - TAB_H;
         DraggableScrollableWidgetGroup[] scrollRef = new DraggableScrollableWidgetGroup[1];
         WidgetGroup[] footerRef = new WidgetGroup[1];
         WidgetGroup leftPanel = MultiblockListPanel.build(
-                CARD_INSET, listY, LEFT_W, listH,
+                CARD_INSET, CARD_INSET, LEFT_W, innerH,
                 selectedIndex, multiblocks,
                 this::onEntryClicked,
                 this::onHighlight,
@@ -170,51 +169,66 @@ public class MultiStructureManagerUI {
         return card;
     }
 
-    private WidgetGroup buildHeaderTab() {
+    private WidgetGroup buildTitleCard() {
         Font font = Minecraft.getInstance().font;
         ItemStack terminalRef = terminalItem.isEmpty() ? player.getMainHandItem() : terminalItem;
-        String title = Component.translatable("gui.gtceuterminal.multiblock_manager.nearby_title",
+        String itemName = terminalRef.getHoverName().getString();
+        String toolName = Component.translatable("gui.gtceuterminal.multiblock_manager.nearby_title",
                 multiblocks.size()).getString();
 
-        int iconSize = 16, padL = 5, gapIcon = 5, padR = 10;
-        int tabW = padL + iconSize + gapIcon + font.width(title) + padR;
-        int iconY = (TAB_H - iconSize) / 2;
+        int iconSize = 20;
+        int buttonSize = 20;
+        int padL = 6;
+        int padR = 6;
+        int itemX = padL + iconSize + 6;
+        int desiredW = itemX + font.width(itemName) + 18 + font.width(toolName)
+                + 8 + buttonSize + padR;
+        int cardW = Math.min(GUI_W - 4, Math.max(360, desiredW));
+        int buttonX = cardW - padR - buttonSize;
+        int toolX = buttonX - 8 - font.width(toolName);
+        int labelY = (TITLE_H - 8) / 2;
+        int iconY = (TITLE_H - iconSize) / 2;
 
-        WidgetGroup tab = new WidgetGroup(CARD_INSET, CARD_INSET, tabW, TAB_H);
-        tab.setBackground(new Bevel3DTexture(TerminalUI.tokens().panel()));
+        WidgetGroup card = new WidgetGroup(2, TITLE_Y, cardW, TITLE_H);
+        card.setBackground(new Bevel3DTexture(TerminalUI.tokens().panel()));
 
         boolean placedBundleIcon = false;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
                     com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
             if (bundle != null && bundle.iconTexture() != null) {
-                tab.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundle.iconTexture()));
+                card.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundle.iconTexture()));
                 placedBundleIcon = true;
             }
         }
         if (!placedBundleIcon) {
-            tab.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, terminalRef,
-                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
-                    theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF)));
+            card.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, terminalRef,
+                    theme.isNativeStyle() ? Palette.N4 : theme.accent(0x55),
+                    theme.isNativeStyle() ? Palette.N8 : theme.accent(0xFF)));
         }
 
-        LabelWidget titleLbl = new LabelWidget(padL + iconSize + gapIcon, (TAB_H - 8) / 2, title);
-        titleLbl.setTextColor(theme.isBundleStyle() ? theme.labelColor() : Palette.N13);
-        tab.addWidget(titleLbl);
-        return tab;
-    }
+        int itemMaxWidth = Math.max(0, toolX - 18 - itemX);
+        if (font.width(itemName) > itemMaxWidth) {
+            String ellipsis = "…";
+            itemName = font.substrByWidth(Component.literal(itemName),
+                    Math.max(0, itemMaxWidth - font.width(ellipsis))).getString() + ellipsis;
+        }
 
-    private void addThemeButton(WidgetGroup parent) {
-        ItemStack terminalRef = terminalItem.isEmpty() ? player.getMainHandItem() : terminalItem;
-        int size = 18;
-        int x = GUI_W - 2 - CARD_INSET - 4 - size;
-        int y = 2 + CARD_INSET + 3;
+        LabelWidget itemLabel = new LabelWidget(itemX, labelY, itemName);
+        itemLabel.setColor(theme.isBundleStyle() ? theme.labelColor() : Palette.N13);
+        card.addWidget(itemLabel);
 
-        ButtonWidget themeBtn = TerminalButton.icon3d(x, y, size, GLYPH_THEME,
+        LabelWidget toolLabel = new LabelWidget(toolX, labelY, toolName);
+        toolLabel.setColor(TerminalUI.tokens().textMuted());
+        card.addWidget(toolLabel);
+
+        ButtonWidget themeBtn = TerminalButton.icon3d(buttonX, (TITLE_H - buttonSize) / 2,
+                buttonSize, GLYPH_THEME,
                 cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalRef)));
         themeBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        parent.addWidget(themeBtn);
+        card.addWidget(themeBtn);
+        return card;
     }
 
     private MultiblockInfo getSelectedMultiblock() {
@@ -278,7 +292,7 @@ public class MultiStructureManagerUI {
     private void repopulateList() {
         if (listScroll == null) return;
         MultiblockListPanel.repopulate(listScroll, multiblocks, selectedIndex,
-                LEFT_W - 14,
+                LEFT_W,
                 this::onEntryClicked);
     }
 

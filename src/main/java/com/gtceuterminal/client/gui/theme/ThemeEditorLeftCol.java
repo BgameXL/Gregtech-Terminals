@@ -1,5 +1,10 @@
 package com.gtceuterminal.client.gui.theme;
 
+import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ThemePreset;
 import com.gtceuterminal.common.theme.bundle.ThemeBundle;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
@@ -8,8 +13,11 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.network.chat.Component;
 
@@ -25,154 +33,141 @@ final class ThemeEditorLeftCol {
 
     static final int COL_W = 190;
 
-    private static final int C_BG = 0xFF111111;
-    private static final int C_BORDER = 0xFF3A3A3A;
-    private static final int C_PANEL = 0xFF272727;
-    private static final int C_HOVER = 0x33FFFFFF;
-    private static final int C_SEL_BG = 0xFF1A0A2A;
+    private static final int PAD = 6;
+    private static final int PRESET_H = 16;
+    private static final int CARD_H = 36;
+    private static final int CARD_GAP = 4;
 
     private ThemeEditorLeftCol() {
     }
 
-    static WidgetGroup build(
+    static WidgetGroup buildColorPresets(
+            int x, int y, int colH,
+            Consumer<ThemePreset> onPreset
+    ) {
+        TerminalTheme tokens = TerminalUI.tokens();
+        WidgetGroup col = new WidgetGroup(x, y, COL_W, colH);
+        col.setBackground(new Bevel3DTexture(tokens.surface()));
+
+        LabelWidget title = new LabelWidget(PAD, 8,
+                Component.translatable("gui.gtceuterminal.theme_editor.color_presets").getString());
+        title.setTextColor(tokens.textMuted());
+        col.addWidget(title);
+
+        int curX = PAD;
+        int curY = 24;
+        for (ThemePreset preset : ThemePreset.values()) {
+            int btnW = Math.max(42, preset.label.length() * 5 + 12);
+            if (curX + btnW > COL_W - PAD && curX > PAD) {
+                curX = PAD;
+                curY += PRESET_H + 4;
+            }
+            int fill = blend(preset.bgColor, tokens.panel(), 0.35f);
+            col.addWidget(TerminalButton.text3d(curX, curY, btnW, PRESET_H,
+                    presetLabel(preset), fill, cd -> onPreset.accept(preset)));
+            curX += btnW + 4;
+        }
+
+        LabelWidget hint = new LabelWidget(PAD, curY + PRESET_H + 12,
+                Component.translatable("gui.gtceuterminal.theme_editor.presets_hint").getString());
+        hint.setTextColor(tokens.textFaint());
+        col.addWidget(hint);
+        return col;
+    }
+
+    static WidgetGroup buildBundles(
             int x, int y, int colH,
             String activeBundleId,
-            Consumer<ThemePreset> onPreset,
             Consumer<ThemeBundle> onBundleSelect,
             ImageWidget[] bundleCardBgs
     ) {
+        TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, COL_W, colH);
-        col.setBackground(new ColorRectTexture(C_BG));
+        col.setBackground(new Bevel3DTexture(tokens.surface()));
 
-        int cy = 6;
+        LabelWidget title = new LabelWidget(PAD, 8,
+                Component.translatable("gui.gtceuterminal.theme_editor.bundle_themes").getString());
+        title.setTextColor(tokens.textMuted());
+        col.addWidget(title);
 
-        col.addWidget(new LabelWidget(6, cy,
-                Component.translatable("gui.gtceuterminal.theme_editor.color_presets").getString()));
-        cy += 12;
-
-        ThemePreset[] presets = ThemePreset.values();
-        int btnH = 14, hGap = 3, vGap = 3;
-        int curX = 6, curRowY = cy;
-
-        for (ThemePreset p : presets) {
-            int btnW = Math.max(34, p.label.length() * 5 + 10);
-            if (curX + btnW > COL_W - 6 && curX > 6) {
-                curX = 6;
-                curRowY += btnH + vGap;
-            }
-            final ThemePreset preset = p;
-            int[] pCols = presetColors(p);
-
-            col.addWidget(new ImageWidget(curX, curRowY, btnW, btnH,
-                    new GuiTextureGroup(new ColorRectTexture(pCols[0]),
-                            new ColorBorderTexture(1, pCols[1]))));
-
-            ButtonWidget btn = new ButtonWidget(curX, curRowY, btnW, btnH,
-                    new ColorRectTexture(0x00000000), cd -> onPreset.accept(preset));
-            btn.setButtonTexture(new TextTexture(presetLabel(p))
-                    .setWidth(btnW).setType(TextTexture.TextType.NORMAL));
-            btn.setHoverTexture(new ColorRectTexture(C_HOVER));
-            col.addWidget(btn);
-
-            curX += btnW + hGap;
-        }
-        cy = curRowY + btnH + 8;
-
-        col.addWidget(new ImageWidget(6, cy, COL_W - 12, 1, new ColorRectTexture(C_BORDER)));
-        cy += 6;
-
-        col.addWidget(new LabelWidget(6, cy,
-                Component.translatable("gui.gtceuterminal.theme_editor.bundle_themes").getString()));
-        cy += 12;
-
-        List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
-                .filter(ThemeBundle::isAvailable)
-                .collect(Collectors.toList());
-
-        if (bundleCardBgs.length < bundles.size())
+        List<ThemeBundle> bundles = availableBundles();
+        if (bundleCardBgs.length < bundles.size()) {
             throw new IllegalArgumentException("bundleCardBgs must be at least " + bundles.size());
+        }
 
-        int cardH = 32, cardGap = 3;
-        int totalCardsH = bundles.isEmpty() ? 20 : bundles.size() * (cardH + cardGap);
-        int scrollH = colH - cy - 4;
-
-        DraggableScrollableWidgetGroup bundleScroll =
-                new DraggableScrollableWidgetGroup(0, cy, COL_W, scrollH);
-        bundleScroll.setYScrollBarWidth(4);
-        bundleScroll.setYBarStyle(new ColorRectTexture(0xFF111111), new ColorRectTexture(C_BORDER));
-
-        WidgetGroup bundleList = new WidgetGroup(0, 0, COL_W, Math.max(totalCardsH, scrollH));
+        int scrollY = 24;
+        DraggableScrollableWidgetGroup scroll =
+                new DraggableScrollableWidgetGroup(PAD, scrollY, COL_W - PAD * 2, colH - scrollY - PAD);
+        scroll.setYScrollBarWidth(0);
 
         for (int i = 0; i < bundles.size(); i++) {
-            final ThemeBundle bundle = bundles.get(i);
-            boolean sel = bundle.id().equals(activeBundleId);
-            int cardY = i * (cardH + cardGap);
+            ThemeBundle bundle = bundles.get(i);
+            int cardY = 1 + i * (CARD_H + CARD_GAP);
+            int cardW = scroll.getSizeWidth() - 2;
+            boolean selected = bundle.id().equals(activeBundleId);
 
-            ImageWidget cardBg = new ImageWidget(6, cardY, COL_W - 10, cardH,
-                    new GuiTextureGroup(
-                            new ColorRectTexture(sel ? C_SEL_BG : C_PANEL),
-                            new ColorBorderTexture(1, sel ? bundle.accentColor() : C_BORDER)));
+            ImageWidget cardBg = new ImageWidget(1, cardY, cardW, CARD_H,
+                    bundleCardTexture(bundle, selected));
             bundleCardBgs[i] = cardBg;
-            bundleList.addWidget(cardBg);
+            scroll.addWidget(cardBg);
 
             IGuiTexture icon = bundle.iconTexture();
-            GuiTextureGroup iconTex = (icon != null)
-                    ? new GuiTextureGroup(
-                    new ColorRectTexture(bundle.bgColor() | 0xFF000000),
-                    icon,
-                    new ColorBorderTexture(1, 0xAA000000))
-                    : new GuiTextureGroup(
-                    new ColorRectTexture(bundle.accentColor() | 0xFF000000),
-                    new ColorBorderTexture(1, 0xAA000000));
-            int iconSz = 24;
-            bundleList.addWidget(new ImageWidget(8, cardY + (cardH - iconSz) / 2, iconSz, iconSz, iconTex));
+            IGuiTexture iconTexture = icon != null
+                    ? new GuiTextureGroup(new ColorRectTexture(bundle.bgColor()), icon,
+                    new ColorBorderTexture(1, Palette.withAlpha(tokens.borderDark(), 0xAA)))
+                    : new GuiTextureGroup(new ColorRectTexture(bundle.accentColor()),
+                    new ColorBorderTexture(1, tokens.borderDark()));
+            scroll.addWidget(new ImageWidget(7, cardY + 6, 24, 24, iconTexture));
 
-            bundleList.addWidget(new LabelWidget(8 + iconSz + 6, cardY + (cardH - 8) / 2,
-                    "§f" + bundle.displayName()));
+            LabelWidget name = new LabelWidget(38, cardY + 14, bundle.displayName());
+            name.setTextColor(tokens.textStrong());
+            scroll.addWidget(name);
 
-            ButtonWidget btn = new ButtonWidget(6, cardY, COL_W - 10, cardH,
-                    new ColorRectTexture(0x00000000), cd -> onBundleSelect.accept(bundle));
-            btn.setHoverTexture(new ColorRectTexture(C_HOVER));
-            btn.setHoverTooltips(
+            ButtonWidget button = new ButtonWidget(1, cardY, cardW, CARD_H,
+                    new ColorRectTexture(Palette.CLEAR), cd -> onBundleSelect.accept(bundle));
+            button.setHoverTexture(new ColorRectTexture(tokens.hover()));
+            button.setHoverTooltips(
                     Component.literal("§e" + bundle.displayName()),
                     Component.literal(bundle.description()),
                     Component.translatable("gui.gtceuterminal.theme_editor.click_to_apply"));
-            bundleList.addWidget(btn);
+            scroll.addWidget(button);
         }
 
-        if (bundles.isEmpty())
-            bundleList.addWidget(new LabelWidget(6, 0,
-                    Component.translatable("gui.gtceuterminal.theme_editor.no_modpack_themes").getString()));
+        if (bundles.isEmpty()) {
+            LabelWidget empty = new LabelWidget(4, 4,
+                    Component.translatable("gui.gtceuterminal.theme_editor.no_modpack_themes").getString());
+            empty.setTextColor(tokens.textFaint());
+            scroll.addWidget(empty);
+        }
 
-        bundleScroll.addWidget(bundleList);
-        col.addWidget(bundleScroll);
-
+        col.addWidget(scroll);
         return col;
     }
 
     static void refreshBundleCards(ImageWidget[] cardBgRefs, String activeBundleId) {
         if (cardBgRefs == null) return;
-        List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
-                .filter(ThemeBundle::isAvailable)
-                .collect(Collectors.toList());
+        List<ThemeBundle> bundles = availableBundles();
         for (int i = 0; i < cardBgRefs.length && i < bundles.size(); i++) {
             if (cardBgRefs[i] == null) continue;
-            ThemeBundle b = bundles.get(i);
-            boolean sel = b.id().equals(activeBundleId);
-            cardBgRefs[i].setImage(new GuiTextureGroup(
-                    new ColorRectTexture(sel ? C_SEL_BG : C_PANEL),
-                    new ColorBorderTexture(1, sel ? b.accentColor() : C_BORDER)));
+            ThemeBundle bundle = bundles.get(i);
+            cardBgRefs[i].setImage(bundleCardTexture(bundle, bundle.id().equals(activeBundleId)));
         }
     }
 
-    private static int[] presetColors(ThemePreset p) {
-        int darkBg = blend(p.bgColor, 0xFF111111, 0.5f);
-        int border = (p.accentColor & 0x00FFFFFF) | 0xAA000000;
-        return new int[]{darkBg, border};
+    private static List<ThemeBundle> availableBundles() {
+        return ThemeBundleRegistry.all().stream()
+                .filter(ThemeBundle::isAvailable)
+                .collect(Collectors.toList());
     }
 
-    private static String presetLabel(ThemePreset p) {
-        return switch (p) {
+    private static IGuiTexture bundleCardTexture(ThemeBundle bundle, boolean selected) {
+        TerminalTheme tokens = TerminalUI.tokens();
+        int fill = selected ? Palette.withAlpha(bundle.accentColor(), 0x66) : tokens.panel();
+        return new Bevel3DTexture(fill);
+    }
+
+    private static String presetLabel(ThemePreset preset) {
+        return switch (preset) {
             case DEFAULT -> "§fDefault";
             case GTCEU_RED -> "§cRed";
             case MATRIX -> "§aMatrix";

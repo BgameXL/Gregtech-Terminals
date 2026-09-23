@@ -9,6 +9,7 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
@@ -43,32 +44,22 @@ final class MultiblockListPanel {
             DraggableScrollableWidgetGroup[] scrollRef
     ) {
         TerminalTheme t = TerminalUI.tokens();
-        int colorBgDark = t.surface(), colorBgMedium = t.panel(), colorBgLight = t.accentSoft();
-        int colorBorderDark = t.borderDark(), colorBorderLight = t.border();
-        int colorTextGray = t.textMuted(), colorHover = t.hover();
-
         int listH = panelH - FOOTER_H - 1;
-        int scrollW = panelW - 10;
+        int scrollW = panelW;
 
         WidgetGroup panel = new WidgetGroup(panelX, panelY, panelW, listH);
-        panel.setBackground(new ColorRectTexture(colorBgDark));
+        panel.setBackground(new ColorRectTexture(t.surface()));
 
         DraggableScrollableWidgetGroup scroll =
                 new DraggableScrollableWidgetGroup(0, 0, scrollW, listH);
-        scroll.setYScrollBarWidth(8);
-        scroll.setYBarStyle(
-                new ColorRectTexture(colorBorderDark),
-                new ColorRectTexture(colorBorderLight));
+        scroll.setYScrollBarWidth(0);
         scrollRef[0] = scroll;
 
-        populateScroll(scroll, multiblocks, selectedIndex,
-                scrollW - 4, colorBgMedium, colorBgLight, colorTextGray, colorHover,
-                onEntryClick);
+        populateScroll(scroll, multiblocks, selectedIndex, scrollW, t, onEntryClick);
 
         panel.addWidget(scroll);
 
-        footerRef[0] = buildFooter(panelX, panelY + listH, panelW,
-                colorBorderDark, colorTextGray, colorHover,
+        footerRef[0] = buildFooter(panelX, panelY + listH, panelW, t,
                 getSelected, onHighlight, onRename);
 
         return panel;
@@ -82,12 +73,8 @@ final class MultiblockListPanel {
             Consumer<Integer> onEntryClick
     ) {
         TerminalTheme t = TerminalUI.tokens();
-        int colorBgMedium = t.panel(), colorBgLight = t.accentSoft();
-        int colorTextGray = t.textMuted(), colorHover = t.hover();
         scroll.clearAllWidgets();
-        populateScroll(scroll, multiblocks, selectedIndex,
-                scrollW, colorBgMedium, colorBgLight, colorTextGray, colorHover,
-                onEntryClick);
+        populateScroll(scroll, multiblocks, selectedIndex, scrollW, t, onEntryClick);
     }
 
     private static void populateScroll(
@@ -95,14 +82,13 @@ final class MultiblockListPanel {
             List<MultiblockInfo> multiblocks,
             int selectedIndex,
             int entryW,
-            int colorBgMedium, int colorBgLight,
-            int colorTextGray, int colorHover,
+            TerminalTheme t,
             Consumer<Integer> onEntryClick
     ) {
         if (multiblocks.isEmpty()) {
             LabelWidget empty = new LabelWidget(10, 12,
                     Component.translatable("gui.gtceuterminal.multiblock_manager.none_found").getString());
-            empty.setTextColor(colorTextGray);
+            empty.setTextColor(t.textMuted());
             scroll.addWidget(empty);
             return;
         }
@@ -110,9 +96,7 @@ final class MultiblockListPanel {
         for (int i = 0; i < multiblocks.size(); i++) {
             final int idx = i;
             scroll.addWidget(buildEntry(multiblocks.get(i), idx, y, entryW,
-                    idx == selectedIndex, colorBgMedium, colorBgLight, colorTextGray, colorHover,
-                    scroll,
-                    onEntryClick));
+                    idx == selectedIndex, t, scroll, onEntryClick));
             y += ENTRY_STEP;
         }
     }
@@ -120,22 +104,22 @@ final class MultiblockListPanel {
     private static WidgetGroup buildEntry(
             MultiblockInfo mb, int index, int yPos, int entryW,
             boolean selected,
-            int colorBgMedium, int colorBgLight,
-            int colorTextGray, int colorHover,
+            TerminalTheme t,
             DraggableScrollableWidgetGroup viewport,
             Consumer<Integer> onEntryClick
     ) {
-        WidgetGroup entry = new WidgetGroup(0, yPos, entryW, ENTRY_H);
+        int rowW = entryW - 2;
+        WidgetGroup entry = new WidgetGroup(1, yPos, rowW, ENTRY_H);
 
-        int bg = selected ? colorBgLight : colorBgMedium;
-        int leftBarColor = selected ? 0xFF4CAF50 : 0x00000000;
+        int bg = selected ? t.accentSoft() : t.panel();
+        int borderColor = selected ? t.border() : Palette.CLEAR;
         entry.setBackground(new GuiTextureGroup(
                 new ColorRectTexture(bg),
-                new ColorBorderTexture(2, leftBarColor)));
+                new ColorBorderTexture(1, borderColor)));
 
         // Clickable area (full entry minus buttons)
         ButtonWidget clickBtn = new ViewportClippedButtonWidget(
-                0, 0, entryW, ENTRY_H, colorHover, viewport, cd -> onEntryClick.accept(index));
+                0, 0, rowW, ENTRY_H, t.hover(), viewport, cd -> onEntryClick.accept(index));
         entry.addWidget(clickBtn);
 
         // Name line
@@ -148,7 +132,7 @@ final class MultiblockListPanel {
         String sub = "§" + statusColorCode(status) + status.getDisplayName().toLowerCase()
                 + " §8" + mb.getTierName() + " · " + mb.getDistanceString();
         LabelWidget subLabel = new LabelWidget(8, 21, sub);
-        subLabel.setTextColor(colorTextGray);
+        subLabel.setTextColor(t.textMuted());
         entry.addWidget(subLabel);
 
         return entry;
@@ -156,13 +140,13 @@ final class MultiblockListPanel {
 
     private static WidgetGroup buildFooter(
             int x, int y, int panelW,
-            int colorBorderDark, int colorTextGray, int colorHover,
+            TerminalTheme t,
             Supplier<MultiblockInfo> getSelected,
             Consumer<MultiblockInfo> onHighlight,
             Consumer<MultiblockInfo> onRename
     ) {
         WidgetGroup footer = new WidgetGroup(x, y, panelW, FOOTER_H);
-        footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(colorBorderDark)));
+        footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(t.borderDark())));
 
         ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "§eHighlight",
                 cd -> {
@@ -231,7 +215,7 @@ final class MultiblockListPanel {
                 DraggableScrollableWidgetGroup viewport,
                 Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action
         ) {
-            super(x, y, w, h, new ColorRectTexture(0x00000000), action);
+            super(x, y, w, h, new ColorRectTexture(Palette.CLEAR), action);
             this.viewport = viewport;
             setHoverTexture(new ColorRectTexture(hoverColor));
         }

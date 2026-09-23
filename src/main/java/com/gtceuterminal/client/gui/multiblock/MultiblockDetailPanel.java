@@ -28,7 +28,6 @@ import java.util.function.BiConsumer;
 final class MultiblockDetailPanel {
 
     private static final int DETAIL_HEADER_H = 38;
-    private static final int FOOTER_H = 22;
     private static final int ENTRY_H = 36;
     private static final int ENTRY_GAP = 4;
 
@@ -41,7 +40,7 @@ final class MultiblockDetailPanel {
         panel.setBackground(new ColorRectTexture(t.surface()));
 
         LabelWidget hint = new LabelWidget(w / 2 - 60, h / 2 - 6,
-                "§8Select a multiblock");
+                "Select a multiblock");
         hint.setTextColor(t.textMuted());
         panel.addWidget(hint);
         return panel;
@@ -55,35 +54,28 @@ final class MultiblockDetailPanel {
             BiConsumer<ComponentInfoGroup, MultiblockInfo> onUpgrade
     ) {
         TerminalTheme t = TerminalUI.tokens();
-        int colorBgDark = t.surface(), colorBgMedium = t.panel(), colorBgLight = t.accentSoft();
-        int colorBorderDark = t.borderDark(), colorBorderLight = t.border();
-        int colorTextGray = t.textMuted(), colorHover = t.hover();
-
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new ColorRectTexture(colorBgDark));
+        panel.setBackground(new ColorRectTexture(t.surface()));
 
-        panel.addWidget(buildDetailHeader(w, mb, colorBgMedium, colorTextGray));
+        panel.addWidget(buildDetailHeader(w, mb, t));
 
         int listY = DETAIL_HEADER_H + 1;
-        int listH = h - listY - FOOTER_H - 1;
+        int listH = h - listY;
         BiConsumer<ComponentInfoGroup, MultiblockInfo> upgradeHandler =
                 mb.getStatus() == MultiblockStatus.UNFORMED ? null : onUpgrade;
-        panel.addWidget(buildGroupList(0, listY, w, listH, mb,
-                colorBgDark, colorBgMedium, colorBgLight, colorBorderDark, colorBorderLight,
-                colorTextGray, colorHover, upgradeHandler));
-
-        panel.addWidget(buildDetailFooter(w, h, colorBorderDark, colorTextGray));
+        panel.addWidget(buildGroupList(0, listY, w, listH, mb, t, upgradeHandler));
 
         return panel;
     }
 
-    private static WidgetGroup buildDetailHeader(int w, MultiblockInfo mb,
-                                                 int colorBgMedium, int colorTextGray) {
+    private static WidgetGroup buildDetailHeader(int w, MultiblockInfo mb, TerminalTheme t) {
         WidgetGroup header = new WidgetGroup(0, 0, w, DETAIL_HEADER_H);
-        header.setBackground(new ColorRectTexture(colorBgMedium));
+        header.setBackground(new ColorRectTexture(t.panel()));
 
         String displayName = resolveDisplayName(mb);
-        header.addWidget(new LabelWidget(10, 8, "§f" + truncate(displayName, 32)));
+        LabelWidget name = new LabelWidget(10, 8, truncate(displayName, 32));
+        name.setTextColor(t.textStrong());
+        header.addWidget(name);
 
         MultiblockStatus status = mb.getStatus();
         String statusStr = "§" + statusColorCode(status) + status.getDisplayName().toLowerCase();
@@ -92,7 +84,7 @@ final class MultiblockDetailPanel {
                 + " §7· " + mb.getComponents().size() + " components"
                 + " · " + mb.getDistanceString() + " away";
         LabelWidget metaLabel = new LabelWidget(10, 22, meta);
-        metaLabel.setTextColor(colorTextGray);
+        metaLabel.setTextColor(t.textMuted());
         header.addWidget(metaLabel);
 
         return header;
@@ -101,35 +93,28 @@ final class MultiblockDetailPanel {
     private static WidgetGroup buildGroupList(
             int x, int y, int w, int h,
             MultiblockInfo mb,
-            int colorBgDark, int colorBgMedium, int colorBgLight,
-            int colorBorderDark, int colorBorderLight,
-            int colorTextGray, int colorHover,
+            TerminalTheme t,
             BiConsumer<ComponentInfoGroup, MultiblockInfo> onUpgrade
     ) {
         WidgetGroup listPanel = new WidgetGroup(x, y, w, h);
-        listPanel.setBackground(new ColorRectTexture(colorBgDark));
+        listPanel.setBackground(new ColorRectTexture(t.surface()));
 
-        int scrollW = w - 10;
+        int scrollW = w;
         DraggableScrollableWidgetGroup scroll =
                 new DraggableScrollableWidgetGroup(0, 0, scrollW, h);
-        scroll.setYScrollBarWidth(8);
-        scroll.setYBarStyle(
-                new ColorRectTexture(colorBorderDark),
-                new ColorRectTexture(colorBorderLight));
+        scroll.setYScrollBarWidth(0);
 
         List<ComponentInfoGroup> groups = mb.getGroupedComponents();
         int yPos = 2;
         for (ComponentInfoGroup group : groups) {
-            scroll.addWidget(buildGroupEntry(group, mb, yPos, scrollW - 4,
-                    colorBgMedium, colorBgLight, colorBorderDark, colorBorderLight,
-                    colorTextGray, colorHover, onUpgrade));
+            scroll.addWidget(buildGroupEntry(group, mb, yPos, scrollW - 2, t, onUpgrade));
             yPos += ENTRY_H + ENTRY_GAP;
         }
 
         if (groups.isEmpty()) {
             LabelWidget empty = new LabelWidget(10, 10,
                     Component.translatable("gui.gtceuterminal.component_detail.no_upgradeable").getString());
-            empty.setTextColor(colorTextGray);
+            empty.setTextColor(t.textMuted());
             scroll.addWidget(empty);
         }
 
@@ -141,23 +126,22 @@ final class MultiblockDetailPanel {
             ComponentInfoGroup group,
             MultiblockInfo mb,
             int yPos, int entryW,
-            int colorBgMedium, int colorBgLight,
-            int colorBorderDark, int colorBorderLight,
-            int colorTextGray, int colorHover,
+            TerminalTheme t,
             BiConsumer<ComponentInfoGroup, MultiblockInfo> onUpgrade
     ) {
-        WidgetGroup entry = new WidgetGroup(0, yPos, entryW, ENTRY_H);
+        WidgetGroup entry = new WidgetGroup(1, yPos, entryW, ENTRY_H);
 
         ComponentInfo rep = group.getRepresentative();
         boolean upgradeable = rep != null
                 && (rep.getGroup().isUpgradeable || !rep.getPossibleUpgradeTiers().isEmpty());
 
         entry.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(upgradeable ? colorBgMedium : 0xFF1C1C1C),
-                new ColorBorderTexture(1, upgradeable ? colorBorderLight : 0xFF272727)));
+                new ColorRectTexture(upgradeable ? t.panel() : t.panelDisabled()),
+                new ColorBorderTexture(1, upgradeable ? t.border() : t.borderSubtle())));
 
         if (upgradeable && onUpgrade != null) {
-            ButtonWidget clickArea = TerminalButton.entry(0, 0, entryW, ENTRY_H, colorHover, cd -> onUpgrade.accept(group, mb));
+            ButtonWidget clickArea = TerminalButton.entry(0, 0, entryW, ENTRY_H,
+                    t.hover(), cd -> onUpgrade.accept(group, mb));
             entry.addWidget(clickArea);
         }
 
@@ -168,9 +152,8 @@ final class MultiblockDetailPanel {
 
         // Group name
         String groupName = group.getGroup().displayName;
-        LabelWidget nameLabel = new LabelWidget(22, 8,
-                (upgradeable ? "§f" : "§8") + groupName);
-        nameLabel.setTextColor(upgradeable ? 0xFFFFFFFF : 0xFF888888);
+        LabelWidget nameLabel = new LabelWidget(22, 8, groupName);
+        nameLabel.setTextColor(upgradeable ? t.textStrong() : t.textFaint());
         entry.addWidget(nameLabel);
 
         // Sub: tier · count
@@ -178,43 +161,19 @@ final class MultiblockDetailPanel {
             String blockSub = stripLeadingTier(formatBlockSubtype(group.getBlockName()), rep.getTierName());
             String sub = (blockSub.isEmpty() ? rep.getTierName() : rep.getTierName() + " " + blockSub)
                     + " · ×" + group.getCount();
-            LabelWidget subLabel = new LabelWidget(22, 21, "§7" + sub);
-            subLabel.setTextColor(colorTextGray);
+            LabelWidget subLabel = new LabelWidget(22, 21, sub);
+            subLabel.setTextColor(t.textMuted());
             entry.addWidget(subLabel);
         }
 
-        // Badge
-        int badgeW = 62;
-        int badgeX = entryW - badgeW - 6;
-        int badgeY = (ENTRY_H - 14) / 2;
-        if (upgradeable) {
-            WidgetGroup badge = new WidgetGroup(badgeX, badgeY, badgeW, 14);
-            badge.setBackground(new GuiTextureGroup(
-                    new ColorRectTexture(0xFF1A3A1A),
-                    new ColorBorderTexture(1, 0xFF2D6B2D)));
-            badge.addWidget(new LabelWidget(4, 2,
-                    Component.translatable("gui.gtceuterminal.component_detail.upgrade_badge").getString()));
-            entry.addWidget(badge);
-        } else {
-            LabelWidget fixed = new LabelWidget(badgeX + 4, badgeY + 2,
+        if (!upgradeable) {
+            LabelWidget fixed = new LabelWidget(entryW - 58, (ENTRY_H - 10) / 2,
                     Component.translatable("gui.gtceuterminal.component_detail.fixed_badge").getString());
-            fixed.setTextColor(0xFF444444);
+            fixed.setTextColor(t.textFaint());
             entry.addWidget(fixed);
         }
 
         return entry;
-    }
-
-    private static WidgetGroup buildDetailFooter(int w, int panelH,
-                                                 int colorBorderDark, int colorTextGray) {
-        int footerY = panelH - FOOTER_H;
-        WidgetGroup footer = new WidgetGroup(0, footerY, w, FOOTER_H);
-        footer.addWidget(new ImageWidget(0, 0, w, 1, new ColorRectTexture(colorBorderDark)));
-        LabelWidget hint = new LabelWidget(8, 6,
-                Component.translatable("gui.gtceuterminal.component_detail.upgrade_hint").getString());
-        hint.setTextColor(colorTextGray);
-        footer.addWidget(hint);
-        return footer;
     }
 
     private static String resolveDisplayName(MultiblockInfo mb) {

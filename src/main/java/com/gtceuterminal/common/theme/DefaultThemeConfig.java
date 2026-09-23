@@ -66,6 +66,7 @@ public class DefaultThemeConfig {
             String json = Files.readString(file);
             JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
             cached = fromJson(obj);
+            if (needsSemanticColorMigration(obj)) save(cached);
             GTCEUTerminalMod.LOGGER.info("DefaultThemeConfig: loaded from {}", file);
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.warn(
@@ -101,6 +102,11 @@ public class DefaultThemeConfig {
         o.addProperty("bgColor", colorToHex(t.bgColor));
         o.addProperty("panelColor", colorToHex(t.panelColor));
         o.addProperty("textColor", colorToHex(t.textColor));
+        o.addProperty("textMutedColor", colorToHex(t.textMutedColor));
+        o.addProperty("borderColor", colorToHex(t.borderColor));
+        o.addProperty("successColor", colorToHex(t.successColor));
+        o.addProperty("warningColor", colorToHex(t.warningColor));
+        o.addProperty("errorColor", colorToHex(t.errorColor));
         o.addProperty("compactMode", t.compactMode);
         o.addProperty("showTooltips", t.showTooltips);
         o.addProperty("showBorders", t.showBorders);
@@ -119,6 +125,11 @@ public class DefaultThemeConfig {
         if (o.has("bgColor")) t.bgColor = hexToColor(o.get("bgColor").getAsString());
         if (o.has("panelColor")) t.panelColor = hexToColor(o.get("panelColor").getAsString());
         if (o.has("textColor")) t.textColor = hexToColor(o.get("textColor").getAsString());
+        if (o.has("textMutedColor")) t.textMutedColor = hexToColor(o.get("textMutedColor").getAsString());
+        if (o.has("borderColor")) t.borderColor = hexToColor(o.get("borderColor").getAsString());
+        if (o.has("successColor")) t.successColor = hexToColor(o.get("successColor").getAsString());
+        if (o.has("warningColor")) t.warningColor = hexToColor(o.get("warningColor").getAsString());
+        if (o.has("errorColor")) t.errorColor = hexToColor(o.get("errorColor").getAsString());
         if (o.has("compactMode")) t.compactMode = o.get("compactMode").getAsBoolean();
         if (o.has("showTooltips")) t.showTooltips = o.get("showTooltips").getAsBoolean();
         if (o.has("showBorders")) t.showBorders = o.get("showBorders").getAsBoolean();
@@ -147,6 +158,11 @@ public class DefaultThemeConfig {
             }
         }
         return t;
+    }
+
+    private static boolean needsSemanticColorMigration(JsonObject o) {
+        return !o.has("textMutedColor") || !o.has("borderColor") || !o.has("successColor")
+                || !o.has("warningColor") || !o.has("errorColor");
     }
 
     private static String colorToHex(int argb) {

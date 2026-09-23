@@ -30,6 +30,13 @@ public enum ThemePreset {
         theme.accentColor = accentColor;
         theme.bgColor = bgColor;
         theme.panelColor = panelColor;
+        theme.textColor = ItemTheme.DEFAULT_TEXT;
+        theme.textMutedColor = ItemTheme.DEFAULT_TEXT_MUTED;
+        theme.borderColor = accentColor;
+        theme.successColor = ItemTheme.DEFAULT_SUCCESS;
+        theme.warningColor = ItemTheme.DEFAULT_WARNING;
+        theme.errorColor = ItemTheme.DEFAULT_ERROR;
         theme.uiStyle = style;
+        theme.bundleId = "";
     }
 }

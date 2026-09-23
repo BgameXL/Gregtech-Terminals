@@ -39,7 +39,9 @@ public final class ClientPacketHandlers {
     }
 
     public static void handleDefaultTheme(int accentColor, int bgColor, int panelColor,
-                                          int textColor, boolean compactMode,
+                                          int textColor, int textMutedColor, int borderColor,
+                                          int successColor, int warningColor, int errorColor,
+                                          boolean compactMode,
                                           boolean showTooltips, boolean showBorders,
                                           String wallpaper) {
         ItemTheme theme = new ItemTheme();
@@ -47,6 +49,11 @@ public final class ClientPacketHandlers {
         theme.bgColor = bgColor;
         theme.panelColor = panelColor;
         theme.textColor = textColor;
+        theme.textMutedColor = textMutedColor;
+        theme.borderColor = borderColor;
+        theme.successColor = successColor;
+        theme.warningColor = warningColor;
+        theme.errorColor = errorColor;
         theme.compactMode = compactMode;
         theme.showTooltips = showTooltips;
         theme.showBorders = showBorders;

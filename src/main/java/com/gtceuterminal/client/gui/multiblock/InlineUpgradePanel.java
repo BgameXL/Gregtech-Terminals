@@ -23,6 +23,7 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
@@ -50,10 +51,6 @@ public final class InlineUpgradePanel {
     private static final int TIER_BTN_MAX_W = 44;
     private static final int TIER_BTN_H = 22;
     private static final int TIER_GAP = 2;
-
-    private static final int C_SUCCESS = 0xFF00FF00;
-    private static final int C_WHITE = 0xFFFFFFFF;
-    private static final int C_GRAY = 0xFFAAAAAA;
 
     private static final AtomicInteger AVAILABILITY_REQUEST_IDS = new AtomicInteger(1);
     private static final Map<Integer, PanelState> AVAILABILITY_LISTENERS = new ConcurrentHashMap<>();
@@ -89,7 +86,7 @@ public final class InlineUpgradePanel {
         private final Player player;
         private final ItemTheme theme;
         private final Runnable onBack;
-        private final int colorBgDark, colorBgMed, colorBgLight, colorBorder, colorHover;
+        private final TerminalTheme tokens;
 
         private com.gtceuterminal.common.upgrade.UniversalUpgradeCatalog catalog;
 
@@ -115,12 +112,7 @@ public final class InlineUpgradePanel {
             this.player = player;
             this.theme = theme;
             this.onBack = onBack;
-            TerminalTheme t = TerminalUI.tokens();
-            this.colorBgDark = t.surface();
-            this.colorBgMed = t.panel();
-            this.colorBgLight = t.accentSoft();
-            this.colorBorder = t.border();
-            this.colorHover = t.hover();
+            this.tokens = TerminalUI.tokens();
 
             if (mb.getController() instanceof MultiblockControllerMachine mmc) {
                 try {
@@ -130,7 +122,7 @@ public final class InlineUpgradePanel {
             }
 
             root = new WidgetGroup(x, y, w, h);
-            root.setBackground(new ColorRectTexture(colorBgDark));
+            root.setBackground(new ColorRectTexture(tokens.surface()));
             build();
         }
 
@@ -143,11 +135,11 @@ public final class InlineUpgradePanel {
 
         private WidgetGroup buildHeader() {
             WidgetGroup header = new WidgetGroup(0, 0, w, HEADER_H);
-            header.setBackground(new ColorRectTexture(colorBgMed));
+            header.setBackground(new ColorRectTexture(tokens.panel()));
 
             int backW = 64;
-            ButtonWidget back = TerminalButton.action(PAD, (HEADER_H - 18) / 2, backW, 18,
-                    "§7← back", colorBgDark, colorBorder, cd -> {
+            ButtonWidget back = TerminalButton.text3d(PAD, (HEADER_H - 18) / 2, backW, 18,
+                    "§7← back", tokens.surface(), cd -> {
                         cleanupAvailabilityRequest();
                         onBack.run();
                     });
@@ -155,18 +147,19 @@ public final class InlineUpgradePanel {
 
             String title = group.getGroup().displayName + "  §7×" + group.getCount();
             LabelWidget lbl = new LabelWidget(backW + PAD * 2, HEADER_H / 2 - 4, "§f" + title);
-            lbl.setTextColor(C_WHITE);
+            lbl.setTextColor(tokens.textStrong());
             header.addWidget(lbl);
 
             ComponentInfo rep = group.getRepresentative();
             if (rep != null) {
                 LabelWidget sub = new LabelWidget(backW + PAD * 2, HEADER_H / 2 + 6,
                         "§8currently " + rep.getTierName());
-                sub.setTextColor(C_GRAY);
+                sub.setTextColor(tokens.textMuted());
                 header.addWidget(sub);
             }
 
-            header.addWidget(new ImageWidget(0, HEADER_H - 1, w, 1, new ColorRectTexture(colorBorder)));
+            header.addWidget(new ImageWidget(0, HEADER_H - 1, w, 1,
+                    new ColorRectTexture(tokens.border())));
             return header;
         }
 
@@ -176,7 +169,7 @@ public final class InlineUpgradePanel {
             int optY = HEADER_H + 2;
             int optH = h - optY - FOOTER_H - 2;
             optionsPanel = new WidgetGroup(0, optY, w, optH);
-            optionsPanel.setBackground(new ColorRectTexture(colorBgDark));
+            optionsPanel.setBackground(new ColorRectTexture(tokens.surface()));
 
             ComponentInfo rep = group.getRepresentative();
             if (rep == null) {
@@ -196,7 +189,7 @@ public final class InlineUpgradePanel {
             if (special) {
                 LabelWidget lbl = new LabelWidget(PAD, 6,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.select_option").getString());
-                lbl.setTextColor(C_GRAY);
+                lbl.setTextColor(tokens.textMuted());
                 optionsPanel.addWidget(lbl);
 
                 optionsScroll = makeScroll(PAD, 20, listW, optH - 24);
@@ -213,7 +206,7 @@ public final class InlineUpgradePanel {
             } else {
                 LabelWidget tierLbl = new LabelWidget(PAD, 6,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.target_tier").getString());
-                tierLbl.setTextColor(C_GRAY);
+                tierLbl.setTextColor(tokens.textMuted());
                 optionsPanel.addWidget(tierLbl);
 
                 int tierRowH = tierRowHeight(availableTiers(rep).size(), innerW);
@@ -223,11 +216,11 @@ public final class InlineUpgradePanel {
 
                 int divY = 18 + tierRowH + 3;
                 optionsPanel.addWidget(new ImageWidget(PAD, divY, innerW, 1,
-                        new ColorRectTexture(colorBorder)));
+                        new ColorRectTexture(tokens.border())));
 
                 LabelWidget varLbl = new LabelWidget(PAD, divY + 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.variant").getString());
-                varLbl.setTextColor(C_GRAY);
+                varLbl.setTextColor(tokens.textMuted());
                 optionsPanel.addWidget(varLbl);
 
                 optionsScroll = makeScroll(PAD, divY + 16, listW, optH - divY - 20);
@@ -264,7 +257,8 @@ public final class InlineUpgradePanel {
                 int xp = (i % cols) * (btnW + TIER_GAP);
                 int yp = (i / cols) * (TIER_BTN_H + TIER_GAP);
                 boolean sel = selectedTier != null && selectedTier == tier;
-                int bg = sel ? 0x6600FF00 : colorBgLight, brd = sel ? C_SUCCESS : colorBorder;
+                int bg = sel ? tokens.accentSoft() : tokens.panel();
+                int brd = sel ? tokens.border() : tokens.borderSubtle();
                 TextTexture txt = new TextTexture("§f" + UpgradeCandidateGrid.tierName(tier))
                         .setWidth(btnW).setType(TextTexture.TextType.NORMAL);
                 final int t = tier;
@@ -272,7 +266,7 @@ public final class InlineUpgradePanel {
                         new GuiTextureGroup(new ColorRectTexture(bg), new ColorBorderTexture(1, brd), txt),
                         cd -> onTierClicked(t));
                 btn.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(bg),
-                        new ColorBorderTexture(1, C_WHITE), txt));
+                        new ColorBorderTexture(1, tokens.textStrong()), txt));
                 tierButtonsRow.addWidget(btn);
             }
         }
@@ -316,19 +310,19 @@ public final class InlineUpgradePanel {
             if (options.isEmpty()) {
                 LabelWidget empty = new LabelWidget(4, 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.no_variants").getString());
-                empty.setTextColor(C_GRAY);
+                empty.setTextColor(tokens.textMuted());
                 optionsScroll.addWidget(empty);
                 return;
             }
 
-            int rowW = optionsScroll.getSizeWidth() - 10;
+            int rowW = optionsScroll.getSizeWidth() - 2;
             int rowH = 30;
-            int y = 0;
+            int y = 1;
             for (UpgradeCandidateGrid.UpgradeOption option : options) {
                 boolean selected = selectedUpgradeId != null
                         ? option.blockId().equals(selectedUpgradeId)
                         : option.blockId().isBlank();
-                optionsScroll.addWidget(makeVariantRow(option, 0, y, rowW, rowH, selected));
+                optionsScroll.addWidget(makeVariantRow(option, 1, y, rowW, rowH, selected));
                 y += rowH + 4;
             }
         }
@@ -337,12 +331,12 @@ public final class InlineUpgradePanel {
             if (selectedTier == null) {
                 LabelWidget empty = new LabelWidget(4, 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.select_tier_above").getString());
-                empty.setTextColor(C_GRAY);
+                empty.setTextColor(tokens.textMuted());
                 optionsScroll.addWidget(empty);
                 return;
             }
 
-            int rowW = optionsScroll.getSizeWidth() - 10;
+            int rowW = optionsScroll.getSizeWidth() - 2;
             String name = ComponentUpgradeHelper.getUpgradeName(rep, selectedTier);
             if (name == null || name.isBlank()) {
                 name = UpgradeCandidateGrid.tierName(selectedTier) + " " + rep.getGroup().displayName;
@@ -350,14 +344,14 @@ public final class InlineUpgradePanel {
             boolean selected = selectedUpgradeId == null || selectedUpgradeId.isBlank();
             UpgradeCandidateGrid.UpgradeOption option =
                     new UpgradeCandidateGrid.UpgradeOption("", name, selectedTier);
-            optionsScroll.addWidget(makeVariantRow(option, 0, 0, rowW, 30, selected));
+            optionsScroll.addWidget(makeVariantRow(option, 1, 1, rowW, 30, selected));
         }
 
         private ButtonWidget makeVariantRow(UpgradeCandidateGrid.UpgradeOption option,
                                             int x, int y, int rowW, int rowH,
                                             boolean selected) {
-            int bg = selected ? 0x6600FF00 : colorBgLight;
-            int brd = selected ? C_SUCCESS : colorBorder;
+            int bg = selected ? tokens.accentSoft() : tokens.panel();
+            int brd = selected ? tokens.border() : tokens.borderSubtle();
             String name = truncate(option.displayName(), Math.max(18, rowW / 6));
             String tier = UpgradeCandidateGrid.tierName(option.tier());
             TextTexture txt = new TextTexture("§f" + name + "\n§7" + tier)
@@ -366,7 +360,7 @@ public final class InlineUpgradePanel {
                     new GuiTextureGroup(new ColorRectTexture(bg), new ColorBorderTexture(1, brd), txt),
                     cd -> selectUpgrade(option.blockId(), option.tier()));
             btn.setHoverTexture(new GuiTextureGroup(
-                    new ColorRectTexture(bg), new ColorBorderTexture(1, C_WHITE), txt));
+                    new ColorRectTexture(bg), new ColorBorderTexture(1, tokens.textStrong()), txt));
             return btn;
         }
 
@@ -415,8 +409,8 @@ public final class InlineUpgradePanel {
         private WidgetGroup buildAvailabilityPanel(int x, int y, int panelW, int panelH) {
             WidgetGroup panel = new WidgetGroup(x, y, panelW, panelH);
             panel.setBackground(new GuiTextureGroup(
-                    new ColorRectTexture(0x66000000),
-                    new ColorBorderTexture(1, colorBorder)));
+                    new ColorRectTexture(Palette.withAlpha(tokens.surface(), 0x66)),
+                    new ColorBorderTexture(1, tokens.border())));
             populateAvailabilityPanel(panel);
             return panel;
         }
@@ -433,7 +427,7 @@ public final class InlineUpgradePanel {
 
             LabelWidget title = new LabelWidget(8, 6,
                     Component.translatable("gui.gtceuterminal.inline_upgrade.me_network").getString());
-            title.setTextColor(C_GRAY);
+            title.setTextColor(tokens.textMuted());
             panel.addWidget(title);
 
             if (!MENetworkScanner.isAE2Available()) {
@@ -472,7 +466,7 @@ public final class InlineUpgradePanel {
             addStatusText(panel, 8, 38, "§7needed §f" + entry.needed() + " §8for ×" + group.getCount());
 
             boolean ready = entry.hasAll();
-            int countColor = ready ? 0xFF6FCF6F : 0xFFE0A050;
+            int countColor = ready ? tokens.success() : tokens.warning();
             LabelWidget count = new LabelWidget(8, 54,
                     "ME §f" + entry.inME + " §7· Inv §f" + entry.inInventory + " §7/ " + entry.needed());
             count.setTextColor(countColor);
@@ -483,16 +477,16 @@ public final class InlineUpgradePanel {
             int badgeBorder;
             String badgeText;
             if (ready) {
-                badgeBg = 0xFF153A18;
-                badgeBorder = 0xFF2E7D32;
+                badgeBg = tokens.successSurface();
+                badgeBorder = tokens.success();
                 badgeText = entry.inInventory >= entry.needed() ? "§ain inventory" : "§aavailable";
             } else if (entry.totalAvailable() > 0) {
-                badgeBg = 0xFF3A2A0A;
-                badgeBorder = 0xFF9A6A18;
+                badgeBg = tokens.warningSurface();
+                badgeBorder = tokens.warning();
                 badgeText = "§6partial";
             } else {
-                badgeBg = 0xFF3A1010;
-                badgeBorder = 0xFF8A2020;
+                badgeBg = tokens.errorSurface();
+                badgeBorder = tokens.error();
                 badgeText = "§cmissing";
             }
             badge.setBackground(new GuiTextureGroup(new ColorRectTexture(badgeBg), new ColorBorderTexture(1, badgeBorder)));
@@ -501,17 +495,17 @@ public final class InlineUpgradePanel {
 
             if (!ready) {
                 int btnY = Math.max(92, panelH - 26);
-                ButtonWidget ac = TerminalButton.action(8, btnY, panelW - 16, 20,
+                ButtonWidget ac = TerminalButton.text3d(8, btnY, panelW - 16, 20,
                         Component.translatable("gui.gtceuterminal.component_upgrade_dialog.actions.auto_craft")
                                 .getString(),
-                        0xFF1A3A6B, 0xFF2E75B6, cd -> performAutoCraft());
+                        tokens.action(), cd -> performAutoCraft());
                 panel.addWidget(ac);
             }
         }
 
         private void addStatusText(WidgetGroup panel, int x, int y, String text) {
             LabelWidget label = new LabelWidget(x, y, text);
-            label.setTextColor(C_GRAY);
+            label.setTextColor(tokens.textMuted());
             panel.addWidget(label);
         }
 
@@ -618,14 +612,14 @@ public final class InlineUpgradePanel {
         private WidgetGroup buildFooter() {
             int footerY = h - FOOTER_H;
             WidgetGroup footer = new WidgetGroup(0, footerY, w, FOOTER_H);
-            footer.addWidget(new ImageWidget(0, 0, w, 1, new ColorRectTexture(colorBorder)));
+            footer.addWidget(new ImageWidget(0, 0, w, 1, new ColorRectTexture(tokens.border())));
 
             int btnH = 22, btnY = (FOOTER_H - btnH) / 2;
             int confirmW = 130;
-            ButtonWidget confirm = TerminalButton.action(PAD, btnY, confirmW, btnH,
+            ButtonWidget confirm = TerminalButton.text3d(PAD, btnY, confirmW, btnH,
                     Component.translatable("gui.gtceuterminal.component_upgrade_dialog.actions.confirm_change")
                             .getString(),
-                    0xFF2E7D32, C_SUCCESS, cd -> performUpgrade());
+                    tokens.successSurface(), cd -> performUpgrade());
             footer.addWidget(confirm);
 
             return footer;
@@ -679,8 +673,7 @@ public final class InlineUpgradePanel {
 
         private DraggableScrollableWidgetGroup makeScroll(int x, int y, int w, int h) {
             DraggableScrollableWidgetGroup s = new DraggableScrollableWidgetGroup(x, y, w, h);
-            s.setYScrollBarWidth(6);
-            s.setYBarStyle(new ColorRectTexture(0xFF0A0A0A), new ColorRectTexture(colorBorder));
+            s.setYScrollBarWidth(0);
             return s;
         }
 

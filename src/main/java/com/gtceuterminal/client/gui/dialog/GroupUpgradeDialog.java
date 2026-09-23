@@ -77,9 +77,9 @@ public class GroupUpgradeDialog extends DialogWidget {
         this.onClose = onClose;
         this.controllerPos = controllerPos;
         this.theme = ItemTheme.loadFromPlayer(player);
-        this.COLOR_BG_DARK      = theme.bgColor;
-        this.COLOR_BG_MEDIUM    = theme.panelColor;
-        this.COLOR_BG_LIGHT     = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
+        this.COLOR_BG_DARK = theme.bgColor;
+        this.COLOR_BG_MEDIUM = theme.panelColor;
+        this.COLOR_BG_LIGHT = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
         this.COLOR_BORDER_LIGHT = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
 
         initDialog();

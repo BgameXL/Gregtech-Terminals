@@ -273,23 +273,6 @@ public class SchematicInterfaceUI {
                 cd -> player.displayClientMessage(
                         Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))
                 .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.not_yet_implemented")));
-        if (com.gtceuterminal.common.config.ItemsConfig.isSchPlannerBuildAllEnabled()) {
-            x += 60 + spacing;
-            panel.addWidget(makeBtn(x, btnY, 64, btnH, C_INFO,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.planner_button").getString(),
-                    cd -> openPlanner())
-                    .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.open_planner_tooltip")));
-        }
-    }
-
-    private void openPlanner() {
-        List<SchematicData> snapshot = new ArrayList<>(schematics);
-        int sel = Math.max(0, selectedIndex);
-        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-        mc.execute(() -> {
-            if (mc.player != null) mc.player.closeContainer();
-            mc.setScreen(new com.gtceuterminal.client.gui.planner.PlannerScreen(snapshot, sel, 0));
-        });
     }
 
     private ButtonWidget makeBtn(int x, int y, int w, int h, int color, String label,

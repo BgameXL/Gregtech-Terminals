@@ -20,7 +20,8 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 final class DismantlerInfoBar {
 
-    private DismantlerInfoBar() {}
+    private DismantlerInfoBar() {
+    }
 
     static WidgetGroup build(
             int x, int y, int w, int h,

@@ -17,11 +17,12 @@ import java.util.List;
 // Dialog that shows the recipe execution history for a selected machine.
 public final class RecipeHistoryDialog {
 
-    private static final int C_GOLD  = 0xFFFFAA00;
-    private static final int C_GRAY  = 0xFFAAAAAA;
+    private static final int C_GOLD = 0xFFFFAA00;
+    private static final int C_GRAY = 0xFFAAAAAA;
     private static final int C_WHITE = 0xFFFFFFFF;
 
-    private RecipeHistoryDialog() {}
+    private RecipeHistoryDialog() {
+    }
 
     public static void open(WidgetGroup rootGroup, EnergySnapshot snap, int parentW, int parentH) {
         DialogWidget dialog = new DialogWidget(rootGroup, true);
@@ -58,7 +59,7 @@ public final class RecipeHistoryDialog {
         panel.addWidget(closeBtn);
 
         int cy = 22;
-        panel.addWidget(mkLabel(18,  cy,
+        panel.addWidget(mkLabel(18, cy,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_log.output").getString(), 0xFF888888));
         panel.addWidget(mkLabel(210, cy,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_log.time").getString(), 0xFF888888));
@@ -85,7 +86,7 @@ public final class RecipeHistoryDialog {
                 dot.setBackground(new ColorRectTexture(e.completed ? 0xFF00CC55 : 0xFFDD3333));
                 panel.addWidget(dot);
 
-                panel.addWidget(mkLabel(18,  cy, EnergyDisplayHelper.truncate(e.outputName, 22),
+                panel.addWidget(mkLabel(18, cy, EnergyDisplayHelper.truncate(e.outputName, 22),
                         e.completed ? C_WHITE : 0xFF888888));
                 panel.addWidget(mkLabel(210, cy, "§7" + e.durationStr(), 0xFF888888));
 

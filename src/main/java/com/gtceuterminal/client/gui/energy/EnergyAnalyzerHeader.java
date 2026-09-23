@@ -20,7 +20,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 final class EnergyAnalyzerHeader {
 
-    private EnergyAnalyzerHeader() {}
+    private EnergyAnalyzerHeader() {
+    }
 
     static WidgetGroup build(
             int guiW,

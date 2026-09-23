@@ -25,31 +25,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class DismantlerUI {
 
-    private static final int GUI_W    = 600;
-    private static final int GUI_H    = 480;
+    private static final int GUI_W = 600;
+    private static final int GUI_H = 480;
     private static final int HEADER_H = 30;
-    private static final int INFO_H   = 40;
+    private static final int INFO_H = 40;
     private static final int FOOTER_H = 34;
-    private static final int PAD      = 10;
-    private static final int SPLIT_X  = 255;
+    private static final int PAD = 10;
+    private static final int SPLIT_X = 255;
 
     private static final int CONTENT_Y = 2 + HEADER_H + 4;
     private static final int CONTENT_H = GUI_H - CONTENT_Y - INFO_H - FOOTER_H - 6;
-    private static final int INFO_Y    = CONTENT_Y + CONTENT_H + 4;
-    private static final int FOOTER_Y  = GUI_H - FOOTER_H - 2;
+    private static final int INFO_Y = CONTENT_Y + CONTENT_H + 4;
+    private static final int FOOTER_Y = GUI_H - FOOTER_H - 2;
 
     private static final int C_BORDER_DARK = 0xFF0A0A0A;
 
     private final IUIHolder uiHolder;
     private final ItemStack itemStack;
-    private final BlockPos  controllerPos;
-    private final Player    player;
+    private final BlockPos controllerPos;
+    private final Player player;
     private final ItemTheme theme;
     private final int colorBgLight, colorBgMedium, colorBorderLight;
 
@@ -57,27 +58,27 @@ public class DismantlerUI {
     private WidgetGroup mainGroup;
 
     public DismantlerUI(HeldItemUIFactory.HeldItemHolder heldHolder, BlockPos controllerPos) {
-        this.uiHolder      = heldHolder;
-        this.itemStack     = heldHolder.held;
+        this.uiHolder = heldHolder;
+        this.itemStack = heldHolder.held;
         this.controllerPos = controllerPos;
-        this.player        = heldHolder.player;
-        this.theme         = ItemTheme.load(this.itemStack);
-        this.colorBgLight    = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
-        this.colorBgMedium   = theme.panelColor;
+        this.player = heldHolder.player;
+        this.theme = ItemTheme.load(this.itemStack);
+        this.colorBgLight = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
+        this.colorBgMedium = theme.panelColor;
         this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
-        this.scanResult    = computeScanResult(player, controllerPos);
+        this.scanResult = computeScanResult(player, controllerPos);
     }
 
     public DismantlerUI(DismantlerItemUIFactory.Holder holder, Player player) {
-        this.uiHolder      = holder;
-        this.itemStack     = holder.item;
+        this.uiHolder = holder;
+        this.itemStack = holder.item;
         this.controllerPos = holder.controllerPos;
-        this.player        = player;
-        this.theme         = ItemTheme.load(this.itemStack);
-        this.colorBgLight    = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
-        this.colorBgMedium   = theme.panelColor;
+        this.player = player;
+        this.theme = ItemTheme.load(this.itemStack);
+        this.colorBgLight = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
+        this.colorBgMedium = theme.panelColor;
         this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
-        this.scanResult    = buildScanResult(player, holder.controllerPos, holder.scannedPositions);
+        this.scanResult = buildScanResult(player, holder.controllerPos, holder.scannedPositions);
     }
 
     private static DismantleScanner.ScanResult buildScanResult(
@@ -163,10 +164,10 @@ public class DismantlerUI {
 
     private WidgetGroup buildOuterBorder() {
         WidgetGroup g = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        g.addWidget(new ImageWidget(0,         0,          GUI_W, 2,     new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(0,         0,          2,     GUI_H, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(GUI_W - 2, 0,          2,     GUI_H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0,         GUI_H - 2,  GUI_W, 2,     new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(colorBorderLight)));
+        g.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(colorBorderLight)));
+        g.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(C_BORDER_DARK)));
         return g;
     }
 

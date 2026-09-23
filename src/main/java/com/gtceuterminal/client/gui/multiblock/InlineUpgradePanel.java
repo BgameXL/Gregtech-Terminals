@@ -23,6 +23,8 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -40,23 +42,24 @@ import java.util.concurrent.atomic.AtomicInteger;
 @OnlyIn(Dist.CLIENT)
 public final class InlineUpgradePanel {
 
-    private static final int HEADER_H  = 36;
-    private static final int FOOTER_H  = 36;
-    private static final int PAD       = 8;
-    
+    private static final int HEADER_H = 36;
+    private static final int FOOTER_H = 36;
+    private static final int PAD = 8;
+
     private static final int TIER_BTN_MIN_W = 20;
     private static final int TIER_BTN_MAX_W = 44;
-    private static final int TIER_BTN_H     = 22;
-    private static final int TIER_GAP       = 2;
+    private static final int TIER_BTN_H = 22;
+    private static final int TIER_GAP = 2;
 
-    private static final int C_SUCCESS  = 0xFF00FF00;
-    private static final int C_WHITE    = 0xFFFFFFFF;
-    private static final int C_GRAY     = 0xFFAAAAAA;
+    private static final int C_SUCCESS = 0xFF00FF00;
+    private static final int C_WHITE = 0xFFFFFFFF;
+    private static final int C_GRAY = 0xFFAAAAAA;
 
     private static final AtomicInteger AVAILABILITY_REQUEST_IDS = new AtomicInteger(1);
     private static final Map<Integer, PanelState> AVAILABILITY_LISTENERS = new ConcurrentHashMap<>();
 
-    private InlineUpgradePanel() {}
+    private InlineUpgradePanel() {
+    }
 
     public static void handleAvailabilityResult(int requestId, AnalysisResult result) {
         PanelState state = AVAILABILITY_LISTENERS.remove(requestId);
@@ -71,12 +74,9 @@ public final class InlineUpgradePanel {
             MultiblockInfo mb,
             Player player,
             ItemTheme theme,
-            Runnable onBack,
-            int colorBgDark, int colorBgMed, int colorBgLight,
-            int colorBorder, int colorHover
+            Runnable onBack
     ) {
-        return new PanelState(x, y, w, h, group, mb, player, theme, onBack,
-                colorBgDark, colorBgMed, colorBgLight, colorBorder, colorHover).root;
+        return new PanelState(x, y, w, h, group, mb, player, theme, onBack).root;
     }
 
     private static final class PanelState {
@@ -85,16 +85,16 @@ public final class InlineUpgradePanel {
 
         private final int w, h;
         private final ComponentInfoGroup group;
-        private final MultiblockInfo     mb;
-        private final Player             player;
-        private final ItemTheme          theme;
-        private final Runnable           onBack;
+        private final MultiblockInfo mb;
+        private final Player player;
+        private final ItemTheme theme;
+        private final Runnable onBack;
         private final int colorBgDark, colorBgMed, colorBgLight, colorBorder, colorHover;
 
         private com.gtceuterminal.common.upgrade.UniversalUpgradeCatalog catalog;
 
-        private Integer selectedTier      = null;
-        private String  selectedUpgradeId = null;
+        private Integer selectedTier = null;
+        private String selectedUpgradeId = null;
 
         // Mutable sub-panels
         private WidgetGroup optionsPanel;
@@ -107,26 +107,26 @@ public final class InlineUpgradePanel {
 
         PanelState(int x, int y, int w, int h,
                    ComponentInfoGroup group, MultiblockInfo mb,
-                   Player player, ItemTheme theme, Runnable onBack,
-                   int colorBgDark, int colorBgMed, int colorBgLight,
-                   int colorBorder, int colorHover) {
-            this.w            = w;
-            this.h            = h;
-            this.group        = group;
-            this.mb           = mb;
-            this.player       = player;
-            this.theme        = theme;
-            this.onBack       = onBack;
-            this.colorBgDark  = colorBgDark;
-            this.colorBgMed   = colorBgMed;
-            this.colorBgLight = colorBgLight;
-            this.colorBorder  = colorBorder;
-            this.colorHover   = colorHover;
+                   Player player, ItemTheme theme, Runnable onBack) {
+            this.w = w;
+            this.h = h;
+            this.group = group;
+            this.mb = mb;
+            this.player = player;
+            this.theme = theme;
+            this.onBack = onBack;
+            TerminalTheme t = TerminalUI.tokens();
+            this.colorBgDark = t.surface();
+            this.colorBgMed = t.panel();
+            this.colorBgLight = t.accentSoft();
+            this.colorBorder = t.border();
+            this.colorHover = t.hover();
 
             if (mb.getController() instanceof MultiblockControllerMachine mmc) {
                 try {
                     catalog = com.gtceuterminal.common.upgrade.UniversalUpgradeCatalogBuilder.build(mmc, player.level());
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
 
             root = new WidgetGroup(x, y, w, h);
@@ -179,7 +179,10 @@ public final class InlineUpgradePanel {
             optionsPanel.setBackground(new ColorRectTexture(colorBgDark));
 
             ComponentInfo rep = group.getRepresentative();
-            if (rep == null) { root.addWidget(optionsPanel); return; }
+            if (rep == null) {
+                root.addWidget(optionsPanel);
+                return;
+            }
 
             boolean special = rep.getGroup() == ComponentGroupRegistry.MAINTENANCE
                     || rep.getGroup() == ComponentGroupRegistry.COIL;
@@ -212,7 +215,7 @@ public final class InlineUpgradePanel {
                         Component.translatable("gui.gtceuterminal.inline_upgrade.target_tier").getString());
                 tierLbl.setTextColor(C_GRAY);
                 optionsPanel.addWidget(tierLbl);
-                
+
                 int tierRowH = tierRowHeight(availableTiers(rep).size(), innerW);
                 tierButtonsRow = new WidgetGroup(PAD, 18, innerW, tierRowH);
                 optionsPanel.addWidget(tierButtonsRow);
@@ -273,7 +276,7 @@ public final class InlineUpgradePanel {
                 tierButtonsRow.addWidget(btn);
             }
         }
-        
+
         private static int tierCols(int count, int innerW) {
             if (count <= 0) return 1;
             int cols = Math.max(1, (innerW + TIER_GAP) / (TIER_BTN_MIN_W + TIER_GAP));
@@ -368,7 +371,7 @@ public final class InlineUpgradePanel {
         }
 
         private void onTierClicked(int tier) {
-            selectedTier      = tier;
+            selectedTier = tier;
             selectedUpgradeId = null;
             ComponentInfo rep = group.getRepresentative();
             availabilityResult = null;
@@ -383,7 +386,7 @@ public final class InlineUpgradePanel {
 
         private void selectUpgrade(String upgradeId, int tier) {
             selectedUpgradeId = upgradeId != null && !upgradeId.isBlank() ? upgradeId : null;
-            selectedTier      = tier;
+            selectedTier = tier;
             ComponentInfo rep = group.getRepresentative();
             if (rep != null) populateScroll(rep);
             requestAvailabilityPreview();

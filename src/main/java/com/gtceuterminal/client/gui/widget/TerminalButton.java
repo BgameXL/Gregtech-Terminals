@@ -8,6 +8,9 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -17,19 +20,48 @@ import java.util.function.Consumer;
 @OnlyIn(Dist.CLIENT)
 public final class TerminalButton {
 
-    private static final int HOVER_OVERLAY  = 0x30FFFFFF;
-    private static final int HOVER_GHOST    = 0x22FFFFFF;
-    private static final int HOVER_ICON     = 0x33FFFFFF;
-    private static final int HOVER_DANGER   = 0x33FF3333;
+    private static final int HOVER_OVERLAY = 0x30FFFFFF;
+    private static final int HOVER_GHOST = 0x22FFFFFF;
+    private static final int HOVER_ICON = 0x33FFFFFF;
+    private static final int HOVER_DANGER = 0x33FF3333;
 
     private static final int C_WHITE = 0xFFFFFFFF;
 
     private static final String ICON_ROOT = "gtceuterminal:textures/gui/buttons/";
 
-    private TerminalButton() {}
+    private TerminalButton() {
+    }
 
     public static IGuiTexture iconTex(String iconName) {
         return new ResourceTexture(ICON_ROOT + iconName + ".png");
+    }
+
+    private static IGuiTexture glyph(String s, int w) {
+        return new TextTexture(s).setWidth(w).setType(TextTexture.TextType.NORMAL);
+    }
+
+    public static ButtonWidget icon3d(int x, int y, int size, String glyph,
+                                      Consumer<ClickData> action) {
+        int fill = TerminalUI.tokens().panel();
+        IGuiTexture g = glyph(glyph, size);
+        ButtonWidget btn = new ButtonWidget(x, y, size, size,
+                new GuiTextureGroup(new Bevel3DTexture(fill), g), action);
+        btn.setHoverTexture(new GuiTextureGroup(new Bevel3DTexture(Palette.shade(fill, 1.30f)), g));
+        return btn;
+    }
+
+    public static ButtonWidget text3d(int x, int y, int w, int h, String label,
+                                      Consumer<ClickData> action) {
+        return text3d(x, y, w, h, label, TerminalUI.tokens().panel(), action);
+    }
+
+    public static ButtonWidget text3d(int x, int y, int w, int h, String label, int fill,
+                                      Consumer<ClickData> action) {
+        IGuiTexture txt = glyph(label, w);
+        ButtonWidget btn = new ButtonWidget(x, y, w, h,
+                new GuiTextureGroup(new Bevel3DTexture(fill), txt), action);
+        btn.setHoverTexture(new GuiTextureGroup(new Bevel3DTexture(Palette.shade(fill, 1.30f)), txt));
+        return btn;
     }
 
     public static ButtonWidget icon(int x, int y, int size,
@@ -122,7 +154,8 @@ public final class TerminalButton {
                 new ColorRectTexture(0xFF2A2A2A),
                 new ColorBorderTexture(1, 0xFF333333),
                 txt);
-        ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {});
+        ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {
+        });
         btn.setHoverTexture(normal);
         btn.setActive(false);
         return btn;

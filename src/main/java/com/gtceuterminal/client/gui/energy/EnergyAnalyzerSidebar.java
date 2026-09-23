@@ -19,7 +19,8 @@ import java.util.function.IntFunction;
 @OnlyIn(Dist.CLIENT)
 final class EnergyAnalyzerSidebar {
 
-    private EnergyAnalyzerSidebar() {}
+    private EnergyAnalyzerSidebar() {
+    }
 
     static WidgetGroup build(
             int sidebarW,

@@ -15,10 +15,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 final class DismantlerFooter {
 
-    private static final int C_DISMANTLE_ALL  = 0xFF7A1A1A;
-    private static final int C_BORDER_ALL     = 0xFF8A2020;
+    private static final int C_DISMANTLE_ALL = 0xFF7A1A1A;
+    private static final int C_BORDER_ALL = 0xFF8A2020;
 
-    private DismantlerFooter() {}
+    private DismantlerFooter() {
+    }
 
     static WidgetGroup build(
             int x, int y, int w, int h,

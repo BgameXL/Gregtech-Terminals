@@ -9,6 +9,8 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 
 import net.minecraft.network.chat.Component;
 
@@ -32,9 +34,6 @@ final class MultiblockListPanel {
             int panelX, int panelY, int panelW, int panelH,
             int selectedIndex,
             List<MultiblockInfo> multiblocks,
-            int colorBgDark, int colorBgMedium, int colorBgLight,
-            int colorBorderDark, int colorBorderLight,
-            int colorTextGray, int colorHover,
             Consumer<Integer> onEntryClick,
             Consumer<MultiblockInfo> onHighlight,
             Consumer<MultiblockInfo> onRename,
@@ -42,6 +41,11 @@ final class MultiblockListPanel {
             WidgetGroup[] footerRef,
             DraggableScrollableWidgetGroup[] scrollRef
     ) {
+        TerminalTheme t = TerminalUI.tokens();
+        int colorBgDark = t.surface(), colorBgMedium = t.panel(), colorBgLight = t.accentSoft();
+        int colorBorderDark = t.borderDark(), colorBorderLight = t.border();
+        int colorTextGray = t.textMuted(), colorHover = t.hover();
+
         int listH = panelH - FOOTER_H - 1;
         int scrollW = panelW - 10;
 
@@ -74,10 +78,11 @@ final class MultiblockListPanel {
             List<MultiblockInfo> multiblocks,
             int selectedIndex,
             int scrollW,
-            int colorBgMedium, int colorBgLight,
-            int colorTextGray, int colorHover,
             Consumer<Integer> onEntryClick
     ) {
+        TerminalTheme t = TerminalUI.tokens();
+        int colorBgMedium = t.panel(), colorBgLight = t.accentSoft();
+        int colorTextGray = t.textMuted(), colorHover = t.hover();
         scroll.clearAllWidgets();
         populateScroll(scroll, multiblocks, selectedIndex,
                 scrollW, colorBgMedium, colorBgLight, colorTextGray, colorHover,
@@ -158,15 +163,13 @@ final class MultiblockListPanel {
         WidgetGroup footer = new WidgetGroup(x, y, panelW, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(colorBorderDark)));
 
-        ButtonWidget highlightBtn = TerminalButton.action(6, 5, panelW - 40, 18, "§eHighlight",
-                0xFF222222, 0xFF3A3A3A,
+        ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "§eHighlight",
                 cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onHighlight.accept(sel); });
         highlightBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.highlight_tooltip").getString());
         footer.addWidget(highlightBtn);
 
-        ButtonWidget renameBtn = TerminalButton.icon(panelW - 28, 4, 20, "rename",
-                0xFF222222, 0xFF3A3A3A,
+        ButtonWidget renameBtn = TerminalButton.icon3d(panelW - 28, 4, 20, "✎",
                 cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onRename.accept(sel); });
         renameBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.rename_tooltip").getString());

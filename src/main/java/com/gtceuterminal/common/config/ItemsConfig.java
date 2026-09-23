@@ -24,9 +24,8 @@ public class ItemsConfig {
     private static int     mgr_highlightDurationSec   = 10;
     private static int     mgr_highlightColor         = 0x00AAFF;
 
-    private static boolean sch_allowAE2ConfigCopy    = true;
-    private static boolean sch_plannerBuildAllEnabled = false;
-    private static Set<Block> sch_blockBlacklist     = new HashSet<>();
+    private static boolean sch_allowAE2ConfigCopy = true;
+    private static Set<Block> sch_blockBlacklist  = new HashSet<>();
 
     private static Set<Block> dis_blockBlacklist = new HashSet<>();
 
@@ -59,8 +58,6 @@ public class ItemsConfig {
                 YamlConfigLoader.ConfigEntry.section("Schematic Interface"),
                 YamlConfigLoader.ConfigEntry.of("schematic.allow_ae2_config_copy", true,
                         " Preserve AE2/ME bus slot configurations when copying and pasting multiblocks (requires AE2)"),
-                YamlConfigLoader.ConfigEntry.of("schematic.planner_build_all_enabled", false,
-                        " Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default (Beta Phase)."),
                 YamlConfigLoader.ConfigEntry.of("schematic.block_blacklist", List.of(),
                         " Registry IDs of blocks the Schematic Interface will NEVER copy or paste.\n" +
                                 " Use this to block unobtainable or modpack-internal blocks (e.g. barriers, custom casings).\n" +
@@ -83,8 +80,7 @@ public class ItemsConfig {
         mgr_highlightDurationSec   = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
         mgr_highlightColor         = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
 
-        sch_allowAE2ConfigCopy     = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
-        sch_plannerBuildAllEnabled = LOADER.getBoolean("schematic.planner_build_all_enabled", false);
+        sch_allowAE2ConfigCopy = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
 
         sch_blockBlacklist = loadBlockSet("schematic.block_blacklist", "[Schematic]");
         dis_blockBlacklist = loadBlockSet("dismantler.block_blacklist", "[Dismantler]");
@@ -133,8 +129,7 @@ public class ItemsConfig {
     public static int     getMgrHighlightColor()          { return mgr_highlightColor; }
 
     // Schematic Interface Getters
-    public static boolean isSchAllowAE2ConfigCopy()     { return sch_allowAE2ConfigCopy; }
-    public static boolean isSchPlannerBuildAllEnabled() { return sch_plannerBuildAllEnabled; }
+    public static boolean isSchAllowAE2ConfigCopy() { return sch_allowAE2ConfigCopy; }
     public static boolean isSchematicBlacklisted(Block block) { return sch_blockBlacklist.contains(block); }
 
     // Dismantler Getters

@@ -29,24 +29,24 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private static final int DESIGN_W = 480;
     private static final int DESIGN_H = 380;
-    private static final int PAD     = 10;
+    private static final int PAD = 10;
     private static final int HEADER_H = 28;
     private static final int FOOTER_H = 36;
 
-    private static final int C_GREEN  = 0xFF2D6B2D;
-    private static final int C_GREEN_T= 0x441a3a1a;
+    private static final int C_GREEN = 0xFF2D6B2D;
+    private static final int C_GREEN_T = 0x441a3a1a;
     private static final int C_ORANGE = 0xFF8a5a10;
-    private static final int C_ORANGE_T=0x443a2a0a;
-    private static final int C_RED    = 0xFF8a2020;
-    private static final int C_RED_T  = 0x443a1010;
-    private static final int C_WHITE  = 0xFFFFFFFF;
-    private static final int C_GRAY   = 0xFFAAAAAA;
-    private static final int C_DARK   = 0xFF0A0A0A;
+    private static final int C_ORANGE_T = 0x443a2a0a;
+    private static final int C_RED = 0xFF8a2020;
+    private static final int C_RED_T = 0x443a1010;
+    private static final int C_WHITE = 0xFFFFFFFF;
+    private static final int C_GRAY = 0xFFAAAAAA;
+    private static final int C_DARK = 0xFF0A0A0A;
 
     private final AnalysisResult result;
-    private final ItemTheme      theme;
+    private final ItemTheme theme;
     private final int colorBg, colorPanel, colorBorder;
-    
+
     private int w = DESIGN_W;
     private int h = DESIGN_H;
 
@@ -58,10 +58,10 @@ public class AutocraftConfirmDialog extends DialogWidget {
     public AutocraftConfirmDialog(WidgetGroup parent, AnalysisResult result, Player player) {
         super(parent, true);
         this.result = result;
-        this.theme  = ItemTheme.loadFromPlayer(player);
+        this.theme = ItemTheme.loadFromPlayer(player);
 
-        colorBg     = theme.bgColor;
-        colorPanel  = theme.panelColor;
+        colorBg = theme.bgColor;
+        colorPanel = theme.panelColor;
         colorBorder = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
 
         initDialog();
@@ -79,9 +79,9 @@ public class AutocraftConfirmDialog extends DialogWidget {
     }
 
     private void initDialog() {
-        var mc  = Minecraft.getInstance();
-        int sw  = mc.screen != null ? mc.screen.width  : mc.getWindow().getGuiScaledWidth();
-        int sh  = mc.screen != null ? mc.screen.height : mc.getWindow().getGuiScaledHeight();
+        var mc = Minecraft.getInstance();
+        int sw = mc.screen != null ? mc.screen.width : mc.getWindow().getGuiScaledWidth();
+        int sh = mc.screen != null ? mc.screen.height : mc.getWindow().getGuiScaledHeight();
 
         w = Math.min(DESIGN_W, sw - 20);
         h = Math.min(DESIGN_H, sh - 20);
@@ -179,13 +179,13 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildIngredientList(int panelW, int panelH) {
         int offsetY = 48;
-        int listH   = panelH - offsetY;
+        int listH = panelH - offsetY;
 
         LabelWidget header = new LabelWidget(8, offsetY + 4, "§7" +
                 Component.translatable("gui.gtceuterminal.autocraft.ingredients_total").getString());
         header.setTextColor(C_GRAY);
 
-        ingredientRowW   = panelW - 10;
+        ingredientRowW = panelW - 10;
         ingredientScroll = new DraggableScrollableWidgetGroup(
                 0, offsetY + 16, panelW, listH - 16);
         ingredientScroll.setYScrollBarWidth(6);
@@ -333,17 +333,17 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         long have = entry.totalAvailable();
         if (entry.hasAll()) {
-            bgColor     = C_GREEN_T;
+            bgColor = C_GREEN_T;
             borderColor = C_GREEN;
-            label       = "§a" + have + " / " + entry.needed();
+            label = "§a" + have + " / " + entry.needed();
         } else if (entry.craftable) {
-            bgColor     = C_ORANGE_T;
+            bgColor = C_ORANGE_T;
             borderColor = C_ORANGE;
-            label       = "§6" + have + " / " + entry.needed();
+            label = "§6" + have + " / " + entry.needed();
         } else {
-            bgColor     = C_RED_T;
+            bgColor = C_RED_T;
             borderColor = C_RED;
-            label       = "§c" + have + " / " + entry.needed();
+            label = "§c" + have + " / " + entry.needed();
         }
 
         row.setBackground(new GuiTextureGroup(
@@ -363,7 +363,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildFooter() {
         int footerY = h - FOOTER_H - 2;
-        int innerW  = w - PAD * 2;
+        int innerW = w - PAD * 2;
         WidgetGroup footer = new WidgetGroup(PAD, footerY, innerW, FOOTER_H);
 
         int btnH = 24;

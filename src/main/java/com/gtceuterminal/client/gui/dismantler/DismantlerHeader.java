@@ -21,7 +21,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 final class DismantlerHeader {
 
-    private DismantlerHeader() {}
+    private DismantlerHeader() {
+    }
 
     static WidgetGroup build(
             int guiW,

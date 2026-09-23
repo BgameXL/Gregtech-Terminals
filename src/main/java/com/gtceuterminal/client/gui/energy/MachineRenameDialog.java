@@ -20,7 +20,8 @@ final class MachineRenameDialog {
 
     private static final int C_GOLD = 0xFFFFAA00;
 
-    private MachineRenameDialog() {}
+    private MachineRenameDialog() {
+    }
 
     static void open(WidgetGroup rootGroup, int parentW, int parentH, int machineIdx, LinkedMachineData machine) {
         final int DW = 240, DH = 80;
@@ -44,7 +45,8 @@ final class MachineRenameDialog {
         titleLbl.setTextColor(C_GOLD);
         titleBar.addWidget(titleLbl);
 
-        TextFieldWidget textField = new TextFieldWidget(8, 22, DW - 16, 16, null, s -> {});
+        TextFieldWidget textField = new TextFieldWidget(8, 22, DW - 16, 16, null, s -> {
+        });
         textField.setMaxStringLength(32);
         textField.setBordered(true);
         textField.setCurrentString(machine.getCustomName());

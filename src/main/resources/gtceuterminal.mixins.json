@@ -5,10 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "gtceuterminal.refmap.json",
   "mixins": [],
-  "client": [
-    "MixinMouseHandler",
-    "MixinClientLevel"
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

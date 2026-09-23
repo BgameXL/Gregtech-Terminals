@@ -20,11 +20,12 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 final class DismantlerBlockListPanel {
 
-    private static final int ENTRY_H   = 24;
+    private static final int ENTRY_H = 24;
     private static final int ENTRY_GAP = 1;
-    private static final int COL_H     = 28;
+    private static final int COL_H = 28;
 
-    private DismantlerBlockListPanel() {}
+    private DismantlerBlockListPanel() {
+    }
 
     static WidgetGroup build(
             int x, int y, int w, int h,

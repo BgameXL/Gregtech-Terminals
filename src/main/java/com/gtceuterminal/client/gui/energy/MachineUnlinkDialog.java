@@ -20,9 +20,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 final class MachineUnlinkDialog {
 
     private static final int C_GRAY = 0xFFAAAAAA;
-    private static final int C_RED  = 0xFFFF5555;
+    private static final int C_RED = 0xFFFF5555;
 
-    private MachineUnlinkDialog() {}
+    private MachineUnlinkDialog() {
+    }
 
     static void open(
             WidgetGroup rootGroup,

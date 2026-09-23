@@ -25,31 +25,31 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class ManagerSettingsUI {
 
-    private static final int GUI_W    = 280;
-    private static final int GUI_H    = 215;
+    private static final int GUI_W = 280;
+    private static final int GUI_H = 215;
     private static final int HEADER_H = 28;
-    private static final int PAD      = 8;
-    private static final int ROW_H    = 32;
-    private static final int CTL_W    = 56;
-    private static final int CTL_H    = 18;
+    private static final int PAD = 8;
+    private static final int ROW_H = 32;
+    private static final int CTL_W = 56;
+    private static final int CTL_H = 18;
 
     private int COLOR_BG_DARK;
     private int COLOR_BG_MEDIUM;
     private int COLOR_BG_LIGHT;
     private int COLOR_BORDER_LIGHT;
     private static final int COLOR_BORDER_DARK = 0xFF0A0A0A;
-    private static final int COLOR_TEXT_WHITE  = 0xFFFFFFFF;
-    private static final int COLOR_TEXT_GRAY   = 0xFFAAAAAA;
-    private static final int COLOR_HINT        = 0xFF888888;
-    private static final int COLOR_ON          = 0xFF1A4A1A;
-    private static final int COLOR_ON_BORDER   = 0xFF00CC00;
-    private static final int COLOR_OFF         = 0xFF3A1A1A;
-    private static final int COLOR_OFF_BORDER  = 0xFF884444;
+    private static final int COLOR_TEXT_WHITE = 0xFFFFFFFF;
+    private static final int COLOR_TEXT_GRAY = 0xFFAAAAAA;
+    private static final int COLOR_HINT = 0xFF888888;
+    private static final int COLOR_ON = 0xFF1A4A1A;
+    private static final int COLOR_ON_BORDER = 0xFF00CC00;
+    private static final int COLOR_OFF = 0xFF3A1A1A;
+    private static final int COLOR_OFF_BORDER = 0xFF884444;
 
-    private ItemTheme    theme;
-    private final IUIHolder  uiHolder;
-    private final ItemStack  itemStack;
-    private final Player     player;
+    private ItemTheme theme;
+    private final IUIHolder uiHolder;
+    private final ItemStack itemStack;
+    private final Player player;
 
     private int noHatchMode;
     private int tierMode;
@@ -57,42 +57,42 @@ public class ManagerSettingsUI {
     private int isUseAE;
 
     public ManagerSettingsUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        this.uiHolder  = heldHolder;
+        this.uiHolder = heldHolder;
         this.itemStack = heldHolder.held;
-        this.player    = heldHolder.player;
+        this.player = heldHolder.player;
         loadFromItem();
         applyTheme();
     }
 
     public ManagerSettingsUI(MultiStructureManagerUIFactory.Holder holder, Player player) {
-        this.uiHolder  = holder;
+        this.uiHolder = holder;
         this.itemStack = holder.getTerminalItem();
-        this.player    = player;
+        this.player = player;
         loadFromItem();
         applyTheme();
     }
 
     private ManagerSettingsUI(ItemStack itemStack, Player player) {
-        this.uiHolder  = null;
+        this.uiHolder = null;
         this.itemStack = itemStack;
-        this.player    = player;
+        this.player = player;
         loadFromItem();
         applyTheme();
     }
 
     private void loadFromItem() {
         CompoundTag tag = itemStack.getTag();
-        this.noHatchMode = tag != null && tag.contains("NoHatchMode")  ? tag.getInt("NoHatchMode")  : 0;
-        this.tierMode    = tag != null && tag.contains("TierMode")     ? tag.getInt("TierMode")     : 1;
-        this.repeatCount = tag != null && tag.contains("RepeatCount")  ? tag.getInt("RepeatCount")  : 0;
-        this.isUseAE     = tag != null && tag.contains("IsUseAE")      ? tag.getInt("IsUseAE")      : 0;
+        this.noHatchMode = tag != null && tag.contains("NoHatchMode") ? tag.getInt("NoHatchMode") : 0;
+        this.tierMode = tag != null && tag.contains("TierMode") ? tag.getInt("TierMode") : 1;
+        this.repeatCount = tag != null && tag.contains("RepeatCount") ? tag.getInt("RepeatCount") : 0;
+        this.isUseAE = tag != null && tag.contains("IsUseAE") ? tag.getInt("IsUseAE") : 0;
     }
 
     private void applyTheme() {
-        this.theme         = ItemTheme.load(itemStack);
-        COLOR_BG_DARK      = theme.bgColor;
-        COLOR_BG_MEDIUM    = theme.panelColor;
-        COLOR_BG_LIGHT     = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
+        this.theme = ItemTheme.load(itemStack);
+        COLOR_BG_DARK = theme.bgColor;
+        COLOR_BG_MEDIUM = theme.panelColor;
+        COLOR_BG_LIGHT = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
         COLOR_BORDER_LIGHT = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
     }
 
@@ -108,10 +108,10 @@ public class ManagerSettingsUI {
         }
 
         // Outer border
-        root.addWidget(new ImageWidget(0,        0,        GUI_W, 2,     new ColorRectTexture(COLOR_BORDER_LIGHT)));
-        root.addWidget(new ImageWidget(0,        0,        2,     GUI_H, new ColorRectTexture(COLOR_BORDER_LIGHT)));
-        root.addWidget(new ImageWidget(GUI_W - 2, 0,       2,     GUI_H, new ColorRectTexture(COLOR_BORDER_DARK)));
-        root.addWidget(new ImageWidget(0,        GUI_H - 2, GUI_W, 2,   new ColorRectTexture(COLOR_BORDER_DARK)));
+        root.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(COLOR_BORDER_LIGHT)));
+        root.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(COLOR_BORDER_LIGHT)));
+        root.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(COLOR_BORDER_DARK)));
+        root.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(COLOR_BORDER_DARK)));
 
         root.addWidget(buildHeader());
         root.addWidget(buildSettingsPanel());
@@ -148,10 +148,10 @@ public class ManagerSettingsUI {
             root.setBackground(theme.backgroundTexture());
         }
 
-        root.addWidget(new ImageWidget(0,        0,        GUI_W, 2,     new ColorRectTexture(COLOR_BORDER_LIGHT)));
-        root.addWidget(new ImageWidget(0,        0,        2,     GUI_H, new ColorRectTexture(COLOR_BORDER_LIGHT)));
-        root.addWidget(new ImageWidget(GUI_W - 2, 0,       2,     GUI_H, new ColorRectTexture(COLOR_BORDER_DARK)));
-        root.addWidget(new ImageWidget(0,        GUI_H - 2, GUI_W, 2,   new ColorRectTexture(COLOR_BORDER_DARK)));
+        root.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(COLOR_BORDER_LIGHT)));
+        root.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(COLOR_BORDER_LIGHT)));
+        root.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(COLOR_BORDER_DARK)));
+        root.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(COLOR_BORDER_DARK)));
 
         WidgetGroup header = buildHeader();
         ButtonWidget close = new ButtonWidget(header.getSize().width - 20, (HEADER_H - 14) / 2, 14, 14,
@@ -233,7 +233,12 @@ public class ManagerSettingsUI {
                 Component.translatable("gui.gtceuterminal.manager_settings.tier_mode.hint_scroll_type").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.tier_mode.tooltip").getString(),
                 () -> String.valueOf(getTierMode()),
-                val -> { try { setTierMode(Integer.parseInt(val)); } catch (NumberFormatException ignored) {} },
+                val -> {
+                    try {
+                        setTierMode(Integer.parseInt(val));
+                    } catch (NumberFormatException ignored) {
+                    }
+                },
                 1, 16);
 
         y = addInputRow(panel, y, innerW,
@@ -241,7 +246,12 @@ public class ManagerSettingsUI {
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.hint_layers").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.tooltip").getString(),
                 () -> String.valueOf(getRepeatCount()),
-                val -> { try { setRepeatCount(Integer.parseInt(val)); } catch (NumberFormatException ignored) {} },
+                val -> {
+                    try {
+                        setRepeatCount(Integer.parseInt(val));
+                    } catch (NumberFormatException ignored) {
+                    }
+                },
                 0, 99);
 
         if (MENetworkScanner.isAE2Available()) {
@@ -267,7 +277,7 @@ public class ManagerSettingsUI {
         lbl.setHoverTooltips(Component.literal(tooltip));
         panel.addWidget(lbl);
 
-        boolean[] state = { getter.getAsBoolean() };
+        boolean[] state = {getter.getAsBoolean()};
 
         ButtonWidget[] btnRef = new ButtonWidget[1];
         btnRef[0] = new ButtonWidget(ctlX, y - 2, CTL_W, CTL_H,
@@ -328,7 +338,7 @@ public class ManagerSettingsUI {
     }
 
     private void updateToggleTexture(ButtonWidget btn, boolean on) {
-        int bg     = on ? COLOR_ON  : COLOR_OFF;
+        int bg = on ? COLOR_ON : COLOR_OFF;
         int border = on ? COLOR_ON_BORDER : COLOR_OFF_BORDER;
         String txt = on ? "§aYES" : "§cNO";
         GuiTextureGroup tex = new GuiTextureGroup(
@@ -343,25 +353,37 @@ public class ManagerSettingsUI {
     }
 
     // NBT helpers
-    private int getNoHatchMode() { return noHatchMode; }
+    private int getNoHatchMode() {
+        return noHatchMode;
+    }
+
     private void toggleNoHatchMode() {
         noHatchMode = noHatchMode == 1 ? 0 : 1;
         syncToServer();
     }
 
-    private int getTierMode() { return tierMode; }
+    private int getTierMode() {
+        return tierMode;
+    }
+
     private void setTierMode(int tier) {
         tierMode = Math.max(1, Math.min(16, tier));
         syncToServer();
     }
 
-    private int getRepeatCount() { return repeatCount; }
+    private int getRepeatCount() {
+        return repeatCount;
+    }
+
     private void setRepeatCount(int count) {
         repeatCount = Math.max(0, Math.min(99, count));
         syncToServer();
     }
 
-    private int getIsUseAE() { return isUseAE; }
+    private int getIsUseAE() {
+        return isUseAE;
+    }
+
     private void toggleIsUseAE() {
         isUseAE = isUseAE == 1 ? 0 : 1;
         syncToServer();
@@ -369,16 +391,19 @@ public class ManagerSettingsUI {
 
     private void syncToServer() {
         CompoundTag snapshot = new CompoundTag();
-        snapshot.putInt("NoHatchMode",  noHatchMode);
-        snapshot.putInt("TierMode",     tierMode);
-        snapshot.putInt("RepeatCount",  repeatCount);
-        snapshot.putInt("IsUseAE",      isUseAE);
+        snapshot.putInt("NoHatchMode", noHatchMode);
+        snapshot.putInt("TierMode", tierMode);
+        snapshot.putInt("RepeatCount", repeatCount);
+        snapshot.putInt("IsUseAE", isUseAE);
         com.gtceuterminal.common.network.TerminalNetwork.sendToServer(
                 new com.gtceuterminal.common.network.CPacketSaveManagerSettings(snapshot));
     }
 
     private int parseIntSafe(String value, int defaultValue) {
-        try { return Integer.parseInt(value); }
-        catch (NumberFormatException e) { return defaultValue; }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 }

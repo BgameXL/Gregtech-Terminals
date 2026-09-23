@@ -41,22 +41,22 @@ final class EnergyAnalyzerDetail {
     private final int graphW;
     private final int graphH;
 
-    private static final int C_WHITE  = 0xFFFFFFFF;
-    private static final int C_GRAY   = 0xFFAAAAAA;
-    private static final int C_GOLD   = 0xFFFFAA00;
-    private static final int C_GREEN  = 0xFF55FF55;
-    private static final int C_RED    = 0xFFFF5555;
-    private static final int C_BLUE   = 0xFF5599FF;
+    private static final int C_WHITE = 0xFFFFFFFF;
+    private static final int C_GRAY = 0xFFAAAAAA;
+    private static final int C_GOLD = 0xFFFFAA00;
+    private static final int C_GREEN = 0xFF55FF55;
+    private static final int C_RED = 0xFFFF5555;
+    private static final int C_BLUE = 0xFF5599FF;
     private static final int C_ORANGE = 0xFFFF8800;
 
     private static final int GRAPH_H_WIDGET = 80;
-    private static final int STATS_CELL_H   = 38;
-    private static final int HATCH_ROW_H    = 24;
+    private static final int STATS_CELL_H = 38;
+    private static final int HATCH_ROW_H = 24;
 
     EnergyAnalyzerDetail(int detailW, int graphW, int graphH) {
         this.detailW = detailW;
-        this.graphW  = graphW;
-        this.graphH  = graphH;
+        this.graphW = graphW;
+        this.graphH = graphH;
     }
 
     WidgetGroup build(
@@ -95,11 +95,17 @@ final class EnergyAnalyzerDetail {
         int cellW = (detailW - pad * 2 - gap * 3) / 4;
         g.addWidget(buildStatCell(pad, y, cellW, STATS_CELL_H,
                 "Avg Input",
-                () -> { EnergySnapshot s = selSnap.get(); return s != null && s.isFormed ? EnergyDisplayHelper.formatEU(s.inputPerSec / 20) + "/t" : "---"; },
+                () -> {
+                    EnergySnapshot s = selSnap.get();
+                    return s != null && s.isFormed ? EnergyDisplayHelper.formatEU(s.inputPerSec / 20) + "/t" : "---";
+                },
                 C_GREEN));
         g.addWidget(buildStatCell(pad + (cellW + gap), y, cellW, STATS_CELL_H,
                 "Avg Output",
-                () -> { EnergySnapshot s = selSnap.get(); return s != null && s.isFormed ? EnergyDisplayHelper.formatEU(s.outputPerSec / 20) + "/t" : "---"; },
+                () -> {
+                    EnergySnapshot s = selSnap.get();
+                    return s != null && s.isFormed ? EnergyDisplayHelper.formatEU(s.outputPerSec / 20) + "/t" : "---";
+                },
                 C_RED));
         g.addWidget(buildStatCell(pad + (cellW + gap) * 2, y, cellW, STATS_CELL_H,
                 "Peak", () -> peakText(selSnap.get()), C_GOLD));
@@ -114,7 +120,7 @@ final class EnergyAnalyzerDetail {
                 Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_progress").getString());
         progressHdr.setTextColor(0xFF666666);
         g.addWidget(progressHdr);
-        
+
         LabelWidget progressPct = new LabelWidget(detailW - pad - 60, y + 10, () -> recipeProgressText(selSnap.get()));
         progressPct.setClientSideWidget();
         progressPct.setTextColor(C_GREEN);
@@ -220,8 +226,8 @@ final class EnergyAnalyzerDetail {
     private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(0x00000000);
 
     private static Supplier<IGuiTexture> hatchIconSupplier(int index, Supplier<EnergySnapshot> selSnap) {
-        final String[] lastId = { null };
-        final IGuiTexture[] cached = { EMPTY_TEX };
+        final String[] lastId = {null};
+        final IGuiTexture[] cached = {EMPTY_TEX};
         return () -> {
             EnergySnapshot s = selSnap.get();
             String id = (s != null && index < s.hatches.size()) ? s.hatches.get(index).blockId() : null;
@@ -244,7 +250,8 @@ final class EnergyAnalyzerDetail {
                 ItemStack stack = new ItemStack(b);
                 if (!stack.isEmpty()) return new ItemStackTexture(stack);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return EMPTY_TEX;
     }
 
@@ -293,7 +300,7 @@ final class EnergyAnalyzerDetail {
 
         if (graphWidget != null) {
             graphWidget.updateData(
-                    snap != null ? snap.inputHistory  : new long[0],
+                    snap != null ? snap.inputHistory : new long[0],
                     snap != null ? snap.outputHistory : new long[0]);
         }
     }

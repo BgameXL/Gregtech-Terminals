@@ -14,27 +14,28 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class EnergyAnalyzerUI {
 
-    private static final int W         = 600;
-    private static final int H         = 480;
+    private static final int W = 600;
+    private static final int H = 480;
     private static final int SIDEBAR_W = 148;
-    private static final int DETAIL_X  = SIDEBAR_W + 6;
-    private static final int DETAIL_W  = W - DETAIL_X - 6;
-    private static final int HEADER_H  = 26;
-    private static final int GRAPH_W   = DETAIL_W - 68;
-    private static final int GRAPH_H   = 80;
-    private static final int PAD       = 6;
-    private static final int ITEM_H    = 36;
+    private static final int DETAIL_X = SIDEBAR_W + 6;
+    private static final int DETAIL_W = W - DETAIL_X - 6;
+    private static final int HEADER_H = 26;
+    private static final int GRAPH_W = DETAIL_W - 68;
+    private static final int GRAPH_H = 80;
+    private static final int PAD = 6;
+    private static final int ITEM_H = 36;
 
-    private static final int C_RED    = 0xFFFF5555;
+    private static final int C_RED = 0xFFFF5555;
     private static final int C_ORANGE = 0xFFFF8800;
-    private static final int C_GREEN  = 0xFF55FF55;
-    private static final int C_GRAY   = 0xFFAAAAAA;
+    private static final int C_GREEN = 0xFF55FF55;
+    private static final int C_GRAY = 0xFFAAAAAA;
     private static final int C_BORDER_DARK = 0xFF0A0A0A;
 
     private final EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder;
@@ -47,10 +48,10 @@ public class EnergyAnalyzerUI {
     private EnergyAnalyzerDetail detail;
 
     private EnergyAnalyzerUI(EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder, Player player) {
-        this.holder        = holder;
-        this.player        = player;
+        this.holder = holder;
+        this.player = player;
         this.selectedIndex = holder.initialIndex;
-        this.theme         = holder.theme;
+        this.theme = holder.theme;
     }
 
     public static ModularUI create(EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder, Player player) {
@@ -89,8 +90,11 @@ public class EnergyAnalyzerUI {
         rootGroup.addWidget(detail.build(
                 DETAIL_X, HEADER_H, H, PAD,
                 this::selSnap,
-                () -> { EnergySnapshot s = selSnap(); if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H); }));
-        
+                () -> {
+                    EnergySnapshot s = selSnap();
+                    if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H);
+                }));
+
         rootGroup.addWidget(buildOuterBorder());
 
         setupParade();
@@ -100,10 +104,10 @@ public class EnergyAnalyzerUI {
     private WidgetGroup buildOuterBorder() {
         int light = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
         WidgetGroup g = new WidgetGroup(0, 0, W, H);
-        g.addWidget(new ImageWidget(0,     0,     W, 2, new ColorRectTexture(light)));
-        g.addWidget(new ImageWidget(0,     0,     2, H, new ColorRectTexture(light)));
-        g.addWidget(new ImageWidget(W - 2, 0,     2, H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0,     H - 2, W, 2, new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0, 0, W, 2, new ColorRectTexture(light)));
+        g.addWidget(new ImageWidget(0, 0, 2, H, new ColorRectTexture(light)));
+        g.addWidget(new ImageWidget(W - 2, 0, 2, H, new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0, H - 2, W, 2, new ColorRectTexture(C_BORDER_DARK)));
         return g;
     }
 

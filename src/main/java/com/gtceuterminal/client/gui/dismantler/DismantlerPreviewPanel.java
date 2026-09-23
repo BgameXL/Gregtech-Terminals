@@ -26,7 +26,8 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 final class DismantlerPreviewPanel {
 
-    private DismantlerPreviewPanel() {}
+    private DismantlerPreviewPanel() {
+    }
 
     static WidgetGroup build(
             int x, int y, int w, int h,
@@ -79,8 +80,9 @@ final class DismantlerPreviewPanel {
                 blocks.put(rel, state);
                 BlockEntity be = level.getBlockEntity(worldPos);
                 if (be != null) {
-                    try { blockEntities.put(rel, be.saveWithFullMetadata()); }
-                    catch (RuntimeException e) {
+                    try {
+                        blockEntities.put(rel, be.saveWithFullMetadata());
+                    } catch (RuntimeException e) {
                         GTCEUTerminalMod.LOGGER.debug(
                                 "DismantlerPreviewPanel: could not serialize BE at {}: {}", worldPos, e.getMessage());
                     }

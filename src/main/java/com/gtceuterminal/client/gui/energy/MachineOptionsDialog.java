@@ -20,11 +20,12 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 final class MachineOptionsDialog {
 
-    private static final int C_GOLD  = 0xFFFFAA00;
-    private static final int C_GRAY  = 0xFFAAAAAA;
-    private static final int C_RED   = 0xFFFF5555;
+    private static final int C_GOLD = 0xFFFFAA00;
+    private static final int C_GRAY = 0xFFAAAAAA;
+    private static final int C_RED = 0xFFFF5555;
 
-    private MachineOptionsDialog() {}
+    private MachineOptionsDialog() {
+    }
 
     static void open(
             WidgetGroup rootGroup,
@@ -68,7 +69,10 @@ final class MachineOptionsDialog {
 
         ButtonWidget renameBtn = new ButtonWidget(8, 38, DW - 16, 18,
                 new ColorRectTexture(0xFF333333),
-                cd -> { dialog.close(); MachineRenameDialog.open(rootGroup, parentW, parentH, machineIdx, machine); });
+                cd -> {
+                    dialog.close();
+                    MachineRenameDialog.open(rootGroup, parentW, parentH, machineIdx, machine);
+                });
         renameBtn.setButtonTexture(new TextTexture(
                 Component.translatable("gui.gtceuterminal.energy_analyzer.machine_options.rename").getString())
                 .setWidth(DW - 16).setType(TextTexture.TextType.LEFT));
@@ -77,7 +81,10 @@ final class MachineOptionsDialog {
 
         ButtonWidget unlinkBtn = new ButtonWidget(8, 60, DW - 16, 18,
                 new ColorRectTexture(0xFF333333),
-                cd -> { dialog.close(); MachineUnlinkDialog.open(rootGroup, parentW, parentH, machineIdx, machine, player); });
+                cd -> {
+                    dialog.close();
+                    MachineUnlinkDialog.open(rootGroup, parentW, parentH, machineIdx, machine, player);
+                });
         unlinkBtn.setButtonTexture(new TextTexture(
                 Component.translatable("gui.gtceuterminal.energy_analyzer.machine_options.unlink_machine").getString())
                 .setWidth(DW - 16).setType(TextTexture.TextType.LEFT));

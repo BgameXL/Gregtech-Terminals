@@ -12,6 +12,8 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -26,24 +28,21 @@ import java.util.function.BiConsumer;
 final class MultiblockDetailPanel {
 
     private static final int DETAIL_HEADER_H = 38;
-    private static final int FOOTER_H        = 22;
-    private static final int ENTRY_H         = 36;
-    private static final int ENTRY_GAP       = 4;
+    private static final int FOOTER_H = 22;
+    private static final int ENTRY_H = 36;
+    private static final int ENTRY_GAP = 4;
 
-    private MultiblockDetailPanel() {}
+    private MultiblockDetailPanel() {
+    }
 
-    static WidgetGroup buildEmpty(
-            int x, int y, int w, int h,
-            int colorBgDark, int colorBgMedium, int colorBgLight,
-            int colorBorderDark, int colorBorderLight,
-            int colorTextGray
-    ) {
+    static WidgetGroup buildEmpty(int x, int y, int w, int h) {
+        TerminalTheme t = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new ColorRectTexture(colorBgDark));
+        panel.setBackground(new ColorRectTexture(t.surface()));
 
         LabelWidget hint = new LabelWidget(w / 2 - 60, h / 2 - 6,
                 "§8Select a multiblock");
-        hint.setTextColor(colorTextGray);
+        hint.setTextColor(t.textMuted());
         panel.addWidget(hint);
         return panel;
     }
@@ -53,11 +52,13 @@ final class MultiblockDetailPanel {
             MultiblockInfo mb,
             Player player,
             ItemTheme theme,
-            int colorBgDark, int colorBgMedium, int colorBgLight,
-            int colorBorderDark, int colorBorderLight,
-            int colorTextGray, int colorHover,
             BiConsumer<ComponentInfoGroup, MultiblockInfo> onUpgrade
     ) {
+        TerminalTheme t = TerminalUI.tokens();
+        int colorBgDark = t.surface(), colorBgMedium = t.panel(), colorBgLight = t.accentSoft();
+        int colorBorderDark = t.borderDark(), colorBorderLight = t.border();
+        int colorTextGray = t.textMuted(), colorHover = t.hover();
+
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
         panel.setBackground(new ColorRectTexture(colorBgDark));
 
@@ -233,7 +234,10 @@ final class MultiblockDetailPanel {
         for (String prefix : new String[]{
                 "energy_hatch_", "input_hatch_", "output_hatch_",
                 "input_bus_", "output_bus_", "dynamo_hatch_"}) {
-            if (s.startsWith(prefix)) { s = s.substring(prefix.length()); break; }
+            if (s.startsWith(prefix)) {
+                s = s.substring(prefix.length());
+                break;
+            }
         }
         String[] parts = s.split("_");
         StringBuilder sb = new StringBuilder();
@@ -258,11 +262,11 @@ final class MultiblockDetailPanel {
 
     private static char statusColorCode(MultiblockStatus status) {
         return switch (status) {
-            case ACTIVE            -> 'a';
-            case IDLE              -> 'e';
+            case ACTIVE -> 'a';
+            case IDLE -> 'e';
             case NEEDS_MAINTENANCE -> '6';
-            case NO_POWER          -> 'c';
-            case OUTPUT_FULL       -> 'b';
+            case NO_POWER -> 'c';
+            case OUTPUT_FULL -> 'b';
             case DISABLED, UNFORMED -> '8';
         };
     }
@@ -270,9 +274,9 @@ final class MultiblockDetailPanel {
     private static String stripLeadingTier(String blockSub, String tierName) {
         if (blockSub == null || tierName == null) return blockSub != null ? blockSub : "";
         String upper = blockSub.toUpperCase(java.util.Locale.ROOT);
-        String tier  = tierName.toUpperCase(java.util.Locale.ROOT);
+        String tier = tierName.toUpperCase(java.util.Locale.ROOT);
         if (upper.startsWith(tier + " ")) return blockSub.substring(tier.length() + 1);
-        if (upper.equals(tier))           return "";
+        if (upper.equals(tier)) return "";
         return blockSub;
     }
 }

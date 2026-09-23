@@ -7,7 +7,8 @@ import java.util.Map;
 
 public final class TerminalAPI {
 
-    private TerminalAPI() {}
+    private TerminalAPI() {
+    }
 
 
     public static void registerCoil(String blockId, String displayName, int tier, int temperature) {
@@ -23,7 +24,7 @@ public final class TerminalAPI {
         ComponentRegistry.addExternal(ComponentRegistry.ENERGY_HATCHES,
                 ComponentEntry.builder(blockId, displayName, tierName(tier), tier)
                         .attr("hatchType", hatchType)
-                        .attr("amperage",  amperage)
+                        .attr("amperage", amperage)
                         .build());
     }
 
@@ -32,7 +33,7 @@ public final class TerminalAPI {
         ComponentRegistry.addExternal(ComponentRegistry.FLUID_HATCHES,
                 ComponentEntry.builder(blockId, displayName, tierName(tier), tier)
                         .attr("hatchType", hatchType)
-                        .attr("capacity",  capacity)
+                        .attr("capacity", capacity)
                         .build());
     }
 
@@ -48,7 +49,7 @@ public final class TerminalAPI {
         ComponentRegistry.addExternal(ComponentRegistry.LASER_HATCHES,
                 ComponentEntry.builder(blockId, displayName, tierName(tier), tier)
                         .attr("hatchType", hatchType)
-                        .attr("amperage",  amperage)
+                        .attr("amperage", amperage)
                         .build());
     }
 

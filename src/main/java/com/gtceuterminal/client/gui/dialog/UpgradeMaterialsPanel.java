@@ -20,22 +20,23 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 final class UpgradeMaterialsPanel {
 
-    private static final int C_WHITE   = 0xFFFFFFFF;
-    private static final int C_GRAY    = 0xFF888888;
+    private static final int C_WHITE = 0xFFFFFFFF;
+    private static final int C_GRAY = 0xFF888888;
     private static final int C_SUCCESS = 0xFF00FF00;
     private static final int C_SECTION = 0xFF555555;
 
-    private static final int BG_ME      = 0xFF1A3A1A;
-    private static final int BD_ME      = 0xFF2D6B2D;
-    private static final int BG_CRAFT   = 0xFF3A2A0A;
-    private static final int BD_CRAFT   = 0xFF8A5A10;
-    private static final int BG_MISS    = 0xFF3A1010;
-    private static final int BD_MISS    = 0xFF8A2020;
+    private static final int BG_ME = 0xFF1A3A1A;
+    private static final int BD_ME = 0xFF2D6B2D;
+    private static final int BG_CRAFT = 0xFF3A2A0A;
+    private static final int BD_CRAFT = 0xFF8A5A10;
+    private static final int BG_MISS = 0xFF3A1010;
+    private static final int BD_MISS = 0xFF8A2020;
 
     private static final int ENTRY_H = 22;
     private static final int ENTRY_GAP = 3;
 
-    private UpgradeMaterialsPanel() {}
+    private UpgradeMaterialsPanel() {
+    }
 
     static WidgetGroup build(
             int x, int y, int w, int h,
@@ -53,7 +54,7 @@ final class UpgradeMaterialsPanel {
         int countLabel = materials != null ? materials.size() : 0;
         String sectionText = tierSelected
                 ? Component.translatable("gui.gtceuterminal.component_upgrade_dialog.materials.required_label").getString()
-                  + (countLabel > 0 ? " (×" + countLabel + ")" : "")
+                + (countLabel > 0 ? " (×" + countLabel + ")" : "")
                 : Component.translatable("gui.gtceuterminal.component_upgrade_dialog.materials.required_label").getString();
 
         LabelWidget sectionLabel = new LabelWidget(10, 5, sectionText);
@@ -141,16 +142,20 @@ final class UpgradeMaterialsPanel {
         String text;
 
         if (enough && ae2Available && mat.getInMENetwork() >= req) {
-            bg = BG_ME; border = BD_ME;
+            bg = BG_ME;
+            border = BD_ME;
             text = "§aME ✓";
         } else if (enough) {
-            bg = BG_ME; border = BD_ME;
+            bg = BG_ME;
+            border = BD_ME;
             text = "§aready";
         } else if (avail > 0) {
-            bg = BG_CRAFT; border = BD_CRAFT;
+            bg = BG_CRAFT;
+            border = BD_CRAFT;
             text = "§6craftable";
         } else {
-            bg = BG_MISS; border = BD_MISS;
+            bg = BG_MISS;
+            border = BD_MISS;
             text = "§cmissing";
         }
 

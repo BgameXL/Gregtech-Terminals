@@ -55,10 +55,6 @@ public class SchematicInterfaceItem extends Item {
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
 
-        tooltipComponents.add(Component.translatable(
-                "item.gtceuterminal.schematic_interface.tooltip.blueprint_tool"));
-        tooltipComponents.add(Component.literal(""));
-
         if (MENetworkScanner.isAE2Available()) {
             if (MENetworkScanner.isItemLinked(stack)) {
                 tooltipComponents.add(Component.translatable(

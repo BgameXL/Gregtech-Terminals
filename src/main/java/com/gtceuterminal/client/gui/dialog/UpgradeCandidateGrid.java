@@ -31,9 +31,11 @@ import static com.mojang.text2speech.Narrator.LOGGER;
 @OnlyIn(Dist.CLIENT)
 public final class UpgradeCandidateGrid {
 
-    private UpgradeCandidateGrid() {}
+    private UpgradeCandidateGrid() {
+    }
 
-    public record UpgradeOption(String blockId, String displayName, int tier) {}
+    public record UpgradeOption(String blockId, String displayName, int tier) {
+    }
 
     public static List<UpgradeOption> universalCandidates(
             ComponentInfo rep,
@@ -107,7 +109,10 @@ public final class UpgradeCandidateGrid {
 
         int btnW = 120, btnH = 26, spacing = 6, perRow = 3, xPos = 0, yPos = 0, added = 0;
         for (UpgradeOption c : list) {
-            if (added > 0 && added % perRow == 0) { xPos = 0; yPos += btnH + spacing; }
+            if (added > 0 && added % perRow == 0) {
+                xPos = 0;
+                yPos += btnH + spacing;
+            }
             String display = truncate(c.displayName(), 16);
             boolean sel = c.blockId().equalsIgnoreCase(selectedUpgradeId);
             scroll.addWidget(makeOptionBtn(
@@ -132,7 +137,10 @@ public final class UpgradeCandidateGrid {
         List<UpgradeOption> entries = maintenanceCandidates(rep);
         int btnW = 118, btnH = 26, spacing = 4, perRow = 3, xPos = 0, yPos = 0, added = 0;
         for (UpgradeOption e : entries) {
-            if (added > 0 && added % perRow == 0) { xPos = 0; yPos += btnH + spacing; }
+            if (added > 0 && added % perRow == 0) {
+                xPos = 0;
+                yPos += btnH + spacing;
+            }
             String name = truncate(e.displayName(), 20);
             String tierTag = tierName(e.tier());
             boolean sel = e.blockId().equals(selectedUpgradeId);
@@ -157,7 +165,10 @@ public final class UpgradeCandidateGrid {
         List<UpgradeOption> list = coilCandidates(rep);
         int btnW = 118, btnH = 26, spacing = 4, perRow = 3, xPos = 0, yPos = 0, added = 0;
         for (UpgradeOption e : list) {
-            if (added > 0 && added % perRow == 0) { xPos = 0; yPos += btnH + spacing; }
+            if (added > 0 && added % perRow == 0) {
+                xPos = 0;
+                yPos += btnH + spacing;
+            }
             boolean sel = e.blockId().equals(selectedUpgradeId);
             scroll.addWidget(makeOptionBtn("§f" + truncate(e.displayName(), 20) + "\n§7(" + tierName(e.tier()) + ")",
                     sel, xPos, yPos, btnW, btnH, colorBgLight, colorBorderLight,
@@ -171,7 +182,7 @@ public final class UpgradeCandidateGrid {
                                       int x, int y, int w, int h,
                                       int colorBgLight, int colorBorderLight,
                                       Runnable onClick) {
-        int bg     = selected ? 0x6600FF00 : colorBgLight;
+        int bg = selected ? 0x6600FF00 : colorBgLight;
         int border = selected ? 0xFF00FF00 : colorBorderLight;
         TextTexture text = new TextTexture(textLines).setWidth(w).setType(TextTexture.TextType.NORMAL);
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
@@ -183,8 +194,9 @@ public final class UpgradeCandidateGrid {
     }
 
     public static String blockId(ComponentInfo rep) {
-        try { return rep.getState().getBlock().builtInRegistryHolder().key().location().toString(); }
-        catch (IllegalStateException e) {
+        try {
+            return rep.getState().getBlock().builtInRegistryHolder().key().location().toString();
+        } catch (IllegalStateException e) {
             GTCEUTerminalMod.LOGGER.debug("UpgradeCandidateGrid: could not get block id: {}", e.getMessage());
             return null;
         }
@@ -206,7 +218,10 @@ public final class UpgradeCandidateGrid {
 
     public static String tierName(int tier) {
         String[] vn = GTValues.VN;
-        if (tier >= 0 && tier < vn.length) { String s = vn[tier]; if (s != null && !s.isBlank()) return s; }
+        if (tier >= 0 && tier < vn.length) {
+            String s = vn[tier];
+            if (s != null && !s.isBlank()) return s;
+        }
         return "T" + tier;
     }
 

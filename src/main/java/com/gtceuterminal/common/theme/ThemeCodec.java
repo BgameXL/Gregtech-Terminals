@@ -25,7 +25,7 @@ public class ThemeCodec {
         o.addProperty("c", theme.compactMode);
         o.addProperty("s", theme.showTooltips);
         o.addProperty("r", theme.showBorders);
-        String json    = GSON.toJson(o);
+        String json = GSON.toJson(o);
         String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
         return PREFIX + encoded;
     }
@@ -38,13 +38,13 @@ public class ThemeCodec {
             JsonObject o = JsonParser.parseString(json).getAsJsonObject();
 
             ItemTheme t = new ItemTheme();
-            if (o.has("a")) t.accentColor  = hexToColor(o.get("a").getAsString());
-            if (o.has("b")) t.bgColor      = hexToColor(o.get("b").getAsString());
-            if (o.has("p")) t.panelColor   = hexToColor(o.get("p").getAsString());
-            if (o.has("t")) t.textColor    = hexToColor(o.get("t").getAsString());
-            if (o.has("c")) t.compactMode  = o.get("c").getAsBoolean();
+            if (o.has("a")) t.accentColor = hexToColor(o.get("a").getAsString());
+            if (o.has("b")) t.bgColor = hexToColor(o.get("b").getAsString());
+            if (o.has("p")) t.panelColor = hexToColor(o.get("p").getAsString());
+            if (o.has("t")) t.textColor = hexToColor(o.get("t").getAsString());
+            if (o.has("c")) t.compactMode = o.get("c").getAsBoolean();
             if (o.has("s")) t.showTooltips = o.get("s").getAsBoolean();
-            if (o.has("r")) t.showBorders  = o.get("r").getAsBoolean();
+            if (o.has("r")) t.showBorders = o.get("r").getAsBoolean();
             return t;
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.warn("ThemeCodec: invalid code '{}': {}", code, e.getMessage());

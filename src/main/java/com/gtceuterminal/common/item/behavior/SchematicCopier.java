@@ -22,7 +22,8 @@ import java.util.*;
 
 public final class SchematicCopier {
 
-    private SchematicCopier() {}
+    private SchematicCopier() {
+    }
 
     public static void copyMultiblock(IMultiController controller, ItemStack itemStack,
                                       Player player, Level level) {
@@ -128,7 +129,7 @@ public final class SchematicCopier {
         copyTag(originalTag, clean, "Covers");
         copyTag(originalTag, clean, "Upgrades");
 
-        if (originalTag.contains("Tier"))     clean.putInt("Tier", originalTag.getInt("Tier"));
+        if (originalTag.contains("Tier")) clean.putInt("Tier", originalTag.getInt("Tier"));
         copyString(originalTag, clean, "Material");
 
         copyString(originalTag, clean, "Facing");
@@ -151,8 +152,8 @@ public final class SchematicCopier {
 
         if (com.gtceuterminal.common.config.ItemsConfig.isSchAllowAE2ConfigCopy()) {
             String blockId = originalTag.getString("id").toLowerCase();
-            if (isGTCEuAE2Machine(blockId))  copyGTCEuAE2MachineConfig(originalTag, clean);
-            if (isAE2CableBus(blockId))       copyAE2CableBusConfig(originalTag, clean);
+            if (isGTCEuAE2Machine(blockId)) copyGTCEuAE2MachineConfig(originalTag, clean);
+            if (isAE2CableBus(blockId)) copyAE2CableBusConfig(originalTag, clean);
         }
 
         GTCEUTerminalMod.LOGGER.debug("Cleaned NBT — original keys: {}, clean keys: {}",
@@ -219,19 +220,20 @@ public final class SchematicCopier {
             }
         }
 
-        if (src.contains("circuitInventory"))  dst.put("circuitInventory", src.get("circuitInventory").copy());
-        if (src.contains("circuitSlotEnabled")) dst.putBoolean("circuitSlotEnabled", src.getBoolean("circuitSlotEnabled"));
-        if (src.contains("isDistinct"))        dst.putBoolean("isDistinct", src.getBoolean("isDistinct"));
-        if (src.contains("filterHandler"))     dst.put("filterHandler", src.get("filterHandler").copy());
-        if (src.contains("autoPull"))          dst.putBoolean("autoPull", src.getBoolean("autoPull"));
-        if (src.contains("minStackSize"))      dst.putInt("minStackSize", src.getInt("minStackSize"));
-        if (src.contains("ticksPerCycle"))     dst.putInt("ticksPerCycle", src.getInt("ticksPerCycle"));
+        if (src.contains("circuitInventory")) dst.put("circuitInventory", src.get("circuitInventory").copy());
+        if (src.contains("circuitSlotEnabled"))
+            dst.putBoolean("circuitSlotEnabled", src.getBoolean("circuitSlotEnabled"));
+        if (src.contains("isDistinct")) dst.putBoolean("isDistinct", src.getBoolean("isDistinct"));
+        if (src.contains("filterHandler")) dst.put("filterHandler", src.get("filterHandler").copy());
+        if (src.contains("autoPull")) dst.putBoolean("autoPull", src.getBoolean("autoPull"));
+        if (src.contains("minStackSize")) dst.putInt("minStackSize", src.getInt("minStackSize"));
+        if (src.contains("ticksPerCycle")) dst.putInt("ticksPerCycle", src.getInt("ticksPerCycle"));
 
         GTCEUTerminalMod.LOGGER.debug("Copied GTCEu AE2 machine config — keys: {}", dst.getAllKeys());
     }
 
     private static void copyAE2CableBusConfig(CompoundTag src, CompoundTag dst) {
-        String[] sideKeys = { "down", "up", "north", "south", "east", "west", "cable" };
+        String[] sideKeys = {"down", "up", "north", "south", "east", "west", "cable"};
 
         for (String side : sideKeys) {
             if (!src.contains(side)) continue;

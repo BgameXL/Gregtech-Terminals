@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 public class MultiStructureManagerUIFactory
         extends UIFactory<MultiStructureManagerUIFactory.Holder> {
 
-    public static final String MODE_MULTI    = "multi";
+    public static final String MODE_MULTI = "multi";
     public static final String MODE_SETTINGS = "settings";
 
     public static final ResourceLocation UI_ID = ResourceLocation.fromNamespaceAndPath(
@@ -83,17 +83,21 @@ public class MultiStructureManagerUIFactory
 
         public Holder(boolean remote, String mode, ItemStack item) {
             this.remote = remote;
-            this.mode   = mode;
-            this.item   = item;
+            this.mode = mode;
+            this.item = item;
         }
 
         public void attach(Player p) {
             if (this.player == null) this.player = p;
         }
 
-        public Player getPlayer() { return player; }
+        public Player getPlayer() {
+            return player;
+        }
 
-        public ItemStack getTerminalItem() { return item; }
+        public ItemStack getTerminalItem() {
+            return item;
+        }
 
         @Override
         public ModularUI createUI(Player entityPlayer) {
@@ -101,8 +105,18 @@ public class MultiStructureManagerUIFactory
             return INSTANCE.createUITemplate(this, entityPlayer);
         }
 
-        @Override public boolean isInvalid() { return player != null && player.isRemoved(); }
-        @Override public boolean isRemote()  { return remote; }
-        @Override public void markAsDirty()  { }
+        @Override
+        public boolean isInvalid() {
+            return player != null && player.isRemoved();
+        }
+
+        @Override
+        public boolean isRemote() {
+            return remote;
+        }
+
+        @Override
+        public void markAsDirty() {
+        }
     }
 }

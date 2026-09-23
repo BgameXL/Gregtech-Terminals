@@ -8,7 +8,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class MultiblockMachineReflection {
 
-    private MultiblockMachineReflection() {}
+    private MultiblockMachineReflection() {
+    }
 
     public static void refreshController(ServerLevel level, BlockPos controllerPos) {
         if (level == null || controllerPos == null) return;
@@ -60,25 +61,39 @@ public final class MultiblockMachineReflection {
 
     public static void releasePatternLock(Object lock) {
         if (lock == null) return;
-        try { lock.getClass().getMethod("unlock").invoke(lock); }
-        catch (Throwable t) { GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: releasePatternLock failed", t); }
+        try {
+            lock.getClass().getMethod("unlock").invoke(lock);
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: releasePatternLock failed", t);
+        }
     }
 
     public static void invalidateStructure(Object machine) {
-        try { machine.getClass().getMethod("invalidateStructure").invoke(machine); }
-        catch (Throwable t) { GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: invalidateStructure failed", t); }
+        try {
+            machine.getClass().getMethod("invalidateStructure").invoke(machine);
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: invalidateStructure failed", t);
+        }
     }
 
     public static boolean checkAndRecheckPattern(Object machine) {
         try {
             Object r = machine.getClass().getMethod("checkStructurePattern").invoke(machine);
-            if (Boolean.TRUE.equals(r)) { notifyFormed(machine); return true; }
-        } catch (Throwable ignored) {}
+            if (Boolean.TRUE.equals(r)) {
+                notifyFormed(machine);
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
 
         try {
             Object r = machine.getClass().getMethod("checkPattern").invoke(machine);
-            if (Boolean.TRUE.equals(r)) { notifyFormed(machine); return true; }
-        } catch (Throwable ignored) {}
+            if (Boolean.TRUE.equals(r)) {
+                notifyFormed(machine);
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
 
         notifyInvalid(machine);
         return false;
@@ -86,15 +101,21 @@ public final class MultiblockMachineReflection {
 
     private static void notifyFormed(Object machine) {
         for (String name : new String[]{"onStructureFormed"}) {
-            try { machine.getClass().getMethod(name).invoke(machine); return; }
-            catch (Throwable ignored) {}
+            try {
+                machine.getClass().getMethod(name).invoke(machine);
+                return;
+            } catch (Throwable ignored) {
+            }
         }
     }
 
     private static void notifyInvalid(Object machine) {
         for (String name : new String[]{"onStructureInvalid", "onStructureInvalidated"}) {
-            try { machine.getClass().getMethod(name).invoke(machine); return; }
-            catch (Throwable ignored) {}
+            try {
+                machine.getClass().getMethod(name).invoke(machine);
+                return;
+            } catch (Throwable ignored) {
+            }
         }
     }
 

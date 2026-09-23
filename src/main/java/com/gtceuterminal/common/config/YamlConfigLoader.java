@@ -24,8 +24,9 @@ public class YamlConfigLoader {
         Object val = data.get(key);
         if (val instanceof Number n) return n.intValue();
         if (val instanceof String s) {
-            try { return Integer.parseInt(s.trim()); }
-            catch (NumberFormatException e) {
+            try {
+                return Integer.parseInt(s.trim());
+            } catch (NumberFormatException e) {
                 GTCEUTerminalMod.LOGGER.warn("[YamlConfig] Key '{}' expected int but got '{}', using default {}",
                         key, s, defaultValue);
             }
@@ -103,7 +104,7 @@ public class YamlConfigLoader {
                 int colonIdx = line.indexOf(':');
                 if (colonIdx < 0) continue;
 
-                String key   = line.substring(0, colonIdx).trim();
+                String key = line.substring(0, colonIdx).trim();
                 String value = line.substring(colonIdx + 1).trim();
                 currentListKey = null;
 
@@ -187,7 +188,7 @@ public class YamlConfigLoader {
     private static String unquote(String value) {
         if (value.length() >= 2) {
             if ((value.startsWith("\"") && value.endsWith("\"")) ||
-                    (value.startsWith("'")  && value.endsWith("'"))) {
+                    (value.startsWith("'") && value.endsWith("'"))) {
                 return value.substring(1, value.length() - 1);
             }
         }
@@ -205,8 +206,14 @@ public class YamlConfigLoader {
 
         for (int i = 0; i < inner.length(); i++) {
             char c = inner.charAt(i);
-            if (c == '\'' && !inDouble) { inSingle = !inSingle; continue; }
-            if (c == '"'  && !inSingle) { inDouble = !inDouble; continue; }
+            if (c == '\'' && !inDouble) {
+                inSingle = !inSingle;
+                continue;
+            }
+            if (c == '"' && !inSingle) {
+                inDouble = !inDouble;
+                continue;
+            }
             if (c == ',' && !inSingle && !inDouble) {
                 String item = current.toString().trim();
                 if (!item.isBlank()) result.add(item);
@@ -247,9 +254,11 @@ public class YamlConfigLoader {
         public static ConfigEntry of(String key, Object value, String comment) {
             return new ConfigEntry(key, value, comment);
         }
+
         public static ConfigEntry of(String key, Object value) {
             return new ConfigEntry(key, value, null);
         }
+
         public static ConfigEntry section(String title) {
             return new ConfigEntry(null, null, title);
         }

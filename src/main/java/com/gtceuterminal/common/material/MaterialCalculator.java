@@ -63,18 +63,18 @@ public class MaterialCalculator {
         String tierName = com.gregtechceu.gtceu.api.GTValues.VN[tier].toLowerCase();
 
         String blockId = switch (type.id) {
-            case "energy_hatch"          -> findEnergyHatch(tierName, true);
-            case "dynamo_hatch"          -> findEnergyHatch(tierName, false);
-            case "input_hatch"           -> findFluidHatch(tierName, true);
-            case "output_hatch"          -> findFluidHatch(tierName, false);
-            case "input_bus"             -> findItemBus(tierName, true);
-            case "output_bus"            -> findItemBus(tierName, false);
-            case "dual_hatch"            -> findDualHatch(tierName);
-            case "input_laser"           -> findLaserHatch(tierName, true);
-            case "output_laser"          -> findLaserHatch(tierName, false);
-            case "maintenance"           -> "gtceu:maintenance_hatch";
-            case "muffler"              -> "gtceu:" + tierName + "_muffler_hatch";
-            case "wireless_energy_input"  -> findWirelessEnergyHatch(tierName, true);
+            case "energy_hatch" -> findEnergyHatch(tierName, true);
+            case "dynamo_hatch" -> findEnergyHatch(tierName, false);
+            case "input_hatch" -> findFluidHatch(tierName, true);
+            case "output_hatch" -> findFluidHatch(tierName, false);
+            case "input_bus" -> findItemBus(tierName, true);
+            case "output_bus" -> findItemBus(tierName, false);
+            case "dual_hatch" -> findDualHatch(tierName);
+            case "input_laser" -> findLaserHatch(tierName, true);
+            case "output_laser" -> findLaserHatch(tierName, false);
+            case "maintenance" -> "gtceu:maintenance_hatch";
+            case "muffler" -> "gtceu:" + tierName + "_muffler_hatch";
+            case "wireless_energy_input" -> findWirelessEnergyHatch(tierName, true);
             case "wireless_energy_output" -> findWirelessEnergyHatch(tierName, false);
             default -> null;
         };

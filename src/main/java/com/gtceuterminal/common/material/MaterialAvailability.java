@@ -58,12 +58,12 @@ public class MaterialAvailability {
     }
 
     public int getMissing() {
-        return Math.max(0, required - (int)getTotalAvailable());
+        return Math.max(0, required - (int) getTotalAvailable());
     }
 
     public int getAvailabilityPercent() {
         if (required == 0) return 100;
-        return Math.min(100, (int)((getTotalAvailable() * 100) / required));
+        return Math.min(100, (int) ((getTotalAvailable() * 100) / required));
     }
 
     public int getColor() {
@@ -142,18 +142,7 @@ public class MaterialAvailability {
     }
 
     public String[] getTooltipLines() {
-        return new String[] {
-                "§f" + item.getDescription().getString(),
-                "§7Required: §f" + required,
-                "§7Available: " + (hasEnough() ? "§a" : "§c") + getTotalAvailable(),
-                "",
-                "§7Sources:",
-                inInventory > 0 ? "  §7Inventory: §f" + inInventory : "  §8Inventory: 0",
-                inNearbyChests > 0 ? "  §7Chests: §f" + inNearbyChests : "  §8Chests: 0",
-                inMENetwork > 0 ? "  §aME Network: §f" + inMENetwork : "  §8ME Network: 0",
-                "",
-                hasEnough() ? "§a✓ Sufficient materials" : "§c✗ Missing " + getMissing() + " items"
-        };
+        return new String[]{"§f" + item.getDescription().getString(), "§7Required: §f" + required, "§7Available: " + (hasEnough() ? "§a" : "§c") + getTotalAvailable(), "", "§7Sources:", inInventory > 0 ? "  §7Inventory: §f" + inInventory : "  §8Inventory: 0", inNearbyChests > 0 ? "  §7Chests: §f" + inNearbyChests : "  §8Chests: 0", inMENetwork > 0 ? "  §aME Network: §f" + inMENetwork : "  §8ME Network: 0", "", hasEnough() ? "§a✓ Sufficient materials" : "§c✗ Missing " + getMissing() + " items"};
     }
 
     public String getItemName() {

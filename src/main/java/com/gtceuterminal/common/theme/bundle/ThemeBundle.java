@@ -3,7 +3,9 @@ package com.gtceuterminal.common.theme.bundle;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.texture.*;
+
 import javax.annotation.Nullable;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -13,13 +15,19 @@ public abstract class ThemeBundle {
     public boolean isAvailable() {
         return true;
     }
+
     public abstract String id();
+
     public abstract String displayName();
+
     public abstract String description();
 
     public abstract int accentColor();
+
     public abstract int bgColor();
+
     public abstract int panelColor();
+
     public int textColor() {
         return 0xFFFFFFFF;
     }

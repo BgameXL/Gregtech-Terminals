@@ -23,39 +23,40 @@ public final class ComponentRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentRegistry.class);
 
-    public static final String FLUID_HATCHES       = "fluid_hatches";
-    public static final String BUSES               = "buses";
-    public static final String COILS               = "coils";
-    public static final String ENERGY_HATCHES      = "energy_hatches";
-    public static final String LASER_HATCHES       = "laser_hatches";
-    public static final String WIRELESS_HATCHES    = "wireless_hatches";
-    public static final String SUBSTATION_HATCHES  = "substation_hatches";
-    public static final String PARALLEL_HATCHES    = "parallel_hatches";
-    public static final String MUFFLER_HATCHES     = "muffler_hatches";
+    public static final String FLUID_HATCHES = "fluid_hatches";
+    public static final String BUSES = "buses";
+    public static final String COILS = "coils";
+    public static final String ENERGY_HATCHES = "energy_hatches";
+    public static final String LASER_HATCHES = "laser_hatches";
+    public static final String WIRELESS_HATCHES = "wireless_hatches";
+    public static final String SUBSTATION_HATCHES = "substation_hatches";
+    public static final String PARALLEL_HATCHES = "parallel_hatches";
+    public static final String MUFFLER_HATCHES = "muffler_hatches";
     public static final String MAINTENANCE_HATCHES = "maintenance_hatches";
-    public static final String DUAL_HATCHES        = "dual_hatches";
+    public static final String DUAL_HATCHES = "dual_hatches";
 
     private static final Map<String, List<ComponentEntry>> DATA = new LinkedHashMap<>();
     private static final Map<String, List<ComponentEntry>> EXTERNAL = new LinkedHashMap<>();
     private static boolean initialized = false;
 
-    private ComponentRegistry() {}
+    private ComponentRegistry() {
+    }
 
     public static synchronized void init() {
         if (initialized) return;
         LOGGER.info("Initializing ComponentRegistry...");
 
-        put(COILS,               GTCEuReader.readCoils());
-        put(FLUID_HATCHES,       GTCEuReader.readFluidHatches());
-        put(BUSES,               GTCEuReader.readBuses());
-        put(ENERGY_HATCHES,      GTCEuReader.readEnergyHatches());
-        put(LASER_HATCHES,       GTCEuReader.readLaserHatches());
-        put(WIRELESS_HATCHES,    new ArrayList<>());
-        put(SUBSTATION_HATCHES,  GTCEuReader.readSubstationHatches());
-        put(PARALLEL_HATCHES,    GTCEuReader.readParallelHatches());
-        put(MUFFLER_HATCHES,     GTCEuReader.readMufflerHatches());
+        put(COILS, GTCEuReader.readCoils());
+        put(FLUID_HATCHES, GTCEuReader.readFluidHatches());
+        put(BUSES, GTCEuReader.readBuses());
+        put(ENERGY_HATCHES, GTCEuReader.readEnergyHatches());
+        put(LASER_HATCHES, GTCEuReader.readLaserHatches());
+        put(WIRELESS_HATCHES, new ArrayList<>());
+        put(SUBSTATION_HATCHES, GTCEuReader.readSubstationHatches());
+        put(PARALLEL_HATCHES, GTCEuReader.readParallelHatches());
+        put(MUFFLER_HATCHES, GTCEuReader.readMufflerHatches());
         put(MAINTENANCE_HATCHES, GTCEuReader.readMaintenanceHatches());
-        put(DUAL_HATCHES,        GTCEuReader.readDualHatches());
+        put(DUAL_HATCHES, GTCEuReader.readDualHatches());
 
         initialized = true;
         EXTERNAL.forEach((category, entries) -> DATA.computeIfAbsent(category, k -> new ArrayList<>()).addAll(entries));
@@ -88,7 +89,9 @@ public final class ComponentRegistry {
         return null;
     }
 
-    public static List<ComponentEntry> getCoils() { return get(COILS); }
+    public static List<ComponentEntry> getCoils() {
+        return get(COILS);
+    }
 
     public static ComponentEntry coilByTier(int tier) {
         return first(COILS, e -> e.tier == tier);
@@ -113,7 +116,9 @@ public final class ComponentRegistry {
         return get(BUSES, e -> e.attrIs("hatchType", busType) || e.attrIs("busType", busType));
     }
 
-    public static List<ComponentEntry> getEnergyHatches() { return get(ENERGY_HATCHES); }
+    public static List<ComponentEntry> getEnergyHatches() {
+        return get(ENERGY_HATCHES);
+    }
 
     public static ComponentEntry energyHatchForTier(String hatchType, int tier, String amperage) {
         ensureInit();
@@ -125,7 +130,9 @@ public final class ComponentRegistry {
         return first(ENERGY_HATCHES, e -> e.tier == tier && e.attrIs("hatchType", hatchType));
     }
 
-    public static List<ComponentEntry> getLaserHatches() { return get(LASER_HATCHES); }
+    public static List<ComponentEntry> getLaserHatches() {
+        return get(LASER_HATCHES);
+    }
 
     public static ComponentEntry laserHatchForTier(String hatchType, int tier, String amperage) {
         ensureInit();
@@ -137,19 +144,25 @@ public final class ComponentRegistry {
         return first(LASER_HATCHES, e -> e.tier == tier && e.attrIs("hatchType", hatchType));
     }
 
-    public static List<ComponentEntry> getWirelessHatches() { return get(WIRELESS_HATCHES); }
+    public static List<ComponentEntry> getWirelessHatches() {
+        return get(WIRELESS_HATCHES);
+    }
 
     public static ComponentEntry substationHatchForTier(String hatchType, int tier) {
         return first(SUBSTATION_HATCHES, e -> e.tier == tier && e.attrIs("hatchType", hatchType));
     }
 
-    public static List<ComponentEntry> getParallelHatches() { return get(PARALLEL_HATCHES); }
+    public static List<ComponentEntry> getParallelHatches() {
+        return get(PARALLEL_HATCHES);
+    }
 
     public static ComponentEntry mufflerHatchForTier(int tier) {
         return first(MUFFLER_HATCHES, e -> e.tier == tier);
     }
 
-    public static List<ComponentEntry> getMaintenanceHatches() { return get(MAINTENANCE_HATCHES); }
+    public static List<ComponentEntry> getMaintenanceHatches() {
+        return get(MAINTENANCE_HATCHES);
+    }
 
     public static List<ComponentEntry> getDualHatches(String hatchType) {
         return get(DUAL_HATCHES, e -> e.attrIs("hatchType", hatchType));
@@ -169,20 +182,26 @@ public final class ComponentRegistry {
         OTHER("Other");
 
         private final String displayName;
-        ComponentCategory(String displayName) { this.displayName = displayName; }
-        public String getDisplayName() { return displayName; }
+
+        ComponentCategory(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     public static List<ItemStack> getMatchingItemStacks(ComponentCategory category) {
         String registryCategory = switch (category) {
-            case ENERGY_HATCH      -> ENERGY_HATCHES;
-            case FLUID_HATCH       -> FLUID_HATCHES;
-            case ITEM_HATCH        -> BUSES;
+            case ENERGY_HATCH -> ENERGY_HATCHES;
+            case FLUID_HATCH -> FLUID_HATCHES;
+            case ITEM_HATCH -> BUSES;
             case MAINTENANCE_HATCH -> MAINTENANCE_HATCHES;
-            case MUFFLER_HATCH     -> MUFFLER_HATCHES;
-            case LASER_HATCH       -> LASER_HATCHES;
-            case COIL              -> COILS;
-            default                -> null;
+            case MUFFLER_HATCH -> MUFFLER_HATCHES;
+            case LASER_HATCH -> LASER_HATCHES;
+            case COIL -> COILS;
+            default -> null;
         };
         if (registryCategory == null) return List.of();
 

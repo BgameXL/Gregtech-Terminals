@@ -200,7 +200,7 @@ public class SchematicData {
                 };
                 return state.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, rotated);
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
         }
 
         return state;

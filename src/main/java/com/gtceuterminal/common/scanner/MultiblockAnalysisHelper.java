@@ -25,14 +25,15 @@ import java.util.Set;
 
 public final class MultiblockAnalysisHelper {
 
-    private MultiblockAnalysisHelper() {}
+    private MultiblockAnalysisHelper() {
+    }
 
     public static UniversalMultiblockScanner.DetectedMultiblock analyzeMultiblock(
             MultiblockControllerMachine controller, BlockPos pos, Level level) {
         try {
-            String name  = getMultiblockName(controller);
+            String name = getMultiblockName(controller);
             String modId = getMultiblockModId(controller);
-            int tier     = getMultiblockTier(controller);
+            int tier = getMultiblockTier(controller);
             Map<String, List<UniversalMultiblockScanner.ComponentData>> components =
                     extractAllComponents(controller, level);
             return new UniversalMultiblockScanner.DetectedMultiblock(name, modId, pos, tier, components, controller);
@@ -57,7 +58,8 @@ public final class MultiblockAnalysisHelper {
         try {
             var def = controller.getDefinition();
             if (def != null && def.getId() != null) return def.getId().getNamespace();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return "unknown";
     }
 
@@ -71,11 +73,13 @@ public final class MultiblockAnalysisHelper {
                         .max().orElse(-1);
                 if (maxTier >= 0) return maxTier;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             var def = controller.getDefinition();
             if (def != null && def.getTier() > 0) return def.getTier();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return 0;
     }
 
@@ -155,7 +159,7 @@ public final class MultiblockAnalysisHelper {
             MetaMachine live = liveMachineAt(level, pos, machine);
             String type = detectComponentType(live);
             var def = live.getDefinition();
-            int tier    = def != null ? def.getTier() : 0;
+            int tier = def != null ? def.getTier() : 0;
             String name = def != null
                     ? net.minecraft.network.chat.Component.translatable(def.getDescriptionId()).getString()
                     : "Unknown";
@@ -174,7 +178,8 @@ public final class MultiblockAnalysisHelper {
                     if (m != null) return m;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return fallback;
     }
 
@@ -203,7 +208,8 @@ public final class MultiblockAnalysisHelper {
             String detected = BlockIdClassifier.detectByImprovedAnalysis(id);
             if (detected != null) return detected;
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return ComponentGroupRegistry.UNKNOWN.id;
     }
 

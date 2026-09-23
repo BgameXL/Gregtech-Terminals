@@ -58,14 +58,17 @@ public class ThemeBundleRegistry {
     private static void loadExternalOverrides() {
         Path themesRoot = Paths.get(THEMES_DIR);
         if (!Files.exists(themesRoot)) {
-            try { Files.createDirectories(themesRoot); } catch (IOException ignored) {}
+            try {
+                Files.createDirectories(themesRoot);
+            } catch (IOException ignored) {
+            }
             return;
         }
 
         try {
             Files.list(themesRoot)
-                 .filter(Files::isDirectory)
-                 .forEach(ThemeBundleRegistry::loadExternalBundle);
+                    .filter(Files::isDirectory)
+                    .forEach(ThemeBundleRegistry::loadExternalBundle);
         } catch (IOException e) {
             GTCEUTerminalMod.LOGGER.warn("ThemeBundleRegistry: failed to scan themes dir: {}", e.getMessage());
         }
@@ -105,31 +108,85 @@ public class ThemeBundleRegistry {
         private final String overrideName;
 
         JsonOverrideBundle(ThemeBundle base, JsonObject json) {
-            this.base         = base;
-            this.accent       = readColor(json, "accentColor", base.accentColor());
-            this.bg           = readColor(json, "bgColor",     base.bgColor());
-            this.panel        = readColor(json, "panelColor",  base.panelColor());
-            this.text         = readColor(json, "textColor",   base.textColor());
+            this.base = base;
+            this.accent = readColor(json, "accentColor", base.accentColor());
+            this.bg = readColor(json, "bgColor", base.bgColor());
+            this.panel = readColor(json, "panelColor", base.panelColor());
+            this.text = readColor(json, "textColor", base.textColor());
             this.overrideName = json.has("displayName")
                     ? json.get("displayName").getAsString()
                     : base.displayName();
         }
 
-        @Override public String id()          { return base.id(); }
-        @Override public String displayName() { return overrideName; }
-        @Override public String description() { return base.description() + " §7(custom colors)"; }
-        @Override public int accentColor()    { return accent; }
-        @Override public int bgColor()        { return bg; }
-        @Override public int panelColor()     { return panel; }
-        @Override public int textColor()      { return text; }
+        @Override
+        public String id() {
+            return base.id();
+        }
 
-        @Override public net.minecraft.resources.ResourceLocation builtinWallpaper() { return base.builtinWallpaper(); }
-        @Override public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture backgroundTexture() { return base.backgroundTexture(); }
-        @Override public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture panelTexture()      { return base.panelTexture(); }
-        @Override public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture headerTexture()     { return base.headerTexture(); }
-        @Override public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture slotTexture()       { return base.slotTexture(); }
-        @Override public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture buttonTexture()     { return base.buttonTexture(); }
-        @Override public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture borderTexture()     { return base.borderTexture(); }
+        @Override
+        public String displayName() {
+            return overrideName;
+        }
+
+        @Override
+        public String description() {
+            return base.description() + " §7(custom colors)";
+        }
+
+        @Override
+        public int accentColor() {
+            return accent;
+        }
+
+        @Override
+        public int bgColor() {
+            return bg;
+        }
+
+        @Override
+        public int panelColor() {
+            return panel;
+        }
+
+        @Override
+        public int textColor() {
+            return text;
+        }
+
+        @Override
+        public net.minecraft.resources.ResourceLocation builtinWallpaper() {
+            return base.builtinWallpaper();
+        }
+
+        @Override
+        public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture backgroundTexture() {
+            return base.backgroundTexture();
+        }
+
+        @Override
+        public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture panelTexture() {
+            return base.panelTexture();
+        }
+
+        @Override
+        public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture headerTexture() {
+            return base.headerTexture();
+        }
+
+        @Override
+        public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture slotTexture() {
+            return base.slotTexture();
+        }
+
+        @Override
+        public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture buttonTexture() {
+            return base.buttonTexture();
+        }
+
+        @Override
+        public com.lowdragmc.lowdraglib.gui.texture.IGuiTexture borderTexture() {
+            return base.borderTexture();
+        }
     }
 
     private static final class JsonOnlyBundle extends ThemeBundle {
@@ -137,29 +194,56 @@ public class ThemeBundleRegistry {
         private final int accent, bg, panel, text;
 
         JsonOnlyBundle(String id, JsonObject json) {
-            this.id     = id;
-            this.name   = json.has("displayName") ? json.get("displayName").getAsString() : id;
-            this.desc   = json.has("description") ? json.get("description").getAsString() : "External theme";
+            this.id = id;
+            this.name = json.has("displayName") ? json.get("displayName").getAsString() : id;
+            this.desc = json.has("description") ? json.get("description").getAsString() : "External theme";
             this.accent = readColor(json, "accentColor", 0xFF2E75B6);
-            this.bg     = readColor(json, "bgColor",     0xFF1A1A1A);
-            this.panel  = readColor(json, "panelColor",  0xFF252525);
-            this.text   = readColor(json, "textColor",   0xFFFFFFFF);
+            this.bg = readColor(json, "bgColor", 0xFF1A1A1A);
+            this.panel = readColor(json, "panelColor", 0xFF252525);
+            this.text = readColor(json, "textColor", 0xFFFFFFFF);
         }
 
-        @Override public String id()          { return id; }
-        @Override public String displayName() { return name; }
-        @Override public String description() { return desc; }
-        @Override public int accentColor()    { return accent; }
-        @Override public int bgColor()        { return bg; }
-        @Override public int panelColor()     { return panel; }
-        @Override public int textColor()      { return text; }
+        @Override
+        public String id() {
+            return id;
+        }
+
+        @Override
+        public String displayName() {
+            return name;
+        }
+
+        @Override
+        public String description() {
+            return desc;
+        }
+
+        @Override
+        public int accentColor() {
+            return accent;
+        }
+
+        @Override
+        public int bgColor() {
+            return bg;
+        }
+
+        @Override
+        public int panelColor() {
+            return panel;
+        }
+
+        @Override
+        public int textColor() {
+            return text;
+        }
     }
 
     static int readColor(JsonObject json, String key, int fallback) {
         if (!json.has(key)) return fallback;
         try {
             String hex = json.get(key).getAsString();
-            String s   = hex.startsWith("#") ? hex.substring(1) : hex;
+            String s = hex.startsWith("#") ? hex.substring(1) : hex;
             if (s.length() == 6) return 0xFF000000 | Integer.parseUnsignedInt(s, 16);
             return (int) Long.parseLong(s, 16);
         } catch (Exception e) {

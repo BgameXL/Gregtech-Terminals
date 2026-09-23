@@ -71,7 +71,8 @@ public class PatternConfigLoader {
                 com.gtceuterminal.common.multiblock.ComponentType ct =
                         com.gtceuterminal.common.multiblock.ComponentType.valueOf(obj.get("componentType").getAsString());
                 group = com.gtceuterminal.common.multiblock.ComponentGroupRegistry.byId(ct.getAbilityId());
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException ignored) {
+            }
             if (group == com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
                 GTCEUTerminalMod.LOGGER.error("Invalid component type in pattern config: {}", groupId);
                 return null;
@@ -79,9 +80,9 @@ public class PatternConfigLoader {
         }
 
         ComponentPattern result = new ComponentPattern(pattern, group);
-        if (obj.has("priority"))      result.setPriority(obj.get("priority").getAsInt());
+        if (obj.has("priority")) result.setPriority(obj.get("priority").getAsInt());
         if (obj.has("displayPrefix")) result.setDisplayPrefix(obj.get("displayPrefix").getAsString());
-        if (obj.has("description"))   result.setDescription(obj.get("description").getAsString());
+        if (obj.has("description")) result.setDescription(obj.get("description").getAsString());
         return result;
     }
 
@@ -109,22 +110,22 @@ public class PatternConfigLoader {
 
     private static void addDefaultPatterns(JsonArray patterns) {
 
-        addPattern(patterns, "gtmthings:*_wireless_energy_input_hatch",  "WIRELESS_ENERGY_INPUT",  100, null,   "Wireless Energy Input Hatch (all tiers)");
-        addPattern(patterns, "gtmthings:*_wireless_energy_output_hatch", "WIRELESS_ENERGY_OUTPUT", 100, null,   "Wireless Energy Output Hatch (all tiers)");
-        addPattern(patterns, "gtmthings:*_wireless_laser_target_hatch",  "WIRELESS_LASER_INPUT",   100, null,   "Wireless Laser Target Hatch (all tiers)");
-        addPattern(patterns, "gtmthings:*_wireless_laser_source_hatch",  "WIRELESS_LASER_OUTPUT",  100, null,   "Wireless Laser Source Hatch (all tiers)");
+        addPattern(patterns, "gtmthings:*_wireless_energy_input_hatch", "WIRELESS_ENERGY_INPUT", 100, null, "Wireless Energy Input Hatch (all tiers)");
+        addPattern(patterns, "gtmthings:*_wireless_energy_output_hatch", "WIRELESS_ENERGY_OUTPUT", 100, null, "Wireless Energy Output Hatch (all tiers)");
+        addPattern(patterns, "gtmthings:*_wireless_laser_target_hatch", "WIRELESS_LASER_INPUT", 100, null, "Wireless Laser Target Hatch (all tiers)");
+        addPattern(patterns, "gtmthings:*_wireless_laser_source_hatch", "WIRELESS_LASER_OUTPUT", 100, null, "Wireless Laser Source Hatch (all tiers)");
 
-        addPattern(patterns, "*:*_energy_input_hatch_4a",   "ENERGY_HATCH", 90, "4A",  "4A Energy Input Hatch");
-        addPattern(patterns, "*:*_energy_input_hatch_16a",  "ENERGY_HATCH", 90, "16A", "16A Energy Input Hatch");
-        addPattern(patterns, "*:*_energy_input_hatch_64a",  "ENERGY_HATCH", 90, "64A", "64A Energy Input Hatch");
-        addPattern(patterns, "*:*_energy_output_hatch_4a",  "DYNAMO_HATCH", 90, "4A",  "4A Dynamo Hatch");
+        addPattern(patterns, "*:*_energy_input_hatch_4a", "ENERGY_HATCH", 90, "4A", "4A Energy Input Hatch");
+        addPattern(patterns, "*:*_energy_input_hatch_16a", "ENERGY_HATCH", 90, "16A", "16A Energy Input Hatch");
+        addPattern(patterns, "*:*_energy_input_hatch_64a", "ENERGY_HATCH", 90, "64A", "64A Energy Input Hatch");
+        addPattern(patterns, "*:*_energy_output_hatch_4a", "DYNAMO_HATCH", 90, "4A", "4A Dynamo Hatch");
         addPattern(patterns, "*:*_energy_output_hatch_16a", "DYNAMO_HATCH", 90, "16A", "16A Dynamo Hatch");
         addPattern(patterns, "*:*_energy_output_hatch_64a", "DYNAMO_HATCH", 90, "64A", "64A Dynamo Hatch");
 
-        addPattern(patterns, "*:*_substation_input_hatch_*",  "SUBSTATION_INPUT_ENERGY",  95, null, "Substation Input Energy");
+        addPattern(patterns, "*:*_substation_input_hatch_*", "SUBSTATION_INPUT_ENERGY", 95, null, "Substation Input Energy");
         addPattern(patterns, "*:*_substation_output_hatch_*", "SUBSTATION_OUTPUT_ENERGY", 95, null, "Substation Output Energy");
 
-        addPattern(patterns, "*:*_energy_input_hatch",  "ENERGY_HATCH", 10, null, "Generic energy input hatch");
+        addPattern(patterns, "*:*_energy_input_hatch", "ENERGY_HATCH", 10, null, "Generic energy input hatch");
         addPattern(patterns, "*:*_energy_output_hatch", "DYNAMO_HATCH", 10, null, "Generic dynamo hatch");
     }
 
@@ -135,7 +136,7 @@ public class PatternConfigLoader {
         obj.addProperty("componentType", componentType);
         obj.addProperty("priority", priority);
         if (displayPrefix != null) obj.addProperty("displayPrefix", displayPrefix);
-        if (description != null)   obj.addProperty("description", description);
+        if (description != null) obj.addProperty("description", description);
         patterns.add(obj);
     }
 

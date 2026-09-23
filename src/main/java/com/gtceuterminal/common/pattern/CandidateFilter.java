@@ -26,7 +26,8 @@ import java.util.Set;
 
 public final class CandidateFilter {
 
-    private CandidateFilter() {}
+    private CandidateFilter() {
+    }
 
     public static List<ItemStack> filterOutMultiblockParts(List<ItemStack> candidates) {
         if (candidates.isEmpty()) return candidates;
@@ -135,15 +136,17 @@ public final class CandidateFilter {
             Block block = blockItem.getBlock();
             String blockId = ForgeRegistries.BLOCKS.getKey(block).toString().toLowerCase();
 
-            if (blockId.contains("energy")      && blockId.contains("hatch")) return ComponentCategory.ENERGY_HATCH;
-            if (blockId.contains("fluid")       && blockId.contains("hatch")) return ComponentCategory.FLUID_HATCH;
-            if (blockId.contains("item")        && (blockId.contains("bus") || blockId.contains("hatch"))) return ComponentCategory.ITEM_HATCH;
-            if (blockId.contains("maintenance") && blockId.contains("hatch")) return ComponentCategory.MAINTENANCE_HATCH;
-            if (blockId.contains("muffler"))                                   return ComponentCategory.MUFFLER_HATCH;
-            if (blockId.contains("laser")       && blockId.contains("hatch")) return ComponentCategory.LASER_HATCH;
-            if (blockId.contains("rotor"))                                     return ComponentCategory.ROTOR_HOLDER;
-            if (block instanceof CoilBlock)                                    return ComponentCategory.COIL;
-            if (blockId.contains("casing"))                                    return ComponentCategory.CASING;
+            if (blockId.contains("energy") && blockId.contains("hatch")) return ComponentCategory.ENERGY_HATCH;
+            if (blockId.contains("fluid") && blockId.contains("hatch")) return ComponentCategory.FLUID_HATCH;
+            if (blockId.contains("item") && (blockId.contains("bus") || blockId.contains("hatch")))
+                return ComponentCategory.ITEM_HATCH;
+            if (blockId.contains("maintenance") && blockId.contains("hatch"))
+                return ComponentCategory.MAINTENANCE_HATCH;
+            if (blockId.contains("muffler")) return ComponentCategory.MUFFLER_HATCH;
+            if (blockId.contains("laser") && blockId.contains("hatch")) return ComponentCategory.LASER_HATCH;
+            if (blockId.contains("rotor")) return ComponentCategory.ROTOR_HOLDER;
+            if (block instanceof CoilBlock) return ComponentCategory.COIL;
+            if (blockId.contains("casing")) return ComponentCategory.CASING;
 
             if (block instanceof MetaMachineBlock) return ComponentCategory.OTHER;
         }

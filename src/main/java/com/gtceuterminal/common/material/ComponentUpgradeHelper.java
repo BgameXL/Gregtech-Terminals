@@ -107,9 +107,9 @@ public class ComponentUpgradeHelper {
         return switch (type.id) {
             case "input_hatch", "input_hatch_1x", "quad_input_hatch", "nonuple_input_hatch" -> {
                 String cap = switch (type.id) {
-                    case "quad_input_hatch"    -> "4x";
+                    case "quad_input_hatch" -> "4x";
                     case "nonuple_input_hatch" -> "9x";
-                    default                    -> "1x";
+                    default -> "1x";
                 };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("INPUT")) {
                     if (hatch.tier == tier && hatch.attrIs("capacity", cap)) yield hatch.blockId;
@@ -119,9 +119,9 @@ public class ComponentUpgradeHelper {
 
             case "output_hatch", "output_hatch_1x", "quad_output_hatch", "nonuple_output_hatch" -> {
                 String cap = switch (type.id) {
-                    case "quad_output_hatch"    -> "4x";
+                    case "quad_output_hatch" -> "4x";
                     case "nonuple_output_hatch" -> "9x";
-                    default                     -> "1x";
+                    default -> "1x";
                 };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("OUTPUT")) {
                     if (hatch.tier == tier && hatch.attrIs("capacity", cap)) yield hatch.blockId;
@@ -237,10 +237,10 @@ public class ComponentUpgradeHelper {
             }
         }
         return switch (type.id) {
-            case "wireless_energy_input"  -> "gtmthings:" + tierName + "_2a_wireless_energy_input_hatch";
+            case "wireless_energy_input" -> "gtmthings:" + tierName + "_2a_wireless_energy_input_hatch";
             case "wireless_energy_output" -> "gtmthings:" + tierName + "_2a_wireless_energy_output_hatch";
-            case "wireless_laser_input"   -> "gtmthings:" + tierName + "_256a_wireless_laser_target_hatch";
-            case "wireless_laser_output"  -> "gtmthings:" + tierName + "_256a_wireless_laser_source_hatch";
+            case "wireless_laser_input" -> "gtmthings:" + tierName + "_256a_wireless_laser_target_hatch";
+            case "wireless_laser_output" -> "gtmthings:" + tierName + "_256a_wireless_laser_source_hatch";
             default -> null;
         };
     }
@@ -269,9 +269,9 @@ public class ComponentUpgradeHelper {
         return switch (type.id) {
             case "input_hatch", "input_hatch_1x", "quad_input_hatch", "nonuple_input_hatch" -> {
                 String cap = switch (type.id) {
-                    case "quad_input_hatch"    -> "4x";
+                    case "quad_input_hatch" -> "4x";
                     case "nonuple_input_hatch" -> "9x";
-                    default                    -> "1x";
+                    default -> "1x";
                 };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("INPUT")) {
                     if (hatch.tier == targetTier && hatch.attrIs("capacity", cap)) yield hatch.displayName + " →";
@@ -281,9 +281,9 @@ public class ComponentUpgradeHelper {
 
             case "output_hatch", "output_hatch_1x", "quad_output_hatch", "nonuple_output_hatch" -> {
                 String cap = switch (type.id) {
-                    case "quad_output_hatch"    -> "4x";
+                    case "quad_output_hatch" -> "4x";
                     case "nonuple_output_hatch" -> "9x";
-                    default                     -> "1x";
+                    default -> "1x";
                 };
                 for (ComponentEntry hatch : ComponentRegistry.getFluidHatches("OUTPUT")) {
                     if (hatch.tier == targetTier && hatch.attrIs("capacity", cap)) yield hatch.displayName + " →";
@@ -352,8 +352,7 @@ public class ComponentUpgradeHelper {
                 yield null;
             }
 
-            case "muffler" ->
-                    tierDisplayName + " Muffler Hatch →";
+            case "muffler" -> tierDisplayName + " Muffler Hatch →";
 
             case "coil" -> {
                 ComponentEntry coil = ComponentRegistry.coilByTier(targetTier);
@@ -386,13 +385,12 @@ public class ComponentUpgradeHelper {
             case "input_bus" -> ComponentRegistry.getBuses("INPUT").stream().map(e -> e.tier).sorted().toList();
             case "output_bus" -> ComponentRegistry.getBuses("OUTPUT").stream().map(e -> e.tier).sorted().toList();
 
-            case "energy_hatch", "dynamo_hatch" ->
-                    ComponentRegistry.getEnergyHatches().stream()
-                            .filter(h -> !h.blockId.contains("substation"))
-                            .map(h -> h.tier)
-                            .distinct()
-                            .sorted()
-                            .toList();
+            case "energy_hatch", "dynamo_hatch" -> ComponentRegistry.getEnergyHatches().stream()
+                    .filter(h -> !h.blockId.contains("substation"))
+                    .map(h -> h.tier)
+                    .distinct()
+                    .sorted()
+                    .toList();
 
             case "substation_input", "substation_output" ->
                     ComponentRegistry.get(ComponentRegistry.SUBSTATION_HATCHES).stream()
@@ -401,40 +399,35 @@ public class ComponentUpgradeHelper {
                             .sorted()
                             .toList();
 
-            case "input_laser", "output_laser" ->
-                    ComponentRegistry.getLaserHatches().stream()
-                            .map(l -> l.tier)
-                            .filter(t -> t >= 5)
-                            .distinct()
-                            .sorted()
-                            .toList();
+            case "input_laser", "output_laser" -> ComponentRegistry.getLaserHatches().stream()
+                    .map(l -> l.tier)
+                    .filter(t -> t >= 5)
+                    .distinct()
+                    .sorted()
+                    .toList();
 
-            case "parallel_hatch" ->
-                    ComponentRegistry.getParallelHatches().stream()
-                            .filter(p -> p.attrIs("variant", "STANDARD"))
-                            .map(p -> p.tier)
-                            .sorted()
-                            .toList();
+            case "parallel_hatch" -> ComponentRegistry.getParallelHatches().stream()
+                    .filter(p -> p.attrIs("variant", "STANDARD"))
+                    .map(p -> p.tier)
+                    .sorted()
+                    .toList();
 
             case "muffler" ->
                     ComponentRegistry.get(ComponentRegistry.MUFFLER_HATCHES).stream().map(e -> e.tier).sorted().toList();
 
-            case "coil" ->
-                    ComponentRegistry.getCoils().stream().map(e -> e.tier).sorted().toList();
+            case "coil" -> ComponentRegistry.getCoils().stream().map(e -> e.tier).sorted().toList();
 
-            case "maintenance" ->
-                    ComponentRegistry.getMaintenanceHatches().stream()
-                            .map(m -> m.tier)
-                            .distinct()
-                            .sorted()
-                            .toList();
+            case "maintenance" -> ComponentRegistry.getMaintenanceHatches().stream()
+                    .map(m -> m.tier)
+                    .distinct()
+                    .sorted()
+                    .toList();
 
-            case "dual_hatch" ->
-                    ComponentRegistry.getDualHatches("INPUT").stream()
-                            .map(h -> h.tier)
-                            .distinct()
-                            .sorted()
-                            .toList();
+            case "dual_hatch" -> ComponentRegistry.getDualHatches("INPUT").stream()
+                    .map(h -> h.tier)
+                    .distinct()
+                    .sorted()
+                    .toList();
 
             default -> {
                 if (type.id.startsWith("wireless_energy_")) {

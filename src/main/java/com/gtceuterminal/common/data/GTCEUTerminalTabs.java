@@ -35,7 +35,7 @@ public class GTCEUTerminalTabs {
                     })
                     .build()
     );
-    public static final GTCEUTerminalTabs CREATIVE_TABS =  new GTCEUTerminalTabs();
+    public static final GTCEUTerminalTabs CREATIVE_TABS = new GTCEUTerminalTabs();
 
     public static void register(IEventBus modEventBus) {
         CREATIVE_MODE_TABS.register(modEventBus);

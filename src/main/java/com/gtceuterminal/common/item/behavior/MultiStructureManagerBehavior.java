@@ -39,7 +39,7 @@ public class MultiStructureManagerBehavior {
 
     public MultiStructureManagerBehavior(int cooldownTicks, boolean enableSounds) {
         this.cooldownTicks = cooldownTicks;
-        this.enableSounds  = enableSounds;
+        this.enableSounds = enableSounds;
     }
 
     public MultiStructureManagerBehavior() {
@@ -47,11 +47,11 @@ public class MultiStructureManagerBehavior {
     }
 
     public @NotNull InteractionResult useOn(@NotNull UseOnContext context) {
-        Player    player    = context.getPlayer();
+        Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        Level     level     = context.getLevel();
-        BlockPos  blockPos  = context.getClickedPos();
+        Level level = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
         ItemStack itemStack = context.getItemInHand();
         InteractionHand hand = context.getHand();
 
@@ -64,7 +64,8 @@ public class MultiStructureManagerBehavior {
                         GlobalPos globalPos = GlobalPos.of(level.dimension(), blockPos);
                         CompoundTag tag = itemStack.getOrCreateTag();
                         tag.put("accessPoint", GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, globalPos)
-                                .getOrThrow(false, err -> {}));
+                                .getOrThrow(false, err -> {
+                                }));
                         player.displayClientMessage(
                                 Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.linked_to_me_network"),
                                 true);
@@ -72,7 +73,8 @@ public class MultiStructureManagerBehavior {
                     }
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }
-            } catch (ClassNotFoundException ignored) {}
+            } catch (ClassNotFoundException ignored) {
+            }
         }
 
         if (player.isShiftKeyDown()) {

@@ -59,10 +59,10 @@ public class ComponentEventJS extends EventJS {
         if (registryCategory != null && !registryCategory.isBlank()) builder.registryCategory(registryCategory);
         if (handlerType != null) {
             switch (handlerType.toLowerCase()) {
-                case "energy"  -> builder.energyHandler();
-                case "fluid"   -> builder.fluidHandler();
-                case "item"    -> builder.itemHandler();
-                case "data"    -> builder.dataHandler();
+                case "energy" -> builder.energyHandler();
+                case "fluid" -> builder.fluidHandler();
+                case "item" -> builder.itemHandler();
+                case "data" -> builder.dataHandler();
                 case "special" -> builder.special();
             }
         }

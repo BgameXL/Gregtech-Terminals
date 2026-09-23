@@ -36,16 +36,16 @@ import java.util.function.Supplier;
 public class CPacketConfirmAutobuild {
 
     private final AnalysisResult.Kind kind;
-    private final BlockPos            controllerPos;
-    private final int                 targetTier;
-    private final String              upgradeId;
-    private final List<BlockPos>      componentPositions;
+    private final BlockPos controllerPos;
+    private final int targetTier;
+    private final String upgradeId;
+    private final List<BlockPos> componentPositions;
 
     public CPacketConfirmAutobuild(AnalysisResult result) {
-        this.kind               = result.kind;
-        this.controllerPos      = result.controllerPos;
-        this.targetTier         = result.targetTier;
-        this.upgradeId          = result.upgradeId != null ? result.upgradeId : "";
+        this.kind = result.kind;
+        this.controllerPos = result.controllerPos;
+        this.targetTier = result.targetTier;
+        this.upgradeId = result.upgradeId != null ? result.upgradeId : "";
         this.componentPositions = new ArrayList<>(result.componentPositions);
     }
 
@@ -59,10 +59,10 @@ public class CPacketConfirmAutobuild {
     }
 
     public CPacketConfirmAutobuild(FriendlyByteBuf buf) {
-        this.kind          = buf.readEnum(AnalysisResult.Kind.class);
+        this.kind = buf.readEnum(AnalysisResult.Kind.class);
         this.controllerPos = buf.readBlockPos();
-        this.targetTier    = buf.readInt();
-        this.upgradeId     = buf.readUtf();
+        this.targetTier = buf.readInt();
+        this.upgradeId = buf.readUtf();
         int count = buf.readInt();
         this.componentPositions = new ArrayList<>(count);
         for (int i = 0; i < count; i++) componentPositions.add(buf.readBlockPos());
@@ -209,7 +209,8 @@ public class CPacketConfirmAutobuild {
                     true,
                     terminal);
 
-            if (result.success) succeeded++; else failed++;
+            if (result.success) succeeded++;
+            else failed++;
         }
 
         if (succeeded > 0) {
@@ -263,18 +264,19 @@ public class CPacketConfirmAutobuild {
         return ItemStack.EMPTY;
     }
 
-    private enum Fulfillment { READY, CRAFTING, MISSING }
+    private enum Fulfillment {READY, CRAFTING, MISSING}
 
-    private record FulfillResult(Fulfillment status, int craftCount, String description) {}
+    private record FulfillResult(Fulfillment status, int craftCount, String description) {
+    }
 
     private static FulfillResult evaluate(ServerPlayer player, List<AnalysisResult.Entry> entries, boolean aeOnly) {
         Map<Item, Integer> craftDeficits = new LinkedHashMap<>();
         boolean hardMissing = false;
-        boolean anyDeficit  = false;
+        boolean anyDeficit = false;
 
         for (AnalysisResult.Entry e : entries) {
-            int  needed = e.needed();
-            long avail  = aeOnly ? e.inME : e.inME + countInInventory(player, e.stack.getItem());
+            int needed = e.needed();
+            long avail = aeOnly ? e.inME : e.inME + countInInventory(player, e.stack.getItem());
             if (avail >= needed) continue;
 
             anyDeficit = true;
@@ -298,7 +300,7 @@ public class CPacketConfirmAutobuild {
         for (Map.Entry<Item, Integer> e : deficits.entrySet()) {
             if (sb.length() > 0) sb.append("§e, ");
             sb.append(e.getValue()).append("× §f")
-              .append(new ItemStack(e.getKey()).getHoverName().getString()).append("§e");
+                    .append(new ItemStack(e.getKey()).getHoverName().getString()).append("§e");
         }
         return sb.length() > 0 ? sb.toString() : "—";
     }

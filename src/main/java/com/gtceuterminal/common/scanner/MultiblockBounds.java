@@ -14,7 +14,8 @@ import java.util.Set;
 
 final class MultiblockBounds {
 
-    private MultiblockBounds() {}
+    private MultiblockBounds() {
+    }
 
     static Set<BlockPos> getMultiblockBlocks(MultiblockControllerMachine controller, Level level) {
         Set<BlockPos> positions = new HashSet<>();

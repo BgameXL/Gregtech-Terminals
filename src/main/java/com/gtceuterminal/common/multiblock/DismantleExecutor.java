@@ -104,7 +104,8 @@ public class DismantleExecutor {
                 be.saveToItem(stack);
 
                 cleanNBTForStacking(stack);
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
         }
         return stack;
     }

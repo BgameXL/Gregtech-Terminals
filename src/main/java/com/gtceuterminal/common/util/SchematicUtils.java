@@ -14,7 +14,8 @@ import net.minecraft.world.phys.Vec3;
 
 public final class SchematicUtils {
 
-    private SchematicUtils() {}
+    private SchematicUtils() {
+    }
 
     public static BlockPos rotatePositionSteps(BlockPos pos, int steps) {
         BlockPos result = pos;
@@ -84,9 +85,9 @@ public final class SchematicUtils {
             return blockHit.getBlockPos().relative(blockHit.getDirection());
         }
 
-        Vec3 eyePos  = player.getEyePosition();
+        Vec3 eyePos = player.getEyePosition();
         Vec3 lookVec = player.getLookAngle();
-        Vec3 target  = eyePos.add(lookVec.scale(distance));
+        Vec3 target = eyePos.add(lookVec.scale(distance));
 
         return new BlockPos(
                 (int) Math.floor(target.x),

@@ -5,16 +5,16 @@ import net.minecraft.network.FriendlyByteBuf;
 public class RecipeHistoryEntry {
 
     public final String outputName;
-    public final int    durationTicks;
-    public final long   timestamp;
+    public final int durationTicks;
+    public final long timestamp;
     public final boolean completed;
 
     public RecipeHistoryEntry(String outputName, int durationTicks,
-                               long timestamp, boolean completed) {
-        this.outputName    = outputName;
+                              long timestamp, boolean completed) {
+        this.outputName = outputName;
         this.durationTicks = durationTicks;
-        this.timestamp     = timestamp;
-        this.completed     = completed;
+        this.timestamp = timestamp;
+        this.completed = completed;
     }
 
     // Network

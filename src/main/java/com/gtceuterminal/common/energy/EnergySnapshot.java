@@ -9,7 +9,7 @@ import java.util.List;
 
 public class EnergySnapshot {
 
-    public enum MachineMode { CONSUMER, GENERATOR, STORAGE, UNKNOWN }
+    public enum MachineMode {CONSUMER, GENERATOR, STORAGE, UNKNOWN}
 
     // Identity
     public String machineCustomName = "";
@@ -32,18 +32,20 @@ public class EnergySnapshot {
 
     public List<HatchInfo> hatches = new ArrayList<>();
 
-    public boolean isRecipeActive   = false;
-    public String  recipeId         = "";
-    public float   recipeProgress   = 0f;
-    public int     recipeProgressTicks = 0;
-    public int     recipeDuration   = 0;
-    public String  recipeTypeName   = "";
+    public boolean isRecipeActive = false;
+    public String recipeId = "";
+    public float recipeProgress = 0f;
+    public int recipeProgressTicks = 0;
+    public int recipeDuration = 0;
+    public String recipeTypeName = "";
     public List<RecipeHistoryEntry> recipeHistory = new ArrayList<>();
 
-    public long[] inputHistory  = new long[0];
+    public long[] inputHistory = new long[0];
     public long[] outputHistory = new long[0];
 
-    public long netPerSec() { return inputPerSec - outputPerSec; }
+    public long netPerSec() {
+        return inputPerSec - outputPerSec;
+    }
 
     public float chargePercent() {
         if (usesBigInt) {
@@ -139,21 +141,25 @@ public class EnergySnapshot {
     public static EnergySnapshot decode(FriendlyByteBuf buf) {
         EnergySnapshot s = new EnergySnapshot();
         s.machineCustomName = buf.readUtf();
-        s.machineTypeKey    = buf.readUtf();
-        s.mode           = buf.readEnum(MachineMode.class);
-        s.isFormed       = buf.readBoolean();
-        s.energyStored   = buf.readLong();
+        s.machineTypeKey = buf.readUtf();
+        s.mode = buf.readEnum(MachineMode.class);
+        s.isFormed = buf.readBoolean();
+        s.energyStored = buf.readLong();
         s.energyCapacity = buf.readLong();
-        s.usesBigInt     = buf.readBoolean();
+        s.usesBigInt = buf.readBoolean();
         if (s.usesBigInt) {
-            byte[] bs = new byte[buf.readInt()]; buf.readBytes(bs); s.bigStored   = new BigInteger(bs);
-            byte[] bc = new byte[buf.readInt()]; buf.readBytes(bc); s.bigCapacity = new BigInteger(bc);
+            byte[] bs = new byte[buf.readInt()];
+            buf.readBytes(bs);
+            s.bigStored = new BigInteger(bs);
+            byte[] bc = new byte[buf.readInt()];
+            buf.readBytes(bc);
+            s.bigCapacity = new BigInteger(bc);
         }
-        s.inputPerSec    = buf.readLong();
-        s.outputPerSec   = buf.readLong();
-        s.inputVoltage   = buf.readLong();
-        s.inputAmperage  = buf.readLong();
-        s.outputVoltage  = buf.readLong();
+        s.inputPerSec = buf.readLong();
+        s.outputPerSec = buf.readLong();
+        s.inputVoltage = buf.readLong();
+        s.inputAmperage = buf.readLong();
+        s.outputVoltage = buf.readLong();
         s.outputAmperage = buf.readLong();
 
         int hc = buf.readInt();
@@ -161,12 +167,12 @@ public class EnergySnapshot {
 
         int rhc = buf.readInt();
         for (int i = 0; i < rhc; i++) s.recipeHistory.add(RecipeHistoryEntry.decode(buf));
-        s.isRecipeActive      = buf.readBoolean();
-        s.recipeId            = buf.readUtf();
-        s.recipeProgress      = buf.readFloat();
+        s.isRecipeActive = buf.readBoolean();
+        s.recipeId = buf.readUtf();
+        s.recipeProgress = buf.readFloat();
         s.recipeProgressTicks = buf.readInt();
-        s.recipeDuration      = buf.readInt();
-        s.recipeTypeName  = buf.readUtf();
+        s.recipeDuration = buf.readInt();
+        s.recipeTypeName = buf.readUtf();
 
         int ih = buf.readInt();
         s.inputHistory = new long[ih];

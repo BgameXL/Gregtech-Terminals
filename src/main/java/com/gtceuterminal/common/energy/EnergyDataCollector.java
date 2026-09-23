@@ -39,7 +39,7 @@ import java.util.Map;
 @Mod.EventBusSubscriber(modid = com.gtceuterminal.GTCEUTerminalMod.MOD_ID)
 public class EnergyDataCollector {
 
-    private static final Map<String, Deque<Long>> inputHistoryMap  = new HashMap<>();
+    private static final Map<String, Deque<Long>> inputHistoryMap = new HashMap<>();
     private static final Map<String, Deque<Long>> outputHistoryMap = new HashMap<>();
 
     @SubscribeEvent
@@ -70,34 +70,32 @@ public class EnergyDataCollector {
                 snap.mode = EnergySnapshot.MachineMode.STORAGE;
 
                 IEnergyInfoProvider.EnergyInfo info = substation.getEnergyInfo();
-                snap.usesBigInt   = info.capacity().compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0;
-                snap.bigStored    = info.stored();
-                snap.bigCapacity  = info.capacity();
-                snap.energyStored   = snap.bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
+                snap.usesBigInt = info.capacity().compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0;
+                snap.bigStored = info.stored();
+                snap.bigCapacity = info.capacity();
+                snap.energyStored = snap.bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
                 snap.energyCapacity = snap.bigCapacity.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
 
                 MachineInferencer.MachineSnapshot ms = MachineInferencer.inferMachine(level, pos);
                 if (ms != null) {
-                    snap.inputPerSec  = ms.inputEuPerTick * 20;
+                    snap.inputPerSec = ms.inputEuPerTick * 20;
                     snap.outputPerSec = ms.outputEuPerTick * 20;
                 }
 
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
-                    snap.inputVoltage  = ec.getInputVoltage();
+                    snap.inputVoltage = ec.getInputVoltage();
                     snap.inputAmperage = ec.getInputAmperage();
-                    snap.outputVoltage  = ec.getOutputVoltage();
+                    snap.outputVoltage = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
-                    if (snap.inputPerSec == 0)  snap.inputPerSec  = ec.getInputPerSec();
+                    if (snap.inputPerSec == 0) snap.inputPerSec = ec.getInputPerSec();
                     if (snap.outputPerSec == 0) snap.outputPerSec = ec.getOutputPerSec();
                 }
 
                 if (ItemsConfig.getEAShowPerHatchDetails() && snap.isFormed) {
                     collectHatchInfo(substation, snap);
                 }
-            }
-
-            else if (machine instanceof WorkableElectricMultiblockMachine electric) {
+            } else if (machine instanceof WorkableElectricMultiblockMachine electric) {
                 snap.isFormed = electric.isFormed();
                 snap.mode = electric.isGenerator()
                         ? EnergySnapshot.MachineMode.GENERATOR
@@ -105,13 +103,13 @@ public class EnergyDataCollector {
 
                 EnergyContainerList ec = electric.getEnergyContainer();
                 if (ec != null) {
-                    snap.energyStored   = ec.getEnergyStored();
+                    snap.energyStored = ec.getEnergyStored();
                     snap.energyCapacity = ec.getEnergyCapacity();
-                    snap.inputPerSec    = ec.getInputPerSec();
-                    snap.outputPerSec   = ec.getOutputPerSec();
-                    snap.inputVoltage   = ec.getInputVoltage();
-                    snap.inputAmperage  = ec.getInputAmperage();
-                    snap.outputVoltage  = ec.getOutputVoltage();
+                    snap.inputPerSec = ec.getInputPerSec();
+                    snap.outputPerSec = ec.getOutputPerSec();
+                    snap.inputVoltage = ec.getInputVoltage();
+                    snap.inputAmperage = ec.getInputAmperage();
+                    snap.outputVoltage = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
                 }
 
@@ -124,9 +122,7 @@ public class EnergyDataCollector {
                     RecipeHistoryTracker.poll(pos, electric);
                     snap.recipeHistory = new java.util.ArrayList<>(RecipeHistoryTracker.getHistory(pos));
                 }
-            }
-
-            else {
+            } else {
                 var custom = MultiblockHandlerRegistry.tryHandle(machine, level, pos);
                 if (custom.isPresent()) {
                     snap = custom.get();
@@ -134,7 +130,7 @@ public class EnergyDataCollector {
                     snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
                     String key = historyKey(level, pos);
                     int maxH = ItemsConfig.getEAHistorySeconds();
-                    snap.inputHistory  = updateHistory(inputHistoryMap,  key, snap.inputPerSec,  maxH);
+                    snap.inputHistory = updateHistory(inputHistoryMap, key, snap.inputPerSec, maxH);
                     snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
                     return snap;
                 }
@@ -145,20 +141,20 @@ public class EnergyDataCollector {
                     snap.mode = ec.getOutputVoltage() > 0
                             ? EnergySnapshot.MachineMode.GENERATOR
                             : EnergySnapshot.MachineMode.CONSUMER;
-                    snap.energyStored   = ec.getEnergyStored();
+                    snap.energyStored = ec.getEnergyStored();
                     snap.energyCapacity = ec.getEnergyCapacity();
-                    snap.inputPerSec    = ec.getInputPerSec();
-                    snap.outputPerSec   = ec.getOutputPerSec();
-                    snap.inputVoltage   = ec.getInputVoltage();
-                    snap.inputAmperage  = ec.getInputAmperage();
-                    snap.outputVoltage  = ec.getOutputVoltage();
+                    snap.inputPerSec = ec.getInputPerSec();
+                    snap.outputPerSec = ec.getOutputPerSec();
+                    snap.inputVoltage = ec.getInputVoltage();
+                    snap.inputAmperage = ec.getInputAmperage();
+                    snap.outputVoltage = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
                 }
             }
 
             String key = historyKey(level, pos);
             int maxH = ItemsConfig.getEAHistorySeconds();
-            snap.inputHistory  = updateHistory(inputHistoryMap,  key, snap.inputPerSec,  maxH);
+            snap.inputHistory = updateHistory(inputHistoryMap, key, snap.inputPerSec, maxH);
             snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
 
         } catch (Exception e) {
@@ -214,7 +210,8 @@ public class EnergyDataCollector {
                     GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
                 }
             }
-        } finally {}
+        } finally {
+        }
     }
 
     private static String getOutputName(com.gregtechceu.gtceu.api.recipe.GTRecipe recipe) {
@@ -288,7 +285,7 @@ public class EnergyDataCollector {
                     }
                 }
 
-                long voltage  = isInput ? ec.getInputVoltage()  : ec.getOutputVoltage();
+                long voltage = isInput ? ec.getInputVoltage() : ec.getOutputVoltage();
                 long amperage = isInput ? ec.getInputAmperage() : ec.getOutputAmperage();
                 if (voltage <= 0) continue;
 

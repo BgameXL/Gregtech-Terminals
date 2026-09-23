@@ -116,7 +116,8 @@ public class PartAbilityMapper {
         if (PartAbility.OUTPUT_LASER.isApplicable(block)) return ComponentType.OUTPUT_LASER;
 
         if (PartAbility.COMPUTATION_DATA_RECEPTION.isApplicable(block)) return ComponentType.COMPUTATION_DATA_RECEPTION;
-        if (PartAbility.COMPUTATION_DATA_TRANSMISSION.isApplicable(block)) return ComponentType.COMPUTATION_DATA_TRANSMISSION;
+        if (PartAbility.COMPUTATION_DATA_TRANSMISSION.isApplicable(block))
+            return ComponentType.COMPUTATION_DATA_TRANSMISSION;
         if (PartAbility.OPTICAL_DATA_RECEPTION.isApplicable(block)) return ComponentType.OPTICAL_DATA_RECEPTION;
         if (PartAbility.OPTICAL_DATA_TRANSMISSION.isApplicable(block)) return ComponentType.OPTICAL_DATA_TRANSMISSION;
         if (PartAbility.DATA_ACCESS.isApplicable(block)) return ComponentType.DATA_ACCESS;

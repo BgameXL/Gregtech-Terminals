@@ -38,10 +38,11 @@ import java.util.function.Consumer;
 
 final class AutoBuilderHelpers {
 
-    private static final Direction[] FACINGS   = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN };
-    private static final Direction[] FACINGS_H = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST };
+    private static final Direction[] FACINGS = {Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN};
+    private static final Direction[] FACINGS_H = {Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST};
 
-    private AutoBuilderHelpers() {}
+    private AutoBuilderHelpers() {
+    }
 
     static int getRepetitionsForSlice(int slice, int[][] aisleRepetitions, int repeatCount) {
         if (aisleRepetitions == null || slice < 0 || slice >= aisleRepetitions.length) return 1;
@@ -91,8 +92,10 @@ final class AutoBuilderHelpers {
                     b.minCount == -1 ? 0 : b.minCount,
                     a.minCount == -1 ? 0 : a.minCount));
             for (SimplePredicate limit : sortedLimited) {
-                if (limit.maxLayerCount != -1 && cacheLayer.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxLayerCount) continue;
-                if (limit.maxCount != -1 && cacheGlobal.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxCount) continue;
+                if (limit.maxLayerCount != -1 && cacheLayer.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxLayerCount)
+                    continue;
+                if (limit.maxCount != -1 && cacheGlobal.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxCount)
+                    continue;
                 cacheLayer.addTo(limit, 1);
                 cacheGlobal.addTo(limit, 1);
                 infos = ArrayUtils.addAll(infos, limit.candidates == null ? null : limit.candidates.get());
@@ -109,23 +112,30 @@ final class AutoBuilderHelpers {
                                             int x, int y, int z,
                                             Direction facing, Direction upwardsFacing,
                                             boolean isFlipped) {
-        int[] c0 = new int[]{ x, y, z }, c1 = new int[3];
+        int[] c0 = new int[]{x, y, z}, c1 = new int[3];
 
         if (facing == Direction.UP || facing == Direction.DOWN) {
             Direction of = facing == Direction.DOWN ? upwardsFacing : upwardsFacing.getOpposite();
             for (int i = 0; i < 3; i++) {
                 switch (GTCEuCompat.getActualDirection(structureDir[i], of)) {
-                    case UP    -> c1[1] =  c0[i];
-                    case DOWN  -> c1[1] = -c0[i];
-                    case WEST  -> c1[0] = -c0[i];
-                    case EAST  -> c1[0] =  c0[i];
+                    case UP -> c1[1] = c0[i];
+                    case DOWN -> c1[1] = -c0[i];
+                    case WEST -> c1[0] = -c0[i];
+                    case EAST -> c1[0] = c0[i];
                     case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] =  c0[i];
+                    case SOUTH -> c1[2] = c0[i];
                 }
             }
             int xOff = upwardsFacing.getStepX(), zOff = upwardsFacing.getStepZ(), tmp;
-            if (xOff == 0) { tmp = c1[2]; c1[2] = zOff > 0 ? c1[1] : -c1[1]; c1[1] = zOff > 0 ? -tmp : tmp; }
-            else           { tmp = c1[0]; c1[0] = xOff > 0 ? c1[1] : -c1[1]; c1[1] = xOff > 0 ? -tmp : tmp; }
+            if (xOff == 0) {
+                tmp = c1[2];
+                c1[2] = zOff > 0 ? c1[1] : -c1[1];
+                c1[1] = zOff > 0 ? -tmp : tmp;
+            } else {
+                tmp = c1[0];
+                c1[0] = xOff > 0 ? c1[1] : -c1[1];
+                c1[1] = xOff > 0 ? -tmp : tmp;
+            }
             if (isFlipped) {
                 if (upwardsFacing == Direction.NORTH || upwardsFacing == Direction.SOUTH) c1[0] = -c1[0];
                 else c1[2] = -c1[2];
@@ -133,28 +143,39 @@ final class AutoBuilderHelpers {
         } else {
             for (int i = 0; i < 3; i++) {
                 switch (GTCEuCompat.getActualDirection(structureDir[i], facing)) {
-                    case UP    -> c1[1] =  c0[i];
-                    case DOWN  -> c1[1] = -c0[i];
-                    case WEST  -> c1[0] = -c0[i];
-                    case EAST  -> c1[0] =  c0[i];
+                    case UP -> c1[1] = c0[i];
+                    case DOWN -> c1[1] = -c0[i];
+                    case WEST -> c1[0] = -c0[i];
+                    case EAST -> c1[0] = c0[i];
                     case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] =  c0[i];
+                    case SOUTH -> c1[2] = c0[i];
                 }
             }
             if (upwardsFacing == Direction.WEST || upwardsFacing == Direction.EAST) {
                 int xOff = upwardsFacing == Direction.EAST ? facing.getClockWise().getStepX() : facing.getClockWise().getOpposite().getStepX();
                 int zOff = upwardsFacing == Direction.EAST ? facing.getClockWise().getStepZ() : facing.getClockWise().getOpposite().getStepZ();
                 int tmp;
-                if (xOff == 0) { tmp = c1[2]; c1[2] = zOff > 0 ? -c1[1] : c1[1]; c1[1] = zOff > 0 ? tmp : -tmp; }
-                else           { tmp = c1[0]; c1[0] = xOff > 0 ? -c1[1] : c1[1]; c1[1] = xOff > 0 ? tmp : -tmp; }
+                if (xOff == 0) {
+                    tmp = c1[2];
+                    c1[2] = zOff > 0 ? -c1[1] : c1[1];
+                    c1[1] = zOff > 0 ? tmp : -tmp;
+                } else {
+                    tmp = c1[0];
+                    c1[0] = xOff > 0 ? -c1[1] : c1[1];
+                    c1[1] = xOff > 0 ? tmp : -tmp;
+                }
             } else if (upwardsFacing == Direction.SOUTH) {
                 c1[1] = -c1[1];
-                if (facing.getStepX() == 0) c1[0] = -c1[0]; else c1[2] = -c1[2];
+                if (facing.getStepX() == 0) c1[0] = -c1[0];
+                else c1[2] = -c1[2];
             }
             if (isFlipped) {
                 if (upwardsFacing == Direction.NORTH || upwardsFacing == Direction.SOUTH) {
-                    if (facing == Direction.NORTH || facing == Direction.SOUTH) c1[0] = -c1[0]; else c1[2] = -c1[2];
-                } else { c1[1] = -c1[1]; }
+                    if (facing == Direction.NORTH || facing == Direction.SOUTH) c1[0] = -c1[0];
+                    else c1[2] = -c1[2];
+                } else {
+                    c1[1] = -c1[1];
+                }
             }
         }
         return new BlockPos(c1[0], c1[1], c1[2]);
@@ -164,18 +185,23 @@ final class AutoBuilderHelpers {
                             BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
         if (blockState.hasProperty(BlockStateProperties.FACING)) {
             tryFacings(blockState, pos, checker, consumer, BlockStateProperties.FACING,
-                    facing == null ? FACINGS : ArrayUtils.addAll(new Direction[]{ facing }, FACINGS));
+                    facing == null ? FACINGS : ArrayUtils.addAll(new Direction[]{facing}, FACINGS));
         } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
             tryFacings(blockState, pos, checker, consumer, BlockStateProperties.HORIZONTAL_FACING,
                     facing == null || facing.getAxis() == Direction.Axis.Y ? FACINGS_H :
-                            ArrayUtils.addAll(new Direction[]{ facing }, FACINGS_H));
+                            ArrayUtils.addAll(new Direction[]{facing}, FACINGS_H));
         }
     }
 
     private static void tryFacings(BlockState blockState, BlockPos pos, BiPredicate<BlockPos, Direction> checker,
                                    Consumer<BlockState> consumer, Property<Direction> property, Direction[] facings) {
         Direction found = null;
-        for (Direction f : facings) { if (checker.test(pos, f)) { found = f; break; } }
+        for (Direction f : facings) {
+            if (checker.test(pos, f)) {
+                found = f;
+                break;
+            }
+        }
         if (found == null) found = Direction.NORTH;
         consumer.accept(blockState.setValue(property, found));
     }
@@ -189,11 +215,17 @@ final class AutoBuilderHelpers {
                 for (TraceabilityPredicate p : row) {
                     if (p == null) continue;
                     addCasingCandidates(freq, p.limited, hatchBlocks, controllerBlock);
-                    addCasingCandidates(freq, p.common,  hatchBlocks, controllerBlock);
+                    addCasingCandidates(freq, p.common, hatchBlocks, controllerBlock);
                 }
 
-        net.minecraft.world.level.block.Block best = null; int bestCount = 0;
-        for (var e : freq.object2IntEntrySet()) { if (e.getIntValue() > bestCount) { bestCount = e.getIntValue(); best = e.getKey(); } }
+        net.minecraft.world.level.block.Block best = null;
+        int bestCount = 0;
+        for (var e : freq.object2IntEntrySet()) {
+            if (e.getIntValue() > bestCount) {
+                bestCount = e.getIntValue();
+                best = e.getKey();
+            }
+        }
         if (best == null) return ItemStack.EMPTY;
         ItemStack st = new ItemStack(best.asItem());
         return st.isEmpty() ? ItemStack.EMPTY : st;
@@ -231,8 +263,8 @@ final class AutoBuilderHelpers {
         Map<Item, Integer> required = new HashMap<>();
         int minZ = -centerOffset[4];
         final int fingerLength = blockMatches.length;
-        final int thumbLength  = fingerLength > 0 ? blockMatches[0].length : 0;
-        final int palmLength   = thumbLength  > 0 ? blockMatches[0][0].length : 0;
+        final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
+        final int palmLength = thumbLength > 0 ? blockMatches[0][0].length : 0;
 
         for (int c = 0, z = minZ++, r; c < fingerLength; c++) {
             int reps = getRepetitionsForSlice(c, aisleRepetitions, settings.repeatCount);
@@ -246,16 +278,19 @@ final class AutoBuilderHelpers {
 
                         BlockInfo[] infos = pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
                         List<ItemStack> candidates = new ArrayList<>();
-                        if (infos != null) for (BlockInfo info : infos) if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
+                        if (infos != null) for (BlockInfo info : infos)
+                            if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
 
                         candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
-                        if (settings.noHatchMode != 0) candidates = CandidateFilter.filterOutMultiblockParts(candidates);
+                        if (settings.noHatchMode != 0)
+                            candidates = CandidateFilter.filterOutMultiblockParts(candidates);
                         candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
 
                         boolean isFluidBlock = false;
                         for (ItemStack cand : candidates) {
                             if (cand.getItem() instanceof BlockItem bi && bi.getBlock().defaultBlockState().getFluidState().isSource()) {
-                                isFluidBlock = true; break;
+                                isFluidBlock = true;
+                                break;
                             }
                         }
                         if (isFluidBlock) continue;

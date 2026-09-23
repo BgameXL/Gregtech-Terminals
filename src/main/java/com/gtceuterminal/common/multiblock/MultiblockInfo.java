@@ -2,9 +2,11 @@ package com.gtceuterminal.common.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import net.minecraft.core.BlockPos;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;

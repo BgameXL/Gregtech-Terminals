@@ -50,7 +50,7 @@ public class GTCEuCompat {
         } catch (Exception e) {
             LOGGER.error("[GTCEuCompat] Failed to cache MultiblockState methods", e);
         }
-        METHOD_CLEAN  = mClean;
+        METHOD_CLEAN = mClean;
         METHOD_UPDATE = mUpdate;
     }
 
@@ -113,16 +113,16 @@ public class GTCEuCompat {
         static {
             try {
                 if (IS_LEGACY) {
-                    mapGet          = Map.class.getMethod("get", Object.class);
-                    mapPut          = Map.class.getMethod("put", Object.class, Object.class);
+                    mapGet = Map.class.getMethod("get", Object.class);
+                    mapPut = Map.class.getMethod("put", Object.class, Object.class);
                     mapGetOrDefault = Map.class.getMethod("getOrDefault", Object.class, Object.class);
-                    mapClear        = Map.class.getMethod("clear");
+                    mapClear = Map.class.getMethod("clear");
                 } else {
                     Class<?> o2i = Class.forName("it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap");
-                    o2iGetInt       = o2i.getMethod("getInt", Object.class);
-                    o2iAddTo        = o2i.getMethod("addTo", Object.class, int.class);
+                    o2iGetInt = o2i.getMethod("getInt", Object.class);
+                    o2iAddTo = o2i.getMethod("addTo", Object.class, int.class);
                     o2iGetOrDefault = o2i.getMethod("getOrDefault", Object.class, int.class);
-                    o2iClear        = o2i.getMethod("clear");
+                    o2iClear = o2i.getMethod("clear");
                 }
             } catch (Exception e) {
                 LOGGER.error("[GTCEuCompat] Failed to cache PredicateCountMap methods", e);
@@ -141,7 +141,9 @@ public class GTCEuCompat {
                 } else {
                     return (int) o2iGetInt.invoke(inner, key);
                 }
-            } catch (Exception e) { return 0; }
+            } catch (Exception e) {
+                return 0;
+            }
         }
 
         public int getOrDefault(SimplePredicate key, int defaultValue) {
@@ -151,7 +153,9 @@ public class GTCEuCompat {
                 } else {
                     return (int) o2iGetOrDefault.invoke(inner, key, defaultValue);
                 }
-            } catch (Exception e) { return defaultValue; }
+            } catch (Exception e) {
+                return defaultValue;
+            }
         }
 
         public void addTo(SimplePredicate key, int delta) {
@@ -171,7 +175,7 @@ public class GTCEuCompat {
         public void clear() {
             try {
                 if (IS_LEGACY) mapClear.invoke(inner);
-                else           o2iClear.invoke(inner);
+                else o2iClear.invoke(inner);
             } catch (ReflectiveOperationException e) {
                 GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.clear: reflection error: {}", e.getMessage());
             }
@@ -192,7 +196,7 @@ public class GTCEuCompat {
             LOGGER.error("[GTCEuCompat] Could not access MultiblockState count fields", e);
         }
         FIELD_GLOBAL_COUNT = fg;
-        FIELD_LAYER_COUNT  = fl;
+        FIELD_LAYER_COUNT = fl;
     }
 
     public static PredicateCountMap getGlobalCount(MultiblockState state) {

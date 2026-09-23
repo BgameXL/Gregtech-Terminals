@@ -39,45 +39,33 @@ public class SchematicInterfaceItem extends Item {
 
     @NotNull
     @Override
-    public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
-                                                  @NotNull InteractionHand usedHand) {
+    public InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
         return this.behavior.use(this, level, player, usedHand);
     }
 
     @Override
     public @NotNull Component getName(@NotNull ItemStack stack) {
-        return Component.translatable(this.getDescriptionId(stack))
-                .withStyle(s -> s.withColor(0x7D04E3));
+        return Component.translatable(this.getDescriptionId(stack)).withStyle(s -> s.withColor(0x7D04E3));
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull Level level,
-                                @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull Level level, @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
 
         if (MENetworkScanner.isAE2Available()) {
             if (MENetworkScanner.isItemLinked(stack)) {
-                tooltipComponents.add(Component.translatable(
-                        "item.gtceuterminal.schematic_interface.tooltip.linked"));
+                tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.linked"));
                 if (level != null && level.isClientSide) {
                     ClientTooltipHelper.appendAE2RangeTooltip(stack, level, tooltipComponents);
                 }
             } else {
-                tooltipComponents.add(Component.translatable(
-                        "item.gtceuterminal.schematic_interface.tooltip.not_linked"));
-                tooltipComponents.add(Component.translatable(
-                        "item.gtceuterminal.schematic_interface.tooltip.place_in_me_wireless_access_point"));
+                tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.not_linked"));
+                tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.place_in_me_wireless_access_point"));
             }
         }
 
         tooltipComponents.add(Component.literal(""));
-        tooltipComponents.add(
-                Component.translatable("item.gtceuterminal.schematic_interface.tooltip.shift_right_click_prefix")
-                        .append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.open_schematic_gui"))
-        );
-        tooltipComponents.add(
-                Component.translatable("item.gtceuterminal.schematic_interface.tooltip.right_click_prefix")
-                        .append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.paste_schematic"))
-        );
+        tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.shift_right_click_prefix").append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.open_schematic_gui")));
+        tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.right_click_prefix").append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.paste_schematic")));
     }
 }

@@ -18,18 +18,19 @@ import org.jetbrains.annotations.Nullable;
 
 final class BlockIdClassifier {
 
-    private BlockIdClassifier() {}
+    private BlockIdClassifier() {
+    }
 
     @Nullable
     static String detectAmperage(String id) {
         if (id.contains("_65536a")) return "65536A";
         if (id.contains("_16384a")) return "16384A";
-        if (id.contains("_4096a"))  return "4096A";
-        if (id.contains("_1024a"))  return "1024A";
-        if (id.contains("_256a"))   return "256A";
-        if (id.contains("_64a"))    return "64A";
-        if (id.contains("_16a"))    return "16A";
-        if (id.contains("_4a"))     return "4A";
+        if (id.contains("_4096a")) return "4096A";
+        if (id.contains("_1024a")) return "1024A";
+        if (id.contains("_256a")) return "256A";
+        if (id.contains("_64a")) return "64A";
+        if (id.contains("_16a")) return "16A";
+        if (id.contains("_4a")) return "4A";
         return null;
     }
 
@@ -37,7 +38,7 @@ final class BlockIdClassifier {
     static String detectByImprovedAnalysis(String id) {
         if (id.contains("wireless")) {
             if (id.contains("energy")) {
-                if (id.contains("input"))  return "Wireless Energy Hatch (Input)";
+                if (id.contains("input")) return "Wireless Energy Hatch (Input)";
                 if (id.contains("output")) return "Wireless Energy Hatch (Output)";
                 return "Wireless Energy Hatch";
             }
@@ -48,14 +49,14 @@ final class BlockIdClassifier {
             }
         }
         if (id.contains("substation")) {
-            if (id.contains("input"))  return "Substation Input Energy Hatch";
+            if (id.contains("input")) return "Substation Input Energy Hatch";
             if (id.contains("output")) return "Substation Output Energy Hatch";
         }
         if (id.contains("energy")) {
             String amp = detectAmperage(id);
             String prefix = amp != null ? amp + " " : "";
             if (id.contains("output") || id.contains("dynamo")) return prefix + "Dynamo Hatch";
-            if (id.contains("input"))                           return prefix + "Energy Hatch";
+            if (id.contains("input")) return prefix + "Energy Hatch";
         }
         if (id.contains("dynamo")) {
             String amp = detectAmperage(id);
@@ -69,7 +70,7 @@ final class BlockIdClassifier {
     static UniversalMultiblockScanner.ComponentData identifyStructureBlock(
             BlockState blockState, BlockPos pos, Level level) {
 
-        String blockId      = blockState.getBlock().builtInRegistryHolder().key().location().toString();
+        String blockId = blockState.getBlock().builtInRegistryHolder().key().location().toString();
         String blockIdLower = blockId.toLowerCase();
 
         if (blockIdLower.contains("coil")) {
@@ -96,14 +97,15 @@ final class BlockIdClassifier {
                             StarTCoreIntegration.FUSION_REFLECTORS,
                             blockState.getBlock().getName().getString(), tier, pos);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         ComponentGroup group = ComponentGroupRegistry.detectFromBlock(blockState.getBlock());
         if (group != ComponentGroupRegistry.UNKNOWN) {
             String category = group.registryCategory != null ? group.registryCategory : group.id;
             ComponentEntry entry = ComponentRegistry.first(category, e -> e.blockId.equalsIgnoreCase(blockId));
-            int tier    = entry != null ? entry.tier : 0;
+            int tier = entry != null ? entry.tier : 0;
             String name = entry != null ? entry.displayName : blockState.getBlock().getName().getString();
             return new UniversalMultiblockScanner.ComponentData(group.id, name, tier, pos);
         }
@@ -116,14 +118,14 @@ final class BlockIdClassifier {
 
     static int detectCoilTier(String blockId) {
         String lower = blockId.toLowerCase();
-        if (lower.contains("cupronickel"))                              return 0;
-        if (lower.contains("kanthal"))                                  return 1;
-        if (lower.contains("nichrome"))                                 return 2;
+        if (lower.contains("cupronickel")) return 0;
+        if (lower.contains("kanthal")) return 1;
+        if (lower.contains("nichrome")) return 2;
         if (lower.contains("rtm_alloy") || lower.contains("rtmalloy")) return 3;
-        if (lower.contains("hss_g")     || lower.contains("hssg"))     return 4;
-        if (lower.contains("naquadah")  && !lower.contains("enriched")) return 5;
-        if (lower.contains("trinium"))                                  return 6;
-        if (lower.contains("tritanium"))                                return 7;
+        if (lower.contains("hss_g") || lower.contains("hssg")) return 4;
+        if (lower.contains("naquadah") && !lower.contains("enriched")) return 5;
+        if (lower.contains("trinium")) return 6;
+        if (lower.contains("tritanium")) return 7;
         return 0;
     }
 }

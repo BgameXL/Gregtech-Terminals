@@ -41,12 +41,12 @@ public class RecipeHistoryTracker {
 
     // Internal state per machine
     private static class TrackState {
-        String  lastRecipeId     = "";
-        int     lastProgress     = 0;
-        long    recipeStartTime  = 0;
-        String  currentOutput    = "";
-        int     currentDuration  = 0;
-        boolean wasWorking       = false;
+        String lastRecipeId = "";
+        int lastProgress = 0;
+        long recipeStartTime = 0;
+        String currentOutput = "";
+        int currentDuration = 0;
+        boolean wasWorking = false;
     }
 
     // Public API
@@ -72,12 +72,12 @@ public class RecipeHistoryTracker {
                             state.recipeStartTime, false));
                 }
 
-                state.lastRecipeId    = currentId;
+                state.lastRecipeId = currentId;
                 state.recipeStartTime = System.currentTimeMillis();
-                state.currentOutput   = getOutputName(currentRecipe);
+                state.currentOutput = getOutputName(currentRecipe);
                 state.currentDuration = duration;
-                state.lastProgress    = progress;
-                state.wasWorking      = true;
+                state.lastProgress = progress;
+                state.wasWorking = true;
 
             } else if (state.wasWorking && !isWorking && !state.lastRecipeId.isEmpty()) {
                 boolean completed = state.lastProgress >= state.currentDuration - 2
@@ -87,7 +87,7 @@ public class RecipeHistoryTracker {
                         state.recipeStartTime, completed));
 
                 state.lastRecipeId = "";
-                state.wasWorking   = false;
+                state.wasWorking = false;
 
             } else if (isWorking && progress < state.lastProgress - 5) {
                 addEntry(pos, new RecipeHistoryEntry(
@@ -96,11 +96,11 @@ public class RecipeHistoryTracker {
 
                 state.recipeStartTime = System.currentTimeMillis();
                 state.currentDuration = duration;
-                state.currentOutput   = getOutputName(currentRecipe);
+                state.currentOutput = getOutputName(currentRecipe);
             }
 
             state.lastProgress = progress;
-            state.wasWorking   = isWorking;
+            state.wasWorking = isWorking;
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.debug("RecipeHistoryTracker.poll error at {}: {}", pos, e.getMessage());
@@ -128,7 +128,7 @@ public class RecipeHistoryTracker {
 
     private static int getProgress(RecipeLogic logic) {
         int p = RecipeLogicReflection.getProgress(logic);
-        return p > 0 ? p : (int)(logic.getProgressPercent() * logic.getMaxProgress());
+        return p > 0 ? p : (int) (logic.getProgressPercent() * logic.getMaxProgress());
     }
 
     private static java.util.Optional<GTRecipe> getCurrentRecipe(RecipeLogic logic) {

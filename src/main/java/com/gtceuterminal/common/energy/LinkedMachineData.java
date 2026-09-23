@@ -112,10 +112,27 @@ public class LinkedMachineData {
         return level.dimension().location().toString();
     }
 
-    public BlockPos getPos()          { return pos; }
-    public String getDimensionId()    { return dimensionId; }
-    public String getCustomName()     { return customName; }
-    public String getControllerBlockKey() { return controllerBlockKey; }
-    public String getLegacyTypeDisplay() { return legacyTypeDisplay; }
-    public void setCustomName(String n) { this.customName = n != null ? n : ""; }
+    public BlockPos getPos() {
+        return pos;
+    }
+
+    public String getDimensionId() {
+        return dimensionId;
+    }
+
+    public String getCustomName() {
+        return customName;
+    }
+
+    public String getControllerBlockKey() {
+        return controllerBlockKey;
+    }
+
+    public String getLegacyTypeDisplay() {
+        return legacyTypeDisplay;
+    }
+
+    public void setCustomName(String n) {
+        this.customName = n != null ? n : "";
+    }
 }

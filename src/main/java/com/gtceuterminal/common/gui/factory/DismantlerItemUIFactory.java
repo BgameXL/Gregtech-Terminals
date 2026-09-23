@@ -95,12 +95,32 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
             this.scannedPositions = scannedPositions;
         }
 
-        public void attach(Player p) { if (this.player == null) this.player = p; }
-        public Player getPlayer() { return player; }
+        public void attach(Player p) {
+            if (this.player == null) this.player = p;
+        }
 
-        @Override public ModularUI createUI(Player p) { attach(p); return INSTANCE.createUITemplate(this, p); }
-        @Override public boolean isInvalid() { return player != null && player.isRemoved(); }
-        @Override public boolean isRemote() { return remote; }
-        @Override public void markAsDirty() { }
+        public Player getPlayer() {
+            return player;
+        }
+
+        @Override
+        public ModularUI createUI(Player p) {
+            attach(p);
+            return INSTANCE.createUITemplate(this, p);
+        }
+
+        @Override
+        public boolean isInvalid() {
+            return player != null && player.isRemoved();
+        }
+
+        @Override
+        public boolean isRemote() {
+            return remote;
+        }
+
+        @Override
+        public void markAsDirty() {
+        }
     }
 }

@@ -14,7 +14,8 @@ public final class BlockPatternReflection {
     public static Field F_CENTER_OFFSET;
     public static boolean READY = false;
 
-    private BlockPatternReflection() {}
+    private BlockPatternReflection() {
+    }
 
     public static synchronized void ensure() {
         if (READY) return;
@@ -38,14 +39,22 @@ public final class BlockPatternReflection {
     public static TraceabilityPredicate[][][] getBlockMatches(BlockPattern pattern) {
         ensure();
         if (!READY) return null;
-        try { return (TraceabilityPredicate[][][]) F_BLOCK_MATCHES.get(pattern); }
-        catch (IllegalAccessException e) { GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getBlockMatches", e); return null; }
+        try {
+            return (TraceabilityPredicate[][][]) F_BLOCK_MATCHES.get(pattern);
+        } catch (IllegalAccessException e) {
+            GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getBlockMatches", e);
+            return null;
+        }
     }
 
     public static int[] getCenterOffset(BlockPattern pattern) {
         ensure();
         if (!READY) return null;
-        try { return (int[]) F_CENTER_OFFSET.get(pattern); }
-        catch (IllegalAccessException e) { GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getCenterOffset", e); return null; }
+        try {
+            return (int[]) F_CENTER_OFFSET.get(pattern);
+        } catch (IllegalAccessException e) {
+            GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getCenterOffset", e);
+            return null;
+        }
     }
 }

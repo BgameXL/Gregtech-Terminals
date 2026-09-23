@@ -14,18 +14,21 @@ public class UniversalUpgradeCatalog {
             String blockId,
             int tier,
             Set<PartAbility> abilities
-    ) {}
+    ) {
+    }
 
     public record CandidatePart(
             String blockId,
             int tier,
             PartAbility ability
-    ) {}
+    ) {
+    }
 
     public record UpgradeOptions(
             InstalledPart installed,
             List<CandidatePart> candidates
-    ) {}
+    ) {
+    }
 
     private final Map<BlockPos, UpgradeOptions> optionsByPos = new HashMap<>();
 

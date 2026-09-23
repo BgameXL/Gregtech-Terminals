@@ -21,31 +21,31 @@ import java.util.function.Supplier;
 public class CPacketRequestUpgradeAnalysis {
 
     private static final class ComponentEntry {
-        final BlockPos     pos;
+        final BlockPos pos;
         final ComponentGroup group;
-        final int           tier;
+        final int tier;
 
         ComponentEntry(BlockPos pos, ComponentGroup group, int tier) {
-            this.pos   = pos;
+            this.pos = pos;
             this.group = group;
-            this.tier  = tier;
+            this.tier = tier;
         }
     }
 
     private final List<ComponentEntry> components;
-    private final int                  targetTier;
-    private final String               upgradeId;
-    private final BlockPos             controllerPos;
+    private final int targetTier;
+    private final String upgradeId;
+    private final BlockPos controllerPos;
 
     public CPacketRequestUpgradeAnalysis(List<ComponentInfo> infos,
                                          int targetTier,
                                          String upgradeId,
                                          BlockPos controllerPos) {
-        this.components    = new ArrayList<>(infos.size());
+        this.components = new ArrayList<>(infos.size());
         for (ComponentInfo ci : infos)
             this.components.add(new ComponentEntry(ci.getPosition(), ci.getGroup(), ci.getTier()));
-        this.targetTier    = targetTier;
-        this.upgradeId     = upgradeId != null ? upgradeId : "";
+        this.targetTier = targetTier;
+        this.upgradeId = upgradeId != null ? upgradeId : "";
         this.controllerPos = controllerPos;
     }
 
@@ -63,14 +63,14 @@ public class CPacketRequestUpgradeAnalysis {
 
     public CPacketRequestUpgradeAnalysis(FriendlyByteBuf buf) {
         this.controllerPos = buf.readBlockPos();
-        this.targetTier    = buf.readInt();
-        this.upgradeId     = buf.readUtf();
+        this.targetTier = buf.readInt();
+        this.upgradeId = buf.readUtf();
         int count = buf.readInt();
         this.components = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            BlockPos      pos  = buf.readBlockPos();
+            BlockPos pos = buf.readBlockPos();
             ComponentGroup group = ComponentGroupRegistry.byId(buf.readUtf());
-            int            tier  = buf.readInt();
+            int tier = buf.readInt();
             components.add(new ComponentEntry(pos, group, tier));
         }
     }

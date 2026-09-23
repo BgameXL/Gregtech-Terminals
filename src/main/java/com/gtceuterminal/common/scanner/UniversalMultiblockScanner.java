@@ -71,25 +71,43 @@ public class UniversalMultiblockScanner {
 
         public ComponentData(String category, String name, int tier, BlockPos position) {
             this.category = category;
-            this.name     = name;
-            this.tier     = tier;
+            this.name = name;
+            this.tier = tier;
             this.position = position;
         }
 
-        public String  getCategory() { return category; }
-        public String  getName()     { return name; }
-        public int     getTier()     { return tier; }
-        public BlockPos getPosition() { return position; }
+        public String getCategory() {
+            return category;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getTier() {
+            return tier;
+        }
+
+        public BlockPos getPosition() {
+            return position;
+        }
 
         @Override
-        public String toString() { return String.format("%s (T%d) at %s", name, tier, position); }
+        public String toString() {
+            return String.format("%s (T%d) at %s", name, tier, position);
+        }
     }
 
     public static class DetectedMultiblock {
         private boolean formed = true;
 
-        public boolean isFormed() { return formed; }
-        public void setFormed(boolean formed) { this.formed = formed; }
+        public boolean isFormed() {
+            return formed;
+        }
+
+        public void setFormed(boolean formed) {
+            this.formed = formed;
+        }
 
         private final String name;
         private final String modId;
@@ -101,46 +119,74 @@ public class UniversalMultiblockScanner {
         public DetectedMultiblock(String name, String modId, BlockPos position, int tier,
                                   Map<String, List<ComponentData>> components,
                                   MultiblockControllerMachine controller) {
-            this.name       = name;
-            this.modId      = modId;
-            this.position   = position;
-            this.tier       = tier;
+            this.name = name;
+            this.modId = modId;
+            this.position = position;
+            this.tier = tier;
             this.components = components;
             this.controller = controller;
         }
 
-        public String  getName()     { return name; }
-        public String  getModId()    { return modId; }
-        public BlockPos getPosition() { return position; }
-        public int     getTier()     { return tier; }
-        public Map<String, List<ComponentData>> getComponents() { return components; }
-        public MultiblockControllerMachine getController() { return controller; }
+        public String getName() {
+            return name;
+        }
+
+        public String getModId() {
+            return modId;
+        }
+
+        public BlockPos getPosition() {
+            return position;
+        }
+
+        public int getTier() {
+            return tier;
+        }
+
+        public Map<String, List<ComponentData>> getComponents() {
+            return components;
+        }
+
+        public MultiblockControllerMachine getController() {
+            return controller;
+        }
 
         public static DetectedMultiblock unformed(MultiblockControllerMachine controller, BlockPos pos) {
-            String name  = "Unknown Multiblock";
+            String name = "Unknown Multiblock";
             String modId = "unknown";
-            int    tier  = 0;
+            int tier = 0;
             try {
                 var def = controller.getDefinition();
                 if (def != null) name = def.getDescriptionId();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 var def = controller.getDefinition();
                 if (def != null && def.getId() != null) modId = def.getId().getNamespace();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 var def = controller.getDefinition();
                 if (def != null && def.getTier() > 0) tier = def.getTier();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             DetectedMultiblock stub = new DetectedMultiblock(
                     name, modId, pos, tier, new java.util.HashMap<>(), controller);
             stub.setFormed(false);
             return stub;
         }
 
-        public int getTotalComponentCount() { return components.values().stream().mapToInt(List::size).sum(); }
-        public List<String> getComponentCategories() { return new ArrayList<>(components.keySet()); }
-        public boolean isFromMod(String modId) { return this.modId.equals(modId); }
+        public int getTotalComponentCount() {
+            return components.values().stream().mapToInt(List::size).sum();
+        }
+
+        public List<String> getComponentCategories() {
+            return new ArrayList<>(components.keySet());
+        }
+
+        public boolean isFromMod(String modId) {
+            return this.modId.equals(modId);
+        }
 
         @Override
         public String toString() {

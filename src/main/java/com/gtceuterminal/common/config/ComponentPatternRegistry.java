@@ -27,13 +27,13 @@ public class ComponentPatternRegistry {
             GTCEUTerminalMod.LOGGER.info("Loaded {} component patterns", patterns.size());
             if (GTCEUTerminalMod.LOGGER.isDebugEnabled()) {
                 for (ComponentPattern pattern : patterns) {
-                    GTCEUTerminalMod.LOGGER.debug("Pattern: {} -> {} (priority: {})", 
-                        pattern.getPattern(), 
-                        pattern.getGroup() != null ? pattern.getGroup().id : "null", 
-                        pattern.getPriority());
+                    GTCEUTerminalMod.LOGGER.debug("Pattern: {} -> {} (priority: {})",
+                            pattern.getPattern(),
+                            pattern.getGroup() != null ? pattern.getGroup().id : "null",
+                            pattern.getPriority());
                 }
             }
-            
+
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Failed to load component patterns", e);
         }
@@ -58,15 +58,15 @@ public class ComponentPatternRegistry {
 
     public static List<ComponentPattern> findAllMatches(String blockId) {
         List<ComponentPattern> matches = new ArrayList<>();
-        
+
         if (blockId == null) return matches;
-        
+
         for (ComponentPattern pattern : patterns) {
             if (pattern.matches(blockId)) {
                 matches.add(pattern);
             }
         }
-        
+
         return matches;
     }
 

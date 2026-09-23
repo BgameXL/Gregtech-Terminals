@@ -33,7 +33,7 @@ public class DismantlerItem extends Item {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        Level    level      = context.getLevel();
+        Level level = context.getLevel();
         BlockPos clickedPos = context.getClickedPos();
 
         BlockEntity be = level.getBlockEntity(clickedPos);

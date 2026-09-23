@@ -10,36 +10,57 @@ import javax.annotation.Nullable;
 
 public class TerraFirmaGregBundle extends ThemeBundle {
 
-    private static final int BG     = 0xFF0D0610;
-    private static final int PANEL  = 0xFF1A0D1F;
+    private static final int BG = 0xFF0D0610;
+    private static final int PANEL = 0xFF1A0D1F;
     private static final int ACCENT = 0xFFEA097B;
     private static final int BRIGHT = 0xFFF43B7D;
-    private static final int TEXT   = 0xFFFFE8F0;
+    private static final int TEXT = 0xFFFFE8F0;
 
     private static final Class<?> TFG_MACHINES;
+
     static {
         Class<?> c = null;
         try {
             c = Class.forName("su.terrafirmagreg.core.common.data.tfgt.TFGMultiMachines");
-        } catch (ClassNotFoundException ignored) {}
+        } catch (ClassNotFoundException ignored) {
+        }
         TFG_MACHINES = c;
     }
 
     @Override
-    public String id() { return "terrafirmagreg"; }
+    public String id() {
+        return "terrafirmagreg";
+    }
 
     @Override
-    public String displayName() { return "TerraFirmaGreg"; }
+    public String displayName() {
+        return "TerraFirmaGreg";
+    }
 
     @Override
     public String description() {
         return "§dOfficial TerraFirmaGreg Theme. §8TerraFirmaGreg meets GTCEu Terminals.";
     }
 
-    @Override public int accentColor() { return ACCENT; }
-    @Override public int bgColor()     { return BG; }
-    @Override public int panelColor()  { return PANEL; }
-    @Override public int textColor()   { return TEXT; }
+    @Override
+    public int accentColor() {
+        return ACCENT;
+    }
+
+    @Override
+    public int bgColor() {
+        return BG;
+    }
+
+    @Override
+    public int panelColor() {
+        return PANEL;
+    }
+
+    @Override
+    public int textColor() {
+        return TEXT;
+    }
 
     @Override
     public int separatorColor() {
@@ -63,12 +84,12 @@ public class TerraFirmaGregBundle extends ThemeBundle {
         if (TFG_MACHINES == null) return;
 
         String[][] machines = {
-                { "ELECTRIC_GREENHOUSE",   "Electric Greenhouse"   },
-                { "BIOREACTOR",            "Bioreactor"            },
-                { "LARGE_STEAM_TURBINE",   "Large Steam Turbine"   },
-                { "SMR_GENERATOR",         "SMR Generator"         },
-                { "EVAPORATION_TOWER",     "Evaporation Tower"     },
-                { "STEAM_BLOOMERY",        "Steam Bloomery"        },
+                {"ELECTRIC_GREENHOUSE", "Electric Greenhouse"},
+                {"BIOREACTOR", "Bioreactor"},
+                {"LARGE_STEAM_TURBINE", "Large Steam Turbine"},
+                {"SMR_GENERATOR", "SMR Generator"},
+                {"EVAPORATION_TOWER", "Evaporation Tower"},
+                {"STEAM_BLOOMERY", "Steam Bloomery"},
         };
 
         for (String[] entry : machines) {
@@ -82,7 +103,8 @@ public class TerraFirmaGregBundle extends ThemeBundle {
                     try {
                         getShapeInfos = def.getClass().getMethod(methodName);
                         break;
-                    } catch (NoSuchMethodException ignored) {}
+                    } catch (NoSuchMethodException ignored) {
+                    }
                 }
                 if (getShapeInfos == null) {
                     com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(

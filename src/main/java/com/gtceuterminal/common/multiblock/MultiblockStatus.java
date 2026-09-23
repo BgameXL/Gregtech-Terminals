@@ -8,7 +8,7 @@ public enum MultiblockStatus {
     DISABLED,
     UNFORMED,
     OUTPUT_FULL;
-    
+
     public int getColor() {
         return switch (this) {
             case ACTIVE -> 0x00FF00;
@@ -20,7 +20,7 @@ public enum MultiblockStatus {
             case OUTPUT_FULL -> 0x0088FF;
         };
     }
-    
+
     public String getDisplayName() {
         return switch (this) {
             case ACTIVE -> "Active";

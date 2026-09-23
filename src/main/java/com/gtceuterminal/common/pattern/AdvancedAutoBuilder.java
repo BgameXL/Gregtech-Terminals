@@ -89,7 +89,7 @@ public class AdvancedAutoBuilder {
             boolean isFlipped = controller.self().isFlipped();
 
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
-            PredicateCountMap cacheLayer  = GTCEuCompat.getLayerCount(worldState);
+            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
 
             Map<BlockPos, Object> blocks = new HashMap<>();
             Set<BlockPos> placedByUs = new HashSet<>();
@@ -98,11 +98,14 @@ public class AdvancedAutoBuilder {
             int placedCount = 0;
 
             IFluidHandler fluidStorage = null;
-            try { fluidStorage = getMENetworkFluidStorage(player); } catch (Exception ignored) {}
+            try {
+                fluidStorage = getMENetworkFluidStorage(player);
+            } catch (Exception ignored) {
+            }
 
             final int fingerLength = blockMatches.length;
-            final int thumbLength  = fingerLength > 0 ? blockMatches[0].length : 0;
-            final int palmLength   = thumbLength  > 0 ? blockMatches[0][0].length : 0;
+            final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
+            final int palmLength = thumbLength > 0 ? blockMatches[0][0].length : 0;
 
             for (int c = 0, z = minZ++, r; c < fingerLength; c++) {
                 int repsForSlice = AutoBuilderHelpers.getRepetitionsForSlice(c, aisleRepetitions, settings.repeatCount);
@@ -125,10 +128,12 @@ public class AdvancedAutoBuilder {
                             } else {
                                 BlockInfo[] infos = AutoBuilderHelpers.pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
                                 List<ItemStack> candidates = new ArrayList<>();
-                                if (infos != null) for (BlockInfo info : infos) if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
+                                if (infos != null) for (BlockInfo info : infos)
+                                    if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
 
                                 candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
-                                if (settings.noHatchMode != 0) candidates = CandidateFilter.filterOutMultiblockParts(candidates);
+                                if (settings.noHatchMode != 0)
+                                    candidates = CandidateFilter.filterOutMultiblockParts(candidates);
                                 candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
 
                                 // Fluid block handling
@@ -137,7 +142,11 @@ public class AdvancedAutoBuilder {
                                 for (ItemStack cand : candidates) {
                                     if (cand.getItem() instanceof BlockItem bi) {
                                         BlockState cs = bi.getBlock().defaultBlockState();
-                                        if (cs.getFluidState().isSource()) { isFluidBlock = true; targetFluid = cs.getFluidState().getType(); break; }
+                                        if (cs.getFluidState().isSource()) {
+                                            isFluidBlock = true;
+                                            targetFluid = cs.getFluidState().getType();
+                                            break;
+                                        }
                                     }
                                 }
 
@@ -146,7 +155,11 @@ public class AdvancedAutoBuilder {
                                             ? FluidPlacementHelper.tryPlaceFluid(world, pos, player, targetFluid, null, null)
                                             : FluidPlacementHelper.tryPlaceFluid(world, pos, player, targetFluid,
                                             player.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null), fluidStorage);
-                                    if (placed) { placedByUs.add(pos); placedCount++; blocks.put(pos, world.getBlockState(pos)); }
+                                    if (placed) {
+                                        placedByUs.add(pos);
+                                        placedCount++;
+                                        blocks.put(pos, world.getBlockState(pos));
+                                    }
                                     continue;
                                 }
 
@@ -182,7 +195,8 @@ public class AdvancedAutoBuilder {
                                     if (handler != null) handler.extractItem(foundSlot, 1, false);
                                 }
 
-                                if (world.getBlockEntity(pos) instanceof IMachineBlockEntity mbe) blocks.put(pos, mbe.getMetaMachine());
+                                if (world.getBlockEntity(pos) instanceof IMachineBlockEntity mbe)
+                                    blocks.put(pos, mbe.getMetaMachine());
                                 else blocks.put(pos, world.getBlockState(pos));
                             }
                         }
@@ -197,11 +211,17 @@ public class AdvancedAutoBuilder {
                 if (block instanceof IMultiController) return;
                 if (block instanceof BlockState state && placedByUs.contains(pos)) {
                     AutoBuilderHelpers.resetFacing(pos, state, frontFacing,
-                            (p, f) -> { Object o = blocks.get(p.relative(f)); return o == null || (o instanceof BlockState bs && bs.getBlock() == net.minecraft.world.level.block.Blocks.AIR); },
+                            (p, f) -> {
+                                Object o = blocks.get(p.relative(f));
+                                return o == null || (o instanceof BlockState bs && bs.getBlock() == net.minecraft.world.level.block.Blocks.AIR);
+                            },
                             newState -> world.setBlock(pos, newState, 3));
                 } else if (block instanceof MetaMachine machine) {
                     AutoBuilderHelpers.resetFacing(pos, machine.getBlockState(), frontFacing,
-                            (p, f) -> { Object o = blocks.get(p.relative(f)); return (o == null || (o instanceof BlockState bs && bs.isAir())) && machine.isFacingValid(f); },
+                            (p, f) -> {
+                                Object o = blocks.get(p.relative(f));
+                                return (o == null || (o instanceof BlockState bs && bs.isAir())) && machine.isFacingValid(f);
+                            },
                             newState -> world.setBlock(pos, newState, 3));
                 }
             });

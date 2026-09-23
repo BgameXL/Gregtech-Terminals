@@ -84,7 +84,8 @@ public class DismantleScanner {
                 if (cache != null && !cache.isEmpty()) {
                     allBlocks.addAll(cache);
                 }
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
             if (allBlocks.isEmpty()) {
                 controller.getParts().forEach(part -> allBlocks.add(part.self().getPos()));
             }

@@ -31,9 +31,9 @@ public class SchematicInterfaceBehavior {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        Level     level    = context.getLevel();
-        BlockPos  blockPos = context.getClickedPos();
-        ItemStack stack    = context.getItemInHand();
+        Level level = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
+        ItemStack stack = context.getItemInHand();
 
         if (player.isShiftKeyDown()) {
             MetaMachine machine = MetaMachine.getMachine(level, blockPos);
@@ -73,10 +73,10 @@ public class SchematicInterfaceBehavior {
         }
 
         if (hasClipboard(stack) && !level.isClientSide) {
-            CompoundTag itemTag   = stack.getTag();
+            CompoundTag itemTag = stack.getTag();
             SchematicData clipboard = SchematicData.fromNBT(
                     itemTag.getCompound("Clipboard"), level.registryAccess());
-            double   distance  = SchematicUtils.calculateOptimalDistance(clipboard);
+            double distance = SchematicUtils.calculateOptimalDistance(clipboard);
             BlockPos targetPos = SchematicUtils.getTargetPlacementPos(player, distance);
             SchematicPaster.pasteSchematic(stack, player, level, targetPos);
             return InteractionResultHolder.success(stack);

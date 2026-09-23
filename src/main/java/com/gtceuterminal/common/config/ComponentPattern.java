@@ -10,16 +10,17 @@ public class ComponentPattern {
     private String displayPrefix;
     private String description;
 
-    public ComponentPattern() {}
+    public ComponentPattern() {
+    }
 
     public ComponentPattern(String pattern, ComponentGroup group) {
         this.pattern = pattern;
-        this.group   = group;
+        this.group = group;
     }
 
     public ComponentPattern(String pattern, ComponentGroup group, int priority) {
-        this.pattern  = pattern;
-        this.group    = group;
+        this.pattern = pattern;
+        this.group = group;
         this.priority = priority;
     }
 
@@ -35,20 +36,45 @@ public class ComponentPattern {
         return baseName;
     }
 
-    public String  getPattern()       { return pattern; }
-    public void    setPattern(String pattern) { this.pattern = pattern; }
+    public String getPattern() {
+        return pattern;
+    }
 
-    public ComponentGroup getGroup()  { return group; }
-    public void    setGroup(ComponentGroup group) { this.group = group; }
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
 
-    public int     getPriority()      { return priority; }
-    public void    setPriority(int priority) { this.priority = priority; }
+    public ComponentGroup getGroup() {
+        return group;
+    }
 
-    public String  getDisplayPrefix() { return displayPrefix; }
-    public void    setDisplayPrefix(String displayPrefix) { this.displayPrefix = displayPrefix; }
+    public void setGroup(ComponentGroup group) {
+        this.group = group;
+    }
 
-    public String  getDescription()   { return description; }
-    public void    setDescription(String description) { this.description = description; }
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public String getDisplayPrefix() {
+        return displayPrefix;
+    }
+
+    public void setDisplayPrefix(String displayPrefix) {
+        this.displayPrefix = displayPrefix;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     @Override
     public String toString() {

@@ -25,7 +25,11 @@ public class MachineInferencer {
     private static final org.slf4j.Logger LOGGER = GTCEUTerminalMod.LOGGER;
 
     private static boolean isDebug() {
-        try { return ServerConfig.isDebugLoggingEnabled(); } catch (Exception e) { return false; }
+        try {
+            return ServerConfig.isDebugLoggingEnabled();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static class MachineSnapshot {
@@ -189,8 +193,7 @@ public class MachineInferencer {
 
                 if (tracker.calculatedEuPerTick > 0) {
                     eut = tracker.calculatedEuPerTick;
-                }
-                else if (theoreticalOutput > 0 || theoreticalInput > 0) {
+                } else if (theoreticalOutput > 0 || theoreticalInput > 0) {
                     eut = (int) Math.min(Math.max(theoreticalOutput, theoreticalInput), Integer.MAX_VALUE);
                 }
 

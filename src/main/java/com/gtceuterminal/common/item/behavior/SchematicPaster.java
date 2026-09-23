@@ -31,7 +31,8 @@ import java.util.Map;
 
 public final class SchematicPaster {
 
-    private SchematicPaster() {}
+    private SchematicPaster() {
+    }
 
     public static void pasteSchematic(ItemStack itemStack, Player player,
                                       Level level, BlockPos targetPos) {
@@ -85,19 +86,31 @@ public final class SchematicPaster {
         int skippedCount = 0;
 
         for (Map.Entry<BlockPos, BlockState> entry : clipboard.getBlocks().entrySet()) {
-            BlockPos   relativePos  = entry.getKey();
-            BlockState state        = entry.getValue();
+            BlockPos relativePos = entry.getKey();
+            BlockState state = entry.getValue();
 
-            BlockPos   rotatedPos   = SchematicUtils.rotatePositionSteps(relativePos, rotationSteps);
+            BlockPos rotatedPos = SchematicUtils.rotatePositionSteps(relativePos, rotationSteps);
             BlockState rotatedState = SchematicUtils.rotateBlockStateSteps(state, rotationSteps);
-            BlockPos   worldPos     = adjustedTarget.offset(rotatedPos);
+            BlockPos worldPos = adjustedTarget.offset(rotatedPos);
 
-            if (!level.isInWorldBounds(worldPos)) { skippedCount++; continue; }
-            if (com.gtceuterminal.common.config.ItemsConfig.isSchematicBlacklisted(rotatedState.getBlock())) { skippedCount++; continue; }
+            if (!level.isInWorldBounds(worldPos)) {
+                skippedCount++;
+                continue;
+            }
+            if (com.gtceuterminal.common.config.ItemsConfig.isSchematicBlacklisted(rotatedState.getBlock())) {
+                skippedCount++;
+                continue;
+            }
 
             BlockState current = level.getBlockState(worldPos);
-            if (!current.isAir() && !current.canBeReplaced()) { skippedCount++; continue; }
-            if (current.equals(rotatedState))                  { skippedCount++; continue; }
+            if (!current.isAir() && !current.canBeReplaced()) {
+                skippedCount++;
+                continue;
+            }
+            if (current.equals(rotatedState)) {
+                skippedCount++;
+                continue;
+            }
 
             // Fluid blocks
             if (rotatedState.getFluidState().isSource()) {
@@ -107,11 +120,15 @@ public final class SchematicPaster {
 
             if (rotatedState.getBlock() instanceof DoorBlock
                     && rotatedState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
-                skippedCount++; continue;
+                skippedCount++;
+                continue;
             }
 
             Item item = rotatedState.getBlock().asItem();
-            if (item == Items.AIR) { skippedCount++; continue; }
+            if (item == Items.AIR) {
+                skippedCount++;
+                continue;
+            }
 
             required.merge(item, 1, Integer::sum);
             placements.add(new Placement(relativePos, worldPos, rotatedState));
@@ -138,8 +155,9 @@ public final class SchematicPaster {
         net.minecraftforge.items.IItemHandler playerInventory = null;
 
         if (!player.getAbilities().instabuild) {
-            try { fluidStorage = MENetworkFluidHandlerWrapper.fromTerminal(itemStack, player); }
-            catch (RuntimeException e) {
+            try {
+                fluidStorage = MENetworkFluidHandlerWrapper.fromTerminal(itemStack, player);
+            } catch (RuntimeException e) {
                 GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not resolve AE2 fluid storage: {}", e.getMessage());
             }
 
@@ -166,7 +184,7 @@ public final class SchematicPaster {
                 if (upperCurrent.isAir() || upperCurrent.canBeReplaced()) {
                     BlockState upperState = p.state.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
                     level.setBlock(p.worldPos, p.state, 3);
-                    level.setBlock(upperPos,   upperState, 3);
+                    level.setBlock(upperPos, upperState, 3);
                     placedCount++;
                 } else {
                     skippedCount++;
@@ -226,9 +244,9 @@ public final class SchematicPaster {
         int shown = 0;
 
         for (Map.Entry<Item, Integer> req : required.entrySet()) {
-            Item it   = req.getKey();
-            int  need = req.getValue();
-            int  have = (int) Math.min(Integer.MAX_VALUE,
+            Item it = req.getKey();
+            int need = req.getValue();
+            int have = (int) Math.min(Integer.MAX_VALUE,
                     (long) inv.getOrDefault(it, 0)
                             + MENetworkItemExtractor.checkItemAvailability(itemStack, level, player, it));
             long miss = need - have;
@@ -236,7 +254,10 @@ public final class SchematicPaster {
             if (miss > 0) {
                 if (shown > 0) sb.append(", ");
                 sb.append(it.getDescription().getString()).append(" x").append(miss);
-                if (++shown >= 6) { sb.append(" ..."); break; }
+                if (++shown >= 6) {
+                    sb.append(" ...");
+                    break;
+                }
             }
         }
 
@@ -247,5 +268,6 @@ public final class SchematicPaster {
     }
 
     // Internal record
-    private record Placement(BlockPos relativeKey, BlockPos worldPos, BlockState state) {}
+    private record Placement(BlockPos relativeKey, BlockPos worldPos, BlockState state) {
+    }
 }

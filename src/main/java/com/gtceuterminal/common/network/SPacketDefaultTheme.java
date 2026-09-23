@@ -11,35 +11,35 @@ import java.util.function.Supplier;
 // Server → Client: sends the default theme from server to client on login.
 public class SPacketDefaultTheme {
 
-    private final int     accentColor;
-    private final int     bgColor;
-    private final int     panelColor;
-    private final int     textColor;
+    private final int accentColor;
+    private final int bgColor;
+    private final int panelColor;
+    private final int textColor;
     private final boolean compactMode;
     private final boolean showTooltips;
     private final boolean showBorders;
-    private final String  wallpaper;
+    private final String wallpaper;
 
     public SPacketDefaultTheme(ItemTheme theme) {
-        this.accentColor  = theme.accentColor;
-        this.bgColor      = theme.bgColor;
-        this.panelColor   = theme.panelColor;
-        this.textColor    = theme.textColor;
-        this.compactMode  = theme.compactMode;
+        this.accentColor = theme.accentColor;
+        this.bgColor = theme.bgColor;
+        this.panelColor = theme.panelColor;
+        this.textColor = theme.textColor;
+        this.compactMode = theme.compactMode;
         this.showTooltips = theme.showTooltips;
-        this.showBorders  = theme.showBorders;
-        this.wallpaper    = theme.wallpaper != null ? theme.wallpaper : "";
+        this.showBorders = theme.showBorders;
+        this.wallpaper = theme.wallpaper != null ? theme.wallpaper : "";
     }
 
     public SPacketDefaultTheme(FriendlyByteBuf buf) {
-        this.accentColor  = buf.readInt();
-        this.bgColor      = buf.readInt();
-        this.panelColor   = buf.readInt();
-        this.textColor    = buf.readInt();
-        this.compactMode  = buf.readBoolean();
+        this.accentColor = buf.readInt();
+        this.bgColor = buf.readInt();
+        this.panelColor = buf.readInt();
+        this.textColor = buf.readInt();
+        this.compactMode = buf.readBoolean();
         this.showTooltips = buf.readBoolean();
-        this.showBorders  = buf.readBoolean();
-        this.wallpaper    = buf.readUtf(256);
+        this.showBorders = buf.readBoolean();
+        this.wallpaper = buf.readUtf(256);
     }
 
     public static void encode(SPacketDefaultTheme msg, FriendlyByteBuf buf) {

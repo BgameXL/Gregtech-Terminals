@@ -14,12 +14,13 @@ public final class RecipeLogicReflection {
     private static Field F_LAST_RECIPE;
     private static boolean READY = false;
 
-    private RecipeLogicReflection() {}
+    private RecipeLogicReflection() {
+    }
 
     public static synchronized void ensure() {
         if (READY) return;
         try {
-            F_PROGRESS    = field("progress");
+            F_PROGRESS = field("progress");
             F_LAST_RECIPE = field("lastRecipe");
             READY = true;
         } catch (Throwable t) {
@@ -36,8 +37,9 @@ public final class RecipeLogicReflection {
     public static int getProgress(RecipeLogic logic) {
         ensure();
         if (F_PROGRESS == null || logic == null) return 0;
-        try { return (int) F_PROGRESS.get(logic); }
-        catch (IllegalAccessException e) {
+        try {
+            return (int) F_PROGRESS.get(logic);
+        } catch (IllegalAccessException e) {
             GTCEUTerminalMod.LOGGER.debug("RecipeLogicReflection: getProgress failed", e);
             return 0;
         }

@@ -121,7 +121,10 @@ public class EnergyAnalyzerItem extends Item {
             List<LinkedMachineData> machines = loadMachines(stack);
             int idx = -1;
             for (int i = 0; i < machines.size(); i++) {
-                if (machines.get(i).matches(pos, dimId)) { idx = i; break; }
+                if (machines.get(i).matches(pos, dimId)) {
+                    idx = i;
+                    break;
+                }
             }
             if (idx < 0) {
                 player.displayClientMessage(
@@ -169,8 +172,11 @@ public class EnergyAnalyzerItem extends Item {
         if (tag == null || !tag.contains(TAG_MACHINES)) return result;
         ListTag list = tag.getList(TAG_MACHINES, Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
-            try { result.add(LinkedMachineData.fromNBT(list.getCompound(i))); }
-            catch (Exception e) { GTCEUTerminalMod.LOGGER.warn("Failed to load linked machine #{}", i); }
+            try {
+                result.add(LinkedMachineData.fromNBT(list.getCompound(i)));
+            } catch (Exception e) {
+                GTCEUTerminalMod.LOGGER.warn("Failed to load linked machine #{}", i);
+            }
         }
         return result;
     }

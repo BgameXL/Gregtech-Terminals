@@ -15,22 +15,22 @@ import java.util.function.Supplier;
 
 public class CPacketEnergyAnalyzerAction {
 
-    public enum Action { UNLINK, RENAME }
+    public enum Action {UNLINK, RENAME}
 
     private final Action action;
-    private final int    machineIndex;
+    private final int machineIndex;
     private final String newName;
 
     public CPacketEnergyAnalyzerAction(Action action, int machineIndex, String newName) {
-        this.action       = action;
+        this.action = action;
         this.machineIndex = machineIndex;
-        this.newName      = newName == null ? "" : newName;
+        this.newName = newName == null ? "" : newName;
     }
 
     public CPacketEnergyAnalyzerAction(FriendlyByteBuf buf) {
-        this.action       = Action.values()[buf.readVarInt()];
+        this.action = Action.values()[buf.readVarInt()];
         this.machineIndex = buf.readVarInt();
-        this.newName      = buf.readUtf(64);
+        this.newName = buf.readUtf(64);
     }
 
     public static void encode(CPacketEnergyAnalyzerAction msg, FriendlyByteBuf buf) {

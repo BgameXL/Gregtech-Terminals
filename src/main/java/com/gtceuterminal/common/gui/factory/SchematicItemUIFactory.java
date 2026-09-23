@@ -21,7 +21,9 @@ public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Hol
 
     public static final SchematicItemUIFactory INSTANCE = new SchematicItemUIFactory();
 
-    private SchematicItemUIFactory() { super(UI_ID); }
+    private SchematicItemUIFactory() {
+        super(UI_ID);
+    }
 
     public void openUI(ServerPlayer player, ItemStack item) {
         super.openUI(new Holder(false, item), player);
@@ -61,16 +63,39 @@ public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Hol
 
         public Holder(boolean remote, ItemStack item) {
             this.remote = remote;
-            this.item   = item;
+            this.item = item;
         }
 
-        public void attach(Player p) { if (this.player == null) this.player = p; }
-        public Player getPlayer()    { return player; }
-        public ItemStack getTerminalItem() { return item; }
+        public void attach(Player p) {
+            if (this.player == null) this.player = p;
+        }
 
-        @Override public ModularUI createUI(Player p) { attach(p); return INSTANCE.createUITemplate(this, p); }
-        @Override public boolean isInvalid() { return player != null && player.isRemoved(); }
-        @Override public boolean isRemote()  { return remote; }
-        @Override public void markAsDirty()  { }
+        public Player getPlayer() {
+            return player;
+        }
+
+        public ItemStack getTerminalItem() {
+            return item;
+        }
+
+        @Override
+        public ModularUI createUI(Player p) {
+            attach(p);
+            return INSTANCE.createUITemplate(this, p);
+        }
+
+        @Override
+        public boolean isInvalid() {
+            return player != null && player.isRemoved();
+        }
+
+        @Override
+        public boolean isRemote() {
+            return remote;
+        }
+
+        @Override
+        public void markAsDirty() {
+        }
     }
 }

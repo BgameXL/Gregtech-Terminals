@@ -41,7 +41,7 @@ public class ComponentUpgrader {
 
         if (hasId) {
             ResourceLocation rl = ResourceLocation.tryParse(targetUpgradeId);
-            if (rl == null)                              return fail("Invalid upgrade id: " + targetUpgradeId);
+            if (rl == null) return fail("Invalid upgrade id: " + targetUpgradeId);
             if (BuiltInRegistries.BLOCK.get(rl) == Blocks.AIR) return fail("Unknown upgrade block: " + targetUpgradeId);
         } else {
             if (!player.isCreative() && !ComponentUpgradeHelper.canUpgrade(component, targetTier))
@@ -73,11 +73,11 @@ public class ComponentUpgrader {
             return fail("Invalid upgrade block");
         }
 
-        BlockPos     pos      = component.getPosition();
-        BlockState   oldState = component.getState();
-        Block        oldBlock = oldState.getBlock();
-        ItemStack    oldStack = itemStackFor(oldBlock, player);
-        BlockState   newState = copyFacing(oldState, newBlock.defaultBlockState());
+        BlockPos pos = component.getPosition();
+        BlockState oldState = component.getState();
+        Block oldBlock = oldState.getBlock();
+        ItemStack oldStack = itemStackFor(oldBlock, player);
+        BlockState newState = copyFacing(oldState, newBlock.defaultBlockState());
 
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
 
@@ -144,13 +144,20 @@ public class ComponentUpgrader {
         }
 
         for (ComponentInfo c : components) {
-            if (!ComponentUpgradeHelper.canUpgrade(c, targetTier)) { result.skipped++; continue; }
+            if (!ComponentUpgradeHelper.canUpgrade(c, targetTier)) {
+                result.skipped++;
+                continue;
+            }
             UpgradeResult r = upgradeComponent(c, targetTier, player, level, false, ItemStack.EMPTY);
-            if (r.success) result.successful++; else { result.failed++; result.errors.add(r.message); }
+            if (r.success) result.successful++;
+            else {
+                result.failed++;
+                result.errors.add(r.message);
+            }
         }
 
-        result.success  = result.successful > 0;
-        result.message  = String.format("Upgraded %d/%d components%s", result.successful, components.size(), extractionSource);
+        result.success = result.successful > 0;
+        result.message = String.format("Upgraded %d/%d components%s", result.successful, components.size(), extractionSource);
 
         if (upgradingCoils && result.successful > 0) {
             String coilName = net.minecraft.network.chat.Component
@@ -186,7 +193,8 @@ public class ComponentUpgrader {
         return upgradeMultipleComponents(components, targetTier, player, level, ItemStack.EMPTY);
     }
 
-    private record ExtractionResult(boolean success, String source, String message) {}
+    private record ExtractionResult(boolean success, String source, String message) {
+    }
 
     private static ExtractionResult extractMaterials(
             Map<Item, Integer> required, Player player, Level level, ItemStack wirelessTerminal) {
@@ -210,7 +218,9 @@ public class ComponentUpgrader {
         return new ExtractionResult(true, " §7(Inventory)", null);
     }
 
-    private static UpgradeResult fail(String msg) { return new UpgradeResult(false, msg); }
+    private static UpgradeResult fail(String msg) {
+        return new UpgradeResult(false, msg);
+    }
 
     private static void refund(Map<Item, Integer> required, Player player, boolean consumeMaterials) {
         if (!consumeMaterials) return;
@@ -254,7 +264,7 @@ public class ComponentUpgrader {
     }
 
     private static void updateNeighborBlocks(Level level, BlockPos pos, Block newBlock) {
-        BlockPos[] neighbors = { pos, pos.above(), pos.below(), pos.north(), pos.south(), pos.east(), pos.west() };
+        BlockPos[] neighbors = {pos, pos.above(), pos.below(), pos.north(), pos.south(), pos.east(), pos.west()};
         for (BlockPos n : neighbors) {
             BlockState ns = level.getBlockState(n);
             level.neighborChanged(n, newBlock, pos);
@@ -277,16 +287,20 @@ public class ComponentUpgrader {
 
     public static class UpgradeResult {
         public final boolean success;
-        public final String  message;
-        public UpgradeResult(boolean success, String message) { this.success = success; this.message = message; }
+        public final String message;
+
+        public UpgradeResult(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
     }
 
     public static class BulkUpgradeResult {
-        public boolean      success;
-        public String       message;
-        public int          successful = 0;
-        public int          failed     = 0;
-        public int          skipped    = 0;
-        public List<String> errors     = new java.util.ArrayList<>();
+        public boolean success;
+        public String message;
+        public int successful = 0;
+        public int failed = 0;
+        public int skipped = 0;
+        public List<String> errors = new java.util.ArrayList<>();
     }
 }

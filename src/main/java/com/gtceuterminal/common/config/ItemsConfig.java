@@ -14,18 +14,18 @@ public class ItemsConfig {
 
     private static final YamlConfigLoader LOADER = new YamlConfigLoader("", "gtceuterminals.yaml");
 
-    private static int     ea_maxLinkedMachines    = 16;
-    private static int     ea_refreshIntervalTicks = 20;
-    private static boolean ea_showPerHatchDetails  = true;
-    private static int     ea_historySeconds       = 30;
+    private static int ea_maxLinkedMachines = 16;
+    private static int ea_refreshIntervalTicks = 20;
+    private static boolean ea_showPerHatchDetails = true;
+    private static int ea_historySeconds = 30;
 
-    private static int     mgr_maxDetectedMultiblocks = 32;
-    private static boolean mgr_allowMENetworkUpgrade  = true;
-    private static int     mgr_highlightDurationSec   = 10;
-    private static int     mgr_highlightColor         = 0x00AAFF;
+    private static int mgr_maxDetectedMultiblocks = 32;
+    private static boolean mgr_allowMENetworkUpgrade = true;
+    private static int mgr_highlightDurationSec = 10;
+    private static int mgr_highlightColor = 0x00AAFF;
 
     private static boolean sch_allowAE2ConfigCopy = true;
-    private static Set<Block> sch_blockBlacklist  = new HashSet<>();
+    private static Set<Block> sch_blockBlacklist = new HashSet<>();
 
     private static Set<Block> dis_blockBlacklist = new HashSet<>();
 
@@ -70,15 +70,15 @@ public class ItemsConfig {
                                 "- minecraft:bedrock, - minecraft; barriers, -kubejs:custom_block. \n")
         ));
 
-        ea_maxLinkedMachines    = clamp(LOADER.getInt("energy_analyzer.max_linked_machines", 16), 1, 64);
+        ea_maxLinkedMachines = clamp(LOADER.getInt("energy_analyzer.max_linked_machines", 16), 1, 64);
         ea_refreshIntervalTicks = clamp(LOADER.getInt("energy_analyzer.refresh_interval_ticks", 20), 5, 200);
-        ea_showPerHatchDetails  = LOADER.getBoolean("energy_analyzer.show_per_hatch_details", true);
-        ea_historySeconds       = clamp(LOADER.getInt("energy_analyzer.history_seconds", 30), 5, 120);
+        ea_showPerHatchDetails = LOADER.getBoolean("energy_analyzer.show_per_hatch_details", true);
+        ea_historySeconds = clamp(LOADER.getInt("energy_analyzer.history_seconds", 30), 5, 120);
 
         mgr_maxDetectedMultiblocks = clamp(LOADER.getInt("manager.max_detected_multiblocks", 32), 1, 128);
-        mgr_allowMENetworkUpgrade  = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
-        mgr_highlightDurationSec   = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
-        mgr_highlightColor         = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
+        mgr_allowMENetworkUpgrade = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
+        mgr_highlightDurationSec = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
+        mgr_highlightColor = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
 
         sch_allowAE2ConfigCopy = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
 
@@ -116,24 +116,56 @@ public class ItemsConfig {
     }
 
     // Energy Analyzer Getters
-    public static int     getEAMaxLinkedMachines()    { return ea_maxLinkedMachines; }
-    public static int     getEARefreshIntervalTicks() { return ea_refreshIntervalTicks; }
-    public static boolean getEAShowPerHatchDetails()  { return ea_showPerHatchDetails; }
-    public static int     getEAHistorySeconds()       { return ea_historySeconds; }
-    public static boolean isEADimensionAllowed(String dimensionId) { return true; }
+    public static int getEAMaxLinkedMachines() {
+        return ea_maxLinkedMachines;
+    }
+
+    public static int getEARefreshIntervalTicks() {
+        return ea_refreshIntervalTicks;
+    }
+
+    public static boolean getEAShowPerHatchDetails() {
+        return ea_showPerHatchDetails;
+    }
+
+    public static int getEAHistorySeconds() {
+        return ea_historySeconds;
+    }
+
+    public static boolean isEADimensionAllowed(String dimensionId) {
+        return true;
+    }
 
     // Multi Structure Manager Getters
-    public static int     getMgrMaxDetectedMultiblocks()  { return mgr_maxDetectedMultiblocks; }
-    public static boolean isMgrAllowMENetworkUpgrade()    { return mgr_allowMENetworkUpgrade; }
-    public static int     getMgrHighlightDurationMs()     { return mgr_highlightDurationSec * 1000; }
-    public static int     getMgrHighlightColor()          { return mgr_highlightColor; }
+    public static int getMgrMaxDetectedMultiblocks() {
+        return mgr_maxDetectedMultiblocks;
+    }
+
+    public static boolean isMgrAllowMENetworkUpgrade() {
+        return mgr_allowMENetworkUpgrade;
+    }
+
+    public static int getMgrHighlightDurationMs() {
+        return mgr_highlightDurationSec * 1000;
+    }
+
+    public static int getMgrHighlightColor() {
+        return mgr_highlightColor;
+    }
 
     // Schematic Interface Getters
-    public static boolean isSchAllowAE2ConfigCopy() { return sch_allowAE2ConfigCopy; }
-    public static boolean isSchematicBlacklisted(Block block) { return sch_blockBlacklist.contains(block); }
+    public static boolean isSchAllowAE2ConfigCopy() {
+        return sch_allowAE2ConfigCopy;
+    }
+
+    public static boolean isSchematicBlacklisted(Block block) {
+        return sch_blockBlacklist.contains(block);
+    }
 
     // Dismantler Getters
-    public static boolean isDismantlerBlacklisted(Block block) { return dis_blockBlacklist.contains(block); }
+    public static boolean isDismantlerBlacklisted(Block block) {
+        return dis_blockBlacklist.contains(block);
+    }
 
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));

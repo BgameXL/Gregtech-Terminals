@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 public class WirelessTerminalHandler {
 
     private static final String TAG_ACCESS_POINT_POS = "accessPoint";
+
     public static boolean isWirelessTerminal(ItemStack stack) {
         return !stack.isEmpty()
                 && (stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem || isLinked(stack));
@@ -31,7 +32,7 @@ public class WirelessTerminalHandler {
     public static boolean isOurLinkedTerminal(ItemStack stack) {
         return !stack.isEmpty()
                 && (stack.getItem() instanceof com.gtceuterminal.common.item.MultiStructureManagerItem
-                    || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem)
+                || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem)
                 && isLinked(stack);
     }
 

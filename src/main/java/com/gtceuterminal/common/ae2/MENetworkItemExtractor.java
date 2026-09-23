@@ -17,15 +17,11 @@ import java.util.Map;
 
 public class MENetworkItemExtractor {
 
-    /**
-     * Extracts all required items from the ME network.
-     * On partial failure rolls back and returns false.
-     */
     public static boolean extractItems(IGrid grid, Map<Item, Integer> required, Player player) {
         if (grid == null) return false;
 
         IStorageService storage = grid.getStorageService();
-        IActionSource   src     = IActionSource.ofPlayer(player);
+        IActionSource src = IActionSource.ofPlayer(player);
 
         // Verify before touching anything
         for (Map.Entry<Item, Integer> e : required.entrySet()) {
@@ -35,9 +31,9 @@ public class MENetworkItemExtractor {
 
         Map<Item, Long> extracted = new HashMap<>();
         for (Map.Entry<Item, Integer> e : required.entrySet()) {
-            AEItemKey key    = AEItemKey.of(e.getKey());
-            long      amount = e.getValue();
-            long      got    = storage.getInventory().extract(key, amount, Actionable.MODULATE, src);
+            AEItemKey key = AEItemKey.of(e.getKey());
+            long amount = e.getValue();
+            long got = storage.getInventory().extract(key, amount, Actionable.MODULATE, src);
 
             if (got < amount) {
                 rollback(storage, extracted, src);
@@ -119,12 +115,12 @@ public class MENetworkItemExtractor {
     }
 
     public static class ExtractResult {
-        public final boolean         success;
+        public final boolean success;
         public final ExtractionSource source;
 
         public ExtractResult(boolean success, ExtractionSource source) {
             this.success = success;
-            this.source  = source;
+            this.source = source;
         }
     }
 

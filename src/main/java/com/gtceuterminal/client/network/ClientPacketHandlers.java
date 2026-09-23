@@ -35,28 +35,29 @@ import java.util.Set;
 @OnlyIn(Dist.CLIENT)
 public final class ClientPacketHandlers {
 
-    private ClientPacketHandlers() {}
+    private ClientPacketHandlers() {
+    }
 
     public static void handleDefaultTheme(int accentColor, int bgColor, int panelColor,
                                           int textColor, boolean compactMode,
                                           boolean showTooltips, boolean showBorders,
                                           String wallpaper) {
         ItemTheme theme = new ItemTheme();
-        theme.accentColor  = accentColor;
-        theme.bgColor      = bgColor;
-        theme.panelColor   = panelColor;
-        theme.textColor    = textColor;
-        theme.compactMode  = compactMode;
+        theme.accentColor = accentColor;
+        theme.bgColor = bgColor;
+        theme.panelColor = panelColor;
+        theme.textColor = textColor;
+        theme.compactMode = compactMode;
         theme.showTooltips = showTooltips;
-        theme.showBorders  = showBorders;
-        theme.wallpaper    = wallpaper;
+        theme.showBorders = showBorders;
+        theme.wallpaper = wallpaper;
         DefaultThemeConfig.setClientOverride(theme);
     }
 
     public static void handleAnalysisResult(AnalysisResult result) {
         try {
-            Minecraft mc     = Minecraft.getInstance();
-            Player    player = mc.player;
+            Minecraft mc = Minecraft.getInstance();
+            Player player = mc.player;
             if (player == null) return;
 
             ModularUI ui = new ModularUI(IUIHolder.EMPTY, player);

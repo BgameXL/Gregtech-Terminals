@@ -24,7 +24,8 @@ final class MultiblockRenameDialog {
     private static final int C_GOLD = 0xFFFFAA00;
     private static final int C_GRAY = 0xFFAAAAAA;
 
-    private MultiblockRenameDialog() {}
+    private MultiblockRenameDialog() {
+    }
 
     static void open(
             WidgetGroup rootGroup,
@@ -72,7 +73,8 @@ final class MultiblockRenameDialog {
         sub.setTextColor(C_GRAY);
         panel.addWidget(sub);
 
-        TextFieldWidget textField = new TextFieldWidget(8, 46, DW - 16, 16, null, s -> {});
+        TextFieldWidget textField = new TextFieldWidget(8, 46, DW - 16, 16, null, s -> {
+        });
         textField.setMaxStringLength(32);
         textField.setBordered(true);
         textField.setCurrentString(mb.getCustomDisplayName());
@@ -96,7 +98,7 @@ final class MultiblockRenameDialog {
                 new ColorRectTexture(0xFF1A4A1A),
                 cd -> {
                     String dimId = LinkedMachineData.dimId(player.level());
-                    String name  = textField.getCurrentString().trim();
+                    String name = textField.getCurrentString().trim();
                     TerminalNetwork.CHANNEL.sendToServer(
                             new CPacketSetCustomMultiblockName(null, mb.posKey(dimId), name, name.isEmpty()));
                     mb.setCustomDisplayName(name.isEmpty() ? null : name);

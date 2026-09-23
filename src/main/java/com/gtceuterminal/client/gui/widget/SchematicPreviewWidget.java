@@ -26,7 +26,8 @@ import java.util.*;
 @OnlyIn(Dist.CLIENT)
 public class SchematicPreviewWidget extends WidgetGroup {
 
-    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {}
+    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {
+    }
 
     private final LinkedHashMap<String, SceneCacheEntry> sceneCache = new LinkedHashMap<>() {
         @Override
@@ -92,8 +93,12 @@ public class SchematicPreviewWidget extends WidgetGroup {
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         for (BlockPos p : rotated.keySet()) {
-            minX = Math.min(minX, p.getX()); minY = Math.min(minY, p.getY()); minZ = Math.min(minZ, p.getZ());
-            maxX = Math.max(maxX, p.getX()); maxY = Math.max(maxY, p.getY()); maxZ = Math.max(maxZ, p.getZ());
+            minX = Math.min(minX, p.getX());
+            minY = Math.min(minY, p.getY());
+            minZ = Math.min(minZ, p.getZ());
+            maxX = Math.max(maxX, p.getX());
+            maxY = Math.max(maxY, p.getY());
+            maxZ = Math.max(maxZ, p.getZ());
         }
         int sizeX = maxX - minX + 1, sizeY = maxY - minY + 1, sizeZ = maxZ - minZ + 1;
         float maxDim = Math.max(sizeX, Math.max(sizeY, sizeZ));
@@ -159,7 +164,9 @@ public class SchematicPreviewWidget extends WidgetGroup {
 
     private void updateDisplayInfo() {
         if (schematic == null || schematic.getBlocks().isEmpty()) {
-            blockCount = 0; displayName = "Multiblock Structure"; return;
+            blockCount = 0;
+            displayName = "Multiblock Structure";
+            return;
         }
         blockCount = (int) schematic.getBlocks().values().stream().filter(s -> !s.isAir()).count();
 
@@ -201,9 +208,9 @@ public class SchematicPreviewWidget extends WidgetGroup {
 
     private BlockPos rotatePos(BlockPos p, int steps) {
         return switch (steps % 4) {
-            case 1 -> new BlockPos(-p.getZ(), p.getY(),  p.getX());
+            case 1 -> new BlockPos(-p.getZ(), p.getY(), p.getX());
             case 2 -> new BlockPos(-p.getX(), p.getY(), -p.getZ());
-            case 3 -> new BlockPos( p.getZ(), p.getY(), -p.getX());
+            case 3 -> new BlockPos(p.getZ(), p.getY(), -p.getX());
             default -> p;
         };
     }
@@ -227,8 +234,10 @@ public class SchematicPreviewWidget extends WidgetGroup {
             try {
                 if (s.hasProperty(A)) {
                     var ax = s.getValue(A);
-                    if (ax == net.minecraft.core.Direction.Axis.X) s = s.setValue(A, net.minecraft.core.Direction.Axis.Z);
-                    else if (ax == net.minecraft.core.Direction.Axis.Z) s = s.setValue(A, net.minecraft.core.Direction.Axis.X);
+                    if (ax == net.minecraft.core.Direction.Axis.X)
+                        s = s.setValue(A, net.minecraft.core.Direction.Axis.Z);
+                    else if (ax == net.minecraft.core.Direction.Axis.Z)
+                        s = s.setValue(A, net.minecraft.core.Direction.Axis.X);
                 }
             } catch (IllegalArgumentException e) {
                 GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not rotate AXIS: {}", e.getMessage());
@@ -277,7 +286,15 @@ public class SchematicPreviewWidget extends WidgetGroup {
         return super.mouseWheelMove(mx, my, delta);
     }
 
-    public int    getRotSteps()              { return rotSteps; }
-    public int    getBlockCount()            { return blockCount; }
-    public String getMultiblockDisplayName() { return displayName; }
+    public int getRotSteps() {
+        return rotSteps;
+    }
+
+    public int getBlockCount() {
+        return blockCount;
+    }
+
+    public String getMultiblockDisplayName() {
+        return displayName;
+    }
 }

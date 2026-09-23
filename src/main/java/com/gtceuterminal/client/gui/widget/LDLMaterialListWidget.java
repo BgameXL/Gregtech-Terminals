@@ -180,11 +180,15 @@ public class LDLMaterialListWidget extends WidgetGroup {
             tooltip.add(Component.translatable("gui.gtceuterminal.material_list.tooltip.status.sufficient"));
             String primarySource = mat.getPrimarySource();
             String primarySourceName = switch (primarySource) {
-                case "ME Network" -> Component.translatable("gui.gtceuterminal.material_list.source.me_network").getString();
-                case "Inventory" -> Component.translatable("gui.gtceuterminal.material_list.source.inventory").getString();
+                case "ME Network" ->
+                        Component.translatable("gui.gtceuterminal.material_list.source.me_network").getString();
+                case "Inventory" ->
+                        Component.translatable("gui.gtceuterminal.material_list.source.inventory").getString();
                 case "Chests" -> Component.translatable("gui.gtceuterminal.material_list.source.chests").getString();
-                case "ME + Others" -> Component.translatable("gui.gtceuterminal.material_list.source.me_plus_others").getString();
-                case "Inventory + Others" -> Component.translatable("gui.gtceuterminal.material_list.source.inventory_plus_others").getString();
+                case "ME + Others" ->
+                        Component.translatable("gui.gtceuterminal.material_list.source.me_plus_others").getString();
+                case "Inventory + Others" ->
+                        Component.translatable("gui.gtceuterminal.material_list.source.inventory_plus_others").getString();
                 case "None" -> Component.translatable("gui.gtceuterminal.material_list.source.none").getString();
                 default -> primarySource;
             };

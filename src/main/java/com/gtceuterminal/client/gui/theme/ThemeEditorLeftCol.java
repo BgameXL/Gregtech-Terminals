@@ -25,13 +25,14 @@ final class ThemeEditorLeftCol {
 
     static final int COL_W = 190;
 
-    private static final int C_BG     = 0xFF111111;
+    private static final int C_BG = 0xFF111111;
     private static final int C_BORDER = 0xFF3A3A3A;
-    private static final int C_PANEL  = 0xFF272727;
-    private static final int C_HOVER  = 0x33FFFFFF;
+    private static final int C_PANEL = 0xFF272727;
+    private static final int C_HOVER = 0x33FFFFFF;
     private static final int C_SEL_BG = 0xFF1A0A2A;
 
-    private ThemeEditorLeftCol() {}
+    private ThemeEditorLeftCol() {
+    }
 
     static WidgetGroup build(
             int x, int y, int colH,
@@ -56,7 +57,7 @@ final class ThemeEditorLeftCol {
         for (ThemePreset p : presets) {
             int btnW = Math.max(34, p.label.length() * 5 + 10);
             if (curX + btnW > COL_W - 6 && curX > 6) {
-                curX    = 6;
+                curX = 6;
                 curRowY += btnH + vGap;
             }
             final ThemePreset preset = p;
@@ -64,7 +65,7 @@ final class ThemeEditorLeftCol {
 
             col.addWidget(new ImageWidget(curX, curRowY, btnW, btnH,
                     new GuiTextureGroup(new ColorRectTexture(pCols[0]),
-                                        new ColorBorderTexture(1, pCols[1]))));
+                            new ColorBorderTexture(1, pCols[1]))));
 
             ButtonWidget btn = new ButtonWidget(curX, curRowY, btnW, btnH,
                     new ColorRectTexture(0x00000000), cd -> onPreset.accept(preset));
@@ -93,7 +94,7 @@ final class ThemeEditorLeftCol {
 
         int cardH = 32, cardGap = 3;
         int totalCardsH = bundles.isEmpty() ? 20 : bundles.size() * (cardH + cardGap);
-        int scrollH     = colH - cy - 4;
+        int scrollH = colH - cy - 4;
 
         DraggableScrollableWidgetGroup bundleScroll =
                 new DraggableScrollableWidgetGroup(0, cy, COL_W, scrollH);
@@ -105,7 +106,7 @@ final class ThemeEditorLeftCol {
         for (int i = 0; i < bundles.size(); i++) {
             final ThemeBundle bundle = bundles.get(i);
             boolean sel = bundle.id().equals(activeBundleId);
-            int cardY   = i * (cardH + cardGap);
+            int cardY = i * (cardH + cardGap);
 
             ImageWidget cardBg = new ImageWidget(6, cardY, COL_W - 10, cardH,
                     new GuiTextureGroup(
@@ -117,12 +118,12 @@ final class ThemeEditorLeftCol {
             IGuiTexture icon = bundle.iconTexture();
             GuiTextureGroup iconTex = (icon != null)
                     ? new GuiTextureGroup(
-                            new ColorRectTexture(bundle.bgColor() | 0xFF000000),
-                            icon,
-                            new ColorBorderTexture(1, 0xAA000000))
+                    new ColorRectTexture(bundle.bgColor() | 0xFF000000),
+                    icon,
+                    new ColorBorderTexture(1, 0xAA000000))
                     : new GuiTextureGroup(
-                            new ColorRectTexture(bundle.accentColor() | 0xFF000000),
-                            new ColorBorderTexture(1, 0xAA000000));
+                    new ColorRectTexture(bundle.accentColor() | 0xFF000000),
+                    new ColorBorderTexture(1, 0xAA000000));
             int iconSz = 24;
             bundleList.addWidget(new ImageWidget(8, cardY + (cardH - iconSz) / 2, iconSz, iconSz, iconTex));
 
@@ -157,7 +158,7 @@ final class ThemeEditorLeftCol {
         for (int i = 0; i < cardBgRefs.length && i < bundles.size(); i++) {
             if (cardBgRefs[i] == null) continue;
             ThemeBundle b = bundles.get(i);
-            boolean sel   = b.id().equals(activeBundleId);
+            boolean sel = b.id().equals(activeBundleId);
             cardBgRefs[i].setImage(new GuiTextureGroup(
                     new ColorRectTexture(sel ? C_SEL_BG : C_PANEL),
                     new ColorBorderTexture(1, sel ? b.accentColor() : C_BORDER)));
@@ -167,27 +168,27 @@ final class ThemeEditorLeftCol {
     private static int[] presetColors(ThemePreset p) {
         int darkBg = blend(p.bgColor, 0xFF111111, 0.5f);
         int border = (p.accentColor & 0x00FFFFFF) | 0xAA000000;
-        return new int[]{ darkBg, border };
+        return new int[]{darkBg, border};
     }
 
     private static String presetLabel(ThemePreset p) {
         return switch (p) {
-            case DEFAULT     -> "§fDefault";
-            case GTCEU_RED   -> "§cRed";
-            case MATRIX      -> "§aMatrix";
-            case GOLD        -> "§6Gold";
-            case PURPLE      -> "§5Purple";
-            case CYAN        -> "§bCyan";
-            case ORANGE      -> "§6Orange";
-            case MONO        -> "§7Mono";
+            case DEFAULT -> "§fDefault";
+            case GTCEU_RED -> "§cRed";
+            case MATRIX -> "§aMatrix";
+            case GOLD -> "§6Gold";
+            case PURPLE -> "§5Purple";
+            case CYAN -> "§bCyan";
+            case ORANGE -> "§6Orange";
+            case MONO -> "§7Mono";
             case PITCH_BLACK -> "§8Pitch Black";
         };
     }
 
     private static int blend(int c1, int c2, float t) {
         int r = Math.round(((c1 >> 16) & 0xFF) + (((c2 >> 16) & 0xFF) - ((c1 >> 16) & 0xFF)) * t);
-        int g = Math.round(((c1 >>  8) & 0xFF) + (((c2 >>  8) & 0xFF) - ((c1 >>  8) & 0xFF)) * t);
-        int b = Math.round(( c1        & 0xFF) + (( c2        & 0xFF) - ( c1        & 0xFF)) * t);
+        int g = Math.round(((c1 >> 8) & 0xFF) + (((c2 >> 8) & 0xFF) - ((c1 >> 8) & 0xFF)) * t);
+        int b = Math.round((c1 & 0xFF) + ((c2 & 0xFF) - (c1 & 0xFF)) * t);
         return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 }

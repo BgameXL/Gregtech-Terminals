@@ -23,7 +23,7 @@ public class BlockListWidget extends DraggableScrollableWidgetGroup {
     private final DismantleScanner.ScanResult scanResult;
 
     public BlockListWidget(int x, int y, int width, int height,
-                          DismantleScanner.ScanResult scanResult) {
+                           DismantleScanner.ScanResult scanResult) {
         super(x, y, width, height);
         this.scanResult = scanResult;
 

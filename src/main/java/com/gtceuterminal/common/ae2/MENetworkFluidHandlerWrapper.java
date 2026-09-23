@@ -29,7 +29,7 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
     private final IActionSource actionSource;
     private List<FluidStack> cachedFluids;
     private long lastCacheUpdate = 0;
-    private static final long CACHE_DURATION = 1000; // 1 second cache
+    private static final long CACHE_DURATION = 1000;
 
     public MENetworkFluidHandlerWrapper(MEStorage inventory, IActionSource actionSource) {
         this.inventory = inventory;

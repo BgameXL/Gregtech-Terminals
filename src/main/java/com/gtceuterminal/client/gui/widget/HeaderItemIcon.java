@@ -11,7 +11,8 @@ import net.minecraft.world.item.ItemStack;
 
 public final class HeaderItemIcon {
 
-    private HeaderItemIcon() {}
+    private HeaderItemIcon() {
+    }
 
     public static WidgetGroup build(int x, int y, int size, ItemStack stack, int bgColor, int borderColor) {
         WidgetGroup icon = new WidgetGroup(x, y, size, size);

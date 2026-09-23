@@ -20,12 +20,13 @@ import java.util.function.IntConsumer;
 @OnlyIn(Dist.CLIENT)
 final class SchematicListPanel {
 
-    private static final int C_SUCCESS  = 0xFF4CAF50;
-    private static final int C_HOVER    = 0x40FFFFFF;
-    private static final int ENTRY_H    = 36;
+    private static final int C_SUCCESS = 0xFF4CAF50;
+    private static final int C_HOVER = 0x40FFFFFF;
+    private static final int ENTRY_H = 36;
     private static final int ENTRY_STEP = 38;
 
-    private SchematicListPanel() {}
+    private SchematicListPanel() {
+    }
 
     static WidgetGroup build(
             int panelX, int panelY, int leftW, int listH, int pad,
@@ -83,7 +84,7 @@ final class SchematicListPanel {
             int selectedIndex, ItemTheme theme, IntConsumer onSelect
     ) {
         boolean sel = index == selectedIndex;
-        int colorBgLight  = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
+        int colorBgLight = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
         int colorBgMedium = theme.panelColor;
 
         WidgetGroup entry = new WidgetGroup(0, yPos, entryW, ENTRY_H);

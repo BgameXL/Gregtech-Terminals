@@ -37,19 +37,19 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class MultiStructureManagerUI {
 
-    private static final int TAB_H       = 24;
-    private static final int CARD_INSET  = 2;
-    private static final int LEFT_W      = 210;
-    private static final int DIVIDER_W   = 1;
+    private static final int TAB_H = 24;
+    private static final int CARD_INSET = 2;
+    private static final int LEFT_W = 210;
+    private static final int DIVIDER_W = 1;
     private static final int SCAN_RADIUS = 32;
     private static final String GLYPH_THEME = "✦";
 
     private int GUI_W, GUI_H;
 
-    private final IUIHolder  uiHolder;
-    private final Player     player;
-    private final ItemStack  terminalItem;
-    private final ItemTheme  theme;
+    private final IUIHolder uiHolder;
+    private final Player player;
+    private final ItemStack terminalItem;
+    private final ItemTheme theme;
 
     private List<MultiblockInfo> multiblocks = new ArrayList<>();
     private int selectedIndex = -1;
@@ -63,29 +63,29 @@ public class MultiStructureManagerUI {
     private int rightX, rightW, bodyH;
 
     public MultiStructureManagerUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        this.uiHolder     = heldHolder;
-        this.player       = heldHolder.player;
+        this.uiHolder = heldHolder;
+        this.player = heldHolder.player;
         this.terminalItem = heldHolder.held;
-        this.theme        = ItemTheme.load(this.terminalItem);
+        this.theme = ItemTheme.load(this.terminalItem);
         TerminalUI.use(this.theme);
         scanMultiblocks();
     }
 
     public MultiStructureManagerUI(MultiStructureManagerUIFactory.Holder holder, Player player) {
-        this.uiHolder     = holder;
-        this.player       = player;
+        this.uiHolder = holder;
+        this.player = player;
         this.terminalItem = holder.getTerminalItem();
-        this.theme        = ItemTheme.load(this.terminalItem);
+        this.theme = ItemTheme.load(this.terminalItem);
         TerminalUI.use(this.theme);
         scanMultiblocks();
     }
 
     @Deprecated
     public MultiStructureManagerUI(IUIHolder holder, Player player) {
-        this.uiHolder     = holder;
-        this.player       = player;
+        this.uiHolder = holder;
+        this.player = player;
         this.terminalItem = ItemStack.EMPTY;
-        this.theme        = ItemTheme.loadFromPlayer(player);
+        this.theme = ItemTheme.loadFromPlayer(player);
         TerminalUI.use(this.theme);
         scanMultiblocks();
     }
@@ -138,7 +138,7 @@ public class MultiStructureManagerUI {
 
         int innerW = (GUI_W - 4) - CARD_INSET * 2;
         int innerH = (GUI_H - 4) - CARD_INSET * 2;
-        this.bodyH  = innerH;
+        this.bodyH = innerH;
         this.rightX = CARD_INSET + LEFT_W + DIVIDER_W;
         this.rightW = innerW - LEFT_W - DIVIDER_W;
 

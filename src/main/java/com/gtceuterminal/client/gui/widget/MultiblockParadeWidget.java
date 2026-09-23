@@ -28,28 +28,29 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 public class MultiblockParadeWidget {
 
-    private static final float ORBIT_RX    = 300f;
-    private static final float ORBIT_RY    = 110f;
-    private static final float ORBIT_SPEED = (float)(2 * Math.PI / 10_000.0);
+    private static final float ORBIT_RX = 300f;
+    private static final float ORBIT_RY = 110f;
+    private static final float ORBIT_SPEED = (float) (2 * Math.PI / 10_000.0);
 
-    private static final float SCALE_FAR   = 0.25f;
-    private static final float SCALE_NEAR  = 1.0f;
-    private static final float TARGET_PX   = 110f;
+    private static final float SCALE_FAR = 0.25f;
+    private static final float SCALE_NEAR = 1.0f;
+    private static final float TARGET_PX = 110f;
 
-    private static final float ROT_X       = 28f;
-    private static final float ROT_Y_BASE  = 0f;
+    private static final float ROT_X = 28f;
+    private static final float ROT_Y_BASE = 0f;
 
-    private static final float DWELL_SECS  = 10f;
-    private static final long  FADE_MS     = 700;
+    private static final float DWELL_SECS = 10f;
+    private static final long FADE_MS = 700;
 
     static final class BlockEntry {
         final BlockPos pos;
         final BlockState state;
         final BlockInfo info;
+
         BlockEntry(BlockPos pos, BlockState state, BlockInfo info) {
-            this.pos   = pos;
+            this.pos = pos;
             this.state = state;
-            this.info  = info;
+            this.info = info;
         }
     }
 
@@ -61,17 +62,17 @@ public class MultiblockParadeWidget {
         TrackedDummyWorld dummyWorld;
 
         ParadeEntry(String name, List<BlockEntry> blocks, BlockPos size, BlockPos minPos) {
-            this.name   = name;
+            this.name = name;
             this.blocks = blocks;
-            this.size   = size;
+            this.size = size;
             this.minPos = minPos;
         }
     }
 
     private final List<ParadeEntry> entries = new ArrayList<>();
-    private int   currentIdx = 0;
-    private long  startMs;
-    private long  lastTickMs;
+    private int currentIdx = 0;
+    private long startMs;
+    private long lastTickMs;
     private float angle = 0f;
 
     private float guiCenterX = 0;
@@ -86,9 +87,13 @@ public class MultiblockParadeWidget {
         guiCenterY = cy;
     }
 
-    public boolean isEmpty() { return entries.isEmpty(); }
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
 
-    public List<ParadeEntry> getEntries() { return entries; }
+    public List<ParadeEntry> getEntries() {
+        return entries;
+    }
 
     public void addFromShapeInfo(String name, MultiblockShapeInfo shapeInfo) {
         try {
@@ -110,8 +115,12 @@ public class MultiblockParadeWidget {
                         if (state == null || state.isAir() || state.is(Blocks.AIR)) continue;
                         BlockPos p = new BlockPos(x, y, z);
                         blocks.add(new BlockEntry(p, state, info));
-                        minX = Math.min(minX, x); minY = Math.min(minY, y); minZ = Math.min(minZ, z);
-                        maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); maxZ = Math.max(maxZ, z);
+                        minX = Math.min(minX, x);
+                        minY = Math.min(minY, y);
+                        minZ = Math.min(minZ, z);
+                        maxX = Math.max(maxX, x);
+                        maxY = Math.max(maxY, y);
+                        maxZ = Math.max(maxZ, z);
                     }
                 }
             }
@@ -138,8 +147,12 @@ public class MultiblockParadeWidget {
             if (s == null || s.isAir()) continue;
             BlockPos p = e.getKey();
             blocks.add(new BlockEntry(p, s, null));
-            minX = Math.min(minX, p.getX()); minY = Math.min(minY, p.getY()); minZ = Math.min(minZ, p.getZ());
-            maxX = Math.max(maxX, p.getX()); maxY = Math.max(maxY, p.getY()); maxZ = Math.max(maxZ, p.getZ());
+            minX = Math.min(minX, p.getX());
+            minY = Math.min(minY, p.getY());
+            minZ = Math.min(minZ, p.getZ());
+            maxX = Math.max(maxX, p.getX());
+            maxY = Math.max(maxY, p.getY());
+            maxZ = Math.max(maxZ, p.getZ());
         }
         if (blocks.isEmpty()) return;
         entries.add(new ParadeEntry(name, blocks,
@@ -161,29 +174,29 @@ public class MultiblockParadeWidget {
     public void render(GuiGraphics graphics, float partialTicks) {
         if (entries.isEmpty() || guiCenterX == 0) return;
 
-        long nowMs   = System.currentTimeMillis();
+        long nowMs = System.currentTimeMillis();
         long elapsed = nowMs - lastTickMs;
-        lastTickMs   = nowMs;
+        lastTickMs = nowMs;
 
         long totalMs = nowMs - startMs;
-        long dwellMs = (long)(DWELL_SECS * 1000);
-        int newIdx   = (int)((totalMs / dwellMs) % entries.size());
+        long dwellMs = (long) (DWELL_SECS * 1000);
+        int newIdx = (int) ((totalMs / dwellMs) % entries.size());
         if (newIdx != currentIdx) {
             currentIdx = newIdx;
         }
 
         long posInDwell = totalMs % dwellMs;
-        angle = (float)(2 * Math.PI * posInDwell / dwellMs) + (float)Math.toRadians(75);
+        angle = (float) (2 * Math.PI * posInDwell / dwellMs) + (float) Math.toRadians(75);
 
-        float ox    = (float)Math.cos(angle) * ORBIT_RX;
-        float oy    = (float)Math.sin(angle) * ORBIT_RY;
-        float depth = (float)Math.sin(angle);
+        float ox = (float) Math.cos(angle) * ORBIT_RX;
+        float oy = (float) Math.sin(angle) * ORBIT_RY;
+        float depth = (float) Math.sin(angle);
         float scale = SCALE_FAR + (SCALE_NEAR - SCALE_FAR) * ((depth + 1f) / 2f);
         float z = 50f + ((depth + 1f) / 2f) * 49f;
 
-        long  pos   = totalMs % dwellMs;
+        long pos = totalMs % dwellMs;
         float alpha = 1f;
-        if (pos < FADE_MS)                alpha = pos / (float) FADE_MS;
+        if (pos < FADE_MS) alpha = pos / (float) FADE_MS;
         else if (pos > dwellMs - FADE_MS) alpha = (dwellMs - pos) / (float) FADE_MS;
         alpha = Math.max(0f, Math.min(1f, alpha));
         if (alpha < 0.01f) return;
@@ -191,13 +204,13 @@ public class MultiblockParadeWidget {
         renderMultiblock(graphics, entries.get(currentIdx),
                 guiCenterX + ox, guiCenterY + oy, z,
                 scale, alpha,
-                ROT_Y_BASE + (float)Math.toDegrees(angle) * 0.12f);
+                ROT_Y_BASE + (float) Math.toDegrees(angle) * 0.12f);
     }
 
     private void renderMultiblock(GuiGraphics graphics, ParadeEntry entry,
                                   float sx, float sy, float sz,
                                   float scale, float alpha, float rotY) {
-        Minecraft mc           = Minecraft.getInstance();
+        Minecraft mc = Minecraft.getInstance();
         BlockRenderDispatcher r = mc.getBlockRenderer();
         MultiBufferSource.BufferSource buf = mc.renderBuffers().bufferSource();
 
@@ -212,7 +225,7 @@ public class MultiblockParadeWidget {
 
             pose.translate(sx, sy, sz);
 
-            float maxDim     = Math.max(entry.size.getX(), Math.max(entry.size.getY(), entry.size.getZ()));
+            float maxDim = Math.max(entry.size.getX(), Math.max(entry.size.getY(), entry.size.getZ()));
             float blockScale = (TARGET_PX * scale) / Math.max(1f, maxDim);
 
             pose.scale(blockScale, blockScale, blockScale);
@@ -247,8 +260,9 @@ public class MultiblockParadeWidget {
                 } catch (RuntimeException e) {
                     GTCEUTerminalMod.LOGGER.debug("MultiblockParadeWidget: tesselate failed for {}, trying renderSingleBlock: {}",
                             block.state.getBlock().getDescriptionId(), e.getMessage());
-                    try { r.renderSingleBlock(block.state, pose, buf, 15728880, OverlayTexture.NO_OVERLAY); }
-                    catch (RuntimeException e2) {
+                    try {
+                        r.renderSingleBlock(block.state, pose, buf, 15728880, OverlayTexture.NO_OVERLAY);
+                    } catch (RuntimeException e2) {
                         GTCEUTerminalMod.LOGGER.debug("MultiblockParadeWidget: renderSingleBlock also failed for {}: {}",
                                 block.state.getBlock().getDescriptionId(), e2.getMessage());
                     }

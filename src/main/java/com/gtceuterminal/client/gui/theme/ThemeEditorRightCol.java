@@ -20,15 +20,16 @@ import java.util.function.IntConsumer;
 @OnlyIn(Dist.CLIENT)
 final class ThemeEditorRightCol {
 
-    private static final int C_PANEL  = 0xFF272727;
+    private static final int C_PANEL = 0xFF272727;
     private static final int C_BORDER = 0xFF3A3A3A;
-    private static final int C_HOVER  = 0x33FFFFFF;
-    private static final int C_SEL    = 0xFF2A1A4A;
+    private static final int C_HOVER = 0x33FFFFFF;
+    private static final int C_SEL = 0xFF2A1A4A;
     private static final int C_SEL_BR = 0xFF7A3FBF;
 
     private static final int[] CHAN_FILL = {0xCCFF4444, 0xCC44FF44, 0xCC4444FF, 0xCCCCCCCC};
 
-    private ThemeEditorRightCol() {}
+    private ThemeEditorRightCol() {
+    }
 
     static WidgetGroup build(
             int x, int y, int colW, int colH,
@@ -63,7 +64,7 @@ final class ThemeEditorRightCol {
         int tBtnW = (colW - 8) / 3;
         for (int i = 0; i < 3; i++) {
             final int ti = i;
-            int bx  = i * (tBtnW + 4);
+            int bx = i * (tBtnW + 4);
             boolean sel = ti == editTargetHolder[0];
 
             tabBgRefs[i] = new ImageWidget(bx, cy, tBtnW, tBtnH,
@@ -98,7 +99,10 @@ final class ThemeEditorRightCol {
             RGBSliderWidget slider = new RGBSliderWidget(10, sy, barW, 12,
                     0xFF0A0A0A, CHAN_FILL[ci], 0xFFFFFFFF,
                     () -> channels[ci],
-                    val -> { channels[ci] = val; onChannelChanged.accept(-1); });
+                    val -> {
+                        channels[ci] = val;
+                        onChannelChanged.accept(-1);
+                    });
             sliderRefs[c] = slider;
             col.addWidget(slider);
         }
@@ -128,8 +132,8 @@ final class ThemeEditorRightCol {
         cy += 12;
 
         int swSz = 22;
-        int[] swColors = { working.bgColor, working.panelColor, working.accentColor };
-        String[] swNames = { "bg", "panel", "accent" };
+        int[] swColors = {working.bgColor, working.panelColor, working.accentColor};
+        String[] swNames = {"bg", "panel", "accent"};
         for (int i = 0; i < 3; i++) {
             int sx = i * (swSz + 6);
             ImageWidget sw = new ImageWidget(sx, cy, swSz, swSz,
@@ -210,9 +214,9 @@ final class ThemeEditorRightCol {
 
     private static String paradeLabel(ItemTheme.ParadeMode m) {
         return switch (m) {
-            case ORBITAL  -> "§dAnim: Orbit";
+            case ORBITAL -> "§dAnim: Orbit";
             case BOUNCING -> "§dAnim: Bounce";
-            default       -> "§7Anim: Off";
+            default -> "§7Anim: Off";
         };
     }
 
@@ -239,8 +243,8 @@ final class ThemeEditorRightCol {
 
     private static int currentColor(ItemTheme t, int editTarget) {
         return switch (editTarget) {
-            case 1  -> t.bgColor;
-            case 2  -> t.panelColor;
+            case 1 -> t.bgColor;
+            case 2 -> t.panelColor;
             default -> t.accentColor;
         };
     }

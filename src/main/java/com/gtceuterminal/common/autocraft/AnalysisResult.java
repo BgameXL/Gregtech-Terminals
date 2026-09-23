@@ -10,20 +10,28 @@ public final class AnalysisResult {
 
     public static final class Entry {
         public final ItemStack stack;
-        public final long      inME;
-        public final long      inInventory;
-        public final boolean   craftable;
+        public final long inME;
+        public final long inInventory;
+        public final boolean craftable;
 
         public Entry(ItemStack stack, long inME, long inInventory, boolean craftable) {
-            this.stack       = stack;
-            this.inME        = inME;
+            this.stack = stack;
+            this.inME = inME;
             this.inInventory = inInventory;
-            this.craftable   = craftable;
+            this.craftable = craftable;
         }
 
-        public int     needed()         { return stack.getCount(); }
-        public long    totalAvailable() { return inME + inInventory; }
-        public boolean hasAll()         { return totalAvailable() >= needed(); }
+        public int needed() {
+            return stack.getCount();
+        }
+
+        public long totalAvailable() {
+            return inME + inInventory;
+        }
+
+        public boolean hasAll() {
+            return totalAvailable() >= needed();
+        }
 
         public void encode(FriendlyByteBuf buf) {
             buf.writeItem(stack);
@@ -37,27 +45,27 @@ public final class AnalysisResult {
         }
     }
 
-    public enum Kind { BUILD, UPGRADE }
+    public enum Kind {BUILD, UPGRADE}
 
-    public final Kind                       kind;
-    public final List<Entry>                entries;
+    public final Kind kind;
+    public final List<Entry> entries;
     public final net.minecraft.core.BlockPos controllerPos;
-    public final String                     upgradeId;
+    public final String upgradeId;
     public final List<net.minecraft.core.BlockPos> componentPositions;
-    public final int                        targetTier;
-    public final ItemStack                  targetItemStack;
-    public final int                        componentCount;
+    public final int targetTier;
+    public final ItemStack targetItemStack;
+    public final int componentCount;
 
     // BUILD constructor
     public AnalysisResult(List<Entry> entries, net.minecraft.core.BlockPos controllerPos) {
-        this.kind               = Kind.BUILD;
-        this.entries            = entries;
-        this.controllerPos      = controllerPos;
-        this.targetTier         = 0;
-        this.upgradeId          = null;
+        this.kind = Kind.BUILD;
+        this.entries = entries;
+        this.controllerPos = controllerPos;
+        this.targetTier = 0;
+        this.upgradeId = null;
         this.componentPositions = List.of();
-        this.targetItemStack    = ItemStack.EMPTY;
-        this.componentCount     = 0;
+        this.targetItemStack = ItemStack.EMPTY;
+        this.componentCount = 0;
     }
 
     // UPGRADE constructor
@@ -68,14 +76,14 @@ public final class AnalysisResult {
                           List<net.minecraft.core.BlockPos> componentPositions,
                           ItemStack targetItemStack,
                           int componentCount) {
-        this.kind               = Kind.UPGRADE;
-        this.entries            = entries;
-        this.controllerPos      = controllerPos;
-        this.targetTier         = targetTier;
-        this.upgradeId          = upgradeId;
+        this.kind = Kind.UPGRADE;
+        this.entries = entries;
+        this.controllerPos = controllerPos;
+        this.targetTier = targetTier;
+        this.upgradeId = upgradeId;
         this.componentPositions = componentPositions;
-        this.targetItemStack    = targetItemStack;
-        this.componentCount     = componentCount;
+        this.targetItemStack = targetItemStack;
+        this.componentCount = componentCount;
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -95,18 +103,18 @@ public final class AnalysisResult {
     }
 
     public static AnalysisResult decode(FriendlyByteBuf buf) {
-        Kind   kind          = buf.readEnum(Kind.class);
-        var    controllerPos = buf.readBlockPos();
-        int    targetTier    = buf.readInt();
-        String upgradeId     = buf.readUtf();
+        Kind kind = buf.readEnum(Kind.class);
+        var controllerPos = buf.readBlockPos();
+        int targetTier = buf.readInt();
+        String upgradeId = buf.readUtf();
         if (upgradeId.isEmpty()) upgradeId = null;
 
         int compCount = buf.readInt();
         List<net.minecraft.core.BlockPos> comps = new ArrayList<>(compCount);
         for (int i = 0; i < compCount; i++) comps.add(buf.readBlockPos());
 
-        ItemStack targetStack  = buf.readItem();
-        int       componentCnt = buf.readInt();
+        ItemStack targetStack = buf.readItem();
+        int componentCnt = buf.readInt();
 
         int entryCount = buf.readInt();
         List<Entry> entries = new ArrayList<>(entryCount);

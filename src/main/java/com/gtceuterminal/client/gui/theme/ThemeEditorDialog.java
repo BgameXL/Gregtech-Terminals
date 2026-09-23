@@ -29,34 +29,34 @@ public class ThemeEditorDialog {
 
     private static final int HDR_H = 24;
     private static final int FTR_H = 30;
-    private static final int PAD   = 8;
+    private static final int PAD = 8;
 
     private static final int COL_L = ThemeEditorLeftCol.COL_W;
 
-    private static final int C_BG     = 0xFF1C1C1C;
-    private static final int C_PANEL  = 0xFF272727;
+    private static final int C_BG = 0xFF1C1C1C;
+    private static final int C_PANEL = 0xFF272727;
     private static final int C_BORDER = 0xFF3A3A3A;
-    private static final int C_SEL    = 0xFF2A1A4A;
+    private static final int C_SEL = 0xFF2A1A4A;
     private static final int C_SEL_BR = 0xFF7A3FBF;
-    private static final int C_SAVE   = 0xFF1E6B1E;
-    private static final int C_RESET  = 0xFF6B1E1E;
+    private static final int C_SAVE = 0xFF1E6B1E;
+    private static final int C_RESET = 0xFF6B1E1E;
 
     private final WidgetGroup rootGroup;
-    private final ItemTheme   working;
+    private final ItemTheme working;
 
-    private String       activeBundleId;
+    private String activeBundleId;
     private List<String> wallpapers;
-    private int          wallpaperIdx;
+    private int wallpaperIdx;
 
     private final int[] editTargetHolder = {0};
-    private final int[] channels         = new int[4];
+    private final int[] channels = new int[4];
 
-    private ImageWidget[]     swatches    = new ImageWidget[3];
-    private ImageWidget[]     tabBgs      = new ImageWidget[3];
+    private ImageWidget[] swatches = new ImageWidget[3];
+    private ImageWidget[] tabBgs = new ImageWidget[3];
     private TextFieldWidget[] hexFieldRef = new TextFieldWidget[1];
-    private ImageWidget[] wallThumbRef  = new ImageWidget[1];
-    private LabelWidget[] wallLabelRef  = new LabelWidget[1];
-    private ImageWidget[] animToggleBg  = new ImageWidget[1];
+    private ImageWidget[] wallThumbRef = new ImageWidget[1];
+    private LabelWidget[] wallLabelRef = new LabelWidget[1];
+    private ImageWidget[] animToggleBg = new ImageWidget[1];
     private ImageWidget[] bundleCardBgs;
 
     private int dw, dh;
@@ -66,11 +66,11 @@ public class ThemeEditorDialog {
     }
 
     private ThemeEditorDialog(WidgetGroup rootGroup, ItemTheme current) {
-        this.rootGroup      = rootGroup;
-        this.working        = new ItemTheme(current);
+        this.rootGroup = rootGroup;
+        this.working = new ItemTheme(current);
         this.activeBundleId = current.isBundleStyle() ? current.bundleId : "";
-        this.wallpapers     = WallpaperManager.listWallpapers();
-        this.wallpaperIdx   = wallpapers.indexOf(current.wallpaper);
+        this.wallpapers = WallpaperManager.listWallpapers();
+        this.wallpaperIdx = wallpapers.indexOf(current.wallpaper);
         syncChannels(working.accentColor);
     }
 
@@ -90,9 +90,9 @@ public class ThemeEditorDialog {
 
         int contentY = HDR_H + PAD;
         int contentH = dh - contentY - FTR_H - PAD;
-        int divX     = PAD + COL_L;
-        int colRx    = divX + 1 + PAD;
-        int colRw    = dw - colRx - PAD;
+        int divX = PAD + COL_L;
+        int colRx = divX + 1 + PAD;
+        int colRw = dw - colRx - PAD;
 
         List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
                 .filter(ThemeBundle::isAvailable)
@@ -146,10 +146,10 @@ public class ThemeEditorDialog {
         WidgetGroup ftr = new WidgetGroup(0, h - FTR_H, w, FTR_H);
         ftr.setBackground(new ColorRectTexture(C_PANEL));
 
-        int btnH   = 18, btnY = (FTR_H - btnH) / 2;
+        int btnH = 18, btnY = (FTR_H - btnH) / 2;
         int totalW = w - PAD * 2;
         int resetW = totalW / 3;
-        int saveW  = totalW - resetW - PAD;
+        int saveW = totalW - resetW - PAD;
 
         ButtonWidget save = new ButtonWidget(PAD, btnY, saveW, btnH,
                 new GuiTextureGroup(new ColorRectTexture(C_SAVE), new ColorBorderTexture(1, 0xFF2E8B2E)),
@@ -192,19 +192,22 @@ public class ThemeEditorDialog {
         String s = hex.startsWith("#") ? hex.substring(1) : hex;
         if (s.length() != 6) return;
         int rgb;
-        try { rgb = Integer.parseInt(s, 16); }
-        catch (NumberFormatException e) { return; }
+        try {
+            rgb = Integer.parseInt(s, 16);
+        } catch (NumberFormatException e) {
+            return;
+        }
         channels[0] = (rgb >> 16) & 0xFF;
-        channels[1] = (rgb >>  8) & 0xFF;
-        channels[2] =  rgb        & 0xFF;
+        channels[1] = (rgb >> 8) & 0xFF;
+        channels[2] = rgb & 0xFF;
         applyChannels();
         refreshAll();
     }
 
     private void cycleParade() {
         working.paradeMode = switch (working.paradeMode) {
-            case NONE     -> ItemTheme.ParadeMode.ORBITAL;
-            case ORBITAL  -> ItemTheme.ParadeMode.BOUNCING;
+            case NONE -> ItemTheme.ParadeMode.ORBITAL;
+            case ORBITAL -> ItemTheme.ParadeMode.BOUNCING;
             case BOUNCING -> ItemTheme.ParadeMode.NONE;
         };
         ThemeEditorRightCol.refreshAnimToggle(animToggleBg,
@@ -237,8 +240,8 @@ public class ThemeEditorDialog {
     private void saveAndClose(DialogWidget dialog) {
         GTCEUTerminalMod.LOGGER.info("ThemeEditorDialog: saving theme accent=#{} bg=#{} panel=#{}",
                 String.format("%06X", working.accentColor & 0xFFFFFF),
-                String.format("%06X", working.bgColor     & 0xFFFFFF),
-                String.format("%06X", working.panelColor  & 0xFFFFFF));
+                String.format("%06X", working.bgColor & 0xFFFFFF),
+                String.format("%06X", working.panelColor & 0xFFFFFF));
 
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null) {
@@ -247,14 +250,20 @@ public class ThemeEditorDialog {
                 net.minecraft.world.item.ItemStack s = mc.player.getItemInHand(hand);
                 net.minecraft.resources.ResourceLocation rl =
                         net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(s.getItem());
-                if (rl != null && "gtceuterminal".equals(rl.getNamespace())) { found = s; break; }
+                if (rl != null && "gtceuterminal".equals(rl.getNamespace())) {
+                    found = s;
+                    break;
+                }
             }
             if (found.isEmpty()) {
                 for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
                     net.minecraft.world.item.ItemStack s = mc.player.getInventory().getItem(i);
                     net.minecraft.resources.ResourceLocation rl =
                             net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(s.getItem());
-                    if (rl != null && "gtceuterminal".equals(rl.getNamespace())) { found = s; break; }
+                    if (rl != null && "gtceuterminal".equals(rl.getNamespace())) {
+                        found = s;
+                        break;
+                    }
                 }
             }
             if (!found.isEmpty()) {
@@ -264,8 +273,11 @@ public class ThemeEditorDialog {
             }
         }
 
-        try { TerminalNetwork.CHANNEL.sendToServer(new CPacketSaveTheme(working)); }
-        catch (Exception e) { GTCEUTerminalMod.LOGGER.warn("ThemeEditorDialog: failed to send save packet", e); }
+        try {
+            TerminalNetwork.CHANNEL.sendToServer(new CPacketSaveTheme(working));
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.warn("ThemeEditorDialog: failed to send save packet", e);
+        }
 
         dialog.setVisible(false);
         net.minecraft.client.Minecraft.getInstance().setScreen(null);
@@ -273,21 +285,21 @@ public class ThemeEditorDialog {
 
     private void resetDefaults() {
         ItemTheme def = new ItemTheme();
-        working.accentColor     = def.accentColor;
-        working.bgColor         = def.bgColor;
-        working.panelColor      = def.panelColor;
-        working.textColor       = def.textColor;
-        working.compactMode     = def.compactMode;
-        working.showTooltips    = def.showTooltips;
-        working.showBorders     = def.showBorders;
-        working.wallpaper       = "";
-        working.uiStyle         = ItemTheme.UiStyle.DARK;
-        working.bundleId        = "";
-        working.paradeMode      = ItemTheme.ParadeMode.NONE;
-        working.slideshowMode   = false;
+        working.accentColor = def.accentColor;
+        working.bgColor = def.bgColor;
+        working.panelColor = def.panelColor;
+        working.textColor = def.textColor;
+        working.compactMode = def.compactMode;
+        working.showTooltips = def.showTooltips;
+        working.showBorders = def.showBorders;
+        working.wallpaper = "";
+        working.uiStyle = ItemTheme.UiStyle.DARK;
+        working.bundleId = "";
+        working.paradeMode = ItemTheme.ParadeMode.NONE;
+        working.slideshowMode = false;
         working.slideshowSource = ItemTheme.SlideshowSource.BUILTIN;
-        activeBundleId          = "";
-        wallpaperIdx            = -1;
+        activeBundleId = "";
+        wallpaperIdx = -1;
         syncChannels(currentColor());
         refreshAll();
         refreshWallpaperThumb();
@@ -296,29 +308,29 @@ public class ThemeEditorDialog {
     private void applyChannels() {
         int color = (channels[3] << 24) | (channels[0] << 16) | (channels[1] << 8) | channels[2];
         switch (editTargetHolder[0]) {
-            case 1  -> working.bgColor    = color;
-            case 2  -> working.panelColor = color;
+            case 1 -> working.bgColor = color;
+            case 2 -> working.panelColor = color;
             default -> working.accentColor = color;
         }
         if (working.isBundleStyle()) {
-            working.uiStyle       = ItemTheme.UiStyle.DARK;
-            working.bundleId      = "";
+            working.uiStyle = ItemTheme.UiStyle.DARK;
+            working.bundleId = "";
             working.slideshowMode = false;
-            activeBundleId        = "";
+            activeBundleId = "";
         }
     }
 
     private void syncChannels(int color) {
         channels[0] = (color >> 16) & 0xFF;
-        channels[1] = (color >>  8) & 0xFF;
-        channels[2] =  color        & 0xFF;
+        channels[1] = (color >> 8) & 0xFF;
+        channels[2] = color & 0xFF;
         channels[3] = (color >> 24) & 0xFF;
     }
 
     private int currentColor() {
         return switch (editTargetHolder[0]) {
-            case 1  -> working.bgColor;
-            case 2  -> working.panelColor;
+            case 1 -> working.bgColor;
+            case 2 -> working.panelColor;
             default -> working.accentColor;
         };
     }

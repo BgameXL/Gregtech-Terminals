@@ -37,7 +37,7 @@ public class SchematicPreviewRenderer {
             GTCEUTerminalMod.LOGGER.debug("SchematicPreviewRenderer: invalid facing '{}', defaulting to SOUTH", schematic.getOriginalFacing());
         }
 
-        double distance    = SchematicUtils.calculateOptimalDistance(schematic);
+        double distance = SchematicUtils.calculateOptimalDistance(schematic);
         BlockPos targetPos = SchematicUtils.getTargetPlacementPos(minecraft.player, distance);
         if (targetPos == null) return;
 
@@ -58,12 +58,12 @@ public class SchematicPreviewRenderer {
         BlockRenderDispatcher blockRenderer = minecraft.getBlockRenderer();
 
         for (var entry : schematic.getBlocks().entrySet()) {
-            BlockPos   relativePos  = entry.getKey();
-            BlockState state        = entry.getValue();
+            BlockPos relativePos = entry.getKey();
+            BlockState state = entry.getValue();
 
-            BlockPos   rotatedPos   = SchematicUtils.rotatePositionSteps(relativePos, rotationSteps);
+            BlockPos rotatedPos = SchematicUtils.rotatePositionSteps(relativePos, rotationSteps);
             BlockState rotatedState = SchematicUtils.rotateBlockStateSteps(state, rotationSteps);
-            BlockPos   worldPos     = adjustedTarget.offset(rotatedPos);
+            BlockPos worldPos = adjustedTarget.offset(rotatedPos);
             poseStack.pushPose();
             poseStack.translate(
                     worldPos.getX() - cameraPos.x,
@@ -89,11 +89,11 @@ public class SchematicPreviewRenderer {
         BlockRenderDispatcher blockRenderer = minecraft.getBlockRenderer();
 
         for (var entry : schematic.getBlocks().entrySet()) {
-            BlockPos   relPos       = entry.getKey();
-            BlockState state        = entry.getValue();
+            BlockPos relPos = entry.getKey();
+            BlockState state = entry.getValue();
             if (state.isAir()) continue;
 
-            BlockPos   rotated      = SchematicUtils.rotatePositionSteps(relPos, rotSteps);
+            BlockPos rotated = SchematicUtils.rotatePositionSteps(relPos, rotSteps);
             BlockState rotatedState = SchematicUtils.rotateBlockStateSteps(state, rotSteps);
 
             poseStack.pushPose();

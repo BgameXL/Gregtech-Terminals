@@ -24,11 +24,12 @@ import java.util.function.Supplier;
 @OnlyIn(Dist.CLIENT)
 final class MultiblockListPanel {
 
-    private static final int ENTRY_H    = 46;
+    private static final int ENTRY_H = 46;
     private static final int ENTRY_STEP = 48;
-    private static final int FOOTER_H   = 28;
+    private static final int FOOTER_H = 28;
 
-    private MultiblockListPanel() {}
+    private MultiblockListPanel() {
+    }
 
     static WidgetGroup build(
             int panelX, int panelY, int panelW, int panelH,
@@ -164,13 +165,19 @@ final class MultiblockListPanel {
         footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(colorBorderDark)));
 
         ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "§eHighlight",
-                cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onHighlight.accept(sel); });
+                cd -> {
+                    MultiblockInfo sel = getSelected.get();
+                    if (sel != null) onHighlight.accept(sel);
+                });
         highlightBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.highlight_tooltip").getString());
         footer.addWidget(highlightBtn);
 
         ButtonWidget renameBtn = TerminalButton.icon3d(panelW - 28, 4, 20, "✎",
-                cd -> { MultiblockInfo sel = getSelected.get(); if (sel != null) onRename.accept(sel); });
+                cd -> {
+                    MultiblockInfo sel = getSelected.get();
+                    if (sel != null) onRename.accept(sel);
+                });
         renameBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.rename_tooltip").getString());
         footer.addWidget(renameBtn);
@@ -195,7 +202,7 @@ final class MultiblockListPanel {
         if (r > 200 && g > 200 && b < 100) return 'e';
         if (r < 100 && g > 200 && b > 200) return 'b';
         if (r > 200 && g < 100 && b > 200) return 'd';
-        if (r > 200 && g > 100 && b < 50)  return '6';
+        if (r > 200 && g > 100 && b < 50) return '6';
         return '7';
     }
 
@@ -206,11 +213,11 @@ final class MultiblockListPanel {
 
     private static char statusColorCode(MultiblockStatus status) {
         return switch (status) {
-            case ACTIVE            -> 'a';
-            case IDLE              -> 'e';
+            case ACTIVE -> 'a';
+            case IDLE -> 'e';
             case NEEDS_MAINTENANCE -> '6';
-            case NO_POWER          -> 'c';
-            case OUTPUT_FULL       -> 'b';
+            case NO_POWER -> 'c';
+            case OUTPUT_FULL -> 'b';
             case DISABLED, UNFORMED -> '8';
         };
     }

@@ -31,6 +31,7 @@ public class MultiblockHighlighter {
             GTCEUTerminalMod.LOGGER.debug("MultiblockHighlighter: cleared highlights on level unload");
         }
     }
+
     public static class HighlightInfo {
         public final BlockPos controllerPos;
         public final Set<BlockPos> blocks;

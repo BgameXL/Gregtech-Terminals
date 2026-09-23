@@ -29,37 +29,38 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SchematicInterfaceUI {
 
-    private static final int GUI_W    = 600;
-    private static final int GUI_H    = 480;
+    private static final int GUI_W = 600;
+    private static final int GUI_H = 480;
     private static final int HEADER_H = 34;
-    private static final int LEFT_W   = 202;
-    private static final int DIVIDER  = 1;
+    private static final int LEFT_W = 202;
+    private static final int DIVIDER = 1;
 
-    private static final int BODY_Y   = HEADER_H;
-    private static final int BODY_H   = GUI_H - HEADER_H;
-    private static final int RIGHT_X  = LEFT_W + DIVIDER;
-    private static final int RIGHT_W  = GUI_W - RIGHT_X;
+    private static final int BODY_Y = HEADER_H;
+    private static final int BODY_H = GUI_H - HEADER_H;
+    private static final int RIGHT_X = LEFT_W + DIVIDER;
+    private static final int RIGHT_W = GUI_W - RIGHT_X;
 
     private static final int C_BORDER_DARK = 0xFF0A0A0A;
-    private static final int C_TEXT_WHITE  = 0xFFFFFFFF;
-    private static final int C_TEXT_GRAY   = 0xFFAAAAAA;
-    private static final int C_HOVER       = 0x40FFFFFF;
-    private static final int C_SUCCESS     = 0xFF4CAF50;
-    private static final int C_INFO        = 0xFF42A5F5;
-    private  static final  int C_DELETE    = 0xFFE53935;
-    private static final  int C_EXPORT     = 0xFF9C27B0;
-    private static final  int C_IMPORT     = 0xFF54927;
-    private static final int C_ERROR       = 0xFFFF5252;
+    private static final int C_TEXT_WHITE = 0xFFFFFFFF;
+    private static final int C_TEXT_GRAY = 0xFFAAAAAA;
+    private static final int C_HOVER = 0x40FFFFFF;
+    private static final int C_SUCCESS = 0xFF4CAF50;
+    private static final int C_INFO = 0xFF42A5F5;
+    private static final int C_DELETE = 0xFFE53935;
+    private static final int C_EXPORT = 0xFF9C27B0;
+    private static final int C_IMPORT = 0xFF54927;
+    private static final int C_ERROR = 0xFFFF5252;
 
     private final IUIHolder uiHolder;
     private final ItemStack terminalItem;
-    private final Player    player;
+    private final Player player;
     private final ItemTheme theme;
     private final int colorBorderLight;
 
@@ -74,19 +75,19 @@ public class SchematicInterfaceUI {
     private DraggableScrollableWidgetGroup schematicsScroll;
 
     public SchematicInterfaceUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        this.uiHolder     = heldHolder;
+        this.uiHolder = heldHolder;
         this.terminalItem = heldHolder.held;
-        this.player       = heldHolder.player;
-        this.theme        = ItemTheme.load(terminalItem);
+        this.player = heldHolder.player;
+        this.theme = ItemTheme.load(terminalItem);
         this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
         loadSchematics();
     }
 
     public SchematicInterfaceUI(SchematicItemUIFactory.Holder holder, Player player) {
-        this.uiHolder     = holder;
+        this.uiHolder = holder;
         this.terminalItem = holder.getTerminalItem();
-        this.player       = player;
-        this.theme        = ItemTheme.load(terminalItem);
+        this.player = player;
+        this.theme = ItemTheme.load(terminalItem);
         this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
         loadSchematics();
     }
@@ -124,10 +125,10 @@ public class SchematicInterfaceUI {
 
     private WidgetGroup buildOuterBorder() {
         WidgetGroup g = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        g.addWidget(new ImageWidget(0,         0,          GUI_W, 2,     new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(0,         0,          2,     GUI_H, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(GUI_W - 2, 0,          2,     GUI_H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0,         GUI_H - 2,  GUI_W, 2,     new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(colorBorderLight)));
+        g.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(colorBorderLight)));
+        g.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(C_BORDER_DARK)));
+        g.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(C_BORDER_DARK)));
         return g;
     }
 
@@ -240,7 +241,8 @@ public class SchematicInterfaceUI {
 
     private void buildActions(WidgetGroup panel) {
         int fieldW = RIGHT_W - 20;
-        TextFieldWidget nameField = new TextFieldWidget(10, 8, fieldW, 20, null, s -> {});
+        TextFieldWidget nameField = new TextFieldWidget(10, 8, fieldW, 20, null, s -> {
+        });
         nameField.setMaxStringLength(32);
         nameField.setTextColor(C_TEXT_WHITE);
         nameField.setBackground(new GuiTextureGroup(
@@ -268,7 +270,7 @@ public class SchematicInterfaceUI {
                 cd -> deleteSchematic()));
         x += 60 + spacing;
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_EXPORT ,
+        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_EXPORT,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.export").getString(),
                 cd -> player.displayClientMessage(
                         Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))
@@ -325,7 +327,8 @@ public class SchematicInterfaceUI {
 
     private void pasteSchematic() {
         if (selectedIndex < 0 || selectedIndex >= schematics.size()) {
-            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected"); return;
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected");
+            return;
         }
         SchematicData s = schematics.get(selectedIndex);
         TerminalNetwork.CHANNEL.sendToServer(
@@ -336,12 +339,22 @@ public class SchematicInterfaceUI {
     }
 
     private void saveSchematic() {
-        if (!hasClipboard()) { msg("gui.gtceuterminal.schematic_interface.chat.error.no_clipboard"); return; }
+        if (!hasClipboard()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_clipboard");
+            return;
+        }
         String name = nameInput != null ? nameInput.getCurrentString().trim() : "";
-        if (name.isEmpty()) { msg("gui.gtceuterminal.schematic_interface.chat.error.enter_name"); return; }
-        if ("Clipboard".equalsIgnoreCase(name)) { msg("gui.gtceuterminal.schematic_interface.chat.error.reserved_name"); return; }
+        if (name.isEmpty()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.enter_name");
+            return;
+        }
+        if ("Clipboard".equalsIgnoreCase(name)) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.reserved_name");
+            return;
+        }
         if (schematics.stream().anyMatch(s -> s.getName().equalsIgnoreCase(name))) {
-            msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists"); return;
+            msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists");
+            return;
         }
 
         TerminalNetwork.CHANNEL.sendToServer(new CPacketSchematicAction(CPacketSchematicAction.ActionType.SAVE, name, -1));
@@ -366,7 +379,8 @@ public class SchematicInterfaceUI {
 
     private void deleteSchematic() {
         if (selectedIndex < 0 || selectedIndex >= schematics.size()) {
-            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected"); return;
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected");
+            return;
         }
         String name = schematics.get(selectedIndex).getName();
         TerminalNetwork.CHANNEL.sendToServer(

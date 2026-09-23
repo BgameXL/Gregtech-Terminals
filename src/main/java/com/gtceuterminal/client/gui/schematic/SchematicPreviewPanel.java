@@ -21,11 +21,12 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 final class SchematicPreviewPanel {
 
-    private static final int C_WHITE   = 0xFFFFFFFF;
-    private static final int C_GRAY    = 0xFFAAAAAA;
+    private static final int C_WHITE = 0xFFFFFFFF;
+    private static final int C_GRAY = 0xFFAAAAAA;
     private static final int C_SUCCESS = 0xFF4CAF50;
 
-    private SchematicPreviewPanel() {}
+    private SchematicPreviewPanel() {
+    }
 
     static WidgetGroup build(
             int panelX,
@@ -85,7 +86,7 @@ final class SchematicPreviewPanel {
             Player player
     ) {
         int previewW = panelW - 16;
-        int infoH    = 72;
+        int infoH = 72;
         int previewH = panelH - 16 - infoH;
 
         WidgetGroup previewArea = new WidgetGroup(8, 8, previewW, panelH - 16);
@@ -105,7 +106,8 @@ final class SchematicPreviewPanel {
             if (displayName.length() > 28) displayName = displayName.substring(0, 26) + "…";
             LabelWidget nameLbl = new LabelWidget(4, ty, "§f§l" + displayName);
             nameLbl.setTextColor(C_WHITE);
-            previewArea.addWidget(nameLbl); ty += 14;
+            previewArea.addWidget(nameLbl);
+            ty += 14;
 
             BlockPos size = sel.getSize();
             String info = Component.translatable(
@@ -113,12 +115,14 @@ final class SchematicPreviewPanel {
                     sel.getBlocks().size(), size.getX(), size.getY(), size.getZ()).getString();
             LabelWidget infoLbl = new LabelWidget(4, ty, info);
             infoLbl.setTextColor(C_GRAY);
-            previewArea.addWidget(infoLbl); ty += 12;
+            previewArea.addWidget(infoLbl);
+            ty += 12;
 
             LabelWidget zoom = new LabelWidget(4, ty,
                     Component.translatable("gui.gtceuterminal.schematic_interface.preview.zoom_hint").getString());
             zoom.setTextColor(0xFF555555);
-            previewArea.addWidget(zoom); ty += 12;
+            previewArea.addWidget(zoom);
+            ty += 12;
 
             LabelWidget rot = new LabelWidget(4, ty,
                     Component.translatable("gui.gtceuterminal.schematic_interface.preview.rotation_hint").getString());

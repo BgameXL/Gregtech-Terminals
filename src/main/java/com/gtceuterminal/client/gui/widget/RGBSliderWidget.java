@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -29,32 +30,32 @@ public class RGBSliderWidget extends Widget {
                            IntSupplier getter, IntConsumer setter) {
         super(x, y, width, height);
         this.trackColor = trackColor;
-        this.fillColor  = fillColor;
+        this.fillColor = fillColor;
         this.thumbColor = thumbColor;
-        this.getter     = getter;
-        this.setter     = setter;
+        this.getter = getter;
+        this.setter = setter;
     }
 
     @Override
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
 
-        Position pos  = getPosition();
-        Size     size = getSize();
+        Position pos = getPosition();
+        Size size = getSize();
 
         int x = pos.x;
         int y = pos.y;
         int w = size.width;
         int h = size.height;
 
-        int trackH  = 4;
-        int trackY  = y + (h - trackH) / 2;
-        int thumbW  = 6;
-        int thumbH  = h;
+        int trackH = 4;
+        int trackY = y + (h - trackH) / 2;
+        int thumbW = 6;
+        int thumbH = h;
 
-        int val     = clamp(getter.getAsInt());
-        int fillW   = (int) ((val / 255.0) * (w - thumbW));
-        int thumbX  = x + fillW;
+        int val = clamp(getter.getAsInt());
+        int fillW = (int) ((val / 255.0) * (w - thumbW));
+        int thumbX = x + fillW;
 
         // Track background
         graphics.fill(x, trackY, x + w, trackY + trackH, trackColor);
@@ -63,8 +64,8 @@ public class RGBSliderWidget extends Widget {
             graphics.fill(x, trackY, x + fillW, trackY + trackH, fillColor);
 
         // Thumb
-        graphics.fill(thumbX,     y,          thumbX + thumbW, y + thumbH,     0xFF000000);
-        graphics.fill(thumbX + 1, y + 1,      thumbX + thumbW - 1, y + thumbH - 1, thumbColor);
+        graphics.fill(thumbX, y, thumbX + thumbW, y + thumbH, 0xFF000000);
+        graphics.fill(thumbX + 1, y + 1, thumbX + thumbW - 1, y + thumbH - 1, thumbColor);
     }
 
     @Override
@@ -97,7 +98,7 @@ public class RGBSliderWidget extends Widget {
         if (isMouseOverElement(mouseX, mouseY)) {
             boolean shift = net.minecraft.client.gui.screens.Screen.hasShiftDown();
             int step = shift ? 10 : 1;
-            int val  = clamp(getter.getAsInt() + (delta > 0 ? step : -step));
+            int val = clamp(getter.getAsInt() + (delta > 0 ? step : -step));
             setter.accept(val);
             return true;
         }

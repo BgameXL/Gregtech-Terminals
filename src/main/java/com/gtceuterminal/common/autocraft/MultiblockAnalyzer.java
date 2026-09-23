@@ -33,7 +33,8 @@ import java.util.*;
 
 public final class MultiblockAnalyzer {
 
-    private MultiblockAnalyzer() {}
+    private MultiblockAnalyzer() {
+    }
 
     public static AnalysisResult analyzeForBuild(Player player,
                                                  IMultiController controller,
@@ -42,24 +43,24 @@ public final class MultiblockAnalyzer {
         if (!BlockPatternReflection.READY) return null;
 
         try {
-            BlockPattern pattern       = controller.getPattern();
+            BlockPattern pattern = controller.getPattern();
             MultiblockState worldState = controller.getMultiblockState();
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
-            int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
-            int[][]                     aisleReps    = pattern.aisleRepetitions;
-            RelativeDirection[]         structDir    = pattern.structureDir;
+            int[] centerOff = (int[]) BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            int[][] aisleReps = pattern.aisleRepetitions;
+            RelativeDirection[] structDir = pattern.structureDir;
 
             if (blockMatches == null) return null;
 
-            BlockPos  centerPos = controller.self().getPos();
-            var       facing    = controller.self().getFrontFacing();
-            var       upFacing  = controller.self().getUpwardsFacing();
-            boolean   isFlipped = controller.self().isFlipped();
-            int       minZ      = -centerOff[4];
+            BlockPos centerPos = controller.self().getPos();
+            var facing = controller.self().getFrontFacing();
+            var upFacing = controller.self().getUpwardsFacing();
+            boolean isFlipped = controller.self().isFlipped();
+            int minZ = -centerOff[4];
 
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
-            PredicateCountMap cacheLayer  = GTCEuCompat.getLayerCount(worldState);
+            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
             GTCEuCompat.clean(worldState);
 
             Map<Item, Integer> needed = new LinkedHashMap<>();
@@ -83,10 +84,12 @@ public final class MultiblockAnalyzer {
                             BlockInfo[] infos = pickInfos(pred, cacheGlobal, cacheLayer);
                             List<ItemStack> candidates = new ArrayList<>();
                             if (infos != null) for (BlockInfo info : infos)
-                                if (info != null && !info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
+                                if (info != null && !info.getBlockState().isAir())
+                                    candidates.add(info.getItemStackForm());
 
                             candidates = CandidateFilter.enrichWithCustomComponents(candidates, pred);
-                            if (settings.noHatchMode != 0) candidates = CandidateFilter.filterOutMultiblockParts(candidates);
+                            if (settings.noHatchMode != 0)
+                                candidates = CandidateFilter.filterOutMultiblockParts(candidates);
                             candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
 
                             ItemStack candidate = firstUsableBlockItem(candidates);
@@ -112,8 +115,8 @@ public final class MultiblockAnalyzer {
                                                    int targetTier,
                                                    String upgradeId,
                                                    BlockPos controllerPos) {
-        Map<Item, Integer> needed    = new LinkedHashMap<>();
-        List<BlockPos>     positions = new ArrayList<>();
+        Map<Item, Integer> needed = new LinkedHashMap<>();
+        List<BlockPos> positions = new ArrayList<>();
 
         // Per-unit ingredient map (used to identify the target item)
         Map<Item, Integer> perUnit = (upgradeId != null && !upgradeId.isBlank())
@@ -133,8 +136,8 @@ public final class MultiblockAnalyzer {
         }
 
         try {
-            MEQueryResult  meQuery = MEQueryResult.resolve(player);
-            AnalysisResult base    = buildEntries(needed, meQuery, controllerPos, player);
+            MEQueryResult meQuery = MEQueryResult.resolve(player);
+            AnalysisResult base = buildEntries(needed, meQuery, controllerPos, player);
             if (base == null) return null;
             return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId,
                     positions, targetStack, components.size());
@@ -150,10 +153,10 @@ public final class MultiblockAnalyzer {
                                                Player player) {
         List<AnalysisResult.Entry> entries = new ArrayList<>();
         for (Map.Entry<Item, Integer> e : needed.entrySet()) {
-            Item item     = e.getKey();
-            int  required = e.getValue();
-            long inME     = meQuery.getAvailable(item);
-            long inInv    = countInInventory(player, item);
+            Item item = e.getKey();
+            int required = e.getValue();
+            long inME = meQuery.getAvailable(item);
+            long inInv = countInInventory(player, item);
             boolean craftable = meQuery.hasGrid()
                     && (inME + inInv < required) && meQuery.isCraftable(item);
             entries.add(new AnalysisResult.Entry(new ItemStack(item, required), inME, inInv, craftable));
@@ -180,17 +183,17 @@ public final class MultiblockAnalyzer {
             if (pattern == null) return positions;
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
-            int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            int[] centerOff = (int[]) BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
             if (blockMatches == null || centerOff == null) return positions;
 
-            int[][]             aisleReps = pattern.aisleRepetitions;
+            int[][] aisleReps = pattern.aisleRepetitions;
             RelativeDirection[] structDir = pattern.structureDir;
 
             BlockPos centerPos = controller.self().getPos();
-            var      facing    = controller.self().getFrontFacing();
-            var      upFacing  = controller.self().getUpwardsFacing();
-            boolean  isFlipped = controller.self().isFlipped();
-            int      minZ      = -centerOff[4];
+            var facing = controller.self().getFrontFacing();
+            var upFacing = controller.self().getUpwardsFacing();
+            boolean isFlipped = controller.self().isFlipped();
+            int minZ = -centerOff[4];
 
             for (int c = 0, z = minZ++; c < blockMatches.length; c++) {
                 int reps = getRepetitions(c, aisleReps, 0);
@@ -245,7 +248,7 @@ public final class MultiblockAnalyzer {
         BlockInfo[] infos = new BlockInfo[0];
         for (SimplePredicate lim : pred.limited) {
             if (lim.maxLayerCount != -1 && layer.getOrDefault(lim, Integer.MAX_VALUE) == lim.maxLayerCount) continue;
-            if (lim.maxCount     != -1 && global.getOrDefault(lim, Integer.MAX_VALUE) == lim.maxCount)     continue;
+            if (lim.maxCount != -1 && global.getOrDefault(lim, Integer.MAX_VALUE) == lim.maxCount) continue;
             layer.addTo(lim, 1);
             global.addTo(lim, 1);
             if (lim.candidates != null) infos = merge(infos, lim.candidates.get());
@@ -276,7 +279,7 @@ public final class MultiblockAnalyzer {
                                            net.minecraft.core.Direction upFacing,
                                            boolean flipped) {
         int[] c0 = {x, y, z}, c1 = new int[3];
-        var up   = net.minecraft.core.Direction.UP;
+        var up = net.minecraft.core.Direction.UP;
         var down = net.minecraft.core.Direction.DOWN;
 
         if (facing == up || facing == down) {
@@ -284,43 +287,64 @@ public final class MultiblockAnalyzer {
                     ? upFacing : upFacing.getOpposite();
             for (int i = 0; i < 3; i++) {
                 switch (GTCEuCompat.getActualDirection(dir[i], of)) {
-                    case UP    -> c1[1] =  c0[i];
-                    case DOWN  -> c1[1] = -c0[i];
-                    case WEST  -> c1[0] = -c0[i];
-                    case EAST  -> c1[0] =  c0[i];
+                    case UP -> c1[1] = c0[i];
+                    case DOWN -> c1[1] = -c0[i];
+                    case WEST -> c1[0] = -c0[i];
+                    case EAST -> c1[0] = c0[i];
                     case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] =  c0[i];
+                    case SOUTH -> c1[2] = c0[i];
                 }
             }
             int xOff = upFacing.getStepX(), zOff = upFacing.getStepZ(), tmp;
-            if (xOff == 0) { tmp=c1[2]; c1[2]=zOff>0?c1[1]:-c1[1]; c1[1]=zOff>0?-tmp:tmp; }
-            else           { tmp=c1[0]; c1[0]=xOff>0?c1[1]:-c1[1]; c1[1]=xOff>0?-tmp:tmp; }
-            if (flipped) { if (upFacing==net.minecraft.core.Direction.NORTH||upFacing==net.minecraft.core.Direction.SOUTH) c1[0]=-c1[0]; else c1[2]=-c1[2]; }
+            if (xOff == 0) {
+                tmp = c1[2];
+                c1[2] = zOff > 0 ? c1[1] : -c1[1];
+                c1[1] = zOff > 0 ? -tmp : tmp;
+            } else {
+                tmp = c1[0];
+                c1[0] = xOff > 0 ? c1[1] : -c1[1];
+                c1[1] = xOff > 0 ? -tmp : tmp;
+            }
+            if (flipped) {
+                if (upFacing == net.minecraft.core.Direction.NORTH || upFacing == net.minecraft.core.Direction.SOUTH)
+                    c1[0] = -c1[0];
+                else c1[2] = -c1[2];
+            }
         } else {
             for (int i = 0; i < 3; i++) {
                 switch (GTCEuCompat.getActualDirection(dir[i], facing)) {
-                    case UP    -> c1[1] =  c0[i];
-                    case DOWN  -> c1[1] = -c0[i];
-                    case WEST  -> c1[0] = -c0[i];
-                    case EAST  -> c1[0] =  c0[i];
+                    case UP -> c1[1] = c0[i];
+                    case DOWN -> c1[1] = -c0[i];
+                    case WEST -> c1[0] = -c0[i];
+                    case EAST -> c1[0] = c0[i];
                     case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] =  c0[i];
+                    case SOUTH -> c1[2] = c0[i];
                 }
             }
-            if (upFacing==net.minecraft.core.Direction.WEST||upFacing==net.minecraft.core.Direction.EAST) {
-                int xOff=upFacing==net.minecraft.core.Direction.EAST?facing.getClockWise().getStepX():facing.getClockWise().getOpposite().getStepX();
-                int zOff=upFacing==net.minecraft.core.Direction.EAST?facing.getClockWise().getStepZ():facing.getClockWise().getOpposite().getStepZ();
+            if (upFacing == net.minecraft.core.Direction.WEST || upFacing == net.minecraft.core.Direction.EAST) {
+                int xOff = upFacing == net.minecraft.core.Direction.EAST ? facing.getClockWise().getStepX() : facing.getClockWise().getOpposite().getStepX();
+                int zOff = upFacing == net.minecraft.core.Direction.EAST ? facing.getClockWise().getStepZ() : facing.getClockWise().getOpposite().getStepZ();
                 int tmp;
-                if (xOff==0){tmp=c1[2];c1[2]=zOff>0?-c1[1]:c1[1];c1[1]=zOff>0?tmp:-tmp;}
-                else        {tmp=c1[0];c1[0]=xOff>0?-c1[1]:c1[1];c1[1]=xOff>0?tmp:-tmp;}
-            } else if (upFacing==net.minecraft.core.Direction.SOUTH) {
-                c1[1]=-c1[1];
-                if (facing.getStepX()==0) c1[0]=-c1[0]; else c1[2]=-c1[2];
+                if (xOff == 0) {
+                    tmp = c1[2];
+                    c1[2] = zOff > 0 ? -c1[1] : c1[1];
+                    c1[1] = zOff > 0 ? tmp : -tmp;
+                } else {
+                    tmp = c1[0];
+                    c1[0] = xOff > 0 ? -c1[1] : c1[1];
+                    c1[1] = xOff > 0 ? tmp : -tmp;
+                }
+            } else if (upFacing == net.minecraft.core.Direction.SOUTH) {
+                c1[1] = -c1[1];
+                if (facing.getStepX() == 0) c1[0] = -c1[0];
+                else c1[2] = -c1[2];
             }
             if (flipped) {
-                if (upFacing==net.minecraft.core.Direction.NORTH||upFacing==net.minecraft.core.Direction.SOUTH) {
-                    if (facing==net.minecraft.core.Direction.NORTH||facing==net.minecraft.core.Direction.SOUTH) c1[0]=-c1[0]; else c1[2]=-c1[2];
-                } else c1[1]=-c1[1];
+                if (upFacing == net.minecraft.core.Direction.NORTH || upFacing == net.minecraft.core.Direction.SOUTH) {
+                    if (facing == net.minecraft.core.Direction.NORTH || facing == net.minecraft.core.Direction.SOUTH)
+                        c1[0] = -c1[0];
+                    else c1[2] = -c1[2];
+                } else c1[1] = -c1[1];
             }
         }
         return new BlockPos(c1[0], c1[1], c1[2]);

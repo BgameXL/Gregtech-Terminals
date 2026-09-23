@@ -13,13 +13,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraftforge.fml.ModList;
 
 public final class StarTCoreIntegration {
-    public static final String SOLAR_CELLS       = "start_solar_cells";
+    public static final String SOLAR_CELLS = "start_solar_cells";
     public static final String FUSION_REFLECTORS = "start_fusion_reflectors";
-    public static final String FUSION_COILS      = "start_fusion_coils";
+    public static final String FUSION_COILS = "start_fusion_coils";
     public static final String THREADING_HELIXES = "start_threading_helixes";
-    public static final String VACUUM_PUMPS      = "start_vacuum_pumps";
+    public static final String VACUUM_PUMPS = "start_vacuum_pumps";
 
-    private StarTCoreIntegration() {}
+    private StarTCoreIntegration() {
+    }
 
     public static void init() {
         if (!MiscUtil.isStarTCoreLoaded) {
@@ -48,12 +49,12 @@ public final class StarTCoreIntegration {
         );
 
         int[][] cells = {
-                { GTValues.EV,  4 },
-                { GTValues.IV,  5 },
-                { GTValues.LuV, 6 },
-                { GTValues.ZPM, 7 },
-                { GTValues.UV,  8 },
-                { GTValues.UHV, 9 },
+                {GTValues.EV, 4},
+                {GTValues.IV, 5},
+                {GTValues.LuV, 6},
+                {GTValues.ZPM, 7},
+                {GTValues.UV, 8},
+                {GTValues.UHV, 9},
         };
         for (int[] cell : cells) {
             int tier = cell[0];
@@ -136,18 +137,18 @@ public final class StarTCoreIntegration {
         );
 
         String[][] helixes = {
-                { "uev_supreme_thread_helix",       "UEV Supreme Thread Helix",       String.valueOf(GTValues.UEV) },
-                { "uxv_supreme_thread_helix",       "UXV Supreme Thread Helix",       String.valueOf(GTValues.UXV) },
-                { "max_supreme_thread_helix",       "MAX Supreme Thread Helix",       String.valueOf(GTValues.MAX) },
-                { "uhv_overdrive_thread_helix",     "UHV Overdrive Thread Helix",     String.valueOf(GTValues.UHV) },
-                { "uiv_overdrive_thread_helix",     "UIV Overdrive Thread Helix",     String.valueOf(GTValues.UIV) },
-                { "opv_overdrive_thread_helix",     "OPV Overdrive Thread Helix",     String.valueOf(GTValues.OpV) },
-                { "uhv_coprocessor_thread_helix",   "UHV Coprocessor Thread Helix",   String.valueOf(GTValues.UHV) },
-                { "uiv_coprocessor_thread_helix",   "UIV Coprocessor Thread Helix",   String.valueOf(GTValues.UIV) },
-                { "opv_coprocessor_thread_helix",   "OPV Coprocessor Thread Helix",   String.valueOf(GTValues.OpV) },
-                { "uhv_weaving_thread_helix",       "UHV Weaving Thread Helix",       String.valueOf(GTValues.UHV) },
-                { "uiv_weaving_thread_helix",       "UIV Weaving Thread Helix",       String.valueOf(GTValues.UIV) },
-                { "opv_weaving_thread_helix",       "OPV Weaving Thread Helix",       String.valueOf(GTValues.OpV) },
+                {"uev_supreme_thread_helix", "UEV Supreme Thread Helix", String.valueOf(GTValues.UEV)},
+                {"uxv_supreme_thread_helix", "UXV Supreme Thread Helix", String.valueOf(GTValues.UXV)},
+                {"max_supreme_thread_helix", "MAX Supreme Thread Helix", String.valueOf(GTValues.MAX)},
+                {"uhv_overdrive_thread_helix", "UHV Overdrive Thread Helix", String.valueOf(GTValues.UHV)},
+                {"uiv_overdrive_thread_helix", "UIV Overdrive Thread Helix", String.valueOf(GTValues.UIV)},
+                {"opv_overdrive_thread_helix", "OPV Overdrive Thread Helix", String.valueOf(GTValues.OpV)},
+                {"uhv_coprocessor_thread_helix", "UHV Coprocessor Thread Helix", String.valueOf(GTValues.UHV)},
+                {"uiv_coprocessor_thread_helix", "UIV Coprocessor Thread Helix", String.valueOf(GTValues.UIV)},
+                {"opv_coprocessor_thread_helix", "OPV Coprocessor Thread Helix", String.valueOf(GTValues.OpV)},
+                {"uhv_weaving_thread_helix", "UHV Weaving Thread Helix", String.valueOf(GTValues.UHV)},
+                {"uiv_weaving_thread_helix", "UIV Weaving Thread Helix", String.valueOf(GTValues.UIV)},
+                {"opv_weaving_thread_helix", "OPV Weaving Thread Helix", String.valueOf(GTValues.OpV)},
         };
         for (String[] h : helixes) {
             int tier = Integer.parseInt(h[2]);
@@ -169,7 +170,7 @@ public final class StarTCoreIntegration {
                         .build()
         );
 
-        int[] tiers = { GTValues.ZPM, GTValues.UV, GTValues.UHV, GTValues.UEV, GTValues.UIV };
+        int[] tiers = {GTValues.ZPM, GTValues.UV, GTValues.UHV, GTValues.UEV, GTValues.UIV};
         for (int tier : tiers) {
             TerminalAPI.registerComponent(VACUUM_PUMPS,
                     ComponentEntry.builder(

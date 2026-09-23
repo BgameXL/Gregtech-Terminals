@@ -37,15 +37,15 @@ import java.util.function.Supplier;
 public class WallpaperWidget extends Widget {
 
     private static final long SLIDE_MS = 8_000;
-    private static final long FADE_MS  = 1_000;
+    private static final long FADE_MS = 1_000;
 
     private final Supplier<ItemTheme> themeSupplier;
 
     private List<ResourceLocation> slideList = new ArrayList<>();
-    private int  slideIdx   = 0;
+    private int slideIdx = 0;
     private long slideStart = 0;
 
-    private String  lastBundleId     = null;
+    private String lastBundleId = null;
     private boolean lastSlideshowMode = false;
     private ItemTheme.SlideshowSource lastSource = null;
 
@@ -58,8 +58,8 @@ public class WallpaperWidget extends Widget {
     @Override
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         ItemTheme theme = themeSupplier.get();
-        Position pos  = getPosition();
-        Size     size = getSize();
+        Position pos = getPosition();
+        Size size = getSize();
 
         int x = pos.x;
         int y = pos.y;
@@ -113,7 +113,7 @@ public class WallpaperWidget extends Widget {
         long cycleDuration = SLIDE_MS + FADE_MS * 2;
         long posInCycle = age % cycleDuration;
 
-        int expectedIdx = (int)((age / cycleDuration) % slideList.size());
+        int expectedIdx = (int) ((age / cycleDuration) % slideList.size());
         if (expectedIdx != slideIdx) {
             slideIdx = expectedIdx;
         }
@@ -142,12 +142,12 @@ public class WallpaperWidget extends Widget {
 
     private void rebuildSlideList(ItemTheme theme) {
         slideList.clear();
-        slideIdx   = 0;
+        slideIdx = 0;
         slideStart = 0;
 
-        lastBundleId      = theme.bundleId;
+        lastBundleId = theme.bundleId;
         lastSlideshowMode = theme.slideshowMode;
-        lastSource        = theme.slideshowSource;
+        lastSource = theme.slideshowSource;
 
         if (theme.slideshowSource == ItemTheme.SlideshowSource.BUILTIN) {
             ThemeBundle bundle = ThemeBundleRegistry.get(theme.bundleId);
@@ -207,10 +207,10 @@ public class WallpaperWidget extends Widget {
         BufferBuilder buf = tess.getBuilder();
         buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        buf.vertex(mat, drawX,         drawY + drawH, 0f).uv(0f, 1f).endVertex();
+        buf.vertex(mat, drawX, drawY + drawH, 0f).uv(0f, 1f).endVertex();
         buf.vertex(mat, drawX + drawW, drawY + drawH, 0f).uv(1f, 1f).endVertex();
-        buf.vertex(mat, drawX + drawW, drawY,         0f).uv(1f, 0f).endVertex();
-        buf.vertex(mat, drawX,         drawY,         0f).uv(0f, 0f).endVertex();
+        buf.vertex(mat, drawX + drawW, drawY, 0f).uv(1f, 0f).endVertex();
+        buf.vertex(mat, drawX, drawY, 0f).uv(0f, 0f).endVertex();
 
         tess.end();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);

@@ -128,8 +128,8 @@ public class HighlightRenderer {
             Set<BlockPos> blockSet = hl.blocks;
             int col = hl.color;
             float r = ((col >> 16) & 0xFF) / 255f;
-            float g = ((col >>  8) & 0xFF) / 255f;
-            float b = ( col        & 0xFF) / 255f;
+            float g = ((col >> 8) & 0xFF) / 255f;
+            float b = (col & 0xFF) / 255f;
 
             for (BlockPos pos : blockSet) {
                 for (Direction dir : Direction.values()) {

@@ -33,7 +33,8 @@ public final class MENetworkCrafting {
 
     private static final List<Pending> PENDING = new ArrayList<>();
 
-    private MENetworkCrafting() {}
+    private MENetworkCrafting() {
+    }
 
     public static void init() {
         MinecraftForge.EVENT_BUS.addListener(MENetworkCrafting::onServerTick);
@@ -48,9 +49,9 @@ public final class MENetworkCrafting {
             return 0;
         }
 
-        ICraftingService cs    = grid.getCraftingService();
-        IActionSource     src   = IActionSource.ofPlayer(player);
-        Level             level = player.serverLevel();
+        ICraftingService cs = grid.getCraftingService();
+        IActionSource src = IActionSource.ofPlayer(player);
+        Level level = player.serverLevel();
         ICraftingSimulationRequester requester = new SimRequester(src, grid.getPivot());
 
         int handled = 0;
@@ -64,7 +65,10 @@ public final class MENetworkCrafting {
                 GTCEUTerminalMod.LOGGER.info("MENetworkCrafting: {} is not craftable in the ME network", e.getKey());
                 continue;
             }
-            if (cs.isRequesting(key) || hasPending(player, e.getKey())) { handled++; continue; }
+            if (cs.isRequesting(key) || hasPending(player, e.getKey())) {
+                handled++;
+                continue;
+            }
 
             try {
                 Future<ICraftingPlan> future = cs.beginCraftingCalculation(
@@ -135,9 +139,13 @@ public final class MENetworkCrafting {
             for (appeng.api.stacks.AEKey k : plan.missingItems().keySet()) {
                 if (sb.length() > 0) sb.append(", ");
                 sb.append(k.getDisplayName().getString());
-                if (sb.length() > 200) { sb.append("…"); break; }
+                if (sb.length() > 200) {
+                    sb.append("…");
+                    break;
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return sb.length() > 0 ? sb.toString() : "?";
     }
 
@@ -149,26 +157,33 @@ public final class MENetworkCrafting {
 
     private record SimRequester(IActionSource source, IGridNode node)
             implements ICraftingSimulationRequester {
-        @Override public IActionSource getActionSource() { return source; }
-        @Override public IGridNode getGridNode() { return node; }
+        @Override
+        public IActionSource getActionSource() {
+            return source;
+        }
+
+        @Override
+        public IGridNode getGridNode() {
+            return node;
+        }
     }
 
     private static final class Pending {
         final Future<ICraftingPlan> future;
-        final IGrid                 grid;
-        final IActionSource         src;
-        final ServerPlayer          player;
-        final Item                  item;
-        final long                  amount;
+        final IGrid grid;
+        final IActionSource src;
+        final ServerPlayer player;
+        final Item item;
+        final long amount;
         int age;
 
         Pending(Future<ICraftingPlan> future, IGrid grid, IActionSource src,
                 ServerPlayer player, Item item, long amount) {
             this.future = future;
-            this.grid   = grid;
-            this.src    = src;
+            this.grid = grid;
+            this.src = src;
             this.player = player;
-            this.item   = item;
+            this.item = item;
             this.amount = amount;
         }
     }

@@ -18,7 +18,7 @@ public final class MEQueryResult {
     private final KeyCounter cachedInventory;
 
     private MEQueryResult(IGrid grid, KeyCounter cachedInventory) {
-        this.grid            = grid;
+        this.grid = grid;
         this.cachedInventory = cachedInventory;
     }
 

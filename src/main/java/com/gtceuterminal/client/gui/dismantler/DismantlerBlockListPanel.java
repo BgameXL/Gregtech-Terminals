@@ -49,13 +49,13 @@ final class DismantlerBlockListPanel {
             LabelWidget blocksLabel = new LabelWidget(8, 9,
                     stripFormatting(Component.translatable(
                             "gui.gtceuterminal.dismantler.blocks_to_collect_count", types, total).getString()));
-            blocksLabel.setTextColor(tokens.textMuted());
+            blocksLabel.setColor(tokens.textMuted());
             colHeader.addWidget(blocksLabel);
         } else {
             LabelWidget blocksLabel = new LabelWidget(8, 9,
                     stripFormatting(Component.translatable(
                             "gui.gtceuterminal.dismantler.blocks_to_collect").getString()));
-            blocksLabel.setTextColor(tokens.textMuted());
+            blocksLabel.setColor(tokens.textMuted());
             colHeader.addWidget(blocksLabel);
         }
         panel.addWidget(colHeader);
@@ -64,7 +64,7 @@ final class DismantlerBlockListPanel {
             LabelWidget none = new LabelWidget(10, COL_H + 12,
                     stripFormatting(Component.translatable(
                             "gui.gtceuterminal.dismantler.no_data").getString()));
-            none.setTextColor(tokens.textFaint());
+            none.setColor(tokens.textFaint());
             panel.addWidget(none);
             return panel;
         }
@@ -107,11 +107,11 @@ final class DismantlerBlockListPanel {
         int countW = Minecraft.getInstance().font.width(countText);
         LabelWidget nameLabel = new LabelWidget(34, 7,
                 fitText(blockName, rowW - 34 - countW - 18));
-        nameLabel.setTextColor(tokens.textStrong());
+        nameLabel.setColor(tokens.textStrong());
         row.addWidget(nameLabel);
 
         LabelWidget countLabel = new LabelWidget(rowW - countW - 8, 7, countText);
-        countLabel.setTextColor(tokens.textMuted());
+        countLabel.setColor(tokens.textMuted());
         row.addWidget(countLabel);
 
         return row;

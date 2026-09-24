@@ -164,7 +164,7 @@ public class GroupUpgradeDialog extends DialogWidget {
 
         LabelWidget title = new LabelWidget(W / 2 - 90, 10,
                 net.minecraft.network.chat.Component.translatable("gui.gtceuterminal.group_upgrade_dialog.title").getString());
-        title.setTextColor(COLOR_TEXT_WHITE);
+        title.setColor(COLOR_TEXT_WHITE);
         header.addWidget(title);
 
         return header;
@@ -184,7 +184,7 @@ public class GroupUpgradeDialog extends DialogWidget {
                         group.getCount(),
                         componentName
                 ).getString());
-        countLabel.setTextColor(COLOR_TEXT_WHITE);
+        countLabel.setColor(COLOR_TEXT_WHITE);
         info.addWidget(countLabel);
 
         yPos += 15;
@@ -196,7 +196,7 @@ public class GroupUpgradeDialog extends DialogWidget {
                         "gui.gtceuterminal.group_upgrade_dialog.from",
                         fromName
                 ).getString());
-        fromLabel.setTextColor(COLOR_TEXT_WHITE);
+        fromLabel.setColor(COLOR_TEXT_WHITE);
         info.addWidget(fromLabel);
 
         yPos += 12;
@@ -208,7 +208,7 @@ public class GroupUpgradeDialog extends DialogWidget {
                         "gui.gtceuterminal.group_upgrade_dialog.to",
                         toName
                 ).getString());
-        toLabel.setTextColor(COLOR_TEXT_WHITE);
+        toLabel.setColor(COLOR_TEXT_WHITE);
         info.addWidget(toLabel);
 
         return info;
@@ -230,7 +230,7 @@ public class GroupUpgradeDialog extends DialogWidget {
                 net.minecraft.network.chat.Component.translatable(
                         "gui.gtceuterminal.group_upgrade_dialog.creative_no_materials"
                 ).getString());
-        creativeMsg.setTextColor(COLOR_CREATIVE);
+        creativeMsg.setColor(COLOR_CREATIVE);
         panel.addWidget(creativeMsg);
 
         return panel;
@@ -245,7 +245,7 @@ public class GroupUpgradeDialog extends DialogWidget {
                 net.minecraft.network.chat.Component.translatable(
                         "gui.gtceuterminal.group_upgrade_dialog.required_materials"
                 ).getString());
-        headerLabel.setTextColor(COLOR_TEXT_GRAY);
+        headerLabel.setColor(COLOR_TEXT_GRAY);
         panel.addWidget(headerLabel);
 
         int yPos = 18;
@@ -258,7 +258,7 @@ public class GroupUpgradeDialog extends DialogWidget {
             String matText = "  " + itemName + ": " + available + "/" + required;
 
             LabelWidget matLabel = new LabelWidget(10, yPos, matText);
-            matLabel.setTextColor(color);
+            matLabel.setColor(color);
             panel.addWidget(matLabel);
 
             yPos += 12;

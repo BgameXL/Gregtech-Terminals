@@ -42,7 +42,7 @@ final class DismantlerPreviewPanel {
 
         LabelWidget label = new LabelWidget(8, 7, stripFormatting(
                 Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString()));
-        label.setTextColor(tokens.textMuted());
+        label.setColor(tokens.textMuted());
         panel.addWidget(label);
 
         if (scanResult != null && scanResult.getTotalBlocks() > 0) {
@@ -59,7 +59,7 @@ final class DismantlerPreviewPanel {
                 Component.translatable("gui.gtceuterminal.dismantler.no_data").getString());
         LabelWidget noData = new LabelWidget(
                 (w - Minecraft.getInstance().font.width(noDataText)) / 2, h / 2, noDataText);
-        noData.setTextColor(tokens.error());
+        noData.setColor(tokens.error());
         panel.addWidget(noData);
 
         return panel;

@@ -186,7 +186,7 @@ public class ManagerSettingsUI {
 
         LabelWidget title = new LabelWidget(titleX, 9,
                 Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        title.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
         header.addWidget(title);
 
         return header;
@@ -262,7 +262,7 @@ public class ManagerSettingsUI {
         int ctlX = panelW - CTL_W - 4;
 
         LabelWidget lbl = new LabelWidget(8, y, label);
-        lbl.setTextColor(TerminalUI.tokens().textStrong());
+        lbl.setColor(TerminalUI.tokens().textStrong());
         lbl.setHoverTooltips(Component.literal(tooltip));
         panel.addWidget(lbl);
 
@@ -284,7 +284,7 @@ public class ManagerSettingsUI {
 
         if (hint != null && !hint.isBlank()) {
             LabelWidget hintLbl = new LabelWidget(8, y + 14, hint);
-            hintLbl.setTextColor(TerminalUI.tokens().textFaint());
+            hintLbl.setColor(TerminalUI.tokens().textFaint());
             panel.addWidget(hintLbl);
         }
 
@@ -300,7 +300,7 @@ public class ManagerSettingsUI {
 
         LabelWidget lbl = new LabelWidget(8, y, label);
         TerminalTheme tokens = TerminalUI.tokens();
-        lbl.setTextColor(tokens.textMuted());
+        lbl.setColor(tokens.textMuted());
         lbl.setHoverTooltips(Component.literal(tooltip));
         panel.addWidget(lbl);
 
@@ -320,7 +320,7 @@ public class ManagerSettingsUI {
 
         if (hint != null && !hint.isBlank()) {
             LabelWidget hintLbl = new LabelWidget(8, y + 14, hint);
-            hintLbl.setTextColor(tokens.textFaint());
+            hintLbl.setColor(tokens.textFaint());
             panel.addWidget(hintLbl);
         }
 

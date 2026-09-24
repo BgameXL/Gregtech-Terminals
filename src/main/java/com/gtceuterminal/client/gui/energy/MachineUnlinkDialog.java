@@ -50,14 +50,14 @@ final class MachineUnlinkDialog {
         LabelWidget titleLbl = new LabelWidget(8, 4,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.unlink_dialog.title").getString()));
-        titleLbl.setTextColor(tokens.error());
+        titleLbl.setColor(tokens.error());
         titleBar.addWidget(titleLbl);
 
         String targetName = EnergyDisplayHelper.truncate(machine.getDisplayNameComponent().getString(), 22);
         LabelWidget confirmLbl = new LabelWidget(8, 22,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.unlink_dialog.remove_prompt", targetName).getString()));
-        confirmLbl.setTextColor(tokens.textMuted());
+        confirmLbl.setColor(tokens.textMuted());
         panel.addWidget(confirmLbl);
 
         int buttonW = (DW - 20) / 2;
@@ -83,7 +83,7 @@ final class MachineUnlinkDialog {
         LabelWidget hint = new LabelWidget(8, DH - 12,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.unlink_dialog.hint_click_outside_cancel").getString()));
-        hint.setTextColor(tokens.textFaint());
+        hint.setColor(tokens.textFaint());
         panel.addWidget(hint);
     }
 

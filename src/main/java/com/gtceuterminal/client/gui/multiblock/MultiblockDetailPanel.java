@@ -42,7 +42,7 @@ final class MultiblockDetailPanel {
 
         LabelWidget hint = new LabelWidget(w / 2 - 60, h / 2 - 6,
                 "Select a multiblock");
-        hint.setTextColor(t.textMuted());
+        hint.setColor(t.textMuted());
         panel.addWidget(hint);
         return panel;
     }
@@ -75,25 +75,25 @@ final class MultiblockDetailPanel {
 
         String displayName = resolveDisplayName(mb);
         LabelWidget name = new LabelWidget(10, 8, truncate(displayName, 32));
-        name.setTextColor(t.textStrong());
+        name.setColor(t.textStrong());
         header.addWidget(name);
 
         MultiblockStatus status = mb.getStatus();
         String prefix = mb.getTierName() + " · ";
         LabelWidget tierLabel = new LabelWidget(10, 22, prefix);
-        tierLabel.setTextColor(t.textMuted());
+        tierLabel.setColor(t.textMuted());
         header.addWidget(tierLabel);
 
         String statusText = status.getDisplayName().toLowerCase();
         int statusX = 10 + Minecraft.getInstance().font.width(prefix);
         LabelWidget statusLabel = new LabelWidget(statusX, 22, statusText);
-        statusLabel.setTextColor(statusColor(status, t));
+        statusLabel.setColor(statusColor(status, t));
         header.addWidget(statusLabel);
 
         int metaX = statusX + Minecraft.getInstance().font.width(statusText);
         LabelWidget metaLabel = new LabelWidget(metaX, 22,
                 " · " + mb.getComponents().size() + " components · " + mb.getDistanceString() + " away");
-        metaLabel.setTextColor(t.textMuted());
+        metaLabel.setColor(t.textMuted());
         header.addWidget(metaLabel);
 
         return header;
@@ -123,7 +123,7 @@ final class MultiblockDetailPanel {
         if (groups.isEmpty()) {
             LabelWidget empty = new LabelWidget(10, 10,
                     Component.translatable("gui.gtceuterminal.component_detail.no_upgradeable").getString());
-            empty.setTextColor(t.textMuted());
+            empty.setColor(t.textMuted());
             scroll.addWidget(empty);
         }
 
@@ -162,7 +162,7 @@ final class MultiblockDetailPanel {
         // Group name
         String groupName = group.getGroup().displayName;
         LabelWidget nameLabel = new LabelWidget(22, 8, groupName);
-        nameLabel.setTextColor(upgradeable ? t.textStrong() : t.textFaint());
+        nameLabel.setColor(upgradeable ? t.textStrong() : t.textFaint());
         entry.addWidget(nameLabel);
 
         // Sub: tier · count
@@ -171,14 +171,14 @@ final class MultiblockDetailPanel {
             String sub = (blockSub.isEmpty() ? rep.getTierName() : rep.getTierName() + " " + blockSub)
                     + " · ×" + group.getCount();
             LabelWidget subLabel = new LabelWidget(22, 21, sub);
-            subLabel.setTextColor(t.textMuted());
+            subLabel.setColor(t.textMuted());
             entry.addWidget(subLabel);
         }
 
         if (!upgradeable) {
             LabelWidget fixed = new LabelWidget(entryW - 58, (ENTRY_H - 10) / 2,
                     Component.translatable("gui.gtceuterminal.component_detail.fixed_badge").getString());
-            fixed.setTextColor(t.textFaint());
+            fixed.setColor(t.textFaint());
             entry.addWidget(fixed);
         }
 

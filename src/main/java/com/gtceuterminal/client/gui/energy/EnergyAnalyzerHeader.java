@@ -58,7 +58,7 @@ final class EnergyAnalyzerHeader {
 
         LabelWidget title = new LabelWidget(titleX, 11,
                 fitText(itemStack.getHoverName().getString(), 260));
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        title.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
         g.addWidget(title);
 
         int btnSize = 20;
@@ -71,7 +71,7 @@ final class EnergyAnalyzerHeader {
         int linkedX = themeX - Minecraft.getInstance().font.width(linkedText) - 12;
         if (linkedX > titleX + 270) {
             LabelWidget linked = new LabelWidget(linkedX, 11, linkedText);
-            linked.setTextColor(tokens.textMuted());
+            linked.setColor(tokens.textMuted());
             g.addWidget(linked);
         }
 

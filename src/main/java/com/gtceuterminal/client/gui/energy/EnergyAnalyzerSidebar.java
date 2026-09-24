@@ -48,7 +48,7 @@ final class EnergyAnalyzerSidebar {
         if (machines.isEmpty()) {
             LabelWidget lbl = new LabelWidget(pad, 16,
                     Component.translatable("gui.gtceuterminal.energy_analyzer.no_machines_linked").getString());
-            lbl.setTextColor(tokens.textMuted());
+            lbl.setColor(tokens.textMuted());
             g.addWidget(lbl);
             return g;
         }
@@ -74,12 +74,12 @@ final class EnergyAnalyzerSidebar {
             LabelWidget name = new LabelWidget(pad + 12, rowY + 4,
                     () -> EnergyDisplayHelper.truncate(m.getDisplayNameComponent().getString(), 14));
             name.setClientSideWidget();
-            name.setTextColor(tokens.textStrong());
+            name.setColor(tokens.textStrong());
             g.addWidget(name);
 
             LabelWidget status = new LabelWidget(pad + 12, rowY + 16, () -> statusText(snapAt.apply(idx)));
             status.setClientSideWidget();
-            status.setTextColor(tokens.textMuted());
+            status.setColor(tokens.textMuted());
             g.addWidget(status);
 
             LabelWidget rate = new LabelWidget(pad + 12, rowY + 27, () -> {
@@ -87,7 +87,7 @@ final class EnergyAnalyzerSidebar {
                 return (s != null && s.isFormed) ? EnergyDisplayHelper.formatEU(s.inputPerSec / 20) + "/t" : "---";
             });
             rate.setClientSideWidget();
-            rate.setTextColor(tokens.textMuted());
+            rate.setColor(tokens.textMuted());
             g.addWidget(rate);
 
             ButtonWidget rowBtn = new ButtonWidget(1, rowY, sidebarW - 23, itemH,

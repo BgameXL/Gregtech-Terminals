@@ -47,7 +47,7 @@ public final class RecipeHistoryDialog {
                 snap.getMachineTitle()).getString());
         LabelWidget titleLbl = new LabelWidget(8, 4,
                 fitText(titleText, dW - 36));
-        titleLbl.setTextColor(tokens.textStrong());
+        titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
         ButtonWidget closeBtn = TerminalButton.icon3d(dW - 18, 1, 16, "×", cd -> dialog.close());
@@ -100,13 +100,13 @@ public final class RecipeHistoryDialog {
         LabelWidget hint = new LabelWidget(10, dH - 14,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.recipe_log.hint_click_outside_close").getString()));
-        hint.setTextColor(tokens.textFaint());
+        hint.setColor(tokens.textFaint());
         panel.addWidget(hint);
     }
 
     private static LabelWidget mkLabel(int x, int y, String text, int color) {
         LabelWidget l = new LabelWidget(x, y, text);
-        l.setTextColor(color);
+        l.setColor(color);
         return l;
     }
 

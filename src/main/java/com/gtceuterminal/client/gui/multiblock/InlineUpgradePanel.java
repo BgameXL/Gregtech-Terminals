@@ -147,14 +147,14 @@ public final class InlineUpgradePanel {
 
             String title = group.getGroup().displayName + "  ×" + group.getCount();
             LabelWidget lbl = new LabelWidget(backW + PAD * 2, HEADER_H / 2 - 4, title);
-            lbl.setTextColor(tokens.textStrong());
+            lbl.setColor(tokens.textStrong());
             header.addWidget(lbl);
 
             ComponentInfo rep = group.getRepresentative();
             if (rep != null) {
                 LabelWidget sub = new LabelWidget(backW + PAD * 2, HEADER_H / 2 + 6,
                         "currently " + rep.getTierName());
-                sub.setTextColor(tokens.textMuted());
+                sub.setColor(tokens.textMuted());
                 header.addWidget(sub);
             }
 
@@ -189,7 +189,7 @@ public final class InlineUpgradePanel {
             if (special) {
                 LabelWidget lbl = new LabelWidget(PAD, 6,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.select_option").getString());
-                lbl.setTextColor(tokens.textMuted());
+                lbl.setColor(tokens.textMuted());
                 optionsPanel.addWidget(lbl);
 
                 optionsScroll = makeScroll(PAD, 20, listW, optH - 24);
@@ -206,7 +206,7 @@ public final class InlineUpgradePanel {
             } else {
                 LabelWidget tierLbl = new LabelWidget(PAD, 6,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.target_tier").getString());
-                tierLbl.setTextColor(tokens.textMuted());
+                tierLbl.setColor(tokens.textMuted());
                 optionsPanel.addWidget(tierLbl);
 
                 int tierRowH = tierRowHeight(availableTiers(rep).size(), innerW);
@@ -220,7 +220,7 @@ public final class InlineUpgradePanel {
 
                 LabelWidget varLbl = new LabelWidget(PAD, divY + 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.variant").getString());
-                varLbl.setTextColor(tokens.textMuted());
+                varLbl.setColor(tokens.textMuted());
                 optionsPanel.addWidget(varLbl);
 
                 optionsScroll = makeScroll(PAD, divY + 16, listW, optH - divY - 20);
@@ -310,7 +310,7 @@ public final class InlineUpgradePanel {
             if (options.isEmpty()) {
                 LabelWidget empty = new LabelWidget(4, 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.no_variants").getString());
-                empty.setTextColor(tokens.textMuted());
+                empty.setColor(tokens.textMuted());
                 optionsScroll.addWidget(empty);
                 return;
             }
@@ -331,7 +331,7 @@ public final class InlineUpgradePanel {
             if (selectedTier == null) {
                 LabelWidget empty = new LabelWidget(4, 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.select_tier_above").getString());
-                empty.setTextColor(tokens.textMuted());
+                empty.setColor(tokens.textMuted());
                 optionsScroll.addWidget(empty);
                 return;
             }
@@ -427,7 +427,7 @@ public final class InlineUpgradePanel {
 
             LabelWidget title = new LabelWidget(8, 6,
                     Component.translatable("gui.gtceuterminal.inline_upgrade.me_network").getString());
-            title.setTextColor(tokens.textMuted());
+            title.setColor(tokens.textMuted());
             panel.addWidget(title);
 
             if (!MENetworkScanner.isAE2Available()) {
@@ -470,7 +470,7 @@ public final class InlineUpgradePanel {
             int countColor = ready ? tokens.success() : tokens.warning();
             LabelWidget count = new LabelWidget(8, 54,
                     "ME " + entry.inME + " · Inv " + entry.inInventory + " / " + entry.needed());
-            count.setTextColor(countColor);
+            count.setColor(countColor);
             panel.addWidget(count);
 
             WidgetGroup badge = new WidgetGroup(8, 70, panelW - 16, 16);
@@ -492,7 +492,7 @@ public final class InlineUpgradePanel {
             }
             badge.setBackground(new GuiTextureGroup(new ColorRectTexture(badgeBg), new ColorBorderTexture(1, badgeBorder)));
             LabelWidget badgeLabel = new LabelWidget(5, 4, badgeText);
-            badgeLabel.setTextColor(badgeBorder);
+            badgeLabel.setColor(badgeBorder);
             badge.addWidget(badgeLabel);
             panel.addWidget(badge);
 
@@ -508,7 +508,7 @@ public final class InlineUpgradePanel {
 
         private void addStatusText(WidgetGroup panel, int x, int y, String text, int color) {
             LabelWidget label = new LabelWidget(x, y, text);
-            label.setTextColor(color);
+            label.setColor(color);
             panel.addWidget(label);
         }
 

@@ -29,7 +29,7 @@ public class MultiblockPreviewWidget extends WidgetGroup {
                 height / 2 - 30,
                 Component.translatable("gui.gtceuterminal.multiblock_preview.title_3d").getString()
         );
-        titleLabel.setTextColor(COLOR_TEXT_WHITE);
+        titleLabel.setColor(COLOR_TEXT_WHITE);
         addWidget(titleLabel);
 
         LabelWidget comingSoonLabel = new LabelWidget(
@@ -37,7 +37,7 @@ public class MultiblockPreviewWidget extends WidgetGroup {
                 height / 2 - 15,
                 Component.translatable("gui.gtceuterminal.multiblock_preview.coming_soon").getString()
         );
-        comingSoonLabel.setTextColor(COLOR_TEXT_GRAY);
+        comingSoonLabel.setColor(COLOR_TEXT_GRAY);
         addWidget(comingSoonLabel);
 
         // Total Blocks
@@ -46,7 +46,7 @@ public class MultiblockPreviewWidget extends WidgetGroup {
                 scanResult.getTotalBlocks()
         ).getString();
         LabelWidget totalLabel = new LabelWidget(width / 2 - 40, height / 2 + 10, totalText);
-        totalLabel.setTextColor(COLOR_TEXT_WHITE);
+        totalLabel.setColor(COLOR_TEXT_WHITE);
         addWidget(totalLabel);
     }
 }

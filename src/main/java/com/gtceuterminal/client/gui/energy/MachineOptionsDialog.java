@@ -47,7 +47,7 @@ final class MachineOptionsDialog {
         LabelWidget titleLbl = new LabelWidget(8, 4,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.machine_options.title").getString()));
-        titleLbl.setTextColor(tokens.textStrong());
+        titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
         ButtonWidget closeBtn = TerminalButton.icon3d(DW - 18, 1, 16, "×", cd -> dialog.close());
@@ -56,7 +56,7 @@ final class MachineOptionsDialog {
 
         LabelWidget nameLbl = new LabelWidget(8, 22,
                 EnergyDisplayHelper.truncate(machine.getDisplayNameComponent().getString(), 28));
-        nameLbl.setTextColor(tokens.textMuted());
+        nameLbl.setColor(tokens.textMuted());
         panel.addWidget(nameLbl);
 
         ButtonWidget renameBtn = TerminalButton.text3d(8, 38, DW - 16, 18,

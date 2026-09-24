@@ -89,7 +89,7 @@ final class MultiblockListPanel {
         if (multiblocks.isEmpty()) {
             LabelWidget empty = new LabelWidget(10, 12,
                     Component.translatable("gui.gtceuterminal.multiblock_manager.none_found").getString());
-            empty.setTextColor(t.textMuted());
+            empty.setColor(t.textMuted());
             scroll.addWidget(empty);
             return;
         }
@@ -126,20 +126,20 @@ final class MultiblockListPanel {
         // Name line
         String displayName = resolveDisplayName(mb);
         LabelWidget nameLabel = new LabelWidget(8, 6, truncate(displayName, 24));
-        nameLabel.setTextColor(mb.isVanillaGTCEu() ? t.textStrong() : opaque(mb.getModColor()));
+        nameLabel.setColor(mb.isVanillaGTCEu() ? t.textStrong() : opaque(mb.getModColor()));
         entry.addWidget(nameLabel);
 
         // Sub line: status · tier · distance, matching the compact mockup row.
         MultiblockStatus status = mb.getStatus();
         String statusText = status.getDisplayName().toLowerCase();
         LabelWidget statusLabel = new LabelWidget(8, 21, statusText);
-        statusLabel.setTextColor(statusColor(status, t));
+        statusLabel.setColor(statusColor(status, t));
         entry.addWidget(statusLabel);
 
         int metaX = 8 + Minecraft.getInstance().font.width(statusText) + 4;
         LabelWidget metaLabel = new LabelWidget(metaX, 21,
                 mb.getTierName() + " · " + mb.getDistanceString());
-        metaLabel.setTextColor(t.textFaint());
+        metaLabel.setColor(t.textFaint());
         entry.addWidget(metaLabel);
 
         return entry;

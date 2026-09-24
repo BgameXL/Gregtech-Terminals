@@ -120,7 +120,7 @@ public class ThemeEditorDialog {
 
         LabelWidget label = new LabelWidget(10, (SECTION_H - 8) / 2,
                 section.glyph + " " + Component.translatable(section.translationKey).getString());
-        label.setTextColor(tokens.textStrong());
+        label.setColor(tokens.textStrong());
         card.addWidget(label);
 
         ButtonWidget button = new ButtonWidget(0, 0, SECTION_W, SECTION_H,

@@ -57,7 +57,7 @@ final class DismantlerHeader {
 
         LabelWidget title = new LabelWidget(titleX, 11,
                 fitText(itemStack.getHoverName().getString(), 260));
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        title.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
         header.addWidget(title);
 
         int btnSize = 20;
@@ -70,7 +70,7 @@ final class DismantlerHeader {
         int coordsX = themeX - Minecraft.getInstance().font.width(coords) - 12;
         if (coordsX > titleX + 270) {
             LabelWidget position = new LabelWidget(coordsX, 11, coords);
-            position.setTextColor(tokens.textMuted());
+            position.setColor(tokens.textMuted());
             header.addWidget(position);
         }
 

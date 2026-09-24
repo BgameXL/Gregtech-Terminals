@@ -51,7 +51,7 @@ final class ThemeEditorLeftCol {
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_presets").getString());
-        title.setTextColor(tokens.textMuted());
+        title.setColor(tokens.textMuted());
         col.addWidget(title);
 
         int curX = PAD;
@@ -70,7 +70,7 @@ final class ThemeEditorLeftCol {
 
         LabelWidget hint = new LabelWidget(PAD, curY + PRESET_H + 12,
                 Component.translatable("gui.gtceuterminal.theme_editor.presets_hint").getString());
-        hint.setTextColor(tokens.textFaint());
+        hint.setColor(tokens.textFaint());
         col.addWidget(hint);
         return col;
     }
@@ -87,7 +87,7 @@ final class ThemeEditorLeftCol {
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_themes").getString());
-        title.setTextColor(tokens.textMuted());
+        title.setColor(tokens.textMuted());
         col.addWidget(title);
 
         List<ThemeBundle> bundles = availableBundles();
@@ -120,7 +120,7 @@ final class ThemeEditorLeftCol {
             scroll.addWidget(new ImageWidget(7, cardY + 6, 24, 24, iconTexture));
 
             LabelWidget name = new LabelWidget(38, cardY + 14, bundle.displayName());
-            name.setTextColor(tokens.textStrong());
+            name.setColor(tokens.textStrong());
             scroll.addWidget(name);
 
             ButtonWidget button = new ButtonWidget(1, cardY, cardW, CARD_H,
@@ -136,7 +136,7 @@ final class ThemeEditorLeftCol {
         if (bundles.isEmpty()) {
             LabelWidget empty = new LabelWidget(4, 4,
                     Component.translatable("gui.gtceuterminal.theme_editor.no_modpack_themes").getString());
-            empty.setTextColor(tokens.textFaint());
+            empty.setColor(tokens.textFaint());
             scroll.addWidget(empty);
         }
 

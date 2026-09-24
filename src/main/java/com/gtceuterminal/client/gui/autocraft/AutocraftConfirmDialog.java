@@ -96,7 +96,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 : Component.translatable("gui.gtceuterminal.autocraft.title.build").getString();
 
         LabelWidget lbl = new LabelWidget(10, 10, title);
-        lbl.setTextColor(tokens.textStrong());
+        lbl.setColor(tokens.textStrong());
         header.addWidget(lbl);
 
         int closeSize = 20;
@@ -155,14 +155,14 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 ? Component.translatable("gui.gtceuterminal.autocraft.unknown_component").getString()
                 : target.getHoverName().getString();
         LabelWidget nameLbl = new LabelWidget(34, 12, fitText(name, panelW - 42));
-        nameLbl.setTextColor(tokens.textStrong());
+        nameLbl.setColor(tokens.textStrong());
         group.addWidget(nameLbl);
 
         if (result.componentCount > 1) {
             String countStr = Component.translatable("gui.gtceuterminal.autocraft.replace_count",
                     result.componentCount).getString();
             LabelWidget countLbl = new LabelWidget(34, 24, fitText(countStr, panelW - 42));
-            countLbl.setTextColor(tokens.textMuted());
+            countLbl.setColor(tokens.textMuted());
             group.addWidget(countLbl);
         }
 
@@ -177,7 +177,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         LabelWidget header = new LabelWidget(8, offsetY + 4,
                 Component.translatable("gui.gtceuterminal.autocraft.ingredients_total").getString());
-        header.setTextColor(tokens.textMuted());
+        header.setColor(tokens.textMuted());
 
         ingredientRowW = panelW - 10;
         ingredientScroll = new DraggableScrollableWidgetGroup(
@@ -204,7 +204,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 if (recipe.isEmpty()) {
                     LabelWidget none = new LabelWidget(28, y + 3,
                             Component.translatable("gui.gtceuterminal.autocraft.no_recipe").getString());
-                    none.setTextColor(tokens.textFaint());
+                    none.setColor(tokens.textFaint());
                     ingredientScroll.addWidget(none);
                     y += 16;
                 } else {
@@ -243,12 +243,12 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int quantityWidth = 40;
         LabelWidget nameLbl = new LabelWidget(38, 5,
                 fitText(name, Math.max(0, rowW - 38 - quantityWidth - 4)));
-        nameLbl.setTextColor(tokens.textStrong());
+        nameLbl.setColor(tokens.textStrong());
         row.addWidget(nameLbl);
 
         String qty = "× " + entry.needed();
         LabelWidget qtyLbl = new LabelWidget(rowW - quantityWidth, 5, qty);
-        qtyLbl.setTextColor(tokens.textMuted());
+        qtyLbl.setColor(tokens.textMuted());
         row.addWidget(qtyLbl);
 
         return row;
@@ -264,11 +264,11 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         LabelWidget nameLbl = new LabelWidget(20, 4,
                 fitText(ing.getHoverName().getString(), Math.max(0, rowW - 78)));
-        nameLbl.setTextColor(tokens.textMuted());
+        nameLbl.setColor(tokens.textMuted());
         row.addWidget(nameLbl);
 
         LabelWidget qtyLbl = new LabelWidget(rowW - 54, 4, "× " + ing.getCount());
-        qtyLbl.setTextColor(tokens.textFaint());
+        qtyLbl.setColor(tokens.textFaint());
         row.addWidget(qtyLbl);
 
         return row;
@@ -283,11 +283,11 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         LabelWidget nameLbl = new LabelWidget(20, 4,
                 fitText(fluid.name(), Math.max(0, rowW - 100)));
-        nameLbl.setTextColor(tokens.border());
+        nameLbl.setColor(tokens.border());
         row.addWidget(nameLbl);
 
         LabelWidget qtyLbl = new LabelWidget(rowW - 76, 4, "× " + fluid.amount() + " mB");
-        qtyLbl.setTextColor(tokens.textFaint());
+        qtyLbl.setColor(tokens.textFaint());
         row.addWidget(qtyLbl);
 
         return row;
@@ -318,7 +318,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         LabelWidget hdr = new LabelWidget(6, 4,
                 Component.translatable("gui.gtceuterminal.autocraft.available").getString());
-        hdr.setTextColor(tokens.textMuted());
+        hdr.setColor(tokens.textMuted());
         wrapper.addWidget(hdr);
         wrapper.addWidget(scroll);
         return wrapper;
@@ -350,12 +350,12 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 new ColorBorderTexture(1, borderColor)));
 
         LabelWidget qty = new LabelWidget(5, 5, label);
-        qty.setTextColor(borderColor);
+        qty.setColor(borderColor);
         row.addWidget(qty);
 
         String tag = entry.hasAll() ? "have" : (entry.craftable ? "craft" : "missing");
         LabelWidget tagLbl = new LabelWidget(rowW - 60, 5, tag);
-        tagLbl.setTextColor(borderColor);
+        tagLbl.setColor(borderColor);
         row.addWidget(tagLbl);
 
         return row;
@@ -390,7 +390,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
                     result.missingCount()).getString();
             LabelWidget warn = new LabelWidget(requestW + 8, btnY + 6,
                     fitText(stripFormatting(missing), innerW - requestW - cancelW - 24));
-            warn.setTextColor(tokens.error());
+            warn.setColor(tokens.error());
             footer.addWidget(warn);
         }
 

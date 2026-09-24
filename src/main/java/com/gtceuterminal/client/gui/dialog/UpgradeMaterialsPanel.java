@@ -58,13 +58,13 @@ final class UpgradeMaterialsPanel {
                 : Component.translatable("gui.gtceuterminal.component_upgrade_dialog.materials.required_label").getString();
 
         LabelWidget sectionLabel = new LabelWidget(10, 5, sectionText);
-        sectionLabel.setTextColor(C_SECTION);
+        sectionLabel.setColor(C_SECTION);
         panel.addWidget(sectionLabel);
 
         if (!tierSelected) {
             LabelWidget placeholder = new LabelWidget(10, 20,
                     Component.translatable("gui.gtceuterminal.component_upgrade_dialog.materials.select_option_to_see").getString());
-            placeholder.setTextColor(C_GRAY);
+            placeholder.setColor(C_GRAY);
             panel.addWidget(placeholder);
             return panel;
         }
@@ -72,7 +72,7 @@ final class UpgradeMaterialsPanel {
         if (creativeMode) {
             LabelWidget creative = new LabelWidget(10, 20,
                     Component.translatable("gui.gtceuterminal.component_upgrade_dialog.materials.creative_mode").getString());
-            creative.setTextColor(C_SUCCESS);
+            creative.setColor(C_SUCCESS);
             panel.addWidget(creative);
             return panel;
         }
@@ -80,7 +80,7 @@ final class UpgradeMaterialsPanel {
         if (materials == null || materials.isEmpty()) {
             LabelWidget none = new LabelWidget(10, 20,
                     Component.translatable("gui.gtceuterminal.component_upgrade_dialog.materials.select_option_to_see").getString());
-            none.setTextColor(C_GRAY);
+            none.setColor(C_GRAY);
             panel.addWidget(none);
             return panel;
         }
@@ -111,7 +111,7 @@ final class UpgradeMaterialsPanel {
         String itemName = mat.getItemName();
         if (itemName.length() > 26) itemName = itemName.substring(0, 25) + "…";
         LabelWidget nameLabel = new LabelWidget(28, 6, itemName);
-        nameLabel.setTextColor(0xFFCCCCCC);
+        nameLabel.setColor(0xFFCCCCCC);
         row.addWidget(nameLabel);
 
         long avail = mat.getTotalAvailable();
@@ -121,7 +121,7 @@ final class UpgradeMaterialsPanel {
         int countColor = enough ? 0xFF6FCF6F : 0xFFE05050;
         int countX = rowW - 130;
         LabelWidget countLabel = new LabelWidget(countX, 6, countText);
-        countLabel.setTextColor(countColor);
+        countLabel.setColor(countColor);
         row.addWidget(countLabel);
 
         int badgeX = rowW - 72;

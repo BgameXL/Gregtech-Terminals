@@ -143,7 +143,7 @@ public class SchematicInterfaceUI {
 
         LabelWidget itemName = new LabelWidget(titleX, 11,
                 fitText(terminalItem.getHoverName().getString(), 240));
-        itemName.setTextColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        itemName.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
         header.addWidget(itemName);
 
         int btnSize = 20;
@@ -219,7 +219,7 @@ public class SchematicInterfaceUI {
         String nameLabelText = stripFormatting(Component.translatable(
                 "gui.gtceuterminal.schematic_interface.name_label").getString());
         LabelWidget nameLabel = new LabelWidget(10, 12, nameLabelText);
-        nameLabel.setTextColor(tokens.textMuted());
+        nameLabel.setColor(tokens.textMuted());
         panel.addWidget(nameLabel);
 
         int fieldX = 104;

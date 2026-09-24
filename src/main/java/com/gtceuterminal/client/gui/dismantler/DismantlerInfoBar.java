@@ -52,12 +52,12 @@ final class DismantlerInfoBar {
         LabelWidget totalLabel = new LabelWidget(xPos, h / 2 - 4,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.dismantler.bar.total", total).getString()));
-        totalLabel.setTextColor(tokens.textMuted());
+        totalLabel.setColor(tokens.textMuted());
         bar.addWidget(totalLabel);
         xPos += 96;
 
         LabelWidget dot1 = new LabelWidget(xPos, h / 2 - 4, "·");
-        dot1.setTextColor(tokens.textFaint());
+        dot1.setColor(tokens.textFaint());
         bar.addWidget(dot1);
         xPos += 14;
 
@@ -67,14 +67,14 @@ final class DismantlerInfoBar {
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.dismantler.bar.inventory_space",
                         "", emptySlots, requiredSlots).getString()));
-        invLabel.setTextColor(enough ? tokens.success() : partial ? tokens.warning() : tokens.error());
+        invLabel.setColor(enough ? tokens.success() : partial ? tokens.warning() : tokens.error());
         bar.addWidget(invLabel);
 
         if (skipped > 0) {
             LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4,
                     stripFormatting(Component.translatable(
                             "gui.gtceuterminal.dismantler.bar.skipped", skipped).getString()));
-            skipLabel.setTextColor(tokens.warning());
+            skipLabel.setColor(tokens.warning());
             bar.addWidget(skipLabel);
         }
 

@@ -54,7 +54,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_customization").getString());
-        title.setTextColor(tokens.textMuted());
+        title.setColor(tokens.textMuted());
         col.addWidget(title);
 
         String[] targetNames = {
@@ -82,7 +82,7 @@ final class ThemeEditorRightCol {
             col.addWidget(tabBgRefs[i]);
 
             LabelWidget label = new LabelWidget(bx + 6, by + 6, targetNames[i]);
-            label.setTextColor(tokens.textStrong());
+            label.setColor(tokens.textStrong());
             col.addWidget(label);
 
             ButtonWidget button = new ButtonWidget(bx, by, targetW, targetH,
@@ -105,7 +105,7 @@ final class ThemeEditorRightCol {
             LabelWidget value = new LabelWidget(PAD + 12 + barW + 4, sy + 3,
                     () -> String.valueOf(channels[channelIndex]));
             value.setClientSideWidget();
-            value.setTextColor(tokens.textMuted());
+            value.setColor(tokens.textMuted());
             col.addWidget(value);
 
             RGBSliderWidget slider = new RGBSliderWidget(PAD + 12, sy, barW, 12,
@@ -122,7 +122,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget hexLabel = new LabelWidget(PAD, cy + 4,
                 Component.translatable("gui.gtceuterminal.theme_editor.hex").getString());
-        hexLabel.setTextColor(tokens.textMuted());
+        hexLabel.setColor(tokens.textMuted());
         col.addWidget(hexLabel);
 
         TextFieldWidget hexField = new TextFieldWidget(PAD + 28, cy, 96, 16, null, onHexEntered);
@@ -141,7 +141,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget swatchTitle = new LabelWidget(PAD, cy,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_swatches").getString());
-        swatchTitle.setTextColor(tokens.textMuted());
+        swatchTitle.setColor(tokens.textMuted());
         col.addWidget(swatchTitle);
         cy += 14;
 
@@ -164,7 +164,7 @@ final class ThemeEditorRightCol {
 
             LabelWidget name = new LabelWidget(sx + swatchSize + 4, sy + 6,
                     Component.translatable("gui.gtceuterminal.theme_editor.swatch." + names[i]).getString());
-            name.setTextColor(tokens.textMuted());
+            name.setColor(tokens.textMuted());
             col.addWidget(name);
         }
         return col;
@@ -187,7 +187,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_options").getString());
-        title.setTextColor(tokens.textMuted());
+        title.setColor(tokens.textMuted());
         col.addWidget(title);
 
         int cy = 26;
@@ -200,7 +200,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget animLabel = new LabelWidget(PAD + 7, cy + 6, () -> paradeLabel(working.paradeMode));
         animLabel.setClientSideWidget();
-        animLabel.setTextColor(tokens.textStrong());
+        animLabel.setColor(tokens.textStrong());
         col.addWidget(animLabel);
 
         ButtonWidget animButton = new ButtonWidget(PAD, cy, animW, optionH,
@@ -218,7 +218,7 @@ final class ThemeEditorRightCol {
         LabelWidget sourceLabel = new LabelWidget(sourceX + 7, cy + 6, () ->
                 working.slideshowSource == ItemTheme.SlideshowSource.CUSTOM ? "Custom" : "Built-in");
         sourceLabel.setClientSideWidget();
-        sourceLabel.setTextColor(tokens.textStrong());
+        sourceLabel.setColor(tokens.textStrong());
         col.addWidget(sourceLabel);
 
         ButtonWidget sourceButton = new ButtonWidget(sourceX, cy, sourceW, optionH,
@@ -233,7 +233,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget wallpaperTitle = new LabelWidget(PAD, cy + 6,
                 Component.translatable("gui.gtceuterminal.theme_editor.wallpaper_header").getString());
-        wallpaperTitle.setTextColor(tokens.textMuted());
+        wallpaperTitle.setColor(tokens.textMuted());
         col.addWidget(wallpaperTitle);
 
         ButtonWidget previous = TerminalButton.icon3d(PAD + 74, cy, 20, "<", cd -> onWallPrev.run());
@@ -251,7 +251,7 @@ final class ThemeEditorRightCol {
                         ? truncate(working.wallpaper, Math.max(12, (colW - PAD - 128) / 6))
                         : Component.translatable("gui.gtceuterminal.theme_editor.none").getString());
         wallLabel.setClientSideWidget();
-        wallLabel.setTextColor(tokens.textStrong());
+        wallLabel.setColor(tokens.textStrong());
         wallLabelRef[0] = wallLabel;
         col.addWidget(wallLabel);
         cy += 30;

@@ -42,7 +42,7 @@ final class SchematicListPanel {
 
         LabelWidget title = new LabelWidget(8, 7, stripFormatting(Component.translatable(
                 "gui.gtceuterminal.schematic_interface.saved_schematics_label").getString()));
-        title.setTextColor(tokens.textMuted());
+        title.setColor(tokens.textMuted());
         panel.addWidget(title);
 
         DraggableScrollableWidgetGroup scroll =
@@ -70,7 +70,7 @@ final class SchematicListPanel {
             LabelWidget empty = new LabelWidget(8, 12,
                     stripFormatting(Component.translatable(
                             "gui.gtceuterminal.schematic_interface.no_schematics_saved").getString()));
-            empty.setTextColor(tokens.textMuted());
+            empty.setColor(tokens.textMuted());
             scroll.addWidget(empty);
             return;
         }
@@ -99,14 +99,14 @@ final class SchematicListPanel {
 
         String name = schematic.getName();
         LabelWidget nameLbl = new LabelWidget(8, 7, fitText(name, entryW - 16));
-        nameLbl.setTextColor(tokens.textStrong());
+        nameLbl.setColor(tokens.textStrong());
         entry.addWidget(nameLbl);
 
         var size = schematic.getSize();
         String sub = schematic.getBlocks().size() + " blocks · "
                 + size.getX() + "×" + size.getY() + "×" + size.getZ();
         LabelWidget subLbl = new LabelWidget(8, 21, fitText(sub, entryW - 16));
-        subLbl.setTextColor(tokens.textFaint());
+        subLbl.setColor(tokens.textFaint());
         entry.addWidget(subLbl);
 
         return entry;

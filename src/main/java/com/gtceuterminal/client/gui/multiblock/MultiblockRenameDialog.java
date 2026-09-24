@@ -59,7 +59,7 @@ final class MultiblockRenameDialog {
         LabelWidget titleLbl = new LabelWidget(8, 7,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.multiblock_manager.rename_dialog.title").getString()));
-        titleLbl.setTextColor(tokens.textStrong());
+        titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
         ButtonWidget closeBtn = TerminalButton.icon3d(DW - 23, 4, 18, "×", cd -> dialog.close());
@@ -67,7 +67,7 @@ final class MultiblockRenameDialog {
         titleBar.addWidget(closeBtn);
 
         LabelWidget sub = new LabelWidget(8, 32, truncate(mb.getMachineTypeName(), 38));
-        sub.setTextColor(tokens.textMuted());
+        sub.setColor(tokens.textMuted());
         panel.addWidget(sub);
 
         TextFieldWidget textField = new TextFieldWidget(8, 46, DW - 16, 16, null, s -> {

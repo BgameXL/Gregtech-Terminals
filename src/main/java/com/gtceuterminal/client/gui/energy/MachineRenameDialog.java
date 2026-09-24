@@ -44,7 +44,7 @@ final class MachineRenameDialog {
         LabelWidget titleLbl = new LabelWidget(8, 4,
                 stripFormatting(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.rename_dialog.title").getString()));
-        titleLbl.setTextColor(tokens.textStrong());
+        titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
         TextFieldWidget textField = new TextFieldWidget(8, 22, DW - 16, 16, null, s -> {

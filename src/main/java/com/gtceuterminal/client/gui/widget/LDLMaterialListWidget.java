@@ -83,12 +83,12 @@ public class LDLMaterialListWidget extends WidgetGroup {
 
         String itemName = mat.getItemName();
         LabelWidget nameLabel = new LabelWidget(12, 3, itemName);
-        nameLabel.setTextColor(TEXT_WHITE);
+        nameLabel.setColor(TEXT_WHITE);
         entry.addWidget(nameLabel);
 
         String quantityText = formatQuantity(mat);
         LabelWidget quantityLabel = new LabelWidget(getSize().width - 110, 3, quantityText);
-        quantityLabel.setTextColor(TEXT_GRAY);
+        quantityLabel.setColor(TEXT_GRAY);
         entry.addWidget(quantityLabel);
 
         entry.setHoverTooltips(createTooltip(mat));

@@ -57,13 +57,13 @@ public class BlockListWidget extends DraggableScrollableWidgetGroup {
         // Block name
         String blockName = block.getName().getString();
         LabelWidget nameLabel = new LabelWidget(5, ROW_HEIGHT / 2 - 4, blockName);
-        nameLabel.setTextColor(COLOR_TEXT_WHITE);
+        nameLabel.setColor(COLOR_TEXT_WHITE);
         row.addWidget(nameLabel);
 
         // Count
         String countText = "§7x" + count;
         LabelWidget countLabel = new LabelWidget(getSize().width - 50, ROW_HEIGHT / 2 - 4, countText);
-        countLabel.setTextColor(COLOR_TEXT_GRAY);
+        countLabel.setColor(COLOR_TEXT_GRAY);
         row.addWidget(countLabel);
 
         // Separator line

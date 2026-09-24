@@ -1,18 +1,18 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ItemTheme;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,13 +31,13 @@ final class DismantlerHeader {
             ItemStack itemStack,
             ItemTheme theme,
             WidgetGroup mainGroup,
-            Player player,
             Runnable onClose
     ) {
+        TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup header = new WidgetGroup(2, 2, guiW - 4, headerH);
-        header.setBackground(theme.headerTexture());
+        header.setBackground(new Bevel3DTexture(tokens.panel()));
 
-        int titleX = 10;
+        int titleX = 8;
         int iconSize = 20, iconY = (headerH - iconSize) / 2;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
@@ -51,41 +51,47 @@ final class DismantlerHeader {
             }
         } else {
             header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
-                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
-                    theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF)));
+                    tokens.panelDisabled(), tokens.border()));
             titleX += iconSize + 6;
         }
 
-        String coords = String.format("(%d, %d, %d)",
-                controllerPos.getX(), controllerPos.getY(), controllerPos.getZ());
-        String baseTitle = stripFormatting(Component.translatable("gui.gtceuterminal.dismantler.title").getString());
-        LabelWidget title = new LabelWidget(titleX, 10, "§f" + baseTitle + " §7— @ " + coords);
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : 0xFFFFFFFF);
+        LabelWidget title = new LabelWidget(titleX, 11,
+                fitText(itemStack.getHoverName().getString(), 260));
+        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
         header.addWidget(title);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 42, 6, 14, "config",
+        int btnSize = 20;
+        int btnY = (headerH - btnSize) / 2;
+        int closeX = header.getSizeWidth() - btnSize - 6;
+        int themeX = closeX - btnSize - 4;
+
+        String coords = String.format("(%d, %d, %d)",
+                controllerPos.getX(), controllerPos.getY(), controllerPos.getZ());
+        int coordsX = themeX - Minecraft.getInstance().font.width(coords) - 12;
+        if (coordsX > titleX + 270) {
+            LabelWidget position = new LabelWidget(coordsX, 11, coords);
+            position.setTextColor(tokens.textMuted());
+            header.addWidget(position);
+        }
+
+        ButtonWidget gearBtn = TerminalButton.icon3d(themeX, btnY, btnSize, "✦",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
 
-        int accentColor = theme.accentColor;
-        ButtonWidget closeBtn = new ButtonWidget(guiW - 24, 6, 14, 14,
-                new GuiTextureGroup(
-                        new ColorRectTexture(theme.panelColor),
-                        new ColorBorderTexture(1, (accentColor & 0x00FFFFFF) | 0x80000000)),
+        ButtonWidget closeBtn = TerminalButton.icon3d(closeX, btnY, btnSize, "×",
                 cd -> onClose.run());
-        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0x66AA0000),
-                new ColorBorderTexture(1, 0xFFFFFFFF),
-                TerminalButton.iconTex("close")));
         header.addWidget(closeBtn);
 
         return header;
     }
 
-    private static String stripFormatting(String s) {
-        return s == null ? "" : s.replaceAll("§.", "");
+    private static String fitText(String text, int maxWidth) {
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 }

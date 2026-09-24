@@ -1,11 +1,11 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
@@ -25,23 +25,19 @@ final class DismantlerInfoBar {
 
     static WidgetGroup build(
             int x, int y, int w, int h,
-            int colorBgMedium,
-            int colorBorderDark,
             DismantleScanner.ScanResult scanResult,
             Player player
     ) {
+        TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup bar = new WidgetGroup(x, y, w, h);
-        bar.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(colorBgMedium),
-                new ColorBorderTexture(1, colorBorderDark)));
-        int total = 0, collectable = 0, skipped = 0, requiredSlots = 0;
+        bar.setBackground(new ColorRectTexture(tokens.panel()));
+        int total = 0, skipped = 0, requiredSlots = 0;
         if (scanResult != null) {
             for (Map.Entry<Block, Integer> e : scanResult.getBlockCounts().entrySet()) {
                 total += e.getValue();
                 if (ItemsConfig.isDismantlerBlacklisted(e.getKey())) {
                     skipped += e.getValue();
                 } else {
-                    collectable += e.getValue();
                     requiredSlots += (e.getValue() + 63) / 64;
                 }
             }
@@ -54,45 +50,38 @@ final class DismantlerInfoBar {
 
         int xPos = 12;
         LabelWidget totalLabel = new LabelWidget(xPos, h / 2 - 4,
-                Component.translatable("gui.gtceuterminal.dismantler.bar.total", total).getString());
-        totalLabel.setTextColor(0xFFAAAAAA);
+                stripFormatting(Component.translatable(
+                        "gui.gtceuterminal.dismantler.bar.total", total).getString()));
+        totalLabel.setTextColor(tokens.textMuted());
         bar.addWidget(totalLabel);
         xPos += 96;
 
-        LabelWidget dot1 = new LabelWidget(xPos, h / 2 - 4, "§8·");
-        dot1.setTextColor(0xFF555555);
+        LabelWidget dot1 = new LabelWidget(xPos, h / 2 - 4, "·");
+        dot1.setTextColor(tokens.textFaint());
         bar.addWidget(dot1);
         xPos += 14;
 
         boolean enough = emptySlots >= requiredSlots;
         boolean partial = emptySlots > 0 && !enough;
-        String slotColor = enough ? "§a" : (partial ? "§e" : "§c");
         LabelWidget invLabel = new LabelWidget(xPos, h / 2 - 4,
-                Component.translatable("gui.gtceuterminal.dismantler.bar.inventory_space",
-                        slotColor, emptySlots, requiredSlots).getString());
-        invLabel.setTextColor(0xFFAAAAAA);
+                stripFormatting(Component.translatable(
+                        "gui.gtceuterminal.dismantler.bar.inventory_space",
+                        "", emptySlots, requiredSlots).getString()));
+        invLabel.setTextColor(enough ? tokens.success() : partial ? tokens.warning() : tokens.error());
         bar.addWidget(invLabel);
 
         if (skipped > 0) {
             LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4,
-                    Component.translatable("gui.gtceuterminal.dismantler.bar.skipped", skipped).getString());
-            skipLabel.setTextColor(0xFFAAAAAA);
+                    stripFormatting(Component.translatable(
+                            "gui.gtceuterminal.dismantler.bar.skipped", skipped).getString()));
+            skipLabel.setTextColor(tokens.warning());
             bar.addWidget(skipLabel);
         }
 
         return bar;
     }
 
-    private static int addStat(WidgetGroup parent, int x, int y, int w, int h,
-                               String val, String lbl, int valColor) {
-        LabelWidget value = new LabelWidget(x, y, val);
-        value.setTextColor(valColor);
-        parent.addWidget(value);
-
-        LabelWidget label = new LabelWidget(x, y + 14, "§8" + lbl);
-        label.setTextColor(0xFF555555);
-        parent.addWidget(label);
-
-        return x + w;
+    private static String stripFormatting(String text) {
+        return text.replaceAll("§.", "");
     }
 }

@@ -367,19 +367,20 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 new ColorRectTexture(tokens.borderDark())));
 
         int btnH = 24;
+        int btnY = (FOOTER_H - btnH) / 2;
 
         boolean hasMissing = result.anyMissing();
         int requestW = 160;
         ButtonWidget request = hasMissing
-                ? TerminalButton.disabled(0, 4, requestW, btnH,
+                ? TerminalButton.disabled(0, btnY, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString())
-                : TerminalButton.text3d(0, 4, requestW, btnH,
+                : TerminalButton.text3d(0, btnY, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString(),
                 tokens.action(), cd -> onRequest());
         footer.addWidget(request);
 
         int cancelW = 110;
-        ButtonWidget cancel = TerminalButton.text3d(innerW - cancelW, 4, cancelW, btnH,
+        ButtonWidget cancel = TerminalButton.text3d(innerW - cancelW, btnY, cancelW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.cancel").getString(),
                 tokens.errorSurface(), cd -> close());
         footer.addWidget(cancel);
@@ -387,7 +388,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         if (hasMissing) {
             String missing = Component.translatable("gui.gtceuterminal.autocraft.missing_items",
                     result.missingCount()).getString();
-            LabelWidget warn = new LabelWidget(requestW + 8, 10,
+            LabelWidget warn = new LabelWidget(requestW + 8, btnY + 6,
                     fitText(stripFormatting(missing), innerW - requestW - cancelW - 24));
             warn.setTextColor(tokens.error());
             footer.addWidget(warn);

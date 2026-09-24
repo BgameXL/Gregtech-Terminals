@@ -1,15 +1,16 @@
 package com.gtceuterminal.client.gui.dismantler;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -31,33 +32,34 @@ final class DismantlerPreviewPanel {
 
     static WidgetGroup build(
             int x, int y, int w, int h,
-            int colorBgLight,
-            int colorBorderDark,
             DismantleScanner.ScanResult scanResult,
             BlockPos controllerPos,
             Player player
     ) {
+        TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(colorBgLight),
-                new ColorBorderTexture(1, colorBorderDark)));
+        panel.setBackground(new ColorRectTexture(tokens.surface()));
 
-        LabelWidget label = new LabelWidget(6, 5,
-                Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString());
-        label.setTextColor(0xFFAAAAAA);
+        LabelWidget label = new LabelWidget(8, 7, stripFormatting(
+                Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString()));
+        label.setTextColor(tokens.textMuted());
         panel.addWidget(label);
 
         if (scanResult != null && scanResult.getTotalBlocks() > 0) {
             SchematicData previewData = buildSchematic(scanResult, controllerPos, player);
             if (previewData != null && !previewData.getBlocks().isEmpty()) {
-                panel.addWidget(new SchematicPreviewWidget(6, 20, w - 12, h - 26, previewData));
+                SchematicPreviewWidget preview = new SchematicPreviewWidget(4, 22, w - 8, h - 26, previewData);
+                preview.setBackground(new ColorRectTexture(tokens.panelDisabled()));
+                panel.addWidget(preview);
                 return panel;
             }
         }
 
-        LabelWidget noData = new LabelWidget(w / 2 - 30, h / 2,
+        String noDataText = stripFormatting(
                 Component.translatable("gui.gtceuterminal.dismantler.no_data").getString());
-        noData.setTextColor(0xFFFF4444);
+        LabelWidget noData = new LabelWidget(
+                (w - Minecraft.getInstance().font.width(noDataText)) / 2, h / 2, noDataText);
+        noData.setTextColor(tokens.error());
         panel.addWidget(noData);
 
         return panel;
@@ -93,5 +95,9 @@ final class DismantlerPreviewPanel {
             GTCEUTerminalMod.LOGGER.warn("DismantlerPreviewPanel: failed to build preview schematic", e);
             return null;
         }
+    }
+
+    private static String stripFormatting(String text) {
+        return text.replaceAll("§.", "");
     }
 }

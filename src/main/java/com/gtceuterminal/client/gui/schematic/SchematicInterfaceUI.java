@@ -1,6 +1,10 @@
 package com.gtceuterminal.client.gui.schematic;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
@@ -16,11 +20,11 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.lowdragmc.lowdraglib.utils.Size;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
@@ -38,31 +42,22 @@ public class SchematicInterfaceUI {
 
     private static final int GUI_W = 600;
     private static final int GUI_H = 480;
-    private static final int HEADER_H = 34;
+    private static final int HEADER_H = 30;
+    private static final int BODY_Y = HEADER_H + 1;
+    private static final int BODY_H = GUI_H - BODY_Y - 2;
+    private static final int CARD_INSET = 2;
     private static final int LEFT_W = 202;
     private static final int DIVIDER = 1;
-
-    private static final int BODY_Y = HEADER_H;
-    private static final int BODY_H = GUI_H - HEADER_H;
-    private static final int RIGHT_X = LEFT_W + DIVIDER;
-    private static final int RIGHT_W = GUI_W - RIGHT_X;
-
-    private static final int C_BORDER_DARK = 0xFF0A0A0A;
-    private static final int C_TEXT_WHITE = 0xFFFFFFFF;
-    private static final int C_TEXT_GRAY = 0xFFAAAAAA;
-    private static final int C_HOVER = 0x40FFFFFF;
-    private static final int C_SUCCESS = 0xFF4CAF50;
-    private static final int C_INFO = 0xFF42A5F5;
-    private static final int C_DELETE = 0xFFE53935;
-    private static final int C_EXPORT = 0xFF9C27B0;
-    private static final int C_IMPORT = 0xFF54927;
-    private static final int C_ERROR = 0xFFFF5252;
+    private static final int BODY_W = GUI_W - 4;
+    private static final int INNER_H = BODY_H - CARD_INSET * 2;
+    private static final int RIGHT_X = CARD_INSET + LEFT_W + DIVIDER;
+    private static final int RIGHT_W = BODY_W - CARD_INSET * 2 - LEFT_W - DIVIDER;
 
     private final IUIHolder uiHolder;
     private final ItemStack terminalItem;
     private final Player player;
     private final ItemTheme theme;
-    private final int colorBorderLight;
+    private final TerminalTheme tokens;
 
     private List<SchematicData> schematics = new ArrayList<>();
     private int selectedIndex = -1;
@@ -79,7 +74,8 @@ public class SchematicInterfaceUI {
         this.terminalItem = heldHolder.held;
         this.player = heldHolder.player;
         this.theme = ItemTheme.load(terminalItem);
-        this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        TerminalUI.use(theme);
+        this.tokens = TerminalUI.tokens();
         loadSchematics();
     }
 
@@ -88,7 +84,8 @@ public class SchematicInterfaceUI {
         this.terminalItem = holder.getTerminalItem();
         this.player = player;
         this.theme = ItemTheme.load(terminalItem);
-        this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        TerminalUI.use(theme);
+        this.tokens = TerminalUI.tokens();
         loadSchematics();
     }
 
@@ -108,7 +105,7 @@ public class SchematicInterfaceUI {
 
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        mainGroup.setBackground(new ColorRectTexture(0x00000000));
+        mainGroup.setBackground(new ColorRectTexture(Palette.CLEAR));
 
         if (!theme.isNativeStyle()) {
             mainGroup.addWidget(new WallpaperWidget(0, 0, GUI_W, GUI_H, () -> this.theme));
@@ -116,27 +113,17 @@ public class SchematicInterfaceUI {
 
         mainGroup.addWidget(buildHeader());
         mainGroup.addWidget(buildBody());
-        mainGroup.addWidget(buildOuterBorder());
 
         setupParade();
         this.gui = buildModularUI(mainGroup);
         return gui;
     }
 
-    private WidgetGroup buildOuterBorder() {
-        WidgetGroup g = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        g.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(C_BORDER_DARK)));
-        return g;
-    }
-
     private WidgetGroup buildHeader() {
-        WidgetGroup header = new WidgetGroup(0, 0, GUI_W, HEADER_H);
-        header.setBackground(theme.headerTexture());
+        WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
+        header.setBackground(new Bevel3DTexture(tokens.panel()));
 
-        int titleX = 12;
+        int titleX = 8;
         int iconSize = 20, iconY = (HEADER_H - iconSize) / 2;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
@@ -150,56 +137,49 @@ public class SchematicInterfaceUI {
             }
         } else {
             header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, terminalItem,
-                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
-                    colorBorderLight));
+                    tokens.panelDisabled(), tokens.border()));
             titleX += iconSize + 6;
         }
 
-        LabelWidget title = new LabelWidget(titleX, 11,
-                Component.translatable("gui.gtceuterminal.schematic_interface.title").getString());
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : C_TEXT_WHITE);
-        header.addWidget(title);
+        LabelWidget itemName = new LabelWidget(titleX, 11,
+                fitText(terminalItem.getHoverName().getString(), 240));
+        itemName.setTextColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        header.addWidget(itemName);
 
-        int btnY = (HEADER_H - 16) / 2;
+        int btnSize = 20;
+        int btnY = (HEADER_H - btnSize) / 2;
+        int closeX = header.getSizeWidth() - btnSize - 6;
+        int themeX = closeX - btnSize - 4;
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 38, btnY, 14, "config",
+        ButtonWidget gearBtn = TerminalButton.icon3d(themeX, btnY, btnSize, "✦",
                 cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
         gearBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());
         header.addWidget(gearBtn);
 
-        ButtonWidget closeBtn = new ButtonWidget(GUI_W - 20, btnY, 14, 14,
-                new GuiTextureGroup(new ColorRectTexture(theme.panelColor), new ColorBorderTexture(1, colorBorderLight)),
+        ButtonWidget closeBtn = TerminalButton.icon3d(closeX, btnY, btnSize, "×",
                 cd -> gui.entityPlayer.closeContainer());
-        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0x66AA0000), new ColorBorderTexture(1, C_TEXT_WHITE),
-                TerminalButton.iconTex("close")));
         header.addWidget(closeBtn);
 
         return header;
     }
 
     private WidgetGroup buildBody() {
-        WidgetGroup body = new WidgetGroup(0, BODY_Y, GUI_W, BODY_H);
+        WidgetGroup body = new WidgetGroup(2, BODY_Y, BODY_W, BODY_H);
+        body.setBackground(TerminalUI.cardBg());
         this.bodyGroup = body;
 
-        // Left list panel
         DraggableScrollableWidgetGroup[] scrollRef = new DraggableScrollableWidgetGroup[1];
         WidgetGroup leftPanel = SchematicListPanel.build(
-                0, 0, LEFT_W, BODY_H, 0,
-                C_BORDER_DARK, colorBorderLight, C_TEXT_GRAY,
-                theme, selectedIndex, schematics,
-                this::onSelect, null, scrollRef);
+                CARD_INSET, CARD_INSET, LEFT_W, INNER_H,
+                selectedIndex, schematics, this::onSelect, scrollRef);
         this.schematicsScroll = scrollRef[0];
         body.addWidget(leftPanel);
 
-        // Divider
-        body.addWidget(new ImageWidget(LEFT_W, 0, DIVIDER, BODY_H,
-                new ColorRectTexture(0xFF2A2A2A)));
+        body.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER, INNER_H,
+                new ColorRectTexture(tokens.borderDark())));
 
-        // Right preview + actions
         this.rightPanel = buildRightPanel();
         body.addWidget(rightPanel);
 
@@ -207,24 +187,22 @@ public class SchematicInterfaceUI {
     }
 
     private WidgetGroup buildRightPanel() {
-        WidgetGroup panel = new WidgetGroup(RIGHT_X, 0, RIGHT_W, BODY_H);
-        panel.setBackground(new ColorRectTexture(0xFF111111));
+        WidgetGroup panel = new WidgetGroup(RIGHT_X, CARD_INSET, RIGHT_W, INNER_H);
+        panel.setBackground(new ColorRectTexture(tokens.surface()));
 
         int actionsH = 72;
-        int previewH = BODY_H - actionsH - 1;
+        int previewH = INNER_H - actionsH - 1;
 
-        // 3D Preview area
         WidgetGroup previewArea = new WidgetGroup(0, 0, RIGHT_W, previewH);
-        previewArea.setBackground(new ColorRectTexture(0xFF111111));
+        previewArea.setBackground(new ColorRectTexture(tokens.surface()));
         populatePreview(previewArea, previewH);
         panel.addWidget(previewArea);
 
-        // Divider
-        panel.addWidget(new ImageWidget(0, previewH, RIGHT_W, 1, new ColorRectTexture(0xFF2A2A2A)));
+        panel.addWidget(new ImageWidget(0, previewH, RIGHT_W, 1,
+                new ColorRectTexture(tokens.borderDark())));
 
-        // Actions area
         WidgetGroup actions = new WidgetGroup(0, previewH + 1, RIGHT_W, actionsH - 1);
-        actions.setBackground(new ColorRectTexture(0xFF1A1A1A));
+        actions.setBackground(new ColorRectTexture(tokens.panel()));
         buildActions(actions);
         panel.addWidget(actions);
 
@@ -234,60 +212,58 @@ public class SchematicInterfaceUI {
     private void populatePreview(WidgetGroup area, int previewH) {
         area.clearAllWidgets();
         SchematicPreviewPanel.repopulate(area, RIGHT_W, previewH,
-                selectedIndex, schematics, hasClipboard(), theme, player);
-
-
+                selectedIndex, schematics, hasClipboard(), player);
     }
 
     private void buildActions(WidgetGroup panel) {
-        int fieldW = RIGHT_W - 20;
-        TextFieldWidget nameField = new TextFieldWidget(10, 8, fieldW, 20, null, s -> {
+        String nameLabelText = stripFormatting(Component.translatable(
+                "gui.gtceuterminal.schematic_interface.name_label").getString());
+        LabelWidget nameLabel = new LabelWidget(10, 12, nameLabelText);
+        nameLabel.setTextColor(tokens.textMuted());
+        panel.addWidget(nameLabel);
+
+        int fieldX = 104;
+        int fieldW = RIGHT_W - fieldX - 10;
+        TextFieldWidget nameField = new TextFieldWidget(fieldX, 5, fieldW, 20, null, s -> {
         });
         nameField.setMaxStringLength(32);
-        nameField.setTextColor(C_TEXT_WHITE);
+        nameField.setBordered(false);
+        nameField.setTextColor(tokens.textStrong());
         nameField.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF141414)));
+                new ColorRectTexture(tokens.panelDisabled()),
+                new ColorBorderTexture(1, tokens.border())));
+        nameField.setHoverTexture(new GuiTextureGroup(
+                new ColorRectTexture(tokens.panelDisabled()),
+                new ColorBorderTexture(1, tokens.textStrong())));
 
         nameField.setCurrentString(selectedIndex >= 0 && selectedIndex < schematics.size()
                 ? schematics.get(selectedIndex).getName() : "");
         this.nameInput = nameField;
         panel.addWidget(nameField);
 
-        int btnH = 20, btnY = 36, x = 10, spacing = 6;
+        int btnH = 20, btnY = 39, x = 10, spacing = 6;
 
-        panel.addWidget(makeBtn(x, btnY, 90, btnH, C_SUCCESS,
+        panel.addWidget(TerminalButton.text3d(x, btnY, 90, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.load").getString(),
-                cd -> pasteSchematic()));
+                tokens.action(), cd -> pasteSchematic()));
         x += 90 + spacing;
 
-        panel.addWidget(makeBtn(x, btnY, 80, btnH, C_INFO,
+        panel.addWidget(TerminalButton.text3d(x, btnY, 80, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString(),
-                cd -> saveSchematic()));
+                tokens.successSurface(), cd -> saveSchematic()));
         x += 80 + spacing;
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_DELETE,
+        panel.addWidget(TerminalButton.text3d(x, btnY, 60, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.delete").getString(),
-                cd -> deleteSchematic()));
+                tokens.errorSurface(), cd -> deleteSchematic()));
         x += 60 + spacing;
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_EXPORT,
-                Component.translatable("gui.gtceuterminal.schematic_interface.button.export").getString(),
-                cd -> player.displayClientMessage(
-                        Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))
+        panel.addWidget(TerminalButton.text3d(x, btnY, 60, btnH,
+                        Component.translatable("gui.gtceuterminal.schematic_interface.button.export").getString(),
+                        tokens.panelDisabled(),
+                        cd -> player.displayClientMessage(
+                                Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))
                 .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.not_yet_implemented")));
-    }
-
-    private ButtonWidget makeBtn(int x, int y, int w, int h, int color, String label,
-                                 java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
-        TextTexture txt = new TextTexture(label).setWidth(w).setType(TextTexture.TextType.NORMAL);
-        ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(1, colorBorderLight), txt),
-                action);
-        btn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture((color & 0x00FFFFFF) | 0x55000000),
-                new ColorBorderTexture(2, C_TEXT_WHITE),
-                txt));
-        return btn;
     }
 
     private void setupParade() {
@@ -314,8 +290,8 @@ public class SchematicInterfaceUI {
 
     private void refreshLeft() {
         if (schematicsScroll == null) return;
-        SchematicListPanel.repopulate(schematicsScroll, schematics, selectedIndex,
-                LEFT_W - 8 - 4, C_TEXT_GRAY, theme, this::onSelect);
+        SchematicListPanel.repopulate(
+                schematicsScroll, schematics, selectedIndex, LEFT_W - 2, this::onSelect);
     }
 
     private void refreshRight() {
@@ -407,8 +383,21 @@ public class SchematicInterfaceUI {
     private ModularUI buildModularUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         ui.widget(content);
-        ui.background(theme.modularUIBackground());
+        ui.background(new ColorRectTexture(Palette.CLEAR));
         return ui;
+    }
+
+    private static String fitText(String text, int maxWidth) {
+        if (text == null || maxWidth <= 0) return "";
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
+    }
+
+    private static String stripFormatting(String text) {
+        return text.replaceAll("§.", "");
     }
 
     public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {

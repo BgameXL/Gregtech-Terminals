@@ -1,5 +1,9 @@
 package com.gtceuterminal.client.gui.widget;
 
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -13,15 +17,8 @@ import org.joml.Matrix4f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-// Widget that draws a graph of energy input/output over time, with grid and border.
 @OnlyIn(Dist.CLIENT)
 public class EnergyGraphWidget extends Widget {
-
-    private static final int COLOR_INPUT = 0xFF00CC55;
-    private static final int COLOR_OUTPUT = 0xFFDD3333;
-    private static final int COLOR_GRID = 0x22FFFFFF;
-    private static final int COLOR_GRID_MAJOR = 0x44FFFFFF;
-    private static final int COLOR_BG = 0xFF1A1A1A;
 
     private long[] inputHistory;
     private long[] outputHistory;
@@ -47,51 +44,50 @@ public class EnergyGraphWidget extends Widget {
         ps.pushPose();
         ps.translate(getPosition().x, getPosition().y, 0);
         Matrix4f matrix = ps.last().pose();
+        TerminalTheme tokens = TerminalUI.tokens();
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        // Background
-        fillRect(matrix, 0, 0, w, h, COLOR_BG);
+        fillRect(matrix, 0, 0, w, h, tokens.panelDisabled());
+        drawGrid(matrix, w, h,
+                Palette.withAlpha(tokens.border(), 0x22),
+                Palette.withAlpha(tokens.border(), 0x66));
 
-        // Grid
-        drawGrid(matrix, w, h);
-
-        // Data
         int len = Math.max(inputHistory.length, outputHistory.length);
         if (len >= 2) {
             long max = 1;
             for (long v : inputHistory) max = Math.max(max, v);
             for (long v : outputHistory) max = Math.max(max, v);
 
-            drawFilledArea(matrix, inputHistory, len, w, h, max, COLOR_INPUT, 0.12f);
-            drawFilledArea(matrix, outputHistory, len, w, h, max, COLOR_OUTPUT, 0.12f);
+            drawFilledArea(matrix, inputHistory, len, w, h, max, tokens.success(), 0.12f);
+            drawFilledArea(matrix, outputHistory, len, w, h, max, tokens.error(), 0.12f);
 
-            drawLine(matrix, inputHistory, len, w, h, max, COLOR_INPUT);
-            drawLine(matrix, outputHistory, len, w, h, max, COLOR_OUTPUT);
+            drawLine(matrix, inputHistory, len, w, h, max, tokens.success());
+            drawLine(matrix, outputHistory, len, w, h, max, tokens.error());
         }
 
-        drawBorder(matrix, w, h);
+        drawBorder(matrix, w, h, tokens.borderSubtle());
 
         RenderSystem.disableBlend();
         ps.popPose();
     }
 
-    private void drawGrid(Matrix4f matrix, int w, int h) {
+    private void drawGrid(Matrix4f matrix, int w, int h, int gridColor, int majorColor) {
         Tesselator tess = Tesselator.getInstance();
         BufferBuilder buf = tess.getBuilder();
         buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
         for (int i = 0; i <= 4; i++) {
             float y = (h * i) / 4f;
-            int c = (i == 0 || i == 4) ? COLOR_GRID_MAJOR : COLOR_GRID;
+            int c = (i == 0 || i == 4) ? majorColor : gridColor;
             putLine(buf, matrix, 0, y, w, y, c);
         }
 
         for (int i = 0; i <= 8; i++) {
             float x = (w * i) / 8f;
-            int c = (i == 0 || i == 8) ? COLOR_GRID_MAJOR : COLOR_GRID;
+            int c = (i == 0 || i == 8) ? majorColor : gridColor;
             putLine(buf, matrix, x, 0, x, h, c);
         }
 
@@ -150,19 +146,17 @@ public class EnergyGraphWidget extends Widget {
         tess.end();
     }
 
-    private void drawBorder(Matrix4f matrix, int w, int h) {
+    private void drawBorder(Matrix4f matrix, int w, int h, int color) {
         Tesselator tess = Tesselator.getInstance();
         BufferBuilder buf = tess.getBuilder();
         buf.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-        int c = 0xFF444444;
-        putLine(buf, matrix, 0, 0, w, 0, c);
-        putLine(buf, matrix, 0, h - 1, w, h - 1, c);
-        putLine(buf, matrix, 0, 0, 0, h, c);
-        putLine(buf, matrix, w - 1, 0, w - 1, h, c);
+        putLine(buf, matrix, 0, 0, w, 0, color);
+        putLine(buf, matrix, 0, h - 1, w, h - 1, color);
+        putLine(buf, matrix, 0, 0, 0, h, color);
+        putLine(buf, matrix, w - 1, 0, w - 1, h, color);
         tess.end();
     }
 
-    // Helpers
     private static void putLine(BufferBuilder buf, Matrix4f matrix,
                                 float x1, float y1, float x2, float y2, int color) {
         float r = ((color >> 16) & 0xFF) / 255f;

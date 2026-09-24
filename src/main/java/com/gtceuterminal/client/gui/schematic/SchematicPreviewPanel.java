@@ -1,12 +1,14 @@
 package com.gtceuterminal.client.gui.schematic;
 
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.data.SchematicData;
-import com.gtceuterminal.common.theme.ItemTheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -21,28 +23,7 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 final class SchematicPreviewPanel {
 
-    private static final int C_WHITE = 0xFFFFFFFF;
-    private static final int C_GRAY = 0xFFAAAAAA;
-    private static final int C_SUCCESS = 0xFF4CAF50;
-
     private SchematicPreviewPanel() {
-    }
-
-    static WidgetGroup build(
-            int panelX,
-            int panelY,
-            int panelW,
-            int panelH,
-            int selectedIndex,
-            List<SchematicData> schematics,
-            boolean hasClipboard,
-            ItemTheme theme,
-            Player player
-    ) {
-        WidgetGroup panel = new WidgetGroup(panelX, panelY, panelW, panelH);
-        panel.setBackground(theme.panelTexture());
-        populate(panel, panelW, panelH, selectedIndex, schematics, hasClipboard, theme, player);
-        return panel;
     }
 
     static void repopulate(
@@ -52,12 +33,11 @@ final class SchematicPreviewPanel {
             int selectedIndex,
             List<SchematicData> schematics,
             boolean hasClipboard,
-            ItemTheme theme,
             Player player
     ) {
         disposePreviewWidgets(panel);
         panel.clearAllWidgets();
-        populate(panel, panelW, panelH, selectedIndex, schematics, hasClipboard, theme, player);
+        populate(panel, panelW, panelH, selectedIndex, schematics, hasClipboard, player);
     }
 
     private static void disposePreviewWidgets(WidgetGroup panel) {
@@ -82,30 +62,29 @@ final class SchematicPreviewPanel {
             int selectedIndex,
             List<SchematicData> schematics,
             boolean hasClipboard,
-            ItemTheme theme,
             Player player
     ) {
+        TerminalTheme tokens = TerminalUI.tokens();
         int previewW = panelW - 16;
         int infoH = 72;
         int previewH = panelH - 16 - infoH;
 
         WidgetGroup previewArea = new WidgetGroup(8, 8, previewW, panelH - 16);
-        previewArea.setBackground(theme.backgroundTexture());
+        previewArea.setBackground(new ColorRectTexture(tokens.panel()));
 
         if (selectedIndex >= 0 && selectedIndex < schematics.size()) {
             SchematicData sel = schematics.get(selectedIndex);
 
             if (player.level().isClientSide) {
                 SchematicPreviewWidget preview = new SchematicPreviewWidget(0, 0, previewW, previewH, sel);
-                preview.setBackground(new ColorRectTexture(0xFF080808));
+                preview.setBackground(new ColorRectTexture(tokens.panelDisabled()));
                 previewArea.addWidget(preview);
             }
 
             int ty = previewH + 6;
             String displayName = getMultiblockName(sel);
-            if (displayName.length() > 28) displayName = displayName.substring(0, 26) + "…";
-            LabelWidget nameLbl = new LabelWidget(4, ty, "§f§l" + displayName);
-            nameLbl.setTextColor(C_WHITE);
+            LabelWidget nameLbl = new LabelWidget(4, ty, fitText(displayName, previewW - 8));
+            nameLbl.setTextColor(tokens.textStrong());
             previewArea.addWidget(nameLbl);
             ty += 14;
 
@@ -113,40 +92,59 @@ final class SchematicPreviewPanel {
             String info = Component.translatable(
                     "gui.gtceuterminal.schematic_interface.preview.info",
                     sel.getBlocks().size(), size.getX(), size.getY(), size.getZ()).getString();
-            LabelWidget infoLbl = new LabelWidget(4, ty, info);
-            infoLbl.setTextColor(C_GRAY);
+            LabelWidget infoLbl = new LabelWidget(4, ty, stripFormatting(info));
+            infoLbl.setTextColor(tokens.textMuted());
             previewArea.addWidget(infoLbl);
             ty += 12;
 
             LabelWidget zoom = new LabelWidget(4, ty,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.preview.zoom_hint").getString());
-            zoom.setTextColor(0xFF555555);
+                    stripFormatting(Component.translatable(
+                            "gui.gtceuterminal.schematic_interface.preview.zoom_hint").getString()));
+            zoom.setTextColor(tokens.textFaint());
             previewArea.addWidget(zoom);
             ty += 12;
 
             LabelWidget rot = new LabelWidget(4, ty,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.preview.rotation_hint").getString());
-            rot.setTextColor(0xFF555555);
+                    stripFormatting(Component.translatable(
+                            "gui.gtceuterminal.schematic_interface.preview.rotation_hint").getString()));
+            rot.setTextColor(tokens.textFaint());
             previewArea.addWidget(rot);
 
         } else if (hasClipboard) {
             LabelWidget clipInfo = new LabelWidget(10, previewH / 2 - 10,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.preview.clipboard_content").getString());
-            clipInfo.setTextColor(C_SUCCESS);
+                    stripFormatting(Component.translatable(
+                            "gui.gtceuterminal.schematic_interface.preview.clipboard_content").getString()));
+            clipInfo.setTextColor(tokens.success());
             previewArea.addWidget(clipInfo);
 
             LabelWidget hint = new LabelWidget(10, previewH / 2 + 4,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.preview.save_to_see").getString());
-            hint.setTextColor(C_GRAY);
+                    stripFormatting(Component.translatable(
+                            "gui.gtceuterminal.schematic_interface.preview.save_to_see").getString()));
+            hint.setTextColor(tokens.textMuted());
             previewArea.addWidget(hint);
         } else {
-            LabelWidget none = new LabelWidget(previewW / 2 - 40, panelH / 2 - 10,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.preview.no_preview").getString());
-            none.setTextColor(C_GRAY);
+            String noPreview = stripFormatting(Component.translatable(
+                    "gui.gtceuterminal.schematic_interface.preview.no_preview").getString());
+            LabelWidget none = new LabelWidget(
+                    (previewW - Minecraft.getInstance().font.width(noPreview)) / 2,
+                    panelH / 2 - 10, noPreview);
+            none.setTextColor(tokens.textMuted());
             previewArea.addWidget(none);
         }
 
         panel.addWidget(previewArea);
+    }
+
+    private static String fitText(String text, int maxWidth) {
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
+    }
+
+    private static String stripFormatting(String text) {
+        return text.replaceAll("§.", "");
     }
 
     private static String getMultiblockName(SchematicData schematic) {

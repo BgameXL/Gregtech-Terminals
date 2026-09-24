@@ -1,6 +1,8 @@
 package com.gtceuterminal.client.gui.dismantler;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
@@ -35,24 +37,26 @@ public class DismantlerUI {
     private static final int GUI_W = 600;
     private static final int GUI_H = 480;
     private static final int HEADER_H = 30;
+    private static final int BODY_Y = HEADER_H + 1;
+    private static final int BODY_H = GUI_H - BODY_Y - 2;
+    private static final int CARD_INSET = 2;
+    private static final int INNER_W = GUI_W - 4 - CARD_INSET * 2;
+    private static final int INNER_H = BODY_H - CARD_INSET * 2;
+    private static final int LEFT_W = 240;
+    private static final int DIVIDER = 1;
+    private static final int RIGHT_X = CARD_INSET + LEFT_W + DIVIDER;
+    private static final int RIGHT_W = INNER_W - LEFT_W - DIVIDER;
+    private static final int CONTENT_H = 367;
     private static final int INFO_H = 40;
     private static final int FOOTER_H = 34;
-    private static final int PAD = 10;
-    private static final int SPLIT_X = 255;
-
-    private static final int CONTENT_Y = 2 + HEADER_H + 4;
-    private static final int CONTENT_H = GUI_H - CONTENT_Y - INFO_H - FOOTER_H - 6;
-    private static final int INFO_Y = CONTENT_Y + CONTENT_H + 4;
-    private static final int FOOTER_Y = GUI_H - FOOTER_H - 2;
-
-    private static final int C_BORDER_DARK = 0xFF0A0A0A;
+    private static final int INFO_Y = CARD_INSET + CONTENT_H + DIVIDER;
+    private static final int FOOTER_Y = INFO_Y + INFO_H + DIVIDER;
 
     private final IUIHolder uiHolder;
     private final ItemStack itemStack;
     private final BlockPos controllerPos;
     private final Player player;
     private final ItemTheme theme;
-    private final int colorBgLight, colorBgMedium, colorBorderLight;
 
     private final DismantleScanner.ScanResult scanResult;
     private WidgetGroup mainGroup;
@@ -63,9 +67,7 @@ public class DismantlerUI {
         this.controllerPos = controllerPos;
         this.player = heldHolder.player;
         this.theme = ItemTheme.load(this.itemStack);
-        this.colorBgLight = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
-        this.colorBgMedium = theme.panelColor;
-        this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        TerminalUI.use(this.theme);
         this.scanResult = computeScanResult(player, controllerPos);
     }
 
@@ -75,9 +77,7 @@ public class DismantlerUI {
         this.controllerPos = holder.controllerPos;
         this.player = player;
         this.theme = ItemTheme.load(this.itemStack);
-        this.colorBgLight = theme.isNativeStyle() ? 0xFF3A3A3A : theme.accent(0xAA);
-        this.colorBgMedium = theme.panelColor;
-        this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        TerminalUI.use(this.theme);
         this.scanResult = buildScanResult(player, holder.controllerPos, holder.scannedPositions);
     }
 
@@ -116,34 +116,41 @@ public class DismantlerUI {
 
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        mainGroup.setBackground(new ColorRectTexture(0x00000000));
+        mainGroup.setBackground(new ColorRectTexture(Palette.CLEAR));
 
         if (!theme.isNativeStyle()) {
-            mainGroup.addWidget(new WallpaperWidget(0, 0, GUI_W, GUI_H, () -> this.theme));
+            mainGroup.addWidget(new WallpaperWidget(2, BODY_Y, GUI_W - 4, BODY_H, () -> this.theme));
         }
 
-        mainGroup.addWidget(buildOuterBorder());
         mainGroup.addWidget(DismantlerHeader.build(
-                GUI_W, HEADER_H, controllerPos, itemStack, theme, mainGroup, player, this::closeUI));
+                GUI_W, HEADER_H, controllerPos, itemStack, theme, mainGroup, this::closeUI));
 
-        int previewW = SPLIT_X - PAD - 4;
-        mainGroup.addWidget(DismantlerPreviewPanel.build(
-                PAD, CONTENT_Y, previewW, CONTENT_H,
-                colorBgLight, C_BORDER_DARK,
+        WidgetGroup body = new WidgetGroup(2, BODY_Y, GUI_W - 4, BODY_H);
+        body.setBackground(TerminalUI.cardBg());
+
+        body.addWidget(DismantlerPreviewPanel.build(
+                CARD_INSET, CARD_INSET, LEFT_W, CONTENT_H,
                 scanResult, controllerPos, player));
 
-        mainGroup.addWidget(DismantlerBlockListPanel.build(
-                SPLIT_X, CONTENT_Y, GUI_W - SPLIT_X - PAD, CONTENT_H,
-                colorBgLight, C_BORDER_DARK, scanResult));
+        body.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER, CONTENT_H,
+                new ColorRectTexture(TerminalUI.tokens().borderDark())));
 
-        mainGroup.addWidget(DismantlerInfoBar.build(
-                PAD, INFO_Y, GUI_W - PAD * 2, INFO_H,
-                colorBgMedium, C_BORDER_DARK, scanResult, player));
+        body.addWidget(DismantlerBlockListPanel.build(
+                RIGHT_X, CARD_INSET, RIGHT_W, CONTENT_H, scanResult));
 
-        mainGroup.addWidget(DismantlerFooter.build(
-                PAD, FOOTER_Y, GUI_W - PAD * 2, FOOTER_H,
-                colorBgMedium, colorBorderLight,
+        body.addWidget(new ImageWidget(CARD_INSET, CARD_INSET + CONTENT_H, INNER_W, DIVIDER,
+                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+
+        body.addWidget(DismantlerInfoBar.build(
+                CARD_INSET, INFO_Y, INNER_W, INFO_H, scanResult, player));
+
+        body.addWidget(new ImageWidget(CARD_INSET, INFO_Y + INFO_H, INNER_W, DIVIDER,
+                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+
+        body.addWidget(DismantlerFooter.build(
+                CARD_INSET, FOOTER_Y, INNER_W, FOOTER_H,
                 this::performDismantle, this::closeUI));
+        mainGroup.addWidget(body);
 
         setupParade();
         return buildModularUI(mainGroup);
@@ -162,19 +169,10 @@ public class DismantlerUI {
         com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
-    private WidgetGroup buildOuterBorder() {
-        WidgetGroup g = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        g.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(C_BORDER_DARK)));
-        return g;
-    }
-
     private ModularUI buildModularUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         ui.widget(content);
-        ui.background(theme.modularUIBackground());
+        ui.background(new ColorRectTexture(Palette.CLEAR));
         return ui;
     }
 

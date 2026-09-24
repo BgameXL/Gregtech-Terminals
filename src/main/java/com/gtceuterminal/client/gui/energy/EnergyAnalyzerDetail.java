@@ -1,5 +1,8 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.EnergyGraphWidget;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.config.ItemsConfig;
@@ -39,33 +42,25 @@ final class EnergyAnalyzerDetail {
 
     private final int detailW;
     private final int graphW;
-    private final int graphH;
-
-    private static final int C_WHITE = 0xFFFFFFFF;
-    private static final int C_GRAY = 0xFFAAAAAA;
-    private static final int C_GOLD = 0xFFFFAA00;
-    private static final int C_GREEN = 0xFF55FF55;
-    private static final int C_RED = 0xFFFF5555;
-    private static final int C_BLUE = 0xFF5599FF;
-    private static final int C_ORANGE = 0xFFFF8800;
+    private final TerminalTheme tokens;
 
     private static final int GRAPH_H_WIDGET = 80;
     private static final int STATS_CELL_H = 38;
     private static final int HATCH_ROW_H = 24;
 
-    EnergyAnalyzerDetail(int detailW, int graphW, int graphH) {
+    EnergyAnalyzerDetail(int detailW, int graphW) {
         this.detailW = detailW;
         this.graphW = graphW;
-        this.graphH = graphH;
+        this.tokens = TerminalUI.tokens();
     }
 
     WidgetGroup build(
-            int detailX, int headerH, int guiH, int pad,
+            int detailX, int detailY, int detailH, int pad,
             Supplier<EnergySnapshot> selSnap,
             Runnable onRecipeHistoryClick
     ) {
-        int totalH = guiH - headerH;
-        WidgetGroup g = new WidgetGroup(detailX, headerH, detailW, totalH);
+        WidgetGroup g = new WidgetGroup(detailX, detailY, detailW, detailH);
+        g.setBackground(new ColorRectTexture(tokens.surface()));
 
         int y = pad;
 
@@ -74,7 +69,7 @@ final class EnergyAnalyzerDetail {
                 ItemsConfig.getEAHistorySeconds() * ItemsConfig.getEARefreshIntervalTicks() / 20f));
         LabelWidget graphHdr = new LabelWidget(pad, y,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.graph_window", windowSec).getString());
-        graphHdr.setTextColor(0xFF666666);
+        graphHdr.setTextColor(tokens.textFaint());
         g.addWidget(graphHdr);
         y += 13;
 
@@ -83,11 +78,11 @@ final class EnergyAnalyzerDetail {
 
         LabelWidget legIn = new LabelWidget(pad, y + GRAPH_H_WIDGET + 3,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.legend_in_short").getString());
-        legIn.setTextColor(0xFF00CC55);
+        legIn.setTextColor(tokens.success());
         g.addWidget(legIn);
         LabelWidget legOut = new LabelWidget(pad + 24, y + GRAPH_H_WIDGET + 3,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.legend_out_short").getString());
-        legOut.setTextColor(0xFFDD3333);
+        legOut.setTextColor(tokens.error());
         g.addWidget(legOut);
         y += GRAPH_H_WIDGET + 16;
 
@@ -99,46 +94,48 @@ final class EnergyAnalyzerDetail {
                     EnergySnapshot s = selSnap.get();
                     return s != null && s.isFormed ? EnergyDisplayHelper.formatEU(s.inputPerSec / 20) + "/t" : "---";
                 },
-                C_GREEN));
+                tokens.success()));
         g.addWidget(buildStatCell(pad + (cellW + gap), y, cellW, STATS_CELL_H,
                 "Avg Output",
                 () -> {
                     EnergySnapshot s = selSnap.get();
                     return s != null && s.isFormed ? EnergyDisplayHelper.formatEU(s.outputPerSec / 20) + "/t" : "---";
                 },
-                C_RED));
+                tokens.error()));
         g.addWidget(buildStatCell(pad + (cellW + gap) * 2, y, cellW, STATS_CELL_H,
-                "Peak", () -> peakText(selSnap.get()), C_GOLD));
+                "Peak", () -> peakText(selSnap.get()), tokens.warning()));
         g.addWidget(buildStatCell(pad + (cellW + gap) * 3, y, cellW, STATS_CELL_H,
-                "Stored", () -> storedPercent(selSnap.get()), C_BLUE));
+                "Stored", () -> storedPercent(selSnap.get()), tokens.action()));
         y += STATS_CELL_H + 8;
 
-        g.addWidget(new ImageWidget(pad, y, detailW - pad * 2, 1, new ColorRectTexture(0xFF222222)));
+        g.addWidget(new ImageWidget(pad, y, detailW - pad * 2, 1,
+                new ColorRectTexture(tokens.borderDark())));
         y += 6;
 
         LabelWidget progressHdr = new LabelWidget(pad, y,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_progress").getString());
-        progressHdr.setTextColor(0xFF666666);
+        progressHdr.setTextColor(tokens.textFaint());
         g.addWidget(progressHdr);
 
         LabelWidget progressPct = new LabelWidget(detailW - pad - 60, y + 10, () -> recipeProgressText(selSnap.get()));
         progressPct.setClientSideWidget();
-        progressPct.setTextColor(C_GREEN);
+        progressPct.setTextColor(tokens.success());
         g.addWidget(progressPct);
         y += 10;
 
         recipeBarBg = new WidgetGroup(pad, y, graphW - pad, 8);
         recipeBarBg.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF1A1A1A),
-                new ColorBorderTexture(1, 0xFF333333)));
+                new ColorRectTexture(tokens.panelDisabled()),
+                new ColorBorderTexture(1, tokens.borderSubtle())));
         g.addWidget(recipeBarBg);
         recipeBarFill = new WidgetGroup(pad + 1, y + 1, 0, 6);
-        recipeBarFill.setBackground(new ColorRectTexture(C_GREEN));
+        recipeBarFill.setBackground(new ColorRectTexture(tokens.success()));
         g.addWidget(recipeBarFill);
         y += 12;
 
-        recipeBtn = TerminalButton.action(pad, y, 112, 18, "§7Recipe History",
-                0xFF2A2A2A, 0xFF3A3A3A, cd -> onRecipeHistoryClick.run());
+        recipeBtn = TerminalButton.text3d(pad, y, 112, 18,
+                Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_button").getString(),
+                tokens.panelDisabled(), cd -> onRecipeHistoryClick.run());
         g.addWidget(recipeBtn);
         y += 24;
 
@@ -146,10 +143,11 @@ final class EnergyAnalyzerDetail {
             LabelWidget hatchesHdr = new LabelWidget(pad, y, () -> {
                 EnergySnapshot s = selSnap.get();
                 int count = s == null ? 0 : s.hatches.size();
-                return "§8Energy Hatches (" + count + ")";
+                return stripFormatting(Component.translatable(
+                        "gui.gtceuterminal.energy_analyzer.hatches_label").getString()) + " (" + count + ")";
             });
             hatchesHdr.setClientSideWidget();
-            hatchesHdr.setTextColor(0xFF666666);
+            hatchesHdr.setTextColor(tokens.textFaint());
             g.addWidget(hatchesHdr);
             y += 13;
 
@@ -167,11 +165,11 @@ final class EnergyAnalyzerDetail {
                                       String lbl, Supplier<String> valSup, int valColor) {
         WidgetGroup cell = new WidgetGroup(x, y, w, h);
         cell.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF111111),
-                new ColorBorderTexture(1, 0xFF1E1E1E)));
+                new ColorRectTexture(tokens.panel()),
+                new ColorBorderTexture(1, tokens.borderSubtle())));
 
         LabelWidget label = new LabelWidget(6, 6, lbl);
-        label.setTextColor(0xFF666666);
+        label.setTextColor(tokens.textFaint());
         cell.addWidget(label);
 
         LabelWidget val = new LabelWidget(6, 20, valSup);
@@ -186,13 +184,13 @@ final class EnergyAnalyzerDetail {
                                       Supplier<EnergySnapshot> selSnap) {
         WidgetGroup row = new WidgetGroup(x, y, w, HATCH_ROW_H - 2);
         row.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF111111),
-                new ColorBorderTexture(1, 0xFF1A1A1A)));
+                new ColorRectTexture(tokens.panel()),
+                new ColorBorderTexture(1, tokens.borderSubtle())));
 
         WidgetGroup slot = new WidgetGroup(4, 1, 20, 20);
         slot.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF1A1A1A),
-                new ColorBorderTexture(1, 0xFF333333)));
+                new ColorRectTexture(tokens.panelDisabled()),
+                new ColorBorderTexture(1, tokens.borderSubtle())));
         ImageWidget icon = new ImageWidget(1, 1, 18, 18, hatchIconSupplier(index, selSnap));
         icon.setClientSideWidget();
         slot.addWidget(icon);
@@ -203,10 +201,10 @@ final class EnergyAnalyzerDetail {
             if (s == null || index >= s.hatches.size()) return "";
             EnergySnapshot.HatchInfo h = s.hatches.get(index);
             String name = Component.translatable(h.blockNameKey()).getString();
-            return "§f" + EnergyDisplayHelper.truncate(name, 28);
+            return EnergyDisplayHelper.truncate(name, 28);
         });
         nameLbl.setClientSideWidget();
-        nameLbl.setTextColor(0xFFCCCCCC);
+        nameLbl.setTextColor(tokens.textStrong());
         row.addWidget(nameLbl);
 
         LabelWidget euLbl = new LabelWidget(w - 88, 7, () -> {
@@ -214,16 +212,16 @@ final class EnergyAnalyzerDetail {
             if (s == null || index >= s.hatches.size()) return "";
             EnergySnapshot.HatchInfo h = s.hatches.get(index);
             long rate = Math.max(0, h.voltage() * h.amperage());
-            return (h.isInput() ? "§a" : "§c") + EnergyDisplayHelper.formatEU(rate) + "/t";
+            return EnergyDisplayHelper.formatEU(rate) + "/t";
         });
         euLbl.setClientSideWidget();
-        euLbl.setTextColor(C_GREEN);
+        euLbl.setTextColor(tokens.textMuted());
         row.addWidget(euLbl);
 
         return row;
     }
 
-    private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(0x00000000);
+    private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(Palette.CLEAR);
 
     private static Supplier<IGuiTexture> hatchIconSupplier(int index, Supplier<EnergySnapshot> selSnap) {
         final String[] lastId = {null};
@@ -274,8 +272,8 @@ final class EnergyAnalyzerDetail {
     }
 
     private static String recipeProgressText(EnergySnapshot s) {
-        if (s == null || !s.isFormed || !s.isRecipeActive) return "§8" + pct(0);
-        return "§a" + pct(Math.round(Math.max(0f, Math.min(1f, s.recipeProgress)) * 100f));
+        if (s == null || !s.isFormed || !s.isRecipeActive) return pct(0);
+        return pct(Math.round(Math.max(0f, Math.min(1f, s.recipeProgress)) * 100f));
     }
 
     void updateDynamic(EnergySnapshot snap) {
@@ -284,7 +282,7 @@ final class EnergyAnalyzerDetail {
             int fw = (int) ((graphW - 12) * Math.min(1f, Math.max(0f, pct)));
             energyBarFill.setSize(new Size(Math.max(fw, 0), 6));
             if (snap != null) {
-                int fc = pct < 0.1f ? C_RED : pct < 0.25f ? C_ORANGE : C_GREEN;
+                int fc = pct < 0.1f ? tokens.error() : pct < 0.25f ? tokens.warning() : tokens.success();
                 energyBarFill.setBackground(new ColorRectTexture(fc));
             }
         }
@@ -295,7 +293,8 @@ final class EnergyAnalyzerDetail {
                     : 0f;
             int fw = (int) ((recipeBarBg.getSizeWidth() - 2) * pct);
             recipeBarFill.setSize(new Size(Math.max(0, fw), 6));
-            recipeBarFill.setBackground(new ColorRectTexture(pct > 0f ? C_GREEN : 0xFF333333));
+            recipeBarFill.setBackground(new ColorRectTexture(
+                    pct > 0f ? tokens.success() : tokens.panelDisabled()));
         }
 
         if (graphWidget != null) {
@@ -303,5 +302,9 @@ final class EnergyAnalyzerDetail {
                     snap != null ? snap.inputHistory : new long[0],
                     snap != null ? snap.outputHistory : new long[0]);
         }
+    }
+
+    private static String stripFormatting(String text) {
+        return text.replaceAll("§.", "");
     }
 }

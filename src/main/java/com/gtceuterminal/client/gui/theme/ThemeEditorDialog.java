@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 @OnlyIn(Dist.CLIENT)
 public class ThemeEditorDialog {
 
-    private static final int HDR_H = 24;
     private static final int FTR_H = 30;
     private static final int PAD = 8;
     private static final int SECTION_H = 30;
@@ -80,27 +79,27 @@ public class ThemeEditorDialog {
 
     private void buildAndShow() {
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(0xB0000000));
+        dialog.setBackground(new ColorRectTexture(Palette.CLEAR));
         dialog.setClickClose(false);
+        dialog.setParentInVisible();
 
         this.dw = rootGroup.getSize().width;
         this.dh = rootGroup.getSize().height;
 
         WidgetGroup panel = new WidgetGroup(0, 0, dw, dh);
-        panel.setBackground(new Bevel3DTexture(TerminalUI.tokens().surface()));
-
-        panel.addWidget(buildHeader(dialog));
+        panel.setBackground(new ColorRectTexture(Palette.CLEAR));
 
         List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
                 .filter(ThemeBundle::isAvailable)
                 .collect(Collectors.toList());
         bundleCardBgs = new ImageWidget[bundles.size()];
 
-        int cardsY = HDR_H + 4;
-        int bodyY = cardsY + SECTION_H - 1;
-        int bodyH = dh - bodyY - FTR_H - 4;
+        int cardsY = 2;
+        int bodyY = cardsY + SECTION_H;
+        int bodyH = dh - bodyY - FTR_H;
+        panel.addWidget(new ImageWidget(PAD, bodyY, dw - PAD * 2, dh - bodyY,
+                new Bevel3DTexture(TerminalUI.tokens().surface())));
         contentHost = new WidgetGroup(PAD, bodyY, dw - PAD * 2, bodyH);
-        contentHost.setBackground(TerminalUI.cardBg());
         panel.addWidget(contentHost);
 
         panel.addWidget(buildSectionCard(Section.COLORS, PAD, cardsY));
@@ -109,21 +108,6 @@ public class ThemeEditorDialog {
 
         panel.addWidget(buildFooter(dw, dh, dialog));
         dialog.addWidget(panel);
-    }
-
-    private WidgetGroup buildHeader(DialogWidget dialog) {
-        TerminalTheme tokens = TerminalUI.tokens();
-        WidgetGroup g = new WidgetGroup(0, 0, dw, HDR_H);
-        g.setBackground(new Bevel3DTexture(tokens.panel()));
-        LabelWidget title = new LabelWidget(PAD, (HDR_H - 8) / 2,
-                Component.translatable("gui.gtceuterminal.theme_editor.title").getString());
-        title.setTextColor(tokens.textStrong());
-        g.addWidget(title);
-        ButtonWidget close = TerminalButton.icon3d(dw - 22, 2, 20, "×",
-                cd -> dialog.setVisible(false));
-        close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        g.addWidget(close);
-        return g;
     }
 
     private WidgetGroup buildSectionCard(Section section, int x, int y) {
@@ -159,25 +143,25 @@ public class ThemeEditorDialog {
         clearSectionRefs();
 
         TerminalTheme tokens = TerminalUI.tokens();
-        int contentH = contentHost.getSize().height - PAD * 2;
-        int dividerX = PAD + COL_L + PAD / 2;
+        int contentH = contentHost.getSize().height;
+        int dividerX = COL_L + PAD / 2;
         int rightX = dividerX + 1 + PAD / 2;
-        int rightW = contentHost.getSize().width - rightX - PAD;
+        int rightW = contentHost.getSize().width - rightX;
 
         if (activeSection == Section.COLORS) {
             contentHost.addWidget(ThemeEditorLeftCol.buildColorPresets(
-                    PAD, PAD, contentH, this::applyPreset));
+                    0, 0, contentH, this::applyPreset));
             contentHost.addWidget(ThemeEditorRightCol.buildColors(
-                    rightX, PAD, rightW, contentH,
+                    rightX, 0, rightW, contentH,
                     working, editTargetHolder, channels,
                     this::onChannelOrTabChanged,
                     new RGBSliderWidget[4], swatches, tabBgs,
                     this::onHexEntered, hexFieldRef));
         } else {
             contentHost.addWidget(ThemeEditorLeftCol.buildBundles(
-                    PAD, PAD, contentH, activeBundleId, this::applyBundle, bundleCardBgs));
+                    0, 0, contentH, activeBundleId, this::applyBundle, bundleCardBgs));
             contentHost.addWidget(ThemeEditorRightCol.buildBundleOptions(
-                    rightX, PAD, rightW, contentH,
+                    rightX, 0, rightW, contentH,
                     working, this::cycleParade, animToggleBg,
                     this::toggleSource,
                     () -> navigateWallpaper(-1),
@@ -185,7 +169,7 @@ public class ThemeEditorDialog {
                     wallLabelRef, wallThumbRef));
         }
 
-        contentHost.addWidget(new ImageWidget(dividerX, PAD, 1, contentH,
+        contentHost.addWidget(new ImageWidget(dividerX, 0, 1, contentH,
                 new ColorRectTexture(tokens.borderDark())));
         refreshSectionCards();
         refreshWallpaperThumb();
@@ -215,20 +199,19 @@ public class ThemeEditorDialog {
 
     private WidgetGroup buildFooter(int w, int h, DialogWidget dialog) {
         TerminalTheme tokens = TerminalUI.tokens();
-        WidgetGroup ftr = new WidgetGroup(0, h - FTR_H, w, FTR_H);
-        ftr.setBackground(new Bevel3DTexture(tokens.panel()));
+        WidgetGroup ftr = new WidgetGroup(PAD, h - FTR_H, w - PAD * 2, FTR_H);
 
         int btnH = 18, btnY = (FTR_H - btnH) / 2;
-        int totalW = w - PAD * 2;
+        int totalW = ftr.getSize().width;
         int resetW = totalW / 3;
         int saveW = totalW - resetW - PAD;
 
-        ButtonWidget save = TerminalButton.text3d(PAD, btnY, saveW, btnH,
+        ButtonWidget save = TerminalButton.text3d(0, btnY, saveW, btnH,
                 Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString(),
                 tokens.successSurface(), cd -> saveAndClose(dialog));
         ftr.addWidget(save);
 
-        ButtonWidget reset = TerminalButton.text3d(PAD + saveW + PAD, btnY, resetW, btnH,
+        ButtonWidget reset = TerminalButton.text3d(saveW + PAD, btnY, resetW, btnH,
                 Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString(),
                 tokens.errorSurface(), cd -> resetDefaults());
         ftr.addWidget(reset);

@@ -139,21 +139,21 @@ public final class InlineUpgradePanel {
 
             int backW = 64;
             ButtonWidget back = TerminalButton.text3d(PAD, (HEADER_H - 18) / 2, backW, 18,
-                    "§7← back", tokens.surface(), cd -> {
+                    "← back", tokens.surface(), cd -> {
                         cleanupAvailabilityRequest();
                         onBack.run();
                     });
             header.addWidget(back);
 
-            String title = group.getGroup().displayName + "  §7×" + group.getCount();
-            LabelWidget lbl = new LabelWidget(backW + PAD * 2, HEADER_H / 2 - 4, "§f" + title);
+            String title = group.getGroup().displayName + "  ×" + group.getCount();
+            LabelWidget lbl = new LabelWidget(backW + PAD * 2, HEADER_H / 2 - 4, title);
             lbl.setTextColor(tokens.textStrong());
             header.addWidget(lbl);
 
             ComponentInfo rep = group.getRepresentative();
             if (rep != null) {
                 LabelWidget sub = new LabelWidget(backW + PAD * 2, HEADER_H / 2 + 6,
-                        "§8currently " + rep.getTierName());
+                        "currently " + rep.getTierName());
                 sub.setTextColor(tokens.textMuted());
                 header.addWidget(sub);
             }
@@ -259,7 +259,7 @@ public final class InlineUpgradePanel {
                 boolean sel = selectedTier != null && selectedTier == tier;
                 int bg = sel ? tokens.accentSoft() : tokens.panel();
                 int brd = sel ? tokens.border() : tokens.borderSubtle();
-                TextTexture txt = new TextTexture("§f" + UpgradeCandidateGrid.tierName(tier))
+                TextTexture txt = new TextTexture(UpgradeCandidateGrid.tierName(tier), tokens.textStrong())
                         .setWidth(btnW).setType(TextTexture.TextType.NORMAL);
                 final int t = tier;
                 ButtonWidget btn = new ButtonWidget(xp, yp, btnW, TIER_BTN_H,
@@ -354,7 +354,7 @@ public final class InlineUpgradePanel {
             int brd = selected ? tokens.border() : tokens.borderSubtle();
             String name = truncate(option.displayName(), Math.max(18, rowW / 6));
             String tier = UpgradeCandidateGrid.tierName(option.tier());
-            TextTexture txt = new TextTexture("§f" + name + "\n§7" + tier)
+            TextTexture txt = new TextTexture(name + "\n" + tier, tokens.textStrong())
                     .setWidth(rowW).setType(TextTexture.TextType.NORMAL);
             ButtonWidget btn = new ButtonWidget(x, y, rowW, rowH,
                     new GuiTextureGroup(new ColorRectTexture(bg), new ColorBorderTexture(1, brd), txt),
@@ -431,44 +431,45 @@ public final class InlineUpgradePanel {
             panel.addWidget(title);
 
             if (!MENetworkScanner.isAE2Available()) {
-                addStatusText(panel, 8, 22, "§8AE2 unavailable");
+                addStatusText(panel, 8, 22, "AE2 unavailable", tokens.textFaint());
                 return;
             }
 
             if (!hasSelectedUpgrade()) {
-                addStatusText(panel, 8, 22, "§8select a variant");
+                addStatusText(panel, 8, 22, "select a variant", tokens.textFaint());
                 return;
             }
 
             if (!hasLinkedTerminal()) {
-                addStatusText(panel, 8, 22, "§8link a wireless terminal");
+                addStatusText(panel, 8, 22, "link a wireless terminal", tokens.textFaint());
                 return;
             }
 
             if (availabilityLoading) {
-                addStatusText(panel, 8, 22, "§7checking storage...");
+                addStatusText(panel, 8, 22, "checking storage...", tokens.textMuted());
                 return;
             }
 
             if (availabilityResult == null) {
-                addStatusText(panel, 8, 22, "§8select a variant");
+                addStatusText(panel, 8, 22, "select a variant", tokens.textFaint());
                 return;
             }
 
             if (availabilityResult.entries.isEmpty()) {
-                addStatusText(panel, 8, 22, "§cno target item found");
+                addStatusText(panel, 8, 22, "no target item found", tokens.error());
                 return;
             }
 
             AnalysisResult.Entry entry = availabilityResult.entries.get(0);
             String itemName = truncate(entry.stack.getHoverName().getString(), Math.max(16, panelW / 6));
-            addStatusText(panel, 8, 24, "§f" + itemName);
-            addStatusText(panel, 8, 38, "§7needed §f" + entry.needed() + " §8for ×" + group.getCount());
+            addStatusText(panel, 8, 24, itemName, tokens.textStrong());
+            addStatusText(panel, 8, 38,
+                    "needed " + entry.needed() + " for ×" + group.getCount(), tokens.textMuted());
 
             boolean ready = entry.hasAll();
             int countColor = ready ? tokens.success() : tokens.warning();
             LabelWidget count = new LabelWidget(8, 54,
-                    "ME §f" + entry.inME + " §7· Inv §f" + entry.inInventory + " §7/ " + entry.needed());
+                    "ME " + entry.inME + " · Inv " + entry.inInventory + " / " + entry.needed());
             count.setTextColor(countColor);
             panel.addWidget(count);
 
@@ -479,18 +480,20 @@ public final class InlineUpgradePanel {
             if (ready) {
                 badgeBg = tokens.successSurface();
                 badgeBorder = tokens.success();
-                badgeText = entry.inInventory >= entry.needed() ? "§ain inventory" : "§aavailable";
+                badgeText = entry.inInventory >= entry.needed() ? "in inventory" : "available";
             } else if (entry.totalAvailable() > 0) {
                 badgeBg = tokens.warningSurface();
                 badgeBorder = tokens.warning();
-                badgeText = "§6partial";
+                badgeText = "partial";
             } else {
                 badgeBg = tokens.errorSurface();
                 badgeBorder = tokens.error();
-                badgeText = "§cmissing";
+                badgeText = "missing";
             }
             badge.setBackground(new GuiTextureGroup(new ColorRectTexture(badgeBg), new ColorBorderTexture(1, badgeBorder)));
-            badge.addWidget(new LabelWidget(5, 4, badgeText));
+            LabelWidget badgeLabel = new LabelWidget(5, 4, badgeText);
+            badgeLabel.setTextColor(badgeBorder);
+            badge.addWidget(badgeLabel);
             panel.addWidget(badge);
 
             if (!ready) {
@@ -503,9 +506,9 @@ public final class InlineUpgradePanel {
             }
         }
 
-        private void addStatusText(WidgetGroup panel, int x, int y, String text) {
+        private void addStatusText(WidgetGroup panel, int x, int y, String text, int color) {
             LabelWidget label = new LabelWidget(x, y, text);
-            label.setTextColor(tokens.textMuted());
+            label.setTextColor(color);
             panel.addWidget(label);
         }
 

@@ -15,6 +15,7 @@ import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
@@ -78,12 +79,20 @@ final class MultiblockDetailPanel {
         header.addWidget(name);
 
         MultiblockStatus status = mb.getStatus();
-        String statusStr = "§" + statusColorCode(status) + status.getDisplayName().toLowerCase();
-        String meta = mb.getTierName()
-                + " · " + statusStr
-                + " §7· " + mb.getComponents().size() + " components"
-                + " · " + mb.getDistanceString() + " away";
-        LabelWidget metaLabel = new LabelWidget(10, 22, meta);
+        String prefix = mb.getTierName() + " · ";
+        LabelWidget tierLabel = new LabelWidget(10, 22, prefix);
+        tierLabel.setTextColor(t.textMuted());
+        header.addWidget(tierLabel);
+
+        String statusText = status.getDisplayName().toLowerCase();
+        int statusX = 10 + Minecraft.getInstance().font.width(prefix);
+        LabelWidget statusLabel = new LabelWidget(statusX, 22, statusText);
+        statusLabel.setTextColor(statusColor(status, t));
+        header.addWidget(statusLabel);
+
+        int metaX = statusX + Minecraft.getInstance().font.width(statusText);
+        LabelWidget metaLabel = new LabelWidget(metaX, 22,
+                " · " + mb.getComponents().size() + " components · " + mb.getDistanceString() + " away");
         metaLabel.setTextColor(t.textMuted());
         header.addWidget(metaLabel);
 
@@ -219,14 +228,13 @@ final class MultiblockDetailPanel {
         return s.length() > max ? s.substring(0, max - 1) + "…" : s;
     }
 
-    private static char statusColorCode(MultiblockStatus status) {
+    private static int statusColor(MultiblockStatus status, TerminalTheme theme) {
         return switch (status) {
-            case ACTIVE -> 'a';
-            case IDLE -> 'e';
-            case NEEDS_MAINTENANCE -> '6';
-            case NO_POWER -> 'c';
-            case OUTPUT_FULL -> 'b';
-            case DISABLED, UNFORMED -> '8';
+            case ACTIVE -> theme.success();
+            case IDLE, NEEDS_MAINTENANCE -> theme.warning();
+            case NO_POWER -> theme.error();
+            case OUTPUT_FULL -> theme.border();
+            case DISABLED, UNFORMED -> theme.textFaint();
         };
     }
 

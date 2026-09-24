@@ -37,7 +37,10 @@ public final class TerminalButton {
     }
 
     private static IGuiTexture glyph(String s, int w) {
-        return new TextTexture(s).setWidth(w).setType(TextTexture.TextType.NORMAL);
+        return new TextTexture(stripFormatting(s))
+                .setColor(TerminalUI.tokens().textStrong())
+                .setWidth(w)
+                .setType(TextTexture.TextType.NORMAL);
     }
 
     public static ButtonWidget icon3d(int x, int y, int size, String glyph,
@@ -148,11 +151,11 @@ public final class TerminalButton {
     }
 
     public static ButtonWidget disabled(int x, int y, int w, int h, String label) {
-        TextTexture txt = new TextTexture("§8" + stripFormatting(label))
+        var tokens = TerminalUI.tokens();
+        TextTexture txt = new TextTexture(stripFormatting(label), tokens.textFaint())
                 .setWidth(w).setType(TextTexture.TextType.NORMAL);
         IGuiTexture normal = new GuiTextureGroup(
-                new ColorRectTexture(0xFF2A2A2A),
-                new ColorBorderTexture(1, 0xFF333333),
+                new Bevel3DTexture(tokens.panelDisabled()),
                 txt);
         ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {
         });

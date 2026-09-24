@@ -13,6 +13,7 @@ import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -124,16 +125,22 @@ final class MultiblockListPanel {
 
         // Name line
         String displayName = resolveDisplayName(mb);
-        String nameColor = mb.isVanillaGTCEu() ? "§f" : "§" + modColorCode(mb.getModColor());
-        entry.addWidget(new LabelWidget(8, 6, nameColor + truncate(displayName, 24)));
+        LabelWidget nameLabel = new LabelWidget(8, 6, truncate(displayName, 24));
+        nameLabel.setTextColor(mb.isVanillaGTCEu() ? t.textStrong() : opaque(mb.getModColor()));
+        entry.addWidget(nameLabel);
 
         // Sub line: status · tier · distance, matching the compact mockup row.
         MultiblockStatus status = mb.getStatus();
-        String sub = "§" + statusColorCode(status) + status.getDisplayName().toLowerCase()
-                + " §8" + mb.getTierName() + " · " + mb.getDistanceString();
-        LabelWidget subLabel = new LabelWidget(8, 21, sub);
-        subLabel.setTextColor(t.textMuted());
-        entry.addWidget(subLabel);
+        String statusText = status.getDisplayName().toLowerCase();
+        LabelWidget statusLabel = new LabelWidget(8, 21, statusText);
+        statusLabel.setTextColor(statusColor(status, t));
+        entry.addWidget(statusLabel);
+
+        int metaX = 8 + Minecraft.getInstance().font.width(statusText) + 4;
+        LabelWidget metaLabel = new LabelWidget(metaX, 21,
+                mb.getTierName() + " · " + mb.getDistanceString());
+        metaLabel.setTextColor(t.textFaint());
+        entry.addWidget(metaLabel);
 
         return entry;
     }
@@ -148,7 +155,7 @@ final class MultiblockListPanel {
         WidgetGroup footer = new WidgetGroup(x, y, panelW, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(t.borderDark())));
 
-        ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "§eHighlight",
+        ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "Highlight",
                 cd -> {
                     MultiblockInfo sel = getSelected.get();
                     if (sel != null) onHighlight.accept(sel);
@@ -180,14 +187,8 @@ final class MultiblockListPanel {
         return resolved;
     }
 
-    private static char modColorCode(int argb) {
-        int r = (argb >> 16) & 0xFF, g = (argb >> 8) & 0xFF, b = argb & 0xFF;
-        if (g > 200 && r < 100 && b < 100) return 'a';
-        if (r > 200 && g > 200 && b < 100) return 'e';
-        if (r < 100 && g > 200 && b > 200) return 'b';
-        if (r > 200 && g < 100 && b > 200) return 'd';
-        if (r > 200 && g > 100 && b < 50) return '6';
-        return '7';
+    private static int opaque(int color) {
+        return 0xFF000000 | (color & 0x00FFFFFF);
     }
 
     private static String truncate(String s, int max) {
@@ -195,14 +196,13 @@ final class MultiblockListPanel {
         return s.length() > max ? s.substring(0, max - 1) + "…" : s;
     }
 
-    private static char statusColorCode(MultiblockStatus status) {
+    private static int statusColor(MultiblockStatus status, TerminalTheme theme) {
         return switch (status) {
-            case ACTIVE -> 'a';
-            case IDLE -> 'e';
-            case NEEDS_MAINTENANCE -> '6';
-            case NO_POWER -> 'c';
-            case OUTPUT_FULL -> 'b';
-            case DISABLED, UNFORMED -> '8';
+            case ACTIVE -> theme.success();
+            case IDLE, NEEDS_MAINTENANCE -> theme.warning();
+            case NO_POWER -> theme.error();
+            case OUTPUT_FULL -> theme.border();
+            case DISABLED, UNFORMED -> theme.textFaint();
         };
     }
 

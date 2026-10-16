@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -44,7 +44,7 @@ final class MachineUnlinkDialog {
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 18);
-        titleBar.setBackground(new Bevel3DTexture(tokens.errorSurface()));
+        titleBar.setBackground(new BevelTexture(tokens.errorSurface()));
         panel.addWidget(titleBar);
 
         LabelWidget titleLbl = new LabelWidget(8, 4,

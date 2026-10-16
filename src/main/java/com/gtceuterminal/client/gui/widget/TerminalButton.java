@@ -8,7 +8,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
@@ -48,8 +48,8 @@ public final class TerminalButton {
         int fill = TerminalUI.tokens().panel();
         IGuiTexture g = glyph(glyph, size);
         ButtonWidget btn = new ButtonWidget(x, y, size, size,
-                new GuiTextureGroup(new Bevel3DTexture(fill), g), action);
-        btn.setHoverTexture(new GuiTextureGroup(new Bevel3DTexture(Palette.shade(fill, 1.30f)), g));
+                new GuiTextureGroup(new BevelTexture(fill), g), action);
+        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), g));
         return btn;
     }
 
@@ -62,8 +62,8 @@ public final class TerminalButton {
                                       Consumer<ClickData> action) {
         IGuiTexture txt = glyph(label, w);
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new GuiTextureGroup(new Bevel3DTexture(fill), txt), action);
-        btn.setHoverTexture(new GuiTextureGroup(new Bevel3DTexture(Palette.shade(fill, 1.30f)), txt));
+                new GuiTextureGroup(new BevelTexture(fill), txt), action);
+        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), txt));
         return btn;
     }
 
@@ -155,7 +155,7 @@ public final class TerminalButton {
         TextTexture txt = new TextTexture(stripFormatting(label), tokens.textFaint())
                 .setWidth(w).setType(TextTexture.TextType.NORMAL);
         IGuiTexture normal = new GuiTextureGroup(
-                new Bevel3DTexture(tokens.panelDisabled()),
+                new BevelTexture(tokens.panelDisabled()),
                 txt);
         ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {
         });

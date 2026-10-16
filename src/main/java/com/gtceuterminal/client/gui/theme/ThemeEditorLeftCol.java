@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.theme;
 
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -47,7 +47,7 @@ final class ThemeEditorLeftCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, COL_W, colH);
-        col.setBackground(new Bevel3DTexture(tokens.surface()));
+        col.setBackground(new BevelTexture(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_presets").getString());
@@ -83,7 +83,7 @@ final class ThemeEditorLeftCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, COL_W, colH);
-        col.setBackground(new Bevel3DTexture(tokens.surface()));
+        col.setBackground(new BevelTexture(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_themes").getString());
@@ -163,7 +163,7 @@ final class ThemeEditorLeftCol {
     private static IGuiTexture bundleCardTexture(ThemeBundle bundle, boolean selected) {
         TerminalTheme tokens = TerminalUI.tokens();
         int fill = selected ? Palette.withAlpha(bundle.accentColor(), 0x66) : tokens.panel();
-        return new Bevel3DTexture(fill);
+        return new BevelTexture(fill);
     }
 
     private static String presetLabel(ThemePreset preset) {

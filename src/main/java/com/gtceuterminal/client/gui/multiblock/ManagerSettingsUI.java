@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.multiblock;
 
 import com.gtceuterminal.common.ae2.MENetworkScanner;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -163,7 +163,7 @@ public class ManagerSettingsUI {
     private WidgetGroup buildHeader() {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
-        header.setBackground(new Bevel3DTexture(tokens.panel()));
+        header.setBackground(new BevelTexture(tokens.panel()));
 
         int titleX = 10;
         int iconSize = 18;
@@ -337,13 +337,13 @@ public class ManagerSettingsUI {
 
         btn.setButtonTexture(toggleTexture(fill, text, label));
         btn.setHoverTexture(new GuiTextureGroup(
-                new Bevel3DTexture(Palette.shade(fill, 1.30f)),
+                new BevelTexture(Palette.shade(fill, 1.30f)),
                 new TextTexture(label, text).setWidth(CTL_W).setType(TextTexture.TextType.NORMAL)));
     }
 
     private GuiTextureGroup toggleTexture(int fill, int text, String label) {
         return new GuiTextureGroup(
-                new Bevel3DTexture(fill),
+                new BevelTexture(fill),
                 new TextTexture(label, text).setWidth(CTL_W).setType(TextTexture.TextType.NORMAL));
     }
 

@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.theme;
 
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -50,7 +50,7 @@ final class ThemeEditorRightCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, colW, colH);
-        col.setBackground(new Bevel3DTexture(tokens.surface()));
+        col.setBackground(new BevelTexture(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_customization").getString());
@@ -131,8 +131,8 @@ final class ThemeEditorRightCol {
         hexField.setMaxStringLength(6);
         hexField.setValidator(ThemeEditorRightCol::sanitizeHex);
         hexField.setTextColor(tokens.textStrong());
-        hexField.setBackground(new Bevel3DTexture(tokens.panelDisabled()));
-        hexField.setHoverTexture(new Bevel3DTexture(tokens.panel()));
+        hexField.setBackground(new BevelTexture(tokens.panelDisabled()));
+        hexField.setHoverTexture(new BevelTexture(tokens.panel()));
         hexField.setCurrentString(String.format("%06X",
                 currentColor(working, editTargetHolder[0]) & 0xFFFFFF));
         hexFieldRef[0] = hexField;
@@ -183,7 +183,7 @@ final class ThemeEditorRightCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, colW, colH);
-        col.setBackground(new Bevel3DTexture(tokens.surface()));
+        col.setBackground(new BevelTexture(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_options").getString());
@@ -214,7 +214,7 @@ final class ThemeEditorRightCol {
         int sourceX = PAD + animW + 6;
         int sourceW = 94;
         col.addWidget(new ImageWidget(sourceX, cy, sourceW, optionH,
-                new Bevel3DTexture(tokens.panel())));
+                new BevelTexture(tokens.panel())));
         LabelWidget sourceLabel = new LabelWidget(sourceX + 7, cy + 6, () ->
                 working.slideshowSource == ItemTheme.SlideshowSource.CUSTOM ? "Custom" : "Built-in");
         sourceLabel.setClientSideWidget();
@@ -259,7 +259,7 @@ final class ThemeEditorRightCol {
         int previewH = colH - cy - PAD;
         if (previewH > 12) {
             col.addWidget(new ImageWidget(PAD, cy, colW - PAD * 2, previewH,
-                    new Bevel3DTexture(tokens.panelDisabled())));
+                    new BevelTexture(tokens.panelDisabled())));
             ImageWidget thumb = new ImageWidget(PAD + 2, cy + 2,
                     colW - PAD * 2 - 4, previewH - 4,
                     new ColorRectTexture(tokens.borderDark()));
@@ -271,12 +271,12 @@ final class ThemeEditorRightCol {
 
     static IGuiTexture targetTexture(boolean selected) {
         TerminalTheme tokens = TerminalUI.tokens();
-        return new Bevel3DTexture(selected ? tokens.action() : tokens.panel());
+        return new BevelTexture(selected ? tokens.action() : tokens.panel());
     }
 
     static IGuiTexture animToggleTexture(boolean on) {
         TerminalTheme tokens = TerminalUI.tokens();
-        return new Bevel3DTexture(on ? tokens.action() : tokens.panel());
+        return new BevelTexture(on ? tokens.action() : tokens.panel());
     }
 
     static void refreshAnimToggle(ImageWidget[] ref, boolean on) {

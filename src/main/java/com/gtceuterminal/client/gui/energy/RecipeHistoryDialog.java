@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -39,7 +39,7 @@ public final class RecipeHistoryDialog {
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, dW, 18);
-        titleBar.setBackground(new Bevel3DTexture(tokens.panel()));
+        titleBar.setBackground(new BevelTexture(tokens.panel()));
         panel.addWidget(titleBar);
 
         String titleText = stripFormatting(Component.translatable(

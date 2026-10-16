@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -98,7 +98,7 @@ public class ThemeEditorDialog {
         int bodyY = cardsY + SECTION_H;
         int bodyH = dh - bodyY - FTR_H;
         panel.addWidget(new ImageWidget(PAD, bodyY, dw - PAD * 2, dh - bodyY,
-                new Bevel3DTexture(TerminalUI.tokens().surface())));
+                new BevelTexture(TerminalUI.tokens().surface())));
         contentHost = new WidgetGroup(PAD, bodyY, dw - PAD * 2, bodyH);
         panel.addWidget(contentHost);
 
@@ -192,9 +192,9 @@ public class ThemeEditorDialog {
         }
     }
 
-    private Bevel3DTexture sectionCardTexture(Section section) {
+    private BevelTexture sectionCardTexture(Section section) {
         TerminalTheme tokens = TerminalUI.tokens();
-        return new Bevel3DTexture(section == activeSection ? tokens.panel() : tokens.panelDisabled());
+        return new BevelTexture(section == activeSection ? tokens.panel() : tokens.panelDisabled());
     }
 
     private WidgetGroup buildFooter(int w, int h, DialogWidget dialog) {

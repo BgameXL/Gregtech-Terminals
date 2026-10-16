@@ -4,7 +4,7 @@ import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.network.CPacketConfirmAutobuild;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
@@ -89,7 +89,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, w - 4, HEADER_H);
-        header.setBackground(new Bevel3DTexture(tokens.panel()));
+        header.setBackground(new BevelTexture(tokens.panel()));
 
         String title = result.kind == AnalysisResult.Kind.UPGRADE
                 ? Component.translatable("gui.gtceuterminal.autocraft.title.upgrade").getString()

@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
@@ -35,7 +35,7 @@ final class DismantlerHeader {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup header = new WidgetGroup(2, 2, guiW - 4, headerH);
-        header.setBackground(new Bevel3DTexture(tokens.panel()));
+        header.setBackground(new BevelTexture(tokens.panel()));
 
         int titleX = 8;
         int iconSize = 20, iconY = (headerH - iconSize) / 2;
@@ -56,7 +56,7 @@ final class DismantlerHeader {
         }
 
         LabelWidget title = new LabelWidget(titleX, 11,
-                fitText(itemStack.getHoverName().getString(), 260));
+                fitText(itemStack.getHoverName().getString()));
         title.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
         header.addWidget(title);
 
@@ -87,11 +87,11 @@ final class DismantlerHeader {
         return header;
     }
 
-    private static String fitText(String text, int maxWidth) {
+    private static String fitText(String text) {
         var font = Minecraft.getInstance().font;
-        if (font.width(text) <= maxWidth) return text;
+        if (font.width(text) <= 260) return text;
         String ellipsis = "…";
         return font.substrByWidth(Component.literal(text),
-                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
+                Math.max(0, 260 - font.width(ellipsis))).getString() + ellipsis;
     }
 }

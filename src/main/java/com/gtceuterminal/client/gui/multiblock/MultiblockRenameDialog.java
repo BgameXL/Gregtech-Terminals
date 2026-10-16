@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.multiblock;
 
 import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -49,7 +49,7 @@ final class MultiblockRenameDialog {
         if (listScroll != null) listScroll.setActive(false);
 
         WidgetGroup panel = new WidgetGroup((parentW - DW) / 2, (parentH - DH) / 2, DW, DH);
-        panel.setBackground(new Bevel3DTexture(tokens.surface()));
+        panel.setBackground(new BevelTexture(tokens.surface()));
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 26);

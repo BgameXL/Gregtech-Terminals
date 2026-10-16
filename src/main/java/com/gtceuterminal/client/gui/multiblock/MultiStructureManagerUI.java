@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.multiblock;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
@@ -275,11 +275,11 @@ public class MultiStructureManagerUI {
         return headers;
     }
 
-    private Bevel3DTexture headerCardTexture(View view) {
+    private BevelTexture headerCardTexture(View view) {
         int fill = view == activeView
                 ? TerminalUI.tokens().panel()
                 : TerminalUI.tokens().panelDisabled();
-        return new Bevel3DTexture(fill);
+        return new BevelTexture(fill);
     }
 
     private void switchView(View view) {

@@ -8,18 +8,18 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class Bevel3DTexture implements IGuiTexture {
+public class BevelTexture implements IGuiTexture {
 
     private final int fill;
     private final int highlight;
     private final int shadow;
     private final int edge;
 
-    public Bevel3DTexture(int fill) {
+    public BevelTexture(int fill) {
         this(fill, Palette.shade(fill, 1.45f), Palette.shade(fill, 0.62f), Palette.shade(fill, 0.30f));
     }
 
-    public Bevel3DTexture(int fill, int highlight, int shadow, int edge) {
+    public BevelTexture(int fill, int highlight, int shadow, int edge) {
         this.fill = fill;
         this.highlight = highlight;
         this.shadow = shadow;

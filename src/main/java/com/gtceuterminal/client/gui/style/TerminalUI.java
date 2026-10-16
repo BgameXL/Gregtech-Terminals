@@ -24,10 +24,10 @@ public final class TerminalUI {
     }
 
     public static IGuiTexture cardBg() {
-        return new Bevel3DTexture(tokens.surface());
+        return new BevelTexture(tokens.surface());
     }
 
     public static IGuiTexture cardBg(int fill) {
-        return new Bevel3DTexture(fill);
+        return new BevelTexture(fill);
     }
 }

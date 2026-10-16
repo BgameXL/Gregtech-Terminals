@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.schematic;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.Bevel3DTexture;
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -121,7 +121,7 @@ public class SchematicInterfaceUI {
 
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
-        header.setBackground(new Bevel3DTexture(tokens.panel()));
+        header.setBackground(new BevelTexture(tokens.panel()));
 
         int titleX = 8;
         int iconSize = 20, iconY = (HEADER_H - iconSize) / 2;

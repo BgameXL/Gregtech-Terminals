@@ -27,7 +27,7 @@ public final class SchematicCopier {
 
     public static void copyMultiblock(IMultiController controller, ItemStack itemStack,
                                       Player player, Level level) {
-        GTCEUTerminalMod.LOGGER.info("=== COPYING MULTIBLOCK ===");
+        GTCEUTerminalMod.LOGGER.debug("COPYING MULTIBLOCK");
 
         Set<BlockPos> positions = scanMultiblockArea(controller, level);
 
@@ -86,7 +86,7 @@ public final class SchematicCopier {
                 Component.translatable("item.gtceuterminal.schematic_copier.multiblock_copied", blocks.size()),
                 true);
 
-        GTCEUTerminalMod.LOGGER.info("Multiblock copied: {} blocks", blocks.size());
+        GTCEUTerminalMod.LOGGER.debug("Multiblock copied: {} blocks", blocks.size());
     }
 
     private static Set<BlockPos> scanMultiblockArea(IMultiController controller, Level level) {
@@ -96,7 +96,7 @@ public final class SchematicCopier {
             Collection<BlockPos> cached = controller.getMultiblockState().getCache();
             if (cached != null && !cached.isEmpty()) {
                 positions.addAll(cached);
-                GTCEUTerminalMod.LOGGER.info("Got {} positions from multiblock cache", positions.size());
+                GTCEUTerminalMod.LOGGER.debug("Got {} positions from multiblock cache", positions.size());
                 return positions;
             }
         } catch (Exception e) {
@@ -114,7 +114,7 @@ public final class SchematicCopier {
             positions.add(part.self().getPos());
         }
 
-        GTCEUTerminalMod.LOGGER.info("Fallback scan: collected {} part positions", positions.size());
+        GTCEUTerminalMod.LOGGER.debug("Fallback scan: collected {} part positions", positions.size());
         return positions;
     }
 

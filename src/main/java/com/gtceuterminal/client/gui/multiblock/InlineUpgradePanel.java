@@ -11,9 +11,8 @@ import com.gtceuterminal.common.network.CPacketComponentUpgrade;
 import com.gtceuterminal.common.network.CPacketRequestUpgradeAnalysis;
 import com.gtceuterminal.common.network.CPacketRequestUpgradeAvailability;
 import com.gtceuterminal.common.network.TerminalNetwork;
-import com.gtceuterminal.client.gui.dialog.UpgradeCandidateGrid;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
+import com.gtceuterminal.common.ae2.AccessPointLink;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 
@@ -139,7 +138,8 @@ public final class InlineUpgradePanel {
 
             int backW = 64;
             ButtonWidget back = TerminalButton.text3d(PAD, (HEADER_H - 18) / 2, backW, 18,
-                    "← back", tokens.surface(), cd -> {
+                    Component.translatable("gui.gtceuterminal.inline_upgrade.back").getString(),
+                    tokens.surface(), cd -> {
                         cleanupAvailabilityRequest();
                         onBack.run();
                     });
@@ -153,7 +153,8 @@ public final class InlineUpgradePanel {
             ComponentInfo rep = group.getRepresentative();
             if (rep != null) {
                 LabelWidget sub = new LabelWidget(backW + PAD * 2, HEADER_H / 2 + 6,
-                        "currently " + rep.getTierName());
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.currently",
+                                rep.getTierName()).getString());
                 sub.setColor(tokens.textMuted());
                 header.addWidget(sub);
             }
@@ -259,7 +260,7 @@ public final class InlineUpgradePanel {
                 boolean sel = selectedTier != null && selectedTier == tier;
                 int bg = sel ? tokens.accentSoft() : tokens.panel();
                 int brd = sel ? tokens.border() : tokens.borderSubtle();
-                TextTexture txt = new TextTexture(UpgradeCandidateGrid.tierName(tier), tokens.textStrong())
+                TextTexture txt = new TextTexture(UpgradeCandidates.tierName(tier), tokens.textStrong())
                         .setWidth(btnW).setType(TextTexture.TextType.NORMAL);
                 final int t = tier;
                 ButtonWidget btn = new ButtonWidget(xp, yp, btnW, TIER_BTN_H,
@@ -286,7 +287,7 @@ public final class InlineUpgradePanel {
 
         private void populateScroll(ComponentInfo rep) {
             optionsScroll.clearAllWidgets();
-            List<UpgradeCandidateGrid.UpgradeOption> options;
+            List<UpgradeCandidates.UpgradeOption> options;
             if (rep.getGroup() == ComponentGroupRegistry.MAINTENANCE) {
                 options = explicitVariantOptions(rep);
                 buildVariantList(options);
@@ -306,7 +307,7 @@ public final class InlineUpgradePanel {
             }
         }
 
-        private void buildVariantList(List<UpgradeCandidateGrid.UpgradeOption> options) {
+        private void buildVariantList(List<UpgradeCandidates.UpgradeOption> options) {
             if (options.isEmpty()) {
                 LabelWidget empty = new LabelWidget(4, 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.no_variants").getString());
@@ -318,7 +319,7 @@ public final class InlineUpgradePanel {
             int rowW = optionsScroll.getSizeWidth() - 2;
             int rowH = 30;
             int y = 1;
-            for (UpgradeCandidateGrid.UpgradeOption option : options) {
+            for (UpgradeCandidates.UpgradeOption option : options) {
                 boolean selected = selectedUpgradeId != null
                         ? option.blockId().equals(selectedUpgradeId)
                         : option.blockId().isBlank();
@@ -339,21 +340,21 @@ public final class InlineUpgradePanel {
             int rowW = optionsScroll.getSizeWidth() - 2;
             String name = ComponentUpgradeHelper.getUpgradeName(rep, selectedTier);
             if (name == null || name.isBlank()) {
-                name = UpgradeCandidateGrid.tierName(selectedTier) + " " + rep.getGroup().displayName;
+                name = UpgradeCandidates.tierName(selectedTier) + " " + rep.getGroup().displayName;
             }
             boolean selected = selectedUpgradeId == null || selectedUpgradeId.isBlank();
-            UpgradeCandidateGrid.UpgradeOption option =
-                    new UpgradeCandidateGrid.UpgradeOption("", name, selectedTier);
+            UpgradeCandidates.UpgradeOption option =
+                    new UpgradeCandidates.UpgradeOption("", name, selectedTier);
             optionsScroll.addWidget(makeVariantRow(option, 1, 1, rowW, 30, selected));
         }
 
-        private ButtonWidget makeVariantRow(UpgradeCandidateGrid.UpgradeOption option,
+        private ButtonWidget makeVariantRow(UpgradeCandidates.UpgradeOption option,
                                             int x, int y, int rowW, int rowH,
                                             boolean selected) {
             int bg = selected ? tokens.accentSoft() : tokens.panel();
             int brd = selected ? tokens.border() : tokens.borderSubtle();
             String name = truncate(option.displayName(), Math.max(18, rowW / 6));
-            String tier = UpgradeCandidateGrid.tierName(option.tier());
+            String tier = UpgradeCandidates.tierName(option.tier());
             TextTexture txt = new TextTexture(name + "\n" + tier, tokens.textStrong())
                     .setWidth(rowW).setType(TextTexture.TextType.NORMAL);
             ButtonWidget btn = new ButtonWidget(x, y, rowW, rowH,
@@ -391,7 +392,7 @@ public final class InlineUpgradePanel {
             if (catalog != null) {
                 var opt = catalog.get(rep.getPosition());
                 if (opt != null && opt.candidates() != null) {
-                    String cur = UpgradeCandidateGrid.blockId(rep);
+                    String cur = UpgradeCandidates.blockId(rep);
                     for (var c : opt.candidates()) {
                         if (c == null || c.blockId() == null) continue;
                         if (cur != null && cur.equalsIgnoreCase(c.blockId())) continue;
@@ -431,32 +432,44 @@ public final class InlineUpgradePanel {
             panel.addWidget(title);
 
             if (!MENetworkScanner.isAE2Available()) {
-                addStatusText(panel, 8, 22, "AE2 unavailable", tokens.textFaint());
+                addStatusText(panel, 8, 22,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.availability.ae2_unavailable").getString(),
+                        tokens.textFaint());
                 return;
             }
 
             if (!hasSelectedUpgrade()) {
-                addStatusText(panel, 8, 22, "select a variant", tokens.textFaint());
+                addStatusText(panel, 8, 22,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.availability.select_variant").getString(),
+                        tokens.textFaint());
                 return;
             }
 
             if (!hasLinkedTerminal()) {
-                addStatusText(panel, 8, 22, "link a wireless terminal", tokens.textFaint());
+                addStatusText(panel, 8, 22,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.availability.link_terminal").getString(),
+                        tokens.textFaint());
                 return;
             }
 
             if (availabilityLoading) {
-                addStatusText(panel, 8, 22, "checking storage...", tokens.textMuted());
+                addStatusText(panel, 8, 22,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.availability.checking").getString(),
+                        tokens.textMuted());
                 return;
             }
 
             if (availabilityResult == null) {
-                addStatusText(panel, 8, 22, "select a variant", tokens.textFaint());
+                addStatusText(panel, 8, 22,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.availability.select_variant").getString(),
+                        tokens.textFaint());
                 return;
             }
 
             if (availabilityResult.entries.isEmpty()) {
-                addStatusText(panel, 8, 22, "no target item found", tokens.error());
+                addStatusText(panel, 8, 22,
+                        Component.translatable("gui.gtceuterminal.inline_upgrade.availability.no_target").getString(),
+                        tokens.error());
                 return;
             }
 
@@ -464,12 +477,14 @@ public final class InlineUpgradePanel {
             String itemName = truncate(entry.stack.getHoverName().getString(), Math.max(16, panelW / 6));
             addStatusText(panel, 8, 24, itemName, tokens.textStrong());
             addStatusText(panel, 8, 38,
-                    "needed " + entry.needed() + " for ×" + group.getCount(), tokens.textMuted());
+                    Component.translatable("gui.gtceuterminal.inline_upgrade.availability.needed",
+                            entry.needed(), group.getCount()).getString(), tokens.textMuted());
 
             boolean ready = entry.hasAll();
             int countColor = ready ? tokens.success() : tokens.warning();
             LabelWidget count = new LabelWidget(8, 54,
-                    "ME " + entry.inME + " · Inv " + entry.inInventory + " / " + entry.needed());
+                    Component.translatable("gui.gtceuterminal.inline_upgrade.availability.counts",
+                            entry.inME, entry.inInventory, entry.needed()).getString());
             count.setColor(countColor);
             panel.addWidget(count);
 
@@ -480,15 +495,17 @@ public final class InlineUpgradePanel {
             if (ready) {
                 badgeBg = tokens.successSurface();
                 badgeBorder = tokens.success();
-                badgeText = entry.inInventory >= entry.needed() ? "in inventory" : "available";
+                badgeText = entry.inInventory >= entry.needed()
+                        ? Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_in_inventory").getString()
+                        : Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_available").getString();
             } else if (entry.totalAvailable() > 0) {
                 badgeBg = tokens.warningSurface();
                 badgeBorder = tokens.warning();
-                badgeText = "partial";
+                badgeText = Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_partial").getString();
             } else {
                 badgeBg = tokens.errorSurface();
                 badgeBorder = tokens.error();
-                badgeText = "missing";
+                badgeText = Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_missing").getString();
             }
             badge.setBackground(new GuiTextureGroup(new ColorRectTexture(badgeBg), new ColorBorderTexture(1, badgeBorder)));
             LabelWidget badgeLabel = new LabelWidget(5, 4, badgeText);
@@ -561,31 +578,31 @@ public final class InlineUpgradePanel {
         }
 
         private boolean hasLinkedTerminal() {
-            return MENetworkScanner.isAE2Available() && WirelessTerminalHandler.isLinked(findTerminal());
+            return MENetworkScanner.isAE2Available() && AccessPointLink.isLinked(findTerminal());
         }
 
         private boolean hasExplicitVariantOptions(ComponentInfo rep) {
             return !explicitVariantOptions(rep).isEmpty();
         }
 
-        private List<UpgradeCandidateGrid.UpgradeOption> explicitVariantOptions(ComponentInfo rep) {
+        private List<UpgradeCandidates.UpgradeOption> explicitVariantOptions(ComponentInfo rep) {
             if (rep == null) return List.of();
             if (rep.getGroup() == ComponentGroupRegistry.MAINTENANCE) {
-                return UpgradeCandidateGrid.maintenanceCandidates(rep);
+                return UpgradeCandidates.maintenanceCandidates(rep);
             }
             if (rep.getGroup() == ComponentGroupRegistry.COIL) {
-                return UpgradeCandidateGrid.coilCandidates(rep);
+                return UpgradeCandidates.coilCandidates(rep);
             }
             if (selectedTier == null) return List.of();
-            return UpgradeCandidateGrid.universalCandidates(rep, selectedTier, catalog);
+            return UpgradeCandidates.universalCandidates(rep, selectedTier, catalog);
         }
 
         private boolean autoSelectFirstExplicitOption(ComponentInfo rep) {
-            List<UpgradeCandidateGrid.UpgradeOption> options = explicitVariantOptions(rep);
+            List<UpgradeCandidates.UpgradeOption> options = explicitVariantOptions(rep);
             if (options.isEmpty()) return false;
 
             if (selectedUpgradeId != null && !selectedUpgradeId.isBlank()) {
-                for (UpgradeCandidateGrid.UpgradeOption option : options) {
+                for (UpgradeCandidates.UpgradeOption option : options) {
                     if (option.blockId().equals(selectedUpgradeId)) {
                         selectedTier = option.tier();
                         return true;
@@ -593,7 +610,7 @@ public final class InlineUpgradePanel {
                 }
             }
 
-            UpgradeCandidateGrid.UpgradeOption first = options.get(0);
+            UpgradeCandidates.UpgradeOption first = options.get(0);
             selectedUpgradeId = first.blockId() != null && !first.blockId().isBlank() ? first.blockId() : null;
             selectedTier = first.tier();
             return selectedUpgradeId != null;
@@ -666,10 +683,10 @@ public final class InlineUpgradePanel {
         // must come from a linked manager — not a linked Schematic Interface in the inventory.
         private ItemStack findTerminal() {
             for (ItemStack s : new ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
-                if (WirelessTerminalHandler.isOurLinkedManager(s)) return s;
+                if (AccessPointLink.isOurLinkedManager(s)) return s;
             }
             for (ItemStack s : player.getInventory().items) {
-                if (WirelessTerminalHandler.isOurLinkedManager(s)) return s;
+                if (AccessPointLink.isOurLinkedManager(s)) return s;
             }
             return ItemStack.EMPTY;
         }

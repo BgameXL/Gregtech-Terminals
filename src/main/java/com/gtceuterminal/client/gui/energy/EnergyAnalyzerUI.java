@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.widget.TerminalParade;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
@@ -99,20 +100,8 @@ public class EnergyAnalyzerUI {
                 }));
         rootGroup.addWidget(body);
 
-        setupParade();
+        TerminalParade.setup(theme, W, H);
         return wrapUI(rootGroup);
-    }
-
-    private void setupParade() {
-        com.gtceuterminal.client.ClientEvents.clearActiveParade();
-        if (!theme.isBundleStyle()) return;
-        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-        if (bundle == null) return;
-        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade = bundle.createParadeWidget(0, 0, W, H);
-        if (parade == null || parade.isEmpty()) return;
-        parade.setGuiCenter(W / 2f, H / 2f);
-        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     private void onDataRefresh() {

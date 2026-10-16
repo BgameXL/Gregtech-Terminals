@@ -84,7 +84,7 @@ public class CPacketBlockReplacement {
                 return;
             }
 
-            ItemStack wirelessTerminal = findWirelessTerminal(player);
+            ItemStack linkedManager = findLinkedManager(player);
 
             BlockReplacementData data = new BlockReplacementData();
             data.setMirrorMode(mirrorMode);
@@ -119,7 +119,7 @@ public class CPacketBlockReplacement {
                 data.addBlock(oldState);
             }
 
-            boolean success = BlockReplacer.replaceBlocks(controller, player, data, wirelessTerminal);
+            boolean success = BlockReplacer.replaceBlocks(controller, player, data, linkedManager);
 
             if (success) {
                 GTCEUTerminalMod.LOGGER.info("Block replacement successful for player: {}",
@@ -133,7 +133,7 @@ public class CPacketBlockReplacement {
         ctx.get().setPacketHandled(true);
     }
 
-    private ItemStack findWirelessTerminal(ServerPlayer player) {
+    private ItemStack findLinkedManager(ServerPlayer player) {
         if (player.getMainHandItem().getItem() instanceof MultiStructureManagerItem) return player.getMainHandItem();
         if (player.getOffhandItem().getItem() instanceof MultiStructureManagerItem) return player.getOffhandItem();
 

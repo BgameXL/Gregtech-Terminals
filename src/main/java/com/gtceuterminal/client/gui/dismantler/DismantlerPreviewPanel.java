@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -40,7 +41,7 @@ final class DismantlerPreviewPanel {
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
         panel.setBackground(new ColorRectTexture(tokens.surface()));
 
-        LabelWidget label = new LabelWidget(8, 7, stripFormatting(
+        LabelWidget label = new LabelWidget(8, 7, TerminalText.strip(
                 Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString()));
         label.setColor(tokens.textMuted());
         panel.addWidget(label);
@@ -55,7 +56,7 @@ final class DismantlerPreviewPanel {
             }
         }
 
-        String noDataText = stripFormatting(
+        String noDataText = TerminalText.strip(
                 Component.translatable("gui.gtceuterminal.dismantler.no_data").getString());
         LabelWidget noData = new LabelWidget(
                 (w - Minecraft.getInstance().font.width(noDataText)) / 2, h / 2, noDataText);
@@ -97,7 +98,4 @@ final class DismantlerPreviewPanel {
         }
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

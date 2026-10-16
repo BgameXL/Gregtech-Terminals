@@ -72,7 +72,7 @@ public final class MEQueryResult {
     }
 
     private static IGrid tryStack(ItemStack stack, net.minecraft.world.entity.player.Player player) {
-        if (!WirelessTerminalHandler.isOurLinkedManager(stack)) return null;
-        return WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
+        if (!AccessPointLink.isOurLinkedManager(stack)) return null;
+        return AccessPointLink.getLinkedGrid(stack, player.level(), player);
     }
 }

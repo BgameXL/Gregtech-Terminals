@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
@@ -42,7 +43,7 @@ public final class RecipeHistoryDialog {
         titleBar.setBackground(new BevelTexture(tokens.panel()));
         panel.addWidget(titleBar);
 
-        String titleText = stripFormatting(Component.translatable(
+        String titleText = TerminalText.strip(Component.translatable(
                 "gui.gtceuterminal.energy_analyzer.recipe_log.title",
                 snap.getMachineTitle()).getString());
         LabelWidget titleLbl = new LabelWidget(8, 4,
@@ -56,13 +57,13 @@ public final class RecipeHistoryDialog {
 
         int cy = 22;
         panel.addWidget(mkLabel(18, cy,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.recipe_log.output").getString()), tokens.textMuted()));
         panel.addWidget(mkLabel(210, cy,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.recipe_log.time").getString()), tokens.textMuted()));
         panel.addWidget(mkLabel(275, cy,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.recipe_log.when").getString()), tokens.textMuted()));
         cy += 10;
 
@@ -73,7 +74,7 @@ public final class RecipeHistoryDialog {
 
         if (snap.recipeHistory.isEmpty()) {
             panel.addWidget(mkLabel(10, cy,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.energy_analyzer.recipe_log.no_recipes").getString()),
                     tokens.textMuted()));
         } else {
@@ -98,7 +99,7 @@ public final class RecipeHistoryDialog {
         }
 
         LabelWidget hint = new LabelWidget(10, dH - 14,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.recipe_log.hint_click_outside_close").getString()));
         hint.setColor(tokens.textFaint());
         panel.addWidget(hint);
@@ -118,7 +119,4 @@ public final class RecipeHistoryDialog {
                 Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

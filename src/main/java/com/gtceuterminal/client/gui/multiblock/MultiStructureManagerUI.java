@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.multiblock;
 
+import com.gtceuterminal.client.gui.widget.TerminalParade;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
@@ -100,7 +101,7 @@ public class MultiStructureManagerUI {
 
     private void scanMultiblocks() {
         this.multiblocks = MultiblockScanner.scanNearbyMultiblocks(player, player.level(), SCAN_RADIUS);
-        GTCEUTerminalMod.LOGGER.info("MultiStructureManagerUI: scanned {} multiblocks", multiblocks.size());
+        GTCEUTerminalMod.LOGGER.debug("MultiStructureManagerUI: scanned {} multiblocks", multiblocks.size());
     }
 
     public ModularUI createUI() {
@@ -122,21 +123,8 @@ public class MultiStructureManagerUI {
         gui.widget(main);
         gui.background(new ColorRectTexture(Palette.CLEAR));
 
-        setupParade();
+        TerminalParade.setup(theme, GUI_W, GUI_H);
         return gui;
-    }
-
-    private void setupParade() {
-        com.gtceuterminal.client.ClientEvents.clearActiveParade();
-        if (!theme.isBundleStyle()) return;
-        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-        if (bundle == null) return;
-        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
-                bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
-        if (parade == null || parade.isEmpty()) return;
-        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
-        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     private WidgetGroup buildMultiblockBodyCard() {

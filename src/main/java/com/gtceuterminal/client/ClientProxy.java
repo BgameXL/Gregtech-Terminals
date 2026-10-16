@@ -31,11 +31,11 @@ public class ClientProxy {
      GTCEUTerminalMod.LOGGER.error("ClientProxy.openPowerMonitorGUI: player is null!");
      return;
      }
-     GTCEUTerminalMod.LOGGER.info("ClientProxy: Sending CPacketOpenPowerMonitorUI to server for pos {}", monitorPos);
+     GTCEUTerminalMod.LOGGER.debug("ClientProxy: Sending CPacketOpenPowerMonitorUI to server for pos {}", monitorPos);
 
      try {
      TerminalNetwork.CHANNEL.sendToServer(new CPacketOpenPowerMonitorUI(monitorPos));
-     GTCEUTerminalMod.LOGGER.info("ClientProxy: Packet sent successfully");
+     GTCEUTerminalMod.LOGGER.debug("ClientProxy: Packet sent successfully");
      } catch (Exception e) {
      GTCEUTerminalMod.LOGGER.error("ClientProxy: Error sending packet", e);
      }

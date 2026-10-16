@@ -21,7 +21,7 @@ public class BlockReplacer {
 
     // Replace blocks with ME Network support
     public static boolean replaceBlocks(IMultiController controller, Player player,
-                                        BlockReplacementData data, ItemStack wirelessTerminal) {
+                                        BlockReplacementData data, ItemStack linkedManager) {
         Level level = controller.self().getLevel();
         if (level == null || level.isClientSide) {
             return false;
@@ -44,10 +44,10 @@ public class BlockReplacer {
                 }
             }
 
-            if (wirelessTerminal != null && !wirelessTerminal.isEmpty()) {
+            if (linkedManager != null && !linkedManager.isEmpty()) {
                 MENetworkItemExtractor.ExtractResult result =
                         MENetworkItemExtractor.tryExtractFromMEOrInventory(
-                                wirelessTerminal, level, player, requiredItems
+                                linkedManager, level, player, requiredItems
                         );
 
                 hasResources = result.success;

@@ -1,6 +1,7 @@
 package com.gtceuterminal.client.gui.widget;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.data.SchematicData;
 
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
@@ -14,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -253,22 +255,23 @@ public class SchematicPreviewWidget extends WidgetGroup {
             buildScene();
         }
 
+        var tokens = TerminalUI.tokens();
         int x = getPosition().x, y = getPosition().y, w = getSize().width, h = getSize().height;
-        graphics.fill(x, y, x + w, y + h, 0xFF080808);
+        graphics.fill(x, y, x + w, y + h, tokens.surface());
 
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
 
         if (sceneWidget == null) {
-            String msg = "No Schematic";
+            String msg = Component.translatable("gui.gtceuterminal.schematic_preview.empty").getString();
             int tw = Minecraft.getInstance().font.width(msg);
             graphics.drawString(Minecraft.getInstance().font, msg,
-                    x + (w - tw) / 2, y + h / 2 - 4, 0xFF888888, false);
+                    x + (w - tw) / 2, y + h / 2 - 4, tokens.textMuted(), false);
         }
 
-        graphics.fill(x, y, x + w, y + 1, 0xFF555555);
-        graphics.fill(x, y + h - 1, x + w, y + h, 0xFF555555);
-        graphics.fill(x, y, x + 1, y + h, 0xFF555555);
-        graphics.fill(x + w - 1, y, x + w, y + h, 0xFF555555);
+        graphics.fill(x, y, x + w, y + 1, tokens.border());
+        graphics.fill(x, y + h - 1, x + w, y + h, tokens.border());
+        graphics.fill(x, y, x + 1, y + h, tokens.border());
+        graphics.fill(x + w - 1, y, x + w, y + h, tokens.border());
     }
 
     @Override

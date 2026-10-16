@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -143,7 +144,7 @@ final class EnergyAnalyzerDetail {
             LabelWidget hatchesHdr = new LabelWidget(pad, y, () -> {
                 EnergySnapshot s = selSnap.get();
                 int count = s == null ? 0 : s.hatches.size();
-                return stripFormatting(Component.translatable(
+                return TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.hatches_label").getString()) + " (" + count + ")";
             });
             hatchesHdr.setClientSideWidget();
@@ -304,7 +305,4 @@ final class EnergyAnalyzerDetail {
         }
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

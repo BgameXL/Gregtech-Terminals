@@ -300,7 +300,7 @@ public class ThemeEditorDialog {
     }
 
     private void saveAndClose(DialogWidget dialog) {
-        GTCEUTerminalMod.LOGGER.info("ThemeEditorDialog: saving theme accent=#{} bg=#{} panel=#{}",
+        GTCEUTerminalMod.LOGGER.debug("ThemeEditorDialog: saving theme accent=#{} bg=#{} panel=#{}",
                 String.format("%06X", working.accentColor & 0xFFFFFF),
                 String.format("%06X", working.bgColor & 0xFFFFFF),
                 String.format("%06X", working.panelColor & 0xFFFFFF));

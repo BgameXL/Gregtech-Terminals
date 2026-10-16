@@ -72,14 +72,14 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
     @Override
     protected ModularUI createUITemplate(EnergyAnalyzerHolder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        GTCEUTerminalMod.LOGGER.info("=== EnergyAnalyzer createUITemplate isClient={} player={}", Platform.isClient(), entityPlayer);
+        GTCEUTerminalMod.LOGGER.debug("EnergyAnalyzer createUITemplate isClient={} player={}", Platform.isClient(), entityPlayer);
         if (Platform.isClient()) {
             try {
                 ModularUI ui = com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI.create(holder, entityPlayer);
-                GTCEUTerminalMod.LOGGER.info("=== EnergyAnalyzer UI created: {}", ui);
+                GTCEUTerminalMod.LOGGER.debug("EnergyAnalyzer UI created: {}", ui);
                 return ui;
             } catch (Throwable t) {
-                GTCEUTerminalMod.LOGGER.error("=== EnergyAnalyzer UI creation FAILED", t);
+                GTCEUTerminalMod.LOGGER.error("EnergyAnalyzer UI creation FAILED", t);
                 return null;
             }
         }
@@ -91,7 +91,7 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
 
     @Override
     protected EnergyAnalyzerHolder readHolderFromSyncData(FriendlyByteBuf buf) {
-        GTCEUTerminalMod.LOGGER.info("=== readHolderFromSyncData called");
+        GTCEUTerminalMod.LOGGER.debug("readHolderFromSyncData called");
         int index = buf.readInt();
         int count = buf.readInt();
         List<EnergySnapshot> snapshots = new ArrayList<>();

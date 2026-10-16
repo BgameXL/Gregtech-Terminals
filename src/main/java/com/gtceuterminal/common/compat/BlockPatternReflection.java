@@ -4,7 +4,6 @@ import com.gtceuterminal.GTCEUTerminalMod;
 
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
 import java.lang.reflect.Field;
 
@@ -35,7 +34,6 @@ public final class BlockPatternReflection {
         return f;
     }
 
-    @SuppressWarnings("unchecked")
     public static TraceabilityPredicate[][][] getBlockMatches(BlockPattern pattern) {
         ensure();
         if (!READY) return null;

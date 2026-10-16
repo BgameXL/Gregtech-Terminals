@@ -3,14 +3,12 @@ package com.gtceuterminal.common.compat.integrations;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.api.TerminalAPI;
 import com.gtceuterminal.common.config.ComponentEntry;
-import com.gtceuterminal.common.config.ComponentRegistry;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 
 import com.gregtechceu.gtceu.api.GTValues;
 
 import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraftforge.fml.ModList;
 
 public final class StarTCoreIntegration {
     public static final String SOLAR_CELLS = "start_solar_cells";

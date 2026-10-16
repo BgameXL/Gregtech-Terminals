@@ -28,11 +28,11 @@ public class MENetworkScanner {
 
     public static boolean isItemLinked(ItemStack stack) {
         if (!isAE2Available()) return false;
-        return WirelessTerminalHandler.isLinked(stack);
+        return AccessPointLink.isLinked(stack);
     }
 
     public static boolean isItemInRange(ItemStack stack, Level level, Player player) {
         if (!isAE2Available()) return false;
-        return WirelessTerminalHandler.isInRange(stack, level, player);
+        return AccessPointLink.isInRange(stack, level, player);
     }
 }

@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
@@ -42,7 +43,7 @@ final class MachineRenameDialog {
         panel.addWidget(titleBar);
 
         LabelWidget titleLbl = new LabelWidget(8, 4,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.rename_dialog.title").getString()));
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
@@ -81,7 +82,4 @@ final class MachineRenameDialog {
         panel.addWidget(cancelBtn);
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

@@ -16,20 +16,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-public class WirelessTerminalHandler {
+public class AccessPointLink {
 
     private static final String TAG_ACCESS_POINT_POS = "accessPoint";
-
-    public static boolean isWirelessTerminal(ItemStack stack) {
-        return !stack.isEmpty()
-                && (stack.getItem() instanceof appeng.items.tools.powered.WirelessTerminalItem || isLinked(stack));
-    }
 
     public static boolean isLinked(ItemStack stack) {
         return stack.hasTag() && stack.getTag().contains(TAG_ACCESS_POINT_POS);
     }
 
-    public static boolean isOurLinkedTerminal(ItemStack stack) {
+    public static boolean isOurLinkedItem(ItemStack stack) {
         return !stack.isEmpty()
                 && (stack.getItem() instanceof com.gtceuterminal.common.item.MultiStructureManagerItem
                 || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem)
@@ -135,7 +130,6 @@ public class WirelessTerminalHandler {
         return distanceSq <= (range * range);
     }
 
-    // Get the linked position from NBT
     @Nullable
     private static GlobalPos getLinkedPosition(ItemStack stack) {
         CompoundTag tag = stack.getTag();

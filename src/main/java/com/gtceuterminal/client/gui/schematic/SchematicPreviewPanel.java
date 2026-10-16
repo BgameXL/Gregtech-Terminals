@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.schematic;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -92,38 +93,38 @@ final class SchematicPreviewPanel {
             String info = Component.translatable(
                     "gui.gtceuterminal.schematic_interface.preview.info",
                     sel.getBlocks().size(), size.getX(), size.getY(), size.getZ()).getString();
-            LabelWidget infoLbl = new LabelWidget(4, ty, stripFormatting(info));
+            LabelWidget infoLbl = new LabelWidget(4, ty, TerminalText.strip(info));
             infoLbl.setColor(tokens.textMuted());
             previewArea.addWidget(infoLbl);
             ty += 12;
 
             LabelWidget zoom = new LabelWidget(4, ty,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.schematic_interface.preview.zoom_hint").getString()));
             zoom.setColor(tokens.textFaint());
             previewArea.addWidget(zoom);
             ty += 12;
 
             LabelWidget rot = new LabelWidget(4, ty,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.schematic_interface.preview.rotation_hint").getString()));
             rot.setColor(tokens.textFaint());
             previewArea.addWidget(rot);
 
         } else if (hasClipboard) {
             LabelWidget clipInfo = new LabelWidget(10, previewH / 2 - 10,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.schematic_interface.preview.clipboard_content").getString()));
             clipInfo.setColor(tokens.success());
             previewArea.addWidget(clipInfo);
 
             LabelWidget hint = new LabelWidget(10, previewH / 2 + 4,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.schematic_interface.preview.save_to_see").getString()));
             hint.setColor(tokens.textMuted());
             previewArea.addWidget(hint);
         } else {
-            String noPreview = stripFormatting(Component.translatable(
+            String noPreview = TerminalText.strip(Component.translatable(
                     "gui.gtceuterminal.schematic_interface.preview.no_preview").getString());
             LabelWidget none = new LabelWidget(
                     (previewW - Minecraft.getInstance().font.width(noPreview)) / 2,
@@ -141,10 +142,6 @@ final class SchematicPreviewPanel {
         String ellipsis = "…";
         return font.substrByWidth(Component.literal(text),
                 Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
-    }
-
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
     }
 
     private static String getMultiblockName(SchematicData schematic) {

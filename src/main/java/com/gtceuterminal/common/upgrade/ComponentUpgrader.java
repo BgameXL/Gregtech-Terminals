@@ -35,7 +35,7 @@ public class ComponentUpgrader {
             Player player,
             Level level,
             boolean consumeMaterials,
-            ItemStack wirelessTerminal
+            ItemStack linkedManager
     ) {
         boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
 
@@ -55,7 +55,7 @@ public class ComponentUpgrader {
 
         String extractionSource = "";
         if (!player.isCreative() && consumeMaterials) {
-            ExtractionResult er = extractMaterials(required, player, level, wirelessTerminal);
+            ExtractionResult er = extractMaterials(required, player, level, linkedManager);
             if (!er.success) return fail(er.message);
             extractionSource = er.source;
         }
@@ -109,8 +109,8 @@ public class ComponentUpgrader {
 
     public static UpgradeResult upgradeComponent(
             ComponentInfo component, int targetTier, Player player, Level level,
-            boolean consumeMaterials, ItemStack wirelessTerminal) {
-        return upgradeComponent(component, targetTier, null, player, level, consumeMaterials, wirelessTerminal);
+            boolean consumeMaterials, ItemStack linkedManager) {
+        return upgradeComponent(component, targetTier, null, player, level, consumeMaterials, linkedManager);
     }
 
     public static UpgradeResult upgradeComponent(
@@ -119,7 +119,7 @@ public class ComponentUpgrader {
     }
 
     public static BulkUpgradeResult upgradeMultipleComponents(
-            List<ComponentInfo> components, int targetTier, Player player, Level level, ItemStack wirelessTerminal) {
+            List<ComponentInfo> components, int targetTier, Player player, Level level, ItemStack linkedManager) {
 
         BulkUpgradeResult result = new BulkUpgradeResult();
         boolean upgradingCoils = false;
@@ -134,7 +134,7 @@ public class ComponentUpgrader {
 
         String extractionSource = "";
         if (!player.isCreative()) {
-            ExtractionResult er = extractMaterials(totalRequired, player, level, wirelessTerminal);
+            ExtractionResult er = extractMaterials(totalRequired, player, level, linkedManager);
             if (!er.success) {
                 result.success = false;
                 result.message = er.message;
@@ -197,11 +197,11 @@ public class ComponentUpgrader {
     }
 
     private static ExtractionResult extractMaterials(
-            Map<Item, Integer> required, Player player, Level level, ItemStack wirelessTerminal) {
+            Map<Item, Integer> required, Player player, Level level, ItemStack linkedManager) {
 
-        if (wirelessTerminal != null && !wirelessTerminal.isEmpty()) {
+        if (linkedManager != null && !linkedManager.isEmpty()) {
             MENetworkItemExtractor.ExtractResult me =
-                    MENetworkItemExtractor.tryExtractFromMEOrInventory(wirelessTerminal, level, player, required);
+                    MENetworkItemExtractor.tryExtractFromMEOrInventory(linkedManager, level, player, required);
             if (me.success) {
                 String src = me.source == MENetworkItemExtractor.ExtractionSource.ME_NETWORK
                         ? " §a(ME Network)" : " §7(Inventory)";

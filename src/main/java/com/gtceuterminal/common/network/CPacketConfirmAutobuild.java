@@ -4,7 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkCrafting;
 import com.gtceuterminal.common.ae2.MEQueryResult;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
+import com.gtceuterminal.common.ae2.AccessPointLink;
 import com.gtceuterminal.common.util.MiscUtil;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.autocraft.MultiblockAnalyzer;
@@ -251,14 +251,14 @@ public class CPacketConfirmAutobuild {
     }
 
     private static ItemStack findLinkedManager(ServerPlayer player) {
-        if (WirelessTerminalHandler.isOurLinkedManager(player.getMainHandItem())) return player.getMainHandItem();
-        if (WirelessTerminalHandler.isOurLinkedManager(player.getOffhandItem())) return player.getOffhandItem();
+        if (AccessPointLink.isOurLinkedManager(player.getMainHandItem())) return player.getMainHandItem();
+        if (AccessPointLink.isOurLinkedManager(player.getOffhandItem())) return player.getOffhandItem();
         for (ItemStack s : player.getInventory().items) {
-            if (WirelessTerminalHandler.isOurLinkedManager(s)) return s;
+            if (AccessPointLink.isOurLinkedManager(s)) return s;
         }
         if (MiscUtil.isCuriosLoaded) {
             for (ItemStack s : CuriosCompat.getEquippedItems(player)) {
-                if (WirelessTerminalHandler.isOurLinkedManager(s)) return s;
+                if (AccessPointLink.isOurLinkedManager(s)) return s;
             }
         }
         return ItemStack.EMPTY;

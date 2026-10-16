@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.widget.TerminalParade;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -152,21 +153,8 @@ public class DismantlerUI {
                 this::performDismantle, this::closeUI));
         mainGroup.addWidget(body);
 
-        setupParade();
+        TerminalParade.setup(theme, GUI_W, GUI_H);
         return buildModularUI(mainGroup);
-    }
-
-    private void setupParade() {
-        com.gtceuterminal.client.ClientEvents.clearActiveParade();
-        if (!theme.isBundleStyle()) return;
-        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-        if (bundle == null) return;
-        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade =
-                bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
-        if (parade == null || parade.isEmpty()) return;
-        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
-        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     private ModularUI buildModularUI(WidgetGroup content) {
@@ -177,7 +165,7 @@ public class DismantlerUI {
     }
 
     private void performDismantle() {
-        GTCEUTerminalMod.LOGGER.info("Dismantling multiblock at {}", controllerPos);
+        GTCEUTerminalMod.LOGGER.debug("Dismantling multiblock at {}", controllerPos);
         TerminalNetwork.CHANNEL.sendToServer(new CPacketDismantle(controllerPos));
         closeUI();
         player.displayClientMessage(

@@ -86,7 +86,7 @@ public class CPacketComponentUpgrade {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
-            ItemStack wirelessTerminal = findWirelessTerminal(player);
+            ItemStack linkedManager = findLinkedManager(player);
 
             int upgraded = 0;
             int failed = 0;
@@ -118,7 +118,7 @@ public class CPacketComponentUpgrade {
                         player,
                         player.level(),
                         true,
-                        wirelessTerminal
+                        linkedManager
                 );
 
                 if (result.success) {
@@ -167,7 +167,7 @@ public class CPacketComponentUpgrade {
 
     // Manager-only: a manager upgrade resolves ME strictly from a Multi-Structure Manager. A linked
     // Schematic Interface (or the player's AE2 wireless terminal) must not bridge it to the network.
-    private ItemStack findWirelessTerminal(ServerPlayer player) {
+    private ItemStack findLinkedManager(ServerPlayer player) {
         if (player.getMainHandItem().getItem() instanceof MultiStructureManagerItem) return player.getMainHandItem();
         if (player.getOffhandItem().getItem() instanceof MultiStructureManagerItem) return player.getOffhandItem();
 

@@ -32,14 +32,14 @@ public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Hol
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        GTCEUTerminalMod.LOGGER.info("=== SchematicItem createUITemplate isClient={} player={}", Platform.isClient(), entityPlayer);
+        GTCEUTerminalMod.LOGGER.debug("SchematicItem createUITemplate isClient={} player={}", Platform.isClient(), entityPlayer);
         if (Platform.isClient()) {
             try {
                 ModularUI ui = com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI.create(holder, entityPlayer);
-                GTCEUTerminalMod.LOGGER.info("=== SchematicItem UI created: {}", ui);
+                GTCEUTerminalMod.LOGGER.debug("SchematicItem UI created: {}", ui);
                 return ui;
             } catch (Throwable t) {
-                GTCEUTerminalMod.LOGGER.error("=== SchematicItem UI creation FAILED", t);
+                GTCEUTerminalMod.LOGGER.error("SchematicItem UI creation FAILED", t);
                 return null;
             }
         }

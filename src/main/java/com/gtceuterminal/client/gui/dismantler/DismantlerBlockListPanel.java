@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
@@ -47,13 +48,13 @@ final class DismantlerBlockListPanel {
             int types = scanResult.getBlockCounts().size();
             int total = scanResult.getTotalBlocks();
             LabelWidget blocksLabel = new LabelWidget(8, 9,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.dismantler.blocks_to_collect_count", types, total).getString()));
             blocksLabel.setColor(tokens.textMuted());
             colHeader.addWidget(blocksLabel);
         } else {
             LabelWidget blocksLabel = new LabelWidget(8, 9,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.dismantler.blocks_to_collect").getString()));
             blocksLabel.setColor(tokens.textMuted());
             colHeader.addWidget(blocksLabel);
@@ -62,7 +63,7 @@ final class DismantlerBlockListPanel {
 
         if (scanResult == null || scanResult.getBlockCounts().isEmpty()) {
             LabelWidget none = new LabelWidget(10, COL_H + 12,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.dismantler.no_data").getString()));
             none.setColor(tokens.textFaint());
             panel.addWidget(none);
@@ -125,7 +126,4 @@ final class DismantlerBlockListPanel {
                 Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

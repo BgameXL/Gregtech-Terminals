@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.autocraft;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.network.CPacketConfirmAutobuild;
 import com.gtceuterminal.common.network.TerminalNetwork;
@@ -24,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
 
 @OnlyIn(Dist.CLIENT)
 public class AutocraftConfirmDialog extends DialogWidget {
@@ -389,7 +389,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
             String missing = Component.translatable("gui.gtceuterminal.autocraft.missing_items",
                     result.missingCount()).getString();
             LabelWidget warn = new LabelWidget(requestW + 8, btnY + 6,
-                    fitText(stripFormatting(missing), innerW - requestW - cancelW - 24));
+                    fitText(TerminalText.strip(missing), innerW - requestW - cancelW - 24));
             warn.setColor(tokens.error());
             footer.addWidget(warn);
         }
@@ -411,7 +411,4 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

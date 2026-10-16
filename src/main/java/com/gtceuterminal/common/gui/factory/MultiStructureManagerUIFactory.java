@@ -42,7 +42,7 @@ public class MultiStructureManagerUIFactory
     @Override
     protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
         holder.attach(entityPlayer);
-        GTCEUTerminalMod.LOGGER.info("=== MultiStructureManager createUITemplate isClient={} mode={} player={}", Platform.isClient(), holder.mode, entityPlayer);
+        GTCEUTerminalMod.LOGGER.debug("MultiStructureManager createUITemplate isClient={} mode={} player={}", Platform.isClient(), holder.mode, entityPlayer);
         if (!Platform.isClient()) {
             return new ModularUI(600, 480, holder, entityPlayer);
         }
@@ -53,10 +53,10 @@ public class MultiStructureManagerUIFactory
             } else {
                 ui = new com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI(holder, entityPlayer).createUI();
             }
-            GTCEUTerminalMod.LOGGER.info("=== MultiStructureManager UI created: {}", ui);
+            GTCEUTerminalMod.LOGGER.debug("MultiStructureManager UI created: {}", ui);
             return ui;
         } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.error("=== MultiStructureManager UI creation FAILED", t);
+            GTCEUTerminalMod.LOGGER.error("MultiStructureManager UI creation FAILED", t);
             return null;
         }
     }

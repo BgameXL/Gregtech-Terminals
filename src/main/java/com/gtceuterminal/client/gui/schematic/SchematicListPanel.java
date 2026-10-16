@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.schematic;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
@@ -40,7 +41,7 @@ final class SchematicListPanel {
         WidgetGroup panel = new WidgetGroup(panelX, panelY, leftW, listH);
         panel.setBackground(new ColorRectTexture(tokens.surface()));
 
-        LabelWidget title = new LabelWidget(8, 7, stripFormatting(Component.translatable(
+        LabelWidget title = new LabelWidget(8, 7, TerminalText.strip(Component.translatable(
                 "gui.gtceuterminal.schematic_interface.saved_schematics_label").getString()));
         title.setColor(tokens.textMuted());
         panel.addWidget(title);
@@ -68,7 +69,7 @@ final class SchematicListPanel {
 
         if (schematics.isEmpty()) {
             LabelWidget empty = new LabelWidget(8, 12,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.schematic_interface.no_schematics_saved").getString()));
             empty.setColor(tokens.textMuted());
             scroll.addWidget(empty);
@@ -120,7 +121,4 @@ final class SchematicListPanel {
                 Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

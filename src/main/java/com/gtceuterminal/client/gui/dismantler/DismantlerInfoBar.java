@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.config.ItemsConfig;
@@ -50,7 +51,7 @@ final class DismantlerInfoBar {
 
         int xPos = 12;
         LabelWidget totalLabel = new LabelWidget(xPos, h / 2 - 4,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.dismantler.bar.total", total).getString()));
         totalLabel.setColor(tokens.textMuted());
         bar.addWidget(totalLabel);
@@ -64,7 +65,7 @@ final class DismantlerInfoBar {
         boolean enough = emptySlots >= requiredSlots;
         boolean partial = emptySlots > 0 && !enough;
         LabelWidget invLabel = new LabelWidget(xPos, h / 2 - 4,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.dismantler.bar.inventory_space",
                         "", emptySlots, requiredSlots).getString()));
         invLabel.setColor(enough ? tokens.success() : partial ? tokens.warning() : tokens.error());
@@ -72,7 +73,7 @@ final class DismantlerInfoBar {
 
         if (skipped > 0) {
             LabelWidget skipLabel = new LabelWidget(w - 82, h / 2 - 4,
-                    stripFormatting(Component.translatable(
+                    TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.dismantler.bar.skipped", skipped).getString()));
             skipLabel.setColor(tokens.warning());
             bar.addWidget(skipLabel);
@@ -81,7 +82,4 @@ final class DismantlerInfoBar {
         return bar;
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

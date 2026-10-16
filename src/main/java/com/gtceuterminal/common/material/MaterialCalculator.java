@@ -3,7 +3,7 @@ package com.gtceuterminal.common.material;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
-import com.gtceuterminal.common.ae2.WirelessTerminalHandler;
+import com.gtceuterminal.common.ae2.AccessPointLink;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
@@ -50,7 +50,7 @@ public class MaterialCalculator {
 
         if (targetHatch != null) {
             materials.put(targetHatch, 1);
-            GTCEUTerminalMod.LOGGER.info("Upgrade {} (T{} → T{}) requires: {}",
+            GTCEUTerminalMod.LOGGER.debug("Upgrade {} (T{} → T{}) requires: {}",
                     type.displayName, currentTier, targetTier, targetHatchId);
         } else {
             GTCEUTerminalMod.LOGGER.error("Target hatch item not found: {}", targetHatchId);
@@ -218,7 +218,7 @@ public class MaterialCalculator {
     }
 
 
-    private static ItemStack findWirelessTerminal(Player player) {
+    private static ItemStack findLinkedManager(Player player) {
         ItemStack mainHand = player.getMainHandItem();
         if (isTerminal(mainHand)) return mainHand;
 
@@ -245,15 +245,15 @@ public class MaterialCalculator {
             Player player,
             Level level
     ) {
-        GTCEUTerminalMod.LOGGER.info("=== Checking Materials Availability (Server: {}) ===", !level.isClientSide);
+        GTCEUTerminalMod.LOGGER.debug("Checking Materials Availability (Server: {})", !level.isClientSide);
 
         List<MaterialAvailability> availability = new ArrayList<>();
 
         Map<Item, Integer> playerInv = scanPlayerInventory(player);
         Map<Item, Integer> chests = scanNearbyChests(level, player.blockPosition());
 
-        ItemStack wirelessTerminal = findWirelessTerminal(player);
-        boolean isLinked = !wirelessTerminal.isEmpty() && WirelessTerminalHandler.isLinked(wirelessTerminal);
+        ItemStack linkedManager = findLinkedManager(player);
+        boolean isLinked = !linkedManager.isEmpty() && AccessPointLink.isLinked(linkedManager);
 
         for (Map.Entry<Item, Integer> entry : required.entrySet()) {
             MaterialAvailability mat = new MaterialAvailability(entry.getKey(), entry.getValue());
@@ -263,20 +263,20 @@ public class MaterialCalculator {
 
             long inME = 0;
 
-            if (WirelessTerminalHandler.isLinked(wirelessTerminal)) {
+            if (AccessPointLink.isLinked(linkedManager)) {
                 if (level.isClientSide) {
                     long needed = entry.getValue();
                     long haveLocally = mat.getInInventory() + mat.getInNearbyChests();
                     long stillNeeded = Math.max(0, needed - haveLocally);
 
                     inME = stillNeeded;
-                    GTCEUTerminalMod.LOGGER.info("  {} [CLIENT]: Wireless linked, assuming ME can provide {} (will verify on server)",
+                    GTCEUTerminalMod.LOGGER.debug("  {} [CLIENT]: Wireless linked, assuming ME can provide {} (will verify on server)",
                             entry.getKey().getDescription().getString(), stillNeeded);
                 } else {
                     inME = MENetworkItemExtractor.checkItemAvailability(
-                            wirelessTerminal, level, player, entry.getKey()
+                            linkedManager, level, player, entry.getKey()
                     );
-                    GTCEUTerminalMod.LOGGER.info("  {} [SERVER]: Found {} in ME",
+                    GTCEUTerminalMod.LOGGER.debug("  {} [SERVER]: Found {} in ME",
                             entry.getKey().getDescription().getString(), inME);
                 }
             }
@@ -284,7 +284,7 @@ public class MaterialCalculator {
             mat.setInMENetwork(inME);
 
             String itemName = entry.getKey().getDescription().getString();
-            GTCEUTerminalMod.LOGGER.info("  {}: Required={}, InInv={}, InChests={}, InME={}, Total={}, Enough={}",
+            GTCEUTerminalMod.LOGGER.debug("  {}: Required={}, InInv={}, InChests={}, InME={}, Total={}, Enough={}",
                     itemName, entry.getValue(), mat.getInInventory(), mat.getInNearbyChests(),
                     inME, mat.getTotalAvailable(), mat.hasEnough());
 
@@ -365,29 +365,29 @@ public class MaterialCalculator {
             boolean useInventory,
             boolean useChests
     ) {
-        GTCEUTerminalMod.LOGGER.info("=== Extracting Materials (Server: {}) ===", !level.isClientSide);
+        GTCEUTerminalMod.LOGGER.debug("Extracting Materials (Server: {})", !level.isClientSide);
 
         Map<Item, Integer> required = new HashMap<>();
         for (MaterialAvailability mat : materials) {
             required.put(mat.getItem(), mat.getRequired());
         }
 
-        ItemStack wirelessTerminal = findWirelessTerminal(player);
+        ItemStack linkedManager = findLinkedManager(player);
 
-        if (!wirelessTerminal.isEmpty()) {
-            GTCEUTerminalMod.LOGGER.info("  Found wireless terminal, trying ME Network extraction...");
+        if (!linkedManager.isEmpty()) {
+            GTCEUTerminalMod.LOGGER.debug("  Found wireless terminal, trying ME Network extraction...");
 
             MENetworkItemExtractor.ExtractResult result =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(
-                            wirelessTerminal, level, player, required
+                            linkedManager, level, player, required
                     );
 
             if (result.success) {
                 if (result.source == MENetworkItemExtractor.ExtractionSource.ME_NETWORK) {
-                    GTCEUTerminalMod.LOGGER.info("  ✓ Successfully extracted from ME Network");
+                    GTCEUTerminalMod.LOGGER.debug("  ✓ Successfully extracted from ME Network");
                     return true;
                 } else if (result.source == MENetworkItemExtractor.ExtractionSource.PLAYER_INVENTORY) {
-                    GTCEUTerminalMod.LOGGER.info("  ✓ Successfully extracted from Player Inventory");
+                    GTCEUTerminalMod.LOGGER.debug("  ✓ Successfully extracted from Player Inventory");
                     return true;
                 }
             }
@@ -399,12 +399,12 @@ public class MaterialCalculator {
             int remaining = mat.getRequired();
             String itemName = mat.getItemName();
 
-            GTCEUTerminalMod.LOGGER.info("  Item: {}, Required: {}", itemName, remaining);
+            GTCEUTerminalMod.LOGGER.debug("  Item: {}, Required: {}", itemName, remaining);
 
             if (useInventory && remaining > 0) {
                 int available = Math.min(remaining, mat.getInInventory());
                 if (available > 0 && extractFromInventory(player, mat.getItem(), available)) {
-                    GTCEUTerminalMod.LOGGER.info("    Extracted {} from inventory", available);
+                    GTCEUTerminalMod.LOGGER.debug("    Extracted {} from inventory", available);
                     remaining -= available;
                 }
             }
@@ -412,7 +412,7 @@ public class MaterialCalculator {
             if (useChests && remaining > 0) {
                 int available = Math.min(remaining, mat.getInNearbyChests());
                 if (available > 0 && extractFromChests(level, player.blockPosition(), mat.getItem(), available)) {
-                    GTCEUTerminalMod.LOGGER.info("    Extracted {} from chests", available);
+                    GTCEUTerminalMod.LOGGER.debug("    Extracted {} from chests", available);
                     remaining -= available;
                 }
             }
@@ -422,10 +422,10 @@ public class MaterialCalculator {
                 return false;
             }
 
-            GTCEUTerminalMod.LOGGER.info("  SUCCESS: Got all required {}", itemName);
+            GTCEUTerminalMod.LOGGER.debug("  SUCCESS: Got all required {}", itemName);
         }
 
-        GTCEUTerminalMod.LOGGER.info("=== All Materials Extracted Successfully ===");
+        GTCEUTerminalMod.LOGGER.debug("All Materials Extracted Successfully");
         return true;
     }
 }

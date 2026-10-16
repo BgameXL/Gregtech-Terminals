@@ -76,7 +76,7 @@ public class MENetworkItemExtractor {
                                      net.minecraft.world.level.Level level,
                                      Player player) {
         if (terminalStack == null || terminalStack.isEmpty()) return null;
-        return WirelessTerminalHandler.getLinkedGrid(terminalStack, level, player);
+        return AccessPointLink.getLinkedGrid(terminalStack, level, player);
     }
 
     private static void rollback(IStorageService storage, Map<Item, Long> extracted, IActionSource src) {

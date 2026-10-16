@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.multiblock;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
@@ -57,7 +58,7 @@ final class MultiblockRenameDialog {
         panel.addWidget(titleBar);
 
         LabelWidget titleLbl = new LabelWidget(8, 7,
-                stripFormatting(Component.translatable(
+                TerminalText.strip(Component.translatable(
                         "gui.gtceuterminal.multiblock_manager.rename_dialog.title").getString()));
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
@@ -111,7 +112,4 @@ final class MultiblockRenameDialog {
         return s.length() > max ? s.substring(0, max - 1) + "…" : s;
     }
 
-    private static String stripFormatting(String text) {
-        return text.replaceAll("§.", "");
-    }
 }

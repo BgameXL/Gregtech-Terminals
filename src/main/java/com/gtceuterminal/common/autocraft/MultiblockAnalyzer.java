@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import com.gtceuterminal.common.pattern.CandidateFilter;
+import com.gtceuterminal.common.pattern.CandidateSelector;
 
 import net.minecraft.world.item.BlockItem;
 
@@ -90,7 +91,8 @@ public final class MultiblockAnalyzer {
                             candidates = CandidateFilter.enrichWithCustomComponents(candidates, pred);
                             if (settings.noHatchMode != 0)
                                 candidates = CandidateFilter.filterOutMultiblockParts(candidates);
-                            candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
+                            candidates = CandidateSelector.excludeOptionalAllowances(candidates, pred);
+                            candidates = CandidateSelector.applyTierPreference(candidates, settings);
 
                             ItemStack candidate = firstUsableBlockItem(candidates);
                             if (candidate == null || candidate.isEmpty()) continue;

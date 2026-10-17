@@ -77,7 +77,7 @@ public class ManagerSettingsUI {
     private void loadFromItem() {
         CompoundTag tag = itemStack.getTag();
         this.noHatchMode = tag != null && tag.contains("NoHatchMode") ? tag.getInt("NoHatchMode") : 0;
-        this.tierMode = tag != null && tag.contains("TierMode") ? tag.getInt("TierMode") : 1;
+        this.tierMode = tag != null && tag.contains("TierMode") ? tag.getInt("TierMode") : 0;
         this.repeatCount = tag != null && tag.contains("RepeatCount") ? tag.getInt("RepeatCount") : 0;
         this.isUseAE = tag != null && tag.contains("IsUseAE") ? tag.getInt("IsUseAE") : 0;
     }
@@ -216,7 +216,7 @@ public class ManagerSettingsUI {
                     } catch (NumberFormatException ignored) {
                     }
                 },
-                1, 16);
+                0, 14);
 
         rowY = addInputRow(panel, rowY, innerW,
                 Component.translatable("gui.gtceuterminal.manager_settings.repeat_count.label").getString(),
@@ -358,7 +358,7 @@ public class ManagerSettingsUI {
     }
 
     private void setTierMode(int tier) {
-        tierMode = Math.max(1, Math.min(16, tier));
+        tierMode = Math.max(0, Math.min(14, tier));
         syncToServer();
     }
 

@@ -15,12 +15,12 @@ public class ManagerSettings {
             CompoundTag tag = itemStack.getTag();
             if (tag != null) {
                 this.noHatchMode = tag.contains("NoHatchMode") ? tag.getInt("NoHatchMode") : 0;
-                this.tierMode = tag.contains("TierMode") ? tag.getInt("TierMode") : 1;
+                this.tierMode = tag.contains("TierMode") ? tag.getInt("TierMode") : 0;
                 this.repeatCount = tag.contains("RepeatCount") ? tag.getInt("RepeatCount") : 0;
                 this.isUseAE = tag.contains("IsUseAE") ? tag.getInt("IsUseAE") : 0;
             } else {
                 this.noHatchMode = 0;
-                this.tierMode = 1;
+                this.tierMode = 0;
                 this.repeatCount = 0;
                 this.isUseAE = 0;
             }
@@ -39,7 +39,7 @@ public class ManagerSettings {
     public static class AutoBuildSettings {
         public int repeatCount = 0;
         public int noHatchMode = 0;
-        public int tierMode = 1;
+        public int tierMode = 0;
         public int isUseAE = 0;
     }
 }

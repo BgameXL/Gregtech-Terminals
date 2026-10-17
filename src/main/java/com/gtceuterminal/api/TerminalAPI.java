@@ -3,13 +3,10 @@ package com.gtceuterminal.api;
 import com.gtceuterminal.common.config.ComponentEntry;
 import com.gtceuterminal.common.config.ComponentRegistry;
 
-import java.util.Map;
-
 public final class TerminalAPI {
 
     private TerminalAPI() {
     }
-
 
     public static void registerCoil(String blockId, String displayName, int tier, int temperature) {
         ComponentRegistry.addExternal(ComponentRegistry.COILS,

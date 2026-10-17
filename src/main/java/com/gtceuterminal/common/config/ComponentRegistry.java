@@ -101,6 +101,17 @@ public final class ComponentRegistry {
         return first(COILS, e -> e.blockId.equalsIgnoreCase(blockId));
     }
 
+    public static ComponentEntry entryByBlockId(String blockId) {
+        if (blockId == null) return null;
+        ensureInit();
+        for (List<ComponentEntry> entries : DATA.values()) {
+            for (ComponentEntry e : entries) {
+                if (e.blockId.equalsIgnoreCase(blockId)) return e;
+            }
+        }
+        return null;
+    }
+
     public static int coilTier(BlockState state) {
         if (state == null) return -1;
         String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
@@ -192,7 +203,7 @@ public final class ComponentRegistry {
         }
     }
 
-    public static List<ItemStack> getMatchingItemStacks(ComponentCategory category) {
+    public static List<ItemStack> getExternalMatchingItemStacks(ComponentCategory category) {
         String registryCategory = switch (category) {
             case ENERGY_HATCH -> ENERGY_HATCHES;
             case FLUID_HATCH -> FLUID_HATCHES;
@@ -206,7 +217,7 @@ public final class ComponentRegistry {
         if (registryCategory == null) return List.of();
 
         List<ItemStack> stacks = new ArrayList<>();
-        for (ComponentEntry e : get(registryCategory)) {
+        for (ComponentEntry e : EXTERNAL.getOrDefault(registryCategory, List.of())) {
             ResourceLocation rl = ResourceLocation.tryParse(e.blockId);
             if (rl == null) continue;
             Block block = ForgeRegistries.BLOCKS.getValue(rl);

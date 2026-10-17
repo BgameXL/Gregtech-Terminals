@@ -35,7 +35,7 @@ public class CPacketSaveManagerSettings {
             if (stack == null || stack.isEmpty()) return;
             CompoundTag existing = stack.getOrCreateTag();
             existing.putInt("NoHatchMode", tag.getInt("NoHatchMode") != 0 ? 1 : 0);
-            existing.putInt("TierMode", Mth.clamp(tag.getInt("TierMode"), 1, 16));
+            existing.putInt("TierMode", Mth.clamp(tag.getInt("TierMode"), 0, 14));
             existing.putInt("RepeatCount", Mth.clamp(tag.getInt("RepeatCount"), 0, 99));
             existing.putInt("IsUseAE", tag.getInt("IsUseAE") != 0 ? 1 : 0);
             player.getInventory().setChanged();

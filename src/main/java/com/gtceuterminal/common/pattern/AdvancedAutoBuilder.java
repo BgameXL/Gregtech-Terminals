@@ -134,7 +134,8 @@ public class AdvancedAutoBuilder {
                                 candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
                                 if (settings.noHatchMode != 0)
                                     candidates = CandidateFilter.filterOutMultiblockParts(candidates);
-                                candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
+                                candidates = CandidateSelector.excludeOptionalAllowances(candidates, predicate);
+                                candidates = CandidateSelector.applyTierPreference(candidates, settings);
 
                                 // Fluid block handling
                                 boolean isFluidBlock = false;
@@ -252,13 +253,13 @@ public class AdvancedAutoBuilder {
             return null;
         }
 
-        for (int i = 0; i < handler.getSlots(); i++) {
-            ItemStack stack = handler.getStackInSlot(i);
-            if (stack.isEmpty()) continue;
-
-            if (candidates.stream().anyMatch(c -> ItemStack.isSameItemSameTags(c, stack))
-                    && stack.getItem() instanceof BlockItem) {
-                return IntObjectPair.of(i, handler);
+        for (ItemStack candidate : candidates) {
+            if (!(candidate.getItem() instanceof BlockItem)) continue;
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getStackInSlot(i);
+                if (!stack.isEmpty() && ItemStack.isSameItemSameTags(candidate, stack)) {
+                    return IntObjectPair.of(i, handler);
+                }
             }
         }
         return null;

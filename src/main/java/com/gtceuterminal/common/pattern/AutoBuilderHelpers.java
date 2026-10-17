@@ -284,7 +284,8 @@ final class AutoBuilderHelpers {
                         candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
                         if (settings.noHatchMode != 0)
                             candidates = CandidateFilter.filterOutMultiblockParts(candidates);
-                        candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
+                        candidates = CandidateSelector.excludeOptionalAllowances(candidates, predicate);
+                        candidates = CandidateSelector.applyTierPreference(candidates, settings);
 
                         boolean isFluidBlock = false;
                         for (ItemStack cand : candidates) {

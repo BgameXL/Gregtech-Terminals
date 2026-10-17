@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -34,64 +33,27 @@ public final class CandidateFilter {
 
         List<ItemStack> out = new ArrayList<>(candidates.size());
         for (ItemStack stack : candidates) {
-            if (!(stack.getItem() instanceof BlockItem bi)) continue;
-            BlockState bs = bi.getBlock().defaultBlockState();
-
-            if (bs.getBlock() instanceof MetaMachineBlock machineBlock) {
-                try {
-                    if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState())
-                            instanceof IMachineBlockEntity mbe) {
-                        MetaMachine mm = mbe.getMetaMachine();
-                        if (mm instanceof MultiblockPartMachine) {
-                            continue;
-                        }
-                    }
-                } catch (Throwable t) {
-                    GTCEUTerminalMod.LOGGER.debug(
-                            "CandidateFilter: could not instantiate block entity for {}: {}",
-                            bi.getBlock().getDescriptionId(), t.getMessage());
-                }
-            }
+            if (!(stack.getItem() instanceof BlockItem)) continue;
+            if (isMultiblockPart(stack)) continue;
             out.add(stack);
         }
         return out;
     }
 
-    public static List<ItemStack> applyCoilTierPreference(List<ItemStack> candidates, int tierMode) {
-        if (candidates.isEmpty()) return candidates;
-        int desiredTier = tierMode - 1;
-        if (desiredTier < 0) return candidates;
-
-        boolean hasAnyCoil = false;
-        for (ItemStack st : candidates) {
-            if (st.getItem() instanceof BlockItem bi && isCoilBlock(bi.getBlock())) {
-                hasAnyCoil = true;
-                break;
+    public static boolean isMultiblockPart(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockItem bi)) return false;
+        if (!(bi.getBlock() instanceof MetaMachineBlock machineBlock)) return false;
+        try {
+            if (machineBlock.newBlockEntity(BlockPos.ZERO, machineBlock.defaultBlockState())
+                    instanceof IMachineBlockEntity mbe) {
+                return mbe.getMetaMachine() instanceof MultiblockPartMachine;
             }
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.debug(
+                    "CandidateFilter: could not instantiate block entity for {}: {}",
+                    bi.getBlock().getDescriptionId(), t.getMessage());
         }
-        if (!hasAnyCoil) return candidates;
-
-        List<ItemStack> filtered = new ArrayList<>();
-        for (ItemStack st : candidates) {
-            if (st.getItem() instanceof BlockItem bi && isCoilBlock(bi.getBlock())) {
-                int coilTier = getCoilTier(bi.getBlock());
-                if (coilTier == desiredTier) filtered.add(st);
-            }
-        }
-        return filtered.isEmpty() ? candidates : filtered;
-    }
-
-    private static boolean isCoilBlock(net.minecraft.world.level.block.Block block) {
-        if (block instanceof CoilBlock) return true;
-        String blockId = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(block).toString();
-        return com.gtceuterminal.common.config.ComponentRegistry.coilByBlockId(blockId) != null;
-    }
-
-    private static int getCoilTier(net.minecraft.world.level.block.Block block) {
-        if (block instanceof CoilBlock coil) return coil.coilType.getTier();
-        String blockId = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(block).toString();
-        var entry = com.gtceuterminal.common.config.ComponentRegistry.coilByBlockId(blockId);
-        return entry != null ? entry.tier : 0;
+        return false;
     }
 
     public static List<ItemStack> enrichWithCustomComponents(
@@ -103,7 +65,7 @@ public final class CandidateFilter {
         ComponentCategory category = detectComponentCategory(originalCandidates);
         if (category == null) return originalCandidates;
 
-        List<ItemStack> customComponents = ComponentRegistry.getMatchingItemStacks(category);
+        List<ItemStack> customComponents = ComponentRegistry.getExternalMatchingItemStacks(category);
         if (customComponents.isEmpty()) return originalCandidates;
 
         Set<String> existing = new HashSet<>();

@@ -6,11 +6,14 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.lowdragmc.lowdraglib.gui.texture.TransformTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
+
+import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -30,14 +33,16 @@ public final class TerminalButton {
     public static final ResourceTexture ICON_ARROW_LEFT = new ResourceTexture(BTN_TEX + "arrow_left.png");
     public static final ResourceTexture ICON_ARROW_RIGHT = new ResourceTexture(BTN_TEX + "arrow_right.png");
     public static final ResourceTexture ICON_RENAME = new ResourceTexture(BTN_TEX + "rename.png");
-    public static final ResourceTexture ICON_REFRESH = new ResourceTexture(BTN_TEX + "refresh.png");
+
+    private static final int ICON_MARGIN = 1;
 
     public static ButtonWidget icon3d(int x, int y, int size, IGuiTexture icon,
                                       Consumer<ClickData> action) {
         int fill = TerminalUI.tokens().panel();
+        IGuiTexture centered = new IconTexture(icon, Math.max(1, size - ICON_MARGIN * 2));
         ButtonWidget btn = new ButtonWidget(x, y, size, size,
-                new GuiTextureGroup(new BevelTexture(fill), icon), action);
-        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), icon));
+                new GuiTextureGroup(new BevelTexture(fill), centered), action);
+        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), centered));
         return btn;
     }
 
@@ -93,6 +98,24 @@ public final class TerminalButton {
                 new ColorRectTexture(Palette.CLEAR), action);
         btn.setHoverTexture(new ColorRectTexture(hoverColor));
         return btn;
+    }
+
+    private static final class IconTexture extends TransformTexture {
+        private final IGuiTexture icon;
+        private final int iconSize;
+
+        private IconTexture(IGuiTexture icon, int iconSize) {
+            this.icon = icon;
+            this.iconSize = iconSize;
+        }
+
+        @Override
+        protected void drawInternal(GuiGraphics graphics, int mouseX, int mouseY,
+                                    float x, float y, int width, int height) {
+            float ix = x + (width - iconSize) / 2f;
+            float iy = y + (height - iconSize) / 2f;
+            icon.draw(graphics, mouseX, mouseY, ix, iy, iconSize, iconSize);
+        }
     }
 
 }

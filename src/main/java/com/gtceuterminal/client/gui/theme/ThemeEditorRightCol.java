@@ -236,12 +236,12 @@ final class ThemeEditorRightCol {
         wallpaperTitle.setColor(tokens.textMuted());
         col.addWidget(wallpaperTitle);
 
-        ButtonWidget previous = TerminalButton.icon3d(PAD + 74, cy, 20, "<", cd -> onWallPrev.run());
+        ButtonWidget previous = TerminalButton.icon3d(PAD + 74, cy, 20, TerminalButton.ICON_ARROW_LEFT, cd -> onWallPrev.run());
         previous.setHoverTooltips(Component.translatable(
                 "gui.gtceuterminal.theme_editor.wallpaper_prev").getString());
         col.addWidget(previous);
 
-        ButtonWidget next = TerminalButton.icon3d(PAD + 98, cy, 20, ">", cd -> onWallNext.run());
+        ButtonWidget next = TerminalButton.icon3d(PAD + 98, cy, 20, TerminalButton.ICON_ARROW_RIGHT, cd -> onWallNext.run());
         next.setHoverTooltips(Component.translatable(
                 "gui.gtceuterminal.theme_editor.wallpaper_next").getString());
         col.addWidget(next);

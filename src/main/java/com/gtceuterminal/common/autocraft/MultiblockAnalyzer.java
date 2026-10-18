@@ -5,6 +5,7 @@ import com.gtceuterminal.common.ae2.MEQueryResult;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
+import com.gtceuterminal.common.pattern.AutoBuilderHelpers;
 import com.gtceuterminal.common.config.ManagerSettings;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -57,7 +58,7 @@ public final class MultiblockAnalyzer {
             BlockPos centerPos = controller.self().getPos();
             var facing = controller.self().getFrontFacing();
             var upFacing = controller.self().getUpwardsFacing();
-            boolean isFlipped = controller.self().isFlipped();
+            boolean isFlipped = AutoBuilderHelpers.resolveFlip(controller, settings);
             int minZ = -centerOff[4];
 
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
@@ -220,7 +221,7 @@ public final class MultiblockAnalyzer {
         if (aisleReps == null || slice >= aisleReps.length) return 1;
         int min = aisleReps[slice][0];
         int max = aisleReps[slice][1];
-        if (repeatCount == 0) return Math.max(1, min);
+        if (repeatCount == 0) return Math.max(0, min);
         int d = Math.max(repeatCount, min);
         if (max >= min && max > 0) d = Math.min(d, max);
         return Math.max(1, d);

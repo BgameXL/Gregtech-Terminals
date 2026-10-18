@@ -102,7 +102,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int closeSize = 20;
         ButtonWidget close = TerminalButton.icon3d(
                 header.getSizeWidth() - closeSize - 6, (HEADER_H - closeSize) / 2,
-                closeSize, "×", cd -> close());
+                closeSize, TerminalButton.ICON_CLOSE, cd -> close());
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         header.addWidget(close);
         return header;

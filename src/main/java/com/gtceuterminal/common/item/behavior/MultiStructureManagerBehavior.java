@@ -99,6 +99,11 @@ public class MultiStructureManagerBehavior {
                             playSound(level, blockPos, SoundEvents.ANVIL_LAND, 0.5f, 0.8f);
                             return InteractionResult.FAIL;
                         }
+                        if (buildSettings.mirrorMode == 1 && !controller.self().allowFlip()) {
+                            sendMessage(player,
+                                    Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.mirror_unsupported"),
+                                    false);
+                        }
                         try {
                             boolean success = AdvancedAutoBuilder.autoBuild(player, controller, buildSettings);
                             if (success) {

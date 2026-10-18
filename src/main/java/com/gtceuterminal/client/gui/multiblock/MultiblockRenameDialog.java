@@ -63,7 +63,7 @@ final class MultiblockRenameDialog {
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
-        ButtonWidget closeBtn = TerminalButton.icon3d(DW - 23, 4, 18, "×", cd -> dialog.close());
+        ButtonWidget closeBtn = TerminalButton.icon3d(DW - 23, 4, 18, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         titleBar.addWidget(closeBtn);
 

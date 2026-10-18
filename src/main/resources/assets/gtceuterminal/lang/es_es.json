@@ -90,6 +90,7 @@
   "item.gtceuterminal.multi_structure_manager.behavior.linked_to_me_network": "§a✓ Linked to ME Network",
   "item.gtceuterminal.multi_structure_manager.behavior.cooldown_active": "§cCooldown active!",
   "item.gtceuterminal.multi_structure_manager.behavior.multiblock_built": "§aMultiblock built!",
+  "item.gtceuterminal.multi_structure_manager.behavior.mirror_unsupported": "§eEste multibloque no soporta construccion en espejo; construyendo normal.",
   "item.gtceuterminal.multi_structure_manager.behavior.failed_to_build_check_materials": "§cFailed to build! Check materials.",
   "item.gtceuterminal.multi_structure_manager.behavior.failed_to_build": "§cFailed to build!",
   "item.gtceuterminal.multi_structure_manager.behavior.not_connected_to_me": "§cNo estás conectado a una red ME. Vincula el manager a un Wireless Access Point dentro del rango.",
@@ -262,6 +263,9 @@
   "gui.gtceuterminal.manager_settings.repeat_count.hint_layers": "§8Repeatable layers (0-99)",
   "gui.gtceuterminal.manager_settings.use_ae2.label": "§7Use AE2",
   "gui.gtceuterminal.manager_settings.use_ae2.tooltip": "§7Necesita estar vinculado al access point",
+  "gui.gtceuterminal.manager_settings.mirror_mode.label": "§7Construir en Espejo",
+  "gui.gtceuterminal.manager_settings.mirror_mode.hint_toggle": "§8← Click to toggle",
+  "gui.gtceuterminal.manager_settings.mirror_mode.tooltip": "§7Construye la estructura en espejo de izquierda a derecha. Solo si el multibloque lo permite.",
   "gui.gtceuterminal.manager_settings.use_ae2.hint_use_materials": "§8← Use AE2 for materials",
 
   "gui.gtceuterminal.component_detail.header.title_compact": "§l§f%s",

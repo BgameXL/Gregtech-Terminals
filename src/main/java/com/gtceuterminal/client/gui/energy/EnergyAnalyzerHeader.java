@@ -75,12 +75,12 @@ final class EnergyAnalyzerHeader {
             g.addWidget(linked);
         }
 
-        ButtonWidget gearBtn = TerminalButton.icon3d(themeX, btnY, btnSize, "✦",
+        ButtonWidget gearBtn = TerminalButton.icon3d(themeX, btnY, btnSize, TerminalButton.ICON_THEME,
                 cd -> ThemeEditorDialog.open(rootGroup, theme));
         gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         g.addWidget(gearBtn);
 
-        ButtonWidget closeBtn = TerminalButton.icon3d(closeX, btnY, btnSize, "×",
+        ButtonWidget closeBtn = TerminalButton.icon3d(closeX, btnY, btnSize, TerminalButton.ICON_CLOSE,
                 cd -> player.closeContainer());
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         g.addWidget(closeBtn);

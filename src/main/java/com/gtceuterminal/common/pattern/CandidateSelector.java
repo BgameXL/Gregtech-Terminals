@@ -24,6 +24,7 @@ public final class CandidateSelector {
         Set<Item> allowances = new HashSet<>();
         for (CandidateClassifier.CandidateGroup group : CandidateClassifier.classify(predicate)) {
             if (group.role() == CandidateClassifier.Role.REQUIRED) continue;
+            if (group.predicate().maxLayerCount > 0) continue;
             if (group.candidates().isEmpty()) continue;
             Set<Item> distinct = new HashSet<>();
             for (ItemStack stack : group.candidates()) distinct.add(stack.getItem());

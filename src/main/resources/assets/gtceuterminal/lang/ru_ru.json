@@ -90,6 +90,7 @@
   "item.gtceuterminal.multi_structure_manager.behavior.linked_to_me_network": "§a✓ Linked to ME Network",
   "item.gtceuterminal.multi_structure_manager.behavior.cooldown_active": "§cCooldown active!",
   "item.gtceuterminal.multi_structure_manager.behavior.multiblock_built": "§aMultiblock built!",
+  "item.gtceuterminal.multi_structure_manager.behavior.mirror_unsupported": "§eThis multiblock does not support mirrored building; building normally.",
   "item.gtceuterminal.multi_structure_manager.behavior.failed_to_build_check_materials": "§cFailed to build! Check materials.",
   "item.gtceuterminal.multi_structure_manager.behavior.failed_to_build": "§cFailed to build!",
   "item.gtceuterminal.multi_structure_manager.behavior.not_connected_to_me": "§cNot connected to an ME Network. Link the manager to a Wireless Access Point in range.",
@@ -262,6 +263,9 @@
   "gui.gtceuterminal.manager_settings.repeat_count.hint_layers": "§8Repeatable layers (0-99)",
   "gui.gtceuterminal.manager_settings.use_ae2.label": "§7Use AE2",
   "gui.gtceuterminal.manager_settings.use_ae2.tooltip": "§7Needs to be linked to the access point",
+  "gui.gtceuterminal.manager_settings.mirror_mode.label": "§7Mirror Build",
+  "gui.gtceuterminal.manager_settings.mirror_mode.hint_toggle": "§8← Click to toggle",
+  "gui.gtceuterminal.manager_settings.mirror_mode.tooltip": "§7Build the structure mirrored left to right. Only if the multiblock supports it.",
   "gui.gtceuterminal.manager_settings.use_ae2.hint_use_materials": "§8← Use AE2 for materials",
 
   "gui.gtceuterminal.component_detail.header.title_compact": "§l§f%s",

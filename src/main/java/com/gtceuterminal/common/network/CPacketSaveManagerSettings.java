@@ -38,6 +38,7 @@ public class CPacketSaveManagerSettings {
             existing.putInt("TierMode", Mth.clamp(tag.getInt("TierMode"), 0, 14));
             existing.putInt("RepeatCount", Mth.clamp(tag.getInt("RepeatCount"), 0, 99));
             existing.putInt("IsUseAE", tag.getInt("IsUseAE") != 0 ? 1 : 0);
+            existing.putInt("MirrorMode", tag.getInt("MirrorMode") != 0 ? 1 : 0);
             player.getInventory().setChanged();
         });
         ctx.get().setPacketHandled(true);

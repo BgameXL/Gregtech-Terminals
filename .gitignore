@@ -3,6 +3,9 @@
 /out/
 /.gradle/
 
+# Docs site
+/site/
+
 # IDE files
 .idea/
 *.iml

@@ -51,7 +51,7 @@ final class MachineOptionsDialog {
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
-        ButtonWidget closeBtn = TerminalButton.icon3d(DW - 18, 1, 16, "×", cd -> dialog.close());
+        ButtonWidget closeBtn = TerminalButton.icon3d(DW - 18, 1, 16, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         titleBar.addWidget(closeBtn);
 

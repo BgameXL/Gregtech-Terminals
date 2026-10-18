@@ -4,6 +4,7 @@ import com.gtceuterminal.client.gui.style.TerminalText;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
@@ -20,6 +21,24 @@ import java.util.function.Consumer;
 public final class TerminalButton {
 
     private TerminalButton() {
+    }
+
+    private static final String BTN_TEX = "gtceuterminal:textures/gui/buttons/";
+    public static final ResourceTexture ICON_CLOSE = new ResourceTexture(BTN_TEX + "close.png");
+    public static final ResourceTexture ICON_THEME = new ResourceTexture(BTN_TEX + "theme.png");
+    public static final ResourceTexture ICON_CONFIG = new ResourceTexture(BTN_TEX + "config.png");
+    public static final ResourceTexture ICON_ARROW_LEFT = new ResourceTexture(BTN_TEX + "arrow_left.png");
+    public static final ResourceTexture ICON_ARROW_RIGHT = new ResourceTexture(BTN_TEX + "arrow_right.png");
+    public static final ResourceTexture ICON_RENAME = new ResourceTexture(BTN_TEX + "rename.png");
+    public static final ResourceTexture ICON_REFRESH = new ResourceTexture(BTN_TEX + "refresh.png");
+
+    public static ButtonWidget icon3d(int x, int y, int size, IGuiTexture icon,
+                                      Consumer<ClickData> action) {
+        int fill = TerminalUI.tokens().panel();
+        ButtonWidget btn = new ButtonWidget(x, y, size, size,
+                new GuiTextureGroup(new BevelTexture(fill), icon), action);
+        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), icon));
+        return btn;
     }
 
     private static IGuiTexture glyph(String s, int w) {

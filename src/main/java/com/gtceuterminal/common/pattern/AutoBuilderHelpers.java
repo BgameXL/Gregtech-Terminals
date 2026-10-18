@@ -16,11 +16,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -28,15 +24,12 @@ import net.minecraft.world.level.block.state.properties.Property;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
-final class AutoBuilderHelpers {
+public final class AutoBuilderHelpers {
 
     private static final Direction[] FACINGS = {Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN};
     private static final Direction[] FACINGS_H = {Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST};
@@ -44,11 +37,24 @@ final class AutoBuilderHelpers {
     private AutoBuilderHelpers() {
     }
 
+    public static boolean allowsFlip(IMultiController controller) {
+        try {
+            return controller.self().allowFlip();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public static boolean resolveFlip(IMultiController controller, ManagerSettings.AutoBuildSettings settings) {
+        boolean mirror = settings.mirrorMode != 0 && allowsFlip(controller);
+        return mirror || controller.self().isFlipped();
+    }
+
     static int getRepetitionsForSlice(int slice, int[][] aisleRepetitions, int repeatCount) {
         if (aisleRepetitions == null || slice < 0 || slice >= aisleRepetitions.length) return 1;
         int min = aisleRepetitions[slice][0];
         int max = aisleRepetitions[slice][1];
-        if (repeatCount == 0) return Math.max(1, min);
+        if (repeatCount == 0) return Math.max(0, min);
         int desired = Math.max(repeatCount, min);
         if (max >= min && max > 0) desired = Math.min(desired, max);
         return Math.max(1, desired);
@@ -251,62 +257,4 @@ final class AutoBuilderHelpers {
         }
     }
 
-    static Map<Item, Integer> preCalculateMaterials(
-            Player player, IMultiController controller,
-            ManagerSettings.AutoBuildSettings settings,
-            TraceabilityPredicate[][][] blockMatches, int[][] aisleRepetitions,
-            RelativeDirection[] structureDir, int[] centerOffset,
-            PredicateCountMap cacheGlobal, PredicateCountMap cacheLayer,
-            Map<BlockPos, Object> blocks, BlockPos centerPos,
-            Direction facing, Direction upwardsFacing, boolean isFlipped, Level world
-    ) {
-        Map<Item, Integer> required = new HashMap<>();
-        int minZ = -centerOffset[4];
-        final int fingerLength = blockMatches.length;
-        final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
-        final int palmLength = thumbLength > 0 ? blockMatches[0][0].length : 0;
-
-        for (int c = 0, z = minZ++, r; c < fingerLength; c++) {
-            int reps = getRepetitionsForSlice(c, aisleRepetitions, settings.repeatCount);
-            for (r = 0; r < reps; r++) {
-                for (int b = 0, y = -centerOffset[1]; b < thumbLength; b++, y++) {
-                    for (int a = 0, x = -centerOffset[0]; a < palmLength; a++, x++) {
-                        TraceabilityPredicate predicate = blockMatches[c][b][a];
-                        BlockPos pos = setActualRelativeOffset(structureDir, x, y, z, facing, upwardsFacing, isFlipped)
-                                .offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
-                        if (!world.isEmptyBlock(pos)) continue;
-
-                        BlockInfo[] infos = pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
-                        List<ItemStack> candidates = new ArrayList<>();
-                        if (infos != null) for (BlockInfo info : infos)
-                            if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
-
-                        candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
-                        if (settings.noHatchMode != 0)
-                            candidates = CandidateFilter.filterOutMultiblockParts(candidates);
-                        candidates = CandidateSelector.excludeOptionalAllowances(candidates, predicate);
-                        candidates = CandidateSelector.applyTierPreference(candidates, settings);
-
-                        boolean isFluidBlock = false;
-                        for (ItemStack cand : candidates) {
-                            if (cand.getItem() instanceof BlockItem bi && bi.getBlock().defaultBlockState().getFluidState().isSource()) {
-                                isFluidBlock = true;
-                                break;
-                            }
-                        }
-                        if (isFluidBlock) continue;
-
-                        for (ItemStack cand : candidates) {
-                            if (!cand.isEmpty() && cand.getItem() instanceof BlockItem) {
-                                required.merge(cand.getItem(), 1, Integer::sum);
-                                break;
-                            }
-                        }
-                    }
-                }
-                z++;
-            }
-        }
-        return required;
-    }
 }

@@ -86,7 +86,7 @@ public class AdvancedAutoBuilder {
             BlockPos centerPos = controller.self().getPos();
             Direction facing = controller.self().getFrontFacing();
             Direction upwardsFacing = controller.self().getUpwardsFacing();
-            boolean isFlipped = controller.self().isFlipped();
+            boolean isFlipped = AutoBuilderHelpers.resolveFlip(controller, settings);
 
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
             PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);

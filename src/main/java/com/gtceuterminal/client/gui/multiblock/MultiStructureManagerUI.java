@@ -42,13 +42,15 @@ public class MultiStructureManagerUI {
     private static final int TITLE_H = 30;
     private static final int BODY_Y = TITLE_Y + TITLE_H - 1;
     private static final int BODY_H = 456;
+    private static final int WIDE_W = 640;
+    private static final int SETTINGS_W = 280;
+    private static final int SETTINGS_BODY_H = 184;
     private static final int HEADER_GAP = 4;
     private static final int SETTINGS_CARD_W = 142;
     private static final int CARD_INSET = 2;
     private static final int LEFT_W = 210;
     private static final int DIVIDER_W = 1;
     private static final int SCAN_RADIUS = 32;
-    private static final String GLYPH_THEME = "✦";
 
     private int GUI_W, GUI_H;
 
@@ -66,7 +68,6 @@ public class MultiStructureManagerUI {
     private DraggableScrollableWidgetGroup listScroll;
     private WidgetGroup detailPanel;
     private ManagerSettingsUI managerSettingsUI;
-    private final ImageWidget[] headerCardBackgrounds = new ImageWidget[View.values().length];
     private View activeView = View.MULTIBLOCKS;
 
     private int rightX, rightW, bodyH;
@@ -105,26 +106,41 @@ public class MultiStructureManagerUI {
     }
 
     public ModularUI createUI() {
-        GUI_W = 640;
-        GUI_H = BODY_Y + BODY_H + 2;
+        applyViewDimensions();
 
         WidgetGroup main = new WidgetGroup(0, 0, GUI_W, GUI_H);
         this.rootGroup = main;
         main.setBackground(new ColorRectTexture(Palette.CLEAR));
 
-        if (!theme.isNativeStyle()) {
-            main.addWidget(new WallpaperWidget(2, BODY_Y, GUI_W - 4, BODY_H, () -> this.theme));
-        }
-
-        main.addWidget(buildHeaderCards());
-        main.addWidget(buildMultiblockBodyCard());
-
         this.gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(main);
         gui.background(new ColorRectTexture(Palette.CLEAR));
 
-        TerminalParade.setup(theme, GUI_W, GUI_H);
+        rebuildContent();
         return gui;
+    }
+
+    private int currentBodyH() {
+        return activeView == View.SETTINGS ? SETTINGS_BODY_H : BODY_H;
+    }
+
+    private void applyViewDimensions() {
+        GUI_W = activeView == View.SETTINGS ? SETTINGS_W : WIDE_W;
+        GUI_H = BODY_Y + currentBodyH() + 2;
+    }
+
+    private void rebuildContent() {
+        if (rootGroup == null) return;
+        rootGroup.clearAllWidgets();
+
+        if (!theme.isNativeStyle()) {
+            rootGroup.addWidget(new WallpaperWidget(2, BODY_Y, GUI_W - 4, currentBodyH(), () -> this.theme));
+        }
+
+        rootGroup.addWidget(activeView == View.SETTINGS ? buildSettingsHeader() : buildHeaderCards());
+        rootGroup.addWidget(activeView == View.SETTINGS ? buildSettingsBodyCard() : buildMultiblockBodyCard());
+
+        TerminalParade.setup(theme, GUI_W, GUI_H);
     }
 
     private WidgetGroup buildMultiblockBodyCard() {
@@ -194,7 +210,6 @@ public class MultiStructureManagerUI {
         WidgetGroup card = new WidgetGroup(2, TITLE_Y, cardW, TITLE_H);
         ImageWidget mainBackground = new ImageWidget(0, 0, cardW, TITLE_H,
                 headerCardTexture(View.MULTIBLOCKS));
-        headerCardBackgrounds[View.MULTIBLOCKS.ordinal()] = mainBackground;
         card.addWidget(mainBackground);
 
         ButtonWidget mainCardTarget = new ButtonWidget(0, 0, cardW, TITLE_H,
@@ -236,7 +251,7 @@ public class MultiStructureManagerUI {
         card.addWidget(toolLabel);
 
         ButtonWidget themeBtn = TerminalButton.icon3d(buttonX, (TITLE_H - buttonSize) / 2,
-                buttonSize, GLYPH_THEME,
+                buttonSize, TerminalButton.ICON_THEME,
                 cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalRef)));
         themeBtn.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_settings").getString());
@@ -247,7 +262,6 @@ public class MultiStructureManagerUI {
         WidgetGroup settingsCard = new WidgetGroup(settingsX, TITLE_Y, SETTINGS_CARD_W, TITLE_H);
         ImageWidget settingsBackground = new ImageWidget(0, 0, SETTINGS_CARD_W, TITLE_H,
                 headerCardTexture(View.SETTINGS));
-        headerCardBackgrounds[View.SETTINGS.ordinal()] = settingsBackground;
         settingsCard.addWidget(settingsBackground);
 
         LabelWidget settingsLabel = new LabelWidget(10, centerLabelY,
@@ -273,21 +287,13 @@ public class MultiStructureManagerUI {
     private void switchView(View view) {
         if (view == activeView || rootGroup == null) return;
         activeView = view;
-
-        for (View candidate : View.values()) {
-            ImageWidget background = headerCardBackgrounds[candidate.ordinal()];
-            if (background != null) background.setImage(headerCardTexture(candidate));
-        }
-
-        if (bodyGroup != null) rootGroup.removeWidget(bodyGroup);
-        bodyGroup = view == View.MULTIBLOCKS
-                ? buildMultiblockBodyCard()
-                : buildSettingsBodyCard();
-        rootGroup.addWidget(bodyGroup);
+        applyViewDimensions();
+        rebuildContent();
+        if (gui != null) gui.setSize(GUI_W, GUI_H);
     }
 
     private WidgetGroup buildSettingsBodyCard() {
-        WidgetGroup card = new WidgetGroup(2, BODY_Y, GUI_W - 4, BODY_H);
+        WidgetGroup card = new WidgetGroup(2, BODY_Y, GUI_W - 4, SETTINGS_BODY_H);
         card.setBackground(TerminalUI.cardBg());
         this.bodyGroup = card;
         this.listScroll = null;
@@ -300,8 +306,27 @@ public class MultiStructureManagerUI {
         card.addWidget(managerSettingsUI.buildEmbeddedPanel(
                 CARD_INSET, CARD_INSET,
                 GUI_W - 4 - CARD_INSET * 2,
-                BODY_H - CARD_INSET * 2));
+                SETTINGS_BODY_H - CARD_INSET * 2));
         return card;
+    }
+
+    private WidgetGroup buildSettingsHeader() {
+        WidgetGroup headers = new WidgetGroup(0, 0, GUI_W, TITLE_Y + TITLE_H);
+        int cardW = GUI_W - 4;
+        WidgetGroup card = new WidgetGroup(2, TITLE_Y, cardW, TITLE_H);
+        card.addWidget(new ImageWidget(0, 0, cardW, TITLE_H, new BevelTexture(TerminalUI.tokens().panel())));
+
+        ButtonWidget back = TerminalButton.icon3d(6, (TITLE_H - 18) / 2, 18, TerminalButton.ICON_ARROW_LEFT,
+                cd -> switchView(View.MULTIBLOCKS));
+        card.addWidget(back);
+
+        LabelWidget title = new LabelWidget(6 + 18 + 8, (TITLE_H - 8) / 2,
+                Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
+        title.setColor(TerminalUI.tokens().textStrong());
+        card.addWidget(title);
+
+        headers.addWidget(card);
+        return headers;
     }
 
     private enum View {

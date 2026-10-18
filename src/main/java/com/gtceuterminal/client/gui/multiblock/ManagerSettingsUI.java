@@ -33,7 +33,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ManagerSettingsUI {
 
     private static final int GUI_W = 280;
-    private static final int GUI_H = 215;
+    private static final int GUI_H = 247;
     private static final int HEADER_H = 28;
     private static final int PAD = 8;
     private static final int ROW_H = 32;
@@ -49,6 +49,7 @@ public class ManagerSettingsUI {
     private int tierMode;
     private int repeatCount;
     private int isUseAE;
+    private int mirrorMode;
 
     public ManagerSettingsUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
         this.uiHolder = heldHolder;
@@ -80,6 +81,7 @@ public class ManagerSettingsUI {
         this.tierMode = tag != null && tag.contains("TierMode") ? tag.getInt("TierMode") : 0;
         this.repeatCount = tag != null && tag.contains("RepeatCount") ? tag.getInt("RepeatCount") : 0;
         this.isUseAE = tag != null && tag.contains("IsUseAE") ? tag.getInt("IsUseAE") : 0;
+        this.mirrorMode = tag != null && tag.contains("MirrorMode") ? tag.getInt("MirrorMode") : 0;
     }
 
     private void applyTheme() {
@@ -138,7 +140,7 @@ public class ManagerSettingsUI {
 
         WidgetGroup header = buildHeader();
         ButtonWidget close = TerminalButton.icon3d(
-                header.getSize().width - 24, (HEADER_H - 18) / 2, 18, "×", cd -> dialog.close());
+                header.getSize().width - 24, (HEADER_H - 18) / 2, 18, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         header.addWidget(close);
         root.addWidget(header);
@@ -230,6 +232,13 @@ public class ManagerSettingsUI {
                     }
                 },
                 0, 99);
+
+        rowY = addToggleRow(panel, rowY, innerW,
+                Component.translatable("gui.gtceuterminal.manager_settings.mirror_mode.label").getString(),
+                Component.translatable("gui.gtceuterminal.manager_settings.mirror_mode.hint_toggle").getString(),
+                Component.translatable("gui.gtceuterminal.manager_settings.mirror_mode.tooltip").getString(),
+                () -> getMirrorMode() == 1,
+                () -> toggleMirrorMode());
 
         if (MENetworkScanner.isAE2Available()) {
             addToggleRow(panel, rowY, innerW,
@@ -380,12 +389,22 @@ public class ManagerSettingsUI {
         syncToServer();
     }
 
+    private int getMirrorMode() {
+        return mirrorMode;
+    }
+
+    private void toggleMirrorMode() {
+        mirrorMode = mirrorMode == 1 ? 0 : 1;
+        syncToServer();
+    }
+
     private void syncToServer() {
         CompoundTag snapshot = new CompoundTag();
         snapshot.putInt("NoHatchMode", noHatchMode);
         snapshot.putInt("TierMode", tierMode);
         snapshot.putInt("RepeatCount", repeatCount);
         snapshot.putInt("IsUseAE", isUseAE);
+        snapshot.putInt("MirrorMode", mirrorMode);
         com.gtceuterminal.common.network.TerminalNetwork.sendToServer(
                 new com.gtceuterminal.common.network.CPacketSaveManagerSettings(snapshot));
     }

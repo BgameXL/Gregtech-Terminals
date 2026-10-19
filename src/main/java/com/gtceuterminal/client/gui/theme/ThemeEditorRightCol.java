@@ -2,6 +2,7 @@ package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
@@ -248,7 +249,7 @@ final class ThemeEditorRightCol {
 
         LabelWidget wallLabel = new LabelWidget(PAD + 128, cy + 6, () ->
                 working.hasWallpaper()
-                        ? truncate(working.wallpaper, Math.max(12, (colW - PAD - 128) / 6))
+                        ? TerminalText.truncate(working.wallpaper, Math.max(12, (colW - PAD - 128) / 6))
                         : Component.translatable("gui.gtceuterminal.theme_editor.none").getString());
         wallLabel.setClientSideWidget();
         wallLabel.setColor(tokens.textStrong());
@@ -316,7 +317,4 @@ final class ThemeEditorRightCol {
         };
     }
 
-    private static String truncate(String value, int max) {
-        return value.length() <= max ? value : value.substring(0, max - 1) + "…";
-    }
 }

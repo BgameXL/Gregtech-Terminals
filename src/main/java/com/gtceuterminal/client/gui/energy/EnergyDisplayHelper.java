@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 
 import net.minecraft.network.chat.Component;
@@ -68,7 +69,6 @@ public final class EnergyDisplayHelper {
     }
 
     public static String truncate(String s, int max) {
-        if (s == null) return "";
-        return s.length() > max ? s.substring(0, max - 1) + "…" : s;
+        return TerminalText.truncate(s, max);
     }
 }

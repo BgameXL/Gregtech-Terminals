@@ -9,7 +9,9 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.ViewportClippedButton;
 import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
@@ -119,13 +121,13 @@ final class MultiblockListPanel {
                 new ColorBorderTexture(1, borderColor)));
 
         // Clickable area (full entry minus buttons)
-        ButtonWidget clickBtn = new ViewportClippedButtonWidget(
+        ButtonWidget clickBtn = new ViewportClippedButton(
                 0, 0, rowW, ENTRY_H, t.hover(), viewport, cd -> onEntryClick.accept(index));
         entry.addWidget(clickBtn);
 
         // Name line
         String displayName = resolveDisplayName(mb);
-        LabelWidget nameLabel = new LabelWidget(8, 6, truncate(displayName, 24));
+        LabelWidget nameLabel = new LabelWidget(8, 6, TerminalText.truncate(displayName, 24));
         nameLabel.setColor(mb.isVanillaGTCEu() ? t.textStrong() : opaque(mb.getModColor()));
         entry.addWidget(nameLabel);
 
@@ -191,11 +193,6 @@ final class MultiblockListPanel {
         return 0xFF000000 | (color & 0x00FFFFFF);
     }
 
-    private static String truncate(String s, int max) {
-        if (s == null) return "";
-        return s.length() > max ? s.substring(0, max - 1) + "…" : s;
-    }
-
     private static int statusColor(MultiblockStatus status, TerminalTheme theme) {
         return switch (status) {
             case ACTIVE -> theme.success();
@@ -204,30 +201,5 @@ final class MultiblockListPanel {
             case OUTPUT_FULL -> theme.border();
             case DISABLED, UNFORMED -> theme.textFaint();
         };
-    }
-
-    private static final class ViewportClippedButtonWidget extends ButtonWidget {
-        private final DraggableScrollableWidgetGroup viewport;
-
-        private ViewportClippedButtonWidget(
-                int x, int y, int w, int h,
-                int hoverColor,
-                DraggableScrollableWidgetGroup viewport,
-                Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action
-        ) {
-            super(x, y, w, h, new ColorRectTexture(Palette.CLEAR), action);
-            this.viewport = viewport;
-            setHoverTexture(new ColorRectTexture(hoverColor));
-        }
-
-        @Override
-        public boolean isMouseOverElement(double mouseX, double mouseY) {
-            return viewport != null
-                    && Widget.isMouseOver(
-                    viewport.getPositionX(), viewport.getPositionY(),
-                    viewport.getSizeWidth(), viewport.getSizeHeight(),
-                    mouseX, mouseY)
-                    && super.isMouseOverElement(mouseX, mouseY);
-        }
     }
 }

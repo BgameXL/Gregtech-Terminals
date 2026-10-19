@@ -62,7 +62,7 @@ public class ClientEvents {
             RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
             SchematicPreviewRenderer.renderGhostBlocks(
-                    poseStack, bufferSource, cachedClipboard, minecraft, clipboardTag);
+                    poseStack, bufferSource, cachedClipboard, minecraft);
             bufferSource.endBatch();
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
             RenderSystem.disableBlend();

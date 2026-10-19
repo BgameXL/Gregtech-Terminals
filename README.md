@@ -33,7 +33,7 @@ Any mods or modpacks listed below will have specially-tailored integrations for 
 *   **GTM Things**
 *   **Star Technology: Beyond**
 
-Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion here on [GitHub](https://github.com/BgameXL/GTCEu-Terminals/issues) or contact us on [Discord](https://discord.gg/r7PeUvMytZ).
+Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion here on [GitHub](https://github.com/BgameXL/GTCEu-Terminals/issues) or contact us on [Discord](https://discord.gg/kAKk3wRAVh).
 
 ### Credits
 

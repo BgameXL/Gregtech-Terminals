@@ -21,6 +21,7 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.Minecraft;
@@ -198,7 +199,7 @@ public class MultiStructureManagerUI {
         int desiredW = itemX + Math.max(font.width(itemName), font.width(toolName))
                 + 8 + buttonSize + padR;
         int maxMainW = GUI_W - 4 - HEADER_GAP - SETTINGS_CARD_W;
-        int cardW = Math.min(maxMainW, Math.max(240, desiredW));
+        int cardW = Math.min(maxMainW, Math.max(213, desiredW));
         int buttonX = cardW - padR - buttonSize;
         int textMaxWidth = Math.max(0, buttonX - 8 - itemX);
         int titleY = 6;
@@ -207,15 +208,8 @@ public class MultiStructureManagerUI {
         int iconY = (TITLE_H - iconSize) / 2;
 
         WidgetGroup headers = new WidgetGroup(0, 0, GUI_W, TITLE_Y + TITLE_H);
-        WidgetGroup card = new WidgetGroup(2, TITLE_Y, cardW, TITLE_H);
-        ImageWidget mainBackground = new ImageWidget(0, 0, cardW, TITLE_H,
-                headerCardTexture(View.MULTIBLOCKS));
-        card.addWidget(mainBackground);
-
-        ButtonWidget mainCardTarget = new ButtonWidget(0, 0, cardW, TITLE_H,
-                new ColorRectTexture(Palette.CLEAR), cd -> switchView(View.MULTIBLOCKS));
-        mainCardTarget.setHoverTexture(new ColorRectTexture(TerminalUI.tokens().hover()));
-        card.addWidget(mainCardTarget);
+        WidgetGroup card = TerminalTabs.tabCard(2, TITLE_Y, cardW, TITLE_H,
+                activeView == View.MULTIBLOCKS, cd -> switchView(View.MULTIBLOCKS));
 
         boolean placedBundleIcon = false;
         if (theme.isBundleStyle()) {
@@ -259,29 +253,15 @@ public class MultiStructureManagerUI {
         headers.addWidget(card);
 
         int settingsX = 2 + cardW + HEADER_GAP;
-        WidgetGroup settingsCard = new WidgetGroup(settingsX, TITLE_Y, SETTINGS_CARD_W, TITLE_H);
-        ImageWidget settingsBackground = new ImageWidget(0, 0, SETTINGS_CARD_W, TITLE_H,
-                headerCardTexture(View.SETTINGS));
-        settingsCard.addWidget(settingsBackground);
+        WidgetGroup settingsCard = TerminalTabs.tabCard(settingsX, TITLE_Y, SETTINGS_CARD_W, TITLE_H,
+                activeView == View.SETTINGS, cd -> switchView(View.SETTINGS));
 
         LabelWidget settingsLabel = new LabelWidget(10, centerLabelY,
                 "# " + Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
         settingsLabel.setColor(TerminalUI.tokens().textStrong());
         settingsCard.addWidget(settingsLabel);
-
-        ButtonWidget settingsTarget = new ButtonWidget(0, 0, SETTINGS_CARD_W, TITLE_H,
-                new ColorRectTexture(Palette.CLEAR), cd -> switchView(View.SETTINGS));
-        settingsTarget.setHoverTexture(new ColorRectTexture(TerminalUI.tokens().hover()));
-        settingsCard.addWidget(settingsTarget);
         headers.addWidget(settingsCard);
         return headers;
-    }
-
-    private BevelTexture headerCardTexture(View view) {
-        int fill = view == activeView
-                ? TerminalUI.tokens().panel()
-                : TerminalUI.tokens().panelDisabled();
-        return new BevelTexture(fill);
     }
 
     private void switchView(View view) {

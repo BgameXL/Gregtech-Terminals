@@ -46,16 +46,7 @@ public final class SchematicPaster {
 
         SchematicData clipboard = SchematicData.fromNBT(
                 itemTag.getCompound("Clipboard"), level.registryAccess());
-        Direction originalFacing = Direction.SOUTH;
-        try {
-            String facingStr = clipboard.getOriginalFacing();
-            if (facingStr != null && !facingStr.isEmpty()) {
-                Direction byName = Direction.byName(facingStr);
-                if (byName != null) originalFacing = byName;
-            }
-        } catch (IllegalStateException e) {
-            GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not read original facing, defaulting to SOUTH: {}", e.getMessage());
-        }
+        Direction originalFacing = SchematicUtils.resolveOriginalFacing(clipboard);
 
         Direction targetFacing = player.getDirection().getOpposite();
         int rotationSteps = SchematicUtils.getRotationSteps(originalFacing, targetFacing);
@@ -68,12 +59,7 @@ public final class SchematicPaster {
             GTCEUTerminalMod.LOGGER.warn("SchematicPaster: malformed UserRot tag, ignoring: {}", e.getMessage());
         }
 
-        final int finalRotationSteps = rotationSteps;
-
-        int minRelY = clipboard.getBlocks().keySet().stream()
-                .mapToInt(pos -> SchematicUtils.rotatePositionSteps(pos, finalRotationSteps).getY())
-                .min()
-                .orElse(0);
+        int minRelY = SchematicUtils.minRotatedY(clipboard, rotationSteps);
 
         final BlockPos adjustedTarget = targetPos.above(-minRelY);
 

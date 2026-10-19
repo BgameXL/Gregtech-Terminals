@@ -95,4 +95,20 @@ public final class SchematicUtils {
                 (int) Math.floor(target.z)
         );
     }
+
+    public static Direction resolveOriginalFacing(SchematicData schematic) {
+        String facingStr = schematic.getOriginalFacing();
+        if (facingStr != null && !facingStr.isEmpty()) {
+            Direction byName = Direction.byName(facingStr);
+            if (byName != null) return byName;
+        }
+        return Direction.SOUTH;
+    }
+
+    public static int minRotatedY(SchematicData schematic, int rotationSteps) {
+        return schematic.getBlocks().keySet().stream()
+                .mapToInt(pos -> rotatePositionSteps(pos, rotationSteps).getY())
+                .min()
+                .orElse(0);
+    }
 }

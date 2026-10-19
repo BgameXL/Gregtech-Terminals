@@ -12,6 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
@@ -74,7 +75,7 @@ final class MultiblockDetailPanel {
         header.setBackground(new ColorRectTexture(t.panel()));
 
         String displayName = resolveDisplayName(mb);
-        LabelWidget name = new LabelWidget(10, 8, truncate(displayName, 32));
+        LabelWidget name = new LabelWidget(10, 8, TerminalText.truncate(displayName, 32));
         name.setColor(t.textStrong());
         header.addWidget(name);
 
@@ -220,12 +221,7 @@ final class MultiblockDetailPanel {
             }
         }
         String result = sb.toString();
-        return result.length() > 28 ? result.substring(0, 27) + "…" : result;
-    }
-
-    private static String truncate(String s, int max) {
-        if (s == null) return "";
-        return s.length() > max ? s.substring(0, max - 1) + "…" : s;
+        return TerminalText.truncate(result, 28);
     }
 
     private static int statusColor(MultiblockStatus status, TerminalTheme theme) {

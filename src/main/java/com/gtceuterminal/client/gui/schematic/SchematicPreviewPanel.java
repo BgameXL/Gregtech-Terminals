@@ -33,12 +33,11 @@ final class SchematicPreviewPanel {
             int panelH,
             int selectedIndex,
             List<SchematicData> schematics,
-            boolean hasClipboard,
             Player player
     ) {
         disposePreviewWidgets(panel);
         panel.clearAllWidgets();
-        populate(panel, panelW, panelH, selectedIndex, schematics, hasClipboard, player);
+        populate(panel, panelW, panelH, selectedIndex, schematics, player);
     }
 
     private static void disposePreviewWidgets(WidgetGroup panel) {
@@ -62,7 +61,6 @@ final class SchematicPreviewPanel {
             int panelH,
             int selectedIndex,
             List<SchematicData> schematics,
-            boolean hasClipboard,
             Player player
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
@@ -111,18 +109,6 @@ final class SchematicPreviewPanel {
             rot.setColor(tokens.textFaint());
             previewArea.addWidget(rot);
 
-        } else if (hasClipboard) {
-            LabelWidget clipInfo = new LabelWidget(10, previewH / 2 - 10,
-                    TerminalText.strip(Component.translatable(
-                            "gui.gtceuterminal.schematic_interface.preview.clipboard_content").getString()));
-            clipInfo.setColor(tokens.success());
-            previewArea.addWidget(clipInfo);
-
-            LabelWidget hint = new LabelWidget(10, previewH / 2 + 4,
-                    TerminalText.strip(Component.translatable(
-                            "gui.gtceuterminal.schematic_interface.preview.save_to_see").getString()));
-            hint.setColor(tokens.textMuted());
-            previewArea.addWidget(hint);
         } else {
             String noPreview = TerminalText.strip(Component.translatable(
                     "gui.gtceuterminal.schematic_interface.preview.no_preview").getString());

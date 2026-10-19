@@ -10,6 +10,8 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.gtceuterminal.client.gui.widget.ViewportClippedButton;
+import com.gtceuterminal.client.gui.widget.TerminalScrollGroup;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -47,7 +49,7 @@ final class SchematicListPanel {
         panel.addWidget(title);
 
         DraggableScrollableWidgetGroup scroll =
-                new DraggableScrollableWidgetGroup(0, HEADER_H, leftW, listH - HEADER_H);
+                new TerminalScrollGroup(0, HEADER_H, leftW, listH - HEADER_H);
         scroll.setYScrollBarWidth(0);
         scrollRef[0] = scroll;
         panel.addWidget(scroll);
@@ -65,6 +67,7 @@ final class SchematicListPanel {
             IntConsumer onSelect
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
+        int savedY = (scroll instanceof TerminalScrollGroup t) ? t.getScrollYOffset() : 0;
         scroll.clearAllWidgets();
 
         if (schematics.isEmpty()) {
@@ -78,14 +81,18 @@ final class SchematicListPanel {
 
         int y = 2;
         for (int i = 0; i < schematics.size(); i++) {
-            scroll.addWidget(buildEntry(schematics.get(i), i, y, entryW, selectedIndex, tokens, onSelect));
+            scroll.addWidget(buildEntry(schematics.get(i), i, y, entryW, selectedIndex, tokens, onSelect, scroll));
             y += ENTRY_STEP;
         }
+
+        int maxScroll = Math.max(0, y - scroll.getSizeHeight());
+        scroll.setScrollYOffset(Math.min(savedY, maxScroll));
     }
 
     private static WidgetGroup buildEntry(
             SchematicData schematic, int index, int yPos, int entryW,
-            int selectedIndex, TerminalTheme tokens, IntConsumer onSelect
+            int selectedIndex, TerminalTheme tokens, IntConsumer onSelect,
+            DraggableScrollableWidgetGroup scroll
     ) {
         boolean sel = index == selectedIndex;
         WidgetGroup entry = new WidgetGroup(1, yPos, entryW, ENTRY_H);
@@ -93,9 +100,8 @@ final class SchematicListPanel {
                 new ColorRectTexture(sel ? tokens.accentSoft() : tokens.panel()),
                 new ColorBorderTexture(1, sel ? tokens.border() : Palette.CLEAR)));
 
-        ButtonWidget click = new ButtonWidget(0, 0, entryW, ENTRY_H,
-                new ColorRectTexture(Palette.CLEAR), cd -> onSelect.accept(index));
-        click.setHoverTexture(new ColorRectTexture(tokens.hover()));
+        ViewportClippedButton click = new ViewportClippedButton(0, 0, entryW, ENTRY_H,
+                tokens.hover(), scroll, cd -> onSelect.accept(index));
         entry.addWidget(click);
 
         String name = schematic.getName();

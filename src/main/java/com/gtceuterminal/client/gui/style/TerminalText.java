@@ -12,4 +12,9 @@ public final class TerminalText {
     public static String strip(String s) {
         return s.replaceAll("§.", "");
     }
+
+    public static String truncate(String s, int max) {
+        if (s == null) return "";
+        return s.length() > max ? s.substring(0, max - 1) + "…" : s;
+    }
 }

@@ -147,6 +147,35 @@ public class CPacketSchematicAction {
                         GTCEUTerminalMod.LOGGER.warn("DELETE: schematic '{}' not found on server", this.schematicName);
                     }
                     break;
+
+                case RENAME: {
+                    List<SchematicData> toRename = loadSchematics(stack, player);
+                    if (this.schematicIndex >= 0 && this.schematicIndex < toRename.size()) {
+                        String newName = this.schematicName;
+                        boolean nameTaken = false;
+                        for (int i = 0; i < toRename.size(); i++) {
+                            if (i != this.schematicIndex
+                                    && toRename.get(i).getName().equalsIgnoreCase(newName)) {
+                                nameTaken = true;
+                                break;
+                            }
+                        }
+                        if (nameTaken) {
+                            player.displayClientMessage(
+                                    Component.translatable("item.gtceuterminal.schematic_action.message.schematic_name_already_exists"),
+                                    true);
+                            return;
+                        }
+                        SchematicData old = toRename.get(this.schematicIndex);
+                        toRename.set(this.schematicIndex, new SchematicData(newName, old.getMultiblockType(),
+                                old.getBlocks(), old.getBlockEntities(), old.getOriginalFacing()));
+                        saveSchematics(stack, toRename);
+                        player.displayClientMessage(
+                                Component.translatable("item.gtceuterminal.schematic_action.message.renamed_schematic", newName),
+                                true);
+                    }
+                    break;
+                }
             }
         });
         ctx.get().setPacketHandled(true);
@@ -201,6 +230,7 @@ public class CPacketSchematicAction {
     public enum ActionType {
         SAVE,
         LOAD,
-        DELETE
+        DELETE,
+        RENAME
     }
 }

@@ -90,7 +90,7 @@ final class EnergyAnalyzerSidebar {
             rate.setColor(tokens.textMuted());
             g.addWidget(rate);
 
-            ButtonWidget rowBtn = new ButtonWidget(1, rowY, sidebarW - 23, itemH,
+            ButtonWidget rowBtn = new ButtonWidget(1, rowY, sidebarW - 2, itemH,
                     new ColorRectTexture(Palette.CLEAR), cd -> onSelect.accept(idx));
             rowBtn.setHoverTexture(new ColorRectTexture(tokens.hover()));
             g.addWidget(rowBtn);

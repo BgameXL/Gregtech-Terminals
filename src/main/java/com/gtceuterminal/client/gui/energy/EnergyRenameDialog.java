@@ -11,17 +11,20 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-final class MachineRenameDialog {
+final class EnergyRenameDialog {
 
-    private MachineRenameDialog() {
+    private EnergyRenameDialog() {
     }
 
     static void open(WidgetGroup rootGroup, int parentW, int parentH, int machineIdx, LinkedMachineData machine) {
         TerminalRenameDialog.open(rootGroup, parentW, parentH,
                 "gui.gtceuterminal.energy_analyzer.rename_dialog.title",
                 null, machine.getCustomName(), null,
-                name -> TerminalNetwork.CHANNEL.sendToServer(
-                        new CPacketEnergyAnalyzerAction(CPacketEnergyAnalyzerAction.Action.RENAME, machineIdx, name)));
+                name -> {
+                    machine.setCustomName(name);
+                    TerminalNetwork.CHANNEL.sendToServer(
+                            new CPacketEnergyAnalyzerAction(CPacketEnergyAnalyzerAction.Action.RENAME, machineIdx, name));
+                });
     }
 
 }

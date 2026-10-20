@@ -84,7 +84,7 @@ public class EnergyAnalyzerUI {
                 holder.machines, ITEM_H,
                 this::snapAt,
                 this::selectMachine,
-                idx -> MachineOptionsDialog.open(rootGroup, W, H, idx, holder.machines.get(idx), player),
+                idx -> EnergyOptionsDialog.open(rootGroup, W, H, idx, holder.machines.get(idx), player),
                 sidebarSelects));
 
         body.addWidget(new ImageWidget(CARD_INSET + SIDEBAR_W, CARD_INSET, DIVIDER, INNER_H,

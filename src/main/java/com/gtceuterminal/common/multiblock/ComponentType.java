@@ -155,13 +155,13 @@ public enum ComponentType {
     }
 
     public int getColor() {
-        if (isFluidHandler()) return 0x4169E1;  // Blue (fluids)
-        if (isItemHandler()) return 0xFFD700;   // Gold (items)
+        if (isFluidHandler()) return 0x4169E1; // Blue (fluids)
+        if (isItemHandler()) return 0xFFD700; // Gold (items)
         if (isEnergyHandler()) return 0xFF4500; // Orange (energy)
-        if (isDataHandler()) return 0x00CED1;   // Cyan (data)
-        if (this == MAINTENANCE) return 0x32CD32;  // Green (maintenance)
-        if (this == MUFFLER) return 0x808080;      // Gray (muffler)
-        if (this == COIL) return 0xFF6347;         // Red (coil)
+        if (isDataHandler()) return 0x00CED1; // Cyan (data)
+        if (this == MAINTENANCE) return 0x32CD32; // Green (maintenance)
+        if (this == MUFFLER) return 0x808080; // Gray (muffler)
+        if (this == COIL) return 0xFF6347; // Red (coil)
         return 0xFFFFFF;
     }
 }

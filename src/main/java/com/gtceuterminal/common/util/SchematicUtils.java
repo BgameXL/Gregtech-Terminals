@@ -5,6 +5,8 @@ import com.gtceuterminal.common.data.SchematicData;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -27,6 +29,47 @@ public final class SchematicUtils {
 
     public static int getRotationSteps(Direction from, Direction to) {
         return (to.get2DDataValue() - from.get2DDataValue() + 4) % 4;
+    }
+
+    public static void rotateCoverSides(CompoundTag beTag, int steps) {
+        steps &= 3;
+        if (steps == 0 || beTag == null || !beTag.contains("cover", Tag.TAG_COMPOUND)) return;
+
+        CompoundTag cover = beTag.getCompound("cover");
+        String[] fieldName = {"down", "up", "north", "south", "west", "east"};
+
+        java.util.List<CompoundTag> entries = new java.util.ArrayList<>();
+        java.util.List<String> originalKeys = new java.util.ArrayList<>();
+        for (String key : fieldName) {
+            if (cover.contains(key, Tag.TAG_COMPOUND)) {
+                entries.add(cover.getCompound(key).copy());
+                originalKeys.add(key);
+            }
+        }
+        if (entries.isEmpty()) return;
+
+        for (String key : fieldName) cover.remove(key);
+
+        for (int i = 0; i < entries.size(); i++) {
+            CompoundTag entry = entries.get(i);
+            String targetKey = originalKeys.get(i);
+
+            CompoundTag uid = entry.getCompound("uid");
+            if (uid.contains("side", Tag.TAG_INT)) {
+                int ordinal = uid.getInt("side");
+                if (ordinal >= 0 && ordinal < Direction.values().length) {
+                    Direction dir = Direction.values()[ordinal];
+                    if (dir.getAxis().isHorizontal()) {
+                        for (int s = 0; s < steps; s++) dir = dir.getClockWise();
+                        uid.putInt("side", dir.ordinal());
+                        entry.put("uid", uid);
+                        targetKey = fieldName[dir.ordinal()];
+                    }
+                }
+            }
+            cover.put(targetKey, entry);
+        }
+        beTag.put("cover", cover);
     }
 
     /**

@@ -11,7 +11,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TerminalNetwork {
 
-    private static final String PROTOCOL = "11";
+    private static final String PROTOCOL = "12";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,
@@ -22,12 +22,6 @@ public class TerminalNetwork {
     private static int id = 0;
 
     public static void registerPackets() {
-
-        CHANNEL.messageBuilder(CPacketBlockReplacement.class, id++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(CPacketBlockReplacement::encode)
-                .decoder(CPacketBlockReplacement::new)
-                .consumerMainThread(CPacketBlockReplacement::handle)
-                .add();
 
         CHANNEL.messageBuilder(CPacketSchematicAction.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketSchematicAction::encode)

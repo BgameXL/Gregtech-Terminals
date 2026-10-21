@@ -73,13 +73,6 @@ public class ComponentInfo {
         return tiers;
     }
 
-    public boolean canUpgradeTo(int targetTier) {
-        int max = group == ComponentGroupRegistry.COIL ? 7
-                : group == ComponentGroupRegistry.MAINTENANCE ? 4
-                : GTValues.VN.length - 1;
-        return targetTier != tier && targetTier >= 0 && targetTier <= max;
-    }
-
     public String getDisplayName() {
         if (blockName.contains("rtm_alloy"))
             return blockName.replace("rtm_alloy", "RTM Alloy").replace("_coil_block", " Coil Block").replace("_", " ");

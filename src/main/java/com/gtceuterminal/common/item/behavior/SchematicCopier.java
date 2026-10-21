@@ -125,27 +125,20 @@ public final class SchematicCopier {
 
         copyString(originalTag, clean, "id");
 
-        copyTag(originalTag, clean, "CoverContainer");
-        copyTag(originalTag, clean, "Covers");
-        copyTag(originalTag, clean, "Upgrades");
+        copyTag(originalTag, clean, "cover");
+        copyTag(originalTag, clean, "filterHandler");
 
-        if (originalTag.contains("Tier")) clean.putInt("Tier", originalTag.getInt("Tier"));
-        copyString(originalTag, clean, "Material");
-
-        copyString(originalTag, clean, "Facing");
-        copyString(originalTag, clean, "FrontFacing");
-
-        if (originalTag.contains("WorkingEnabled"))
-            clean.putBoolean("WorkingEnabled", originalTag.getBoolean("WorkingEnabled"));
-        if (originalTag.contains("AllowInputFromOutputSide"))
-            clean.putBoolean("AllowInputFromOutputSide", originalTag.getBoolean("AllowInputFromOutputSide"));
+        if (originalTag.contains("workingEnabled"))
+            clean.putBoolean("workingEnabled", originalTag.getBoolean("workingEnabled"));
+        if (originalTag.contains("allowInputFromOutputSideItems"))
+            clean.putBoolean("allowInputFromOutputSideItems", originalTag.getBoolean("allowInputFromOutputSideItems"));
+        if (originalTag.contains("allowInputFromOutputSideFluids"))
+            clean.putBoolean("allowInputFromOutputSideFluids", originalTag.getBoolean("allowInputFromOutputSideFluids"));
         if (originalTag.contains("activeRecipeType"))
             clean.putInt("activeRecipeType", originalTag.getInt("activeRecipeType"));
 
 
-        copyString(originalTag, clean, "CustomName");
-        if (originalTag.contains("PartIndex"))
-            clean.putInt("PartIndex", originalTag.getInt("PartIndex"));
+        copyString(originalTag, clean, "customName");
         copyTag(originalTag, clean, "ownerUUID");
         if (originalTag.contains("paintingColor"))
             clean.putInt("paintingColor", originalTag.getInt("paintingColor"));
@@ -245,7 +238,7 @@ public final class SchematicCopier {
 
         if (src.contains("hasRedstone")) dst.putInt("hasRedstone", src.getInt("hasRedstone"));
         for (String side : sideKeys) {
-            String facadeKey = "facade_" + side;
+            String facadeKey = "facade" + Character.toUpperCase(side.charAt(0)) + side.substring(1);
             if (src.contains(facadeKey)) dst.put(facadeKey, src.get(facadeKey).copy());
         }
     }
@@ -267,7 +260,6 @@ public final class SchematicCopier {
 
         if (partData.contains("reportingValue")) safe.putLong("reportingValue", partData.getLong("reportingValue"));
         copyString(partData, safe, "customName");
-        copyTag(partData, safe, "cm");
 
         return safe;
     }

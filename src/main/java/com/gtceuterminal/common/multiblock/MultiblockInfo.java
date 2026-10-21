@@ -4,10 +4,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import net.minecraft.core.BlockPos;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
-
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -152,40 +149,12 @@ public class MultiblockInfo {
         return String.format(java.util.Locale.ROOT, "%.0fm", distanceFromPlayer);
     }
 
-    public List<ComponentInfo> getComponentsByGroup(ComponentGroup group) {
-        return components.stream().filter(c -> c.getGroup() == group).toList();
-    }
-
-    public List<ComponentInfo> getUpgradeableComponents() {
-        return components.stream().filter(c -> c.getGroup().isUpgradeable).toList();
-    }
-
-    public int countComponentsOfGroup(ComponentGroup group) {
-        return (int) components.stream().filter(c -> c.getGroup() == group).count();
-    }
-
-    // MOD SOURCE TRACKING
     public void setSourceMod(String modId) {
         this.sourceMod = modId != null ? modId : "unknown";
     }
 
-    public String getSourceMod() {
-        return sourceMod;
-    }
-
-    public boolean isFromMod(String modId) {
-        return this.sourceMod.equals(modId);
-    }
-
     public boolean isVanillaGTCEu() {
         return "gtceu".equals(sourceMod);
-    }
-
-    public String getDisplayNameWithMod() {
-        if ("gtceu".equals(sourceMod)) {
-            return getName();
-        }
-        return "[" + sourceMod.toUpperCase() + "] " + getName();
     }
 
     public int getModColor() {
@@ -210,9 +179,5 @@ public class MultiblockInfo {
                 ", status=" + status +
                 ", sourceMod='" + sourceMod + '\'' +
                 '}';
-    }
-
-    public String getType() {
-        return "";
     }
 }

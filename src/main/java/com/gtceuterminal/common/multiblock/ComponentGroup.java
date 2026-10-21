@@ -15,7 +15,6 @@ public final class ComponentGroup {
     public final boolean isEnergyHandler;
     public final boolean isDataHandler;
     public final boolean isSpecial;
-    public final int capacityMultiplier;
     public final Predicate<Block> detector;
     public final String registryCategory;
 
@@ -29,7 +28,6 @@ public final class ComponentGroup {
         this.isEnergyHandler = b.isEnergyHandler;
         this.isDataHandler = b.isDataHandler;
         this.isSpecial = b.isSpecial;
-        this.capacityMultiplier = b.capacityMultiplier;
         this.detector = b.detector;
         this.registryCategory = b.registryCategory;
     }
@@ -44,7 +42,6 @@ public final class ComponentGroup {
         private int color = 0xFFFFFF;
         private boolean isUpgradeable = true;
         private boolean isFluidHandler, isItemHandler, isEnergyHandler, isDataHandler, isSpecial;
-        private int capacityMultiplier = 1;
         private Predicate<Block> detector;
         private String registryCategory;
 
@@ -85,11 +82,6 @@ public final class ComponentGroup {
 
         public Builder special() {
             this.isSpecial = true;
-            return this;
-        }
-
-        public Builder capacityMultiplier(int m) {
-            this.capacityMultiplier = m;
             return this;
         }
 

@@ -14,7 +14,6 @@ import java.util.*;
 
 public class DismantleScanner {
 
-
     public static class ScanResult {
         private final BlockPos controllerPos;
         private final Set<BlockPos> allBlocks;

@@ -5,14 +5,12 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gtceuterminal.common.config.ItemsConfig;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -95,64 +93,7 @@ public class DismantleExecutor {
             return ItemStack.EMPTY;
         }
 
-        ItemStack stack = new ItemStack(state.getBlock().asItem());
-        if (stack.isEmpty()) return ItemStack.EMPTY;
-
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be != null) {
-            try {
-                be.saveToItem(stack);
-
-                cleanNBTForStacking(stack);
-            } catch (Throwable ignored) {
-            }
-        }
-        return stack;
-    }
-
-    private static void cleanNBTForStacking(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return;
-
-        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag");
-        if (blockEntityTag.isEmpty()) return;
-
-        CompoundTag cleanTag = new CompoundTag();
-
-        if (blockEntityTag.contains("CoverContainer")) {
-            cleanTag.put("CoverContainer", blockEntityTag.get("CoverContainer").copy());
-        }
-        if (blockEntityTag.contains("Covers")) {
-            cleanTag.put("Covers", blockEntityTag.get("Covers").copy());
-        }
-
-        if (blockEntityTag.contains("Upgrades")) {
-            cleanTag.put("Upgrades", blockEntityTag.get("Upgrades").copy());
-        }
-
-        if (blockEntityTag.contains("WorkingEnabled")) {
-            cleanTag.putBoolean("WorkingEnabled", blockEntityTag.getBoolean("WorkingEnabled"));
-        }
-
-        if (blockEntityTag.contains("Tier")) {
-            cleanTag.putInt("Tier", blockEntityTag.getInt("Tier"));
-        }
-        if (blockEntityTag.contains("Material")) {
-            cleanTag.putString("Material", blockEntityTag.getString("Material"));
-        }
-
-        if (blockEntityTag.contains("CustomName")) {
-            cleanTag.putString("CustomName", blockEntityTag.getString("CustomName"));
-        }
-
-        if (!cleanTag.isEmpty()) {
-            tag.put("BlockEntityTag", cleanTag);
-        } else {
-            tag.remove("BlockEntityTag");
-        }
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
+        return new ItemStack(state.getBlock().asItem());
     }
 
     // Combines identical stacks (same item + same NBT) respecting maxStackSize.

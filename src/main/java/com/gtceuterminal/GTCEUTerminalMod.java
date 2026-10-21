@@ -3,6 +3,7 @@ package com.gtceuterminal;
 import com.gtceuterminal.common.ae2.AE2Integration;
 import com.gtceuterminal.common.command.GTCETerminalCommands;
 import com.gtceuterminal.common.compat.integrations.StarTCoreIntegration;
+import com.gtceuterminal.common.config.ComponentPatternRegistry;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.config.ServerConfig;
 import com.gtceuterminal.common.data.GTCEUTerminalItems;
@@ -79,6 +80,8 @@ public class GTCEUTerminalMod {
 
         event.enqueueWork(() -> {
             ItemsConfig.load();
+
+            ComponentPatternRegistry.initialize();
 
             ThemeBundleRegistry.init();
 

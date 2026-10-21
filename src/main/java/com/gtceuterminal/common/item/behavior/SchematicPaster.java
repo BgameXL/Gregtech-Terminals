@@ -197,6 +197,7 @@ public final class SchematicPaster {
                         beTag.putInt("x", p.worldPos.getX());
                         beTag.putInt("y", p.worldPos.getY());
                         beTag.putInt("z", p.worldPos.getZ());
+                        SchematicUtils.rotateCoverSides(beTag, rotationSteps);
                         be.load(beTag);
                         try {
                             p.state.getBlock().setPlacedBy(

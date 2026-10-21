@@ -163,6 +163,7 @@ dependencies {
 
     //Compile
     modCompileOnly("curse.maven:kubejs-238086:5853326")
+    modCompileOnly("curse.maven:rhino-416294:6186971")
     modRuntimeOnly("curse.maven:architectury-api-419699:5137938")
     modRuntimeOnly("curse.maven:rhino-416294:6186971")
     modRuntimeOnly("curse.maven:gtmthings-1104310:6843500")

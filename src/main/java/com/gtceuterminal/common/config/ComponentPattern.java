@@ -8,20 +8,10 @@ public class ComponentPattern {
     private ComponentGroup group;
     private int priority = 50;
     private String displayPrefix;
-    private String description;
-
-    public ComponentPattern() {
-    }
 
     public ComponentPattern(String pattern, ComponentGroup group) {
         this.pattern = pattern;
         this.group = group;
-    }
-
-    public ComponentPattern(String pattern, ComponentGroup group, int priority) {
-        this.pattern = pattern;
-        this.group = group;
-        this.priority = priority;
     }
 
     public boolean matches(String blockId) {
@@ -40,16 +30,8 @@ public class ComponentPattern {
         return pattern;
     }
 
-    public void setPattern(String pattern) {
-        this.pattern = pattern;
-    }
-
     public ComponentGroup getGroup() {
         return group;
-    }
-
-    public void setGroup(ComponentGroup group) {
-        this.group = group;
     }
 
     public int getPriority() {
@@ -60,20 +42,8 @@ public class ComponentPattern {
         this.priority = priority;
     }
 
-    public String getDisplayPrefix() {
-        return displayPrefix;
-    }
-
     public void setDisplayPrefix(String displayPrefix) {
         this.displayPrefix = displayPrefix;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     @Override

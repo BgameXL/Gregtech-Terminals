@@ -7,7 +7,6 @@ public class ServerConfig {
     public static final String FILE_NAME = "gtceuterminal-server.toml";
     public static final ForgeConfigSpec SPEC;
 
-    public static final ForgeConfigSpec.IntValue MULTIBLOCK_SCAN_RADIUS;
     public static final ForgeConfigSpec.BooleanValue ENABLE_AE2_INTEGRATION;
     public static final ForgeConfigSpec.BooleanValue ENABLE_DEBUG_LOGGING;
 
@@ -16,10 +15,6 @@ public class ServerConfig {
 
         builder.comment("GTCEu Terminal Addon Server Configuration")
                 .push("general");
-
-        MULTIBLOCK_SCAN_RADIUS = builder
-                .comment("Radius in blocks for multiblock scanning (default: 32)")
-                .defineInRange("multiblockScanRadius", 32, 8, 128);
 
         ENABLE_AE2_INTEGRATION = builder
                 .comment("Enable Applied Energistics 2 integration (default: true)")
@@ -34,15 +29,19 @@ public class ServerConfig {
         SPEC = builder.build();
     }
 
-    public static int getMultiblockScanRadius() {
-        return MULTIBLOCK_SCAN_RADIUS.get();
-    }
-
     public static boolean isAE2IntegrationEnabled() {
-        return ENABLE_AE2_INTEGRATION.get();
+        try {
+            return ENABLE_AE2_INTEGRATION.get();
+        } catch (IllegalStateException e) {
+            return true;
+        }
     }
 
     public static boolean isDebugLoggingEnabled() {
-        return ENABLE_DEBUG_LOGGING.get();
+        try {
+            return ENABLE_DEBUG_LOGGING.get();
+        } catch (IllegalStateException e) {
+            return false;
+        }
     }
 }

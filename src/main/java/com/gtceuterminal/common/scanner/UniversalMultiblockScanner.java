@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.scanner;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.config.ServerConfig;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -45,7 +46,8 @@ public class UniversalMultiblockScanner {
             }
         }
 
-        GTCEUTerminalMod.LOGGER.info("UniversalMultiblockScanner: found {} multiblocks in radius {} from {}", found.size(), radius, center);
+        if (ServerConfig.isDebugLoggingEnabled())
+            GTCEUTerminalMod.LOGGER.info("UniversalMultiblockScanner: found {} multiblocks in radius {} from {}", found.size(), radius, center);
         return found;
     }
 

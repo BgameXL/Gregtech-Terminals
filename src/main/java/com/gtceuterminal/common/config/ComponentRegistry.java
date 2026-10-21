@@ -2,11 +2,9 @@ package com.gtceuterminal.common.config;
 
 import com.gtceuterminal.common.compat.GTCEuReader;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import org.slf4j.Logger;
@@ -68,7 +66,7 @@ public final class ComponentRegistry {
     }
 
     public static synchronized void addExternal(String category, ComponentEntry entry) {
-        LOGGER.info("addExternal called: category={} blockId={} initialized={}", category, entry.blockId, initialized);
+        LOGGER.debug("addExternal called: category={} blockId={} initialized={}", category, entry.blockId, initialized);
         EXTERNAL.computeIfAbsent(category, k -> new ArrayList<>()).add(entry);
         if (initialized) DATA.computeIfAbsent(category, k -> new ArrayList<>()).add(entry);
     }
@@ -97,10 +95,6 @@ public final class ComponentRegistry {
         return first(COILS, e -> e.tier == tier);
     }
 
-    public static ComponentEntry coilByBlockId(String blockId) {
-        return first(COILS, e -> e.blockId.equalsIgnoreCase(blockId));
-    }
-
     public static ComponentEntry entryByBlockId(String blockId) {
         if (blockId == null) return null;
         ensureInit();
@@ -110,13 +104,6 @@ public final class ComponentRegistry {
             }
         }
         return null;
-    }
-
-    public static int coilTier(BlockState state) {
-        if (state == null) return -1;
-        String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-        ComponentEntry e = coilByBlockId(blockId);
-        return e != null ? e.tier : -1;
     }
 
     public static List<ComponentEntry> getFluidHatches(String hatchType) {

@@ -121,7 +121,6 @@ public class YamlConfigLoader {
                 } else if (value.startsWith("[") && value.endsWith("]")) {
                     data.put(key, parseInlineList(value));
                 } else {
-                    // Scalar value
                     value = unquote(value);
                     if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes")) {
                         data.put(key, Boolean.TRUE);
@@ -231,7 +230,7 @@ public class YamlConfigLoader {
         if (entry.key == null) {
             writer.println();
             if (entry.comment != null && !entry.comment.isBlank()) {
-                writer.println("# ─── " + entry.comment + " ───");
+                writer.println("# --- " + entry.comment + " ---");
             }
             return;
         }

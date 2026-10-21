@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.ae2;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.config.ServerConfig;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +24,7 @@ public class MENetworkScanner {
             }
             ae2Checked = true;
         }
-        return ae2Available;
+        return ae2Available && ServerConfig.isAE2IntegrationEnabled();
     }
 
     public static boolean isItemLinked(ItemStack stack) {

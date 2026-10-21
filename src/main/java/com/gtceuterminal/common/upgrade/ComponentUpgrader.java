@@ -2,6 +2,7 @@ package com.gtceuterminal.common.upgrade;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.material.MaterialAvailability;
 import com.gtceuterminal.common.material.MaterialCalculator;
@@ -199,7 +200,7 @@ public class ComponentUpgrader {
     private static ExtractionResult extractMaterials(
             Map<Item, Integer> required, Player player, Level level, ItemStack linkedManager) {
 
-        if (linkedManager != null && !linkedManager.isEmpty()) {
+        if (linkedManager != null && !linkedManager.isEmpty() && ItemsConfig.isMgrAllowMENetworkUpgrade()) {
             MENetworkItemExtractor.ExtractResult me =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(linkedManager, level, player, required);
             if (me.success) {

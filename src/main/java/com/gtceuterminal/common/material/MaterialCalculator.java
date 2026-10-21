@@ -4,6 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.ae2.AccessPointLink;
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
@@ -262,7 +263,7 @@ public class MaterialCalculator {
 
             long inME = 0;
 
-            if (AccessPointLink.isLinked(linkedManager)) {
+            if (ItemsConfig.isMgrAllowMENetworkUpgrade() && AccessPointLink.isLinked(linkedManager)) {
                 if (level.isClientSide) {
                     long needed = entry.getValue();
                     long haveLocally = mat.getInInventory() + mat.getInNearbyChests();
@@ -379,6 +380,7 @@ public class MaterialCalculator {
 
         ItemStack linkedManager = findLinkedManager(player);
         boolean meUsable = MiscUtil.isAE2Loaded
+                && ItemsConfig.isMgrAllowMENetworkUpgrade()
                 && !linkedManager.isEmpty()
                 && AccessPointLink.isLinked(linkedManager);
 

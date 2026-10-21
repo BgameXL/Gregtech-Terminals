@@ -9,6 +9,7 @@ import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.client.highlight.MultiblockHighlighter;
+import com.gtceuterminal.common.config.ClientConfig;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
@@ -51,7 +52,6 @@ public class MultiStructureManagerUI {
     private static final int CARD_INSET = 2;
     private static final int LEFT_W = 210;
     private static final int DIVIDER_W = 1;
-    private static final int SCAN_RADIUS = 32;
 
     private int GUI_W, GUI_H;
 
@@ -102,7 +102,7 @@ public class MultiStructureManagerUI {
     }
 
     private void scanMultiblocks() {
-        this.multiblocks = MultiblockScanner.scanNearbyMultiblocks(player, player.level(), SCAN_RADIUS);
+        this.multiblocks = MultiblockScanner.scanNearbyMultiblocks(player, player.level(), ClientConfig.getMultiblockScanRadius());
         GTCEUTerminalMod.LOGGER.debug("MultiStructureManagerUI: scanned {} multiblocks", multiblocks.size());
     }
 

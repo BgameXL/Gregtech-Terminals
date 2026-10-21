@@ -120,8 +120,6 @@ public class SchematicData {
         String type = tag.getString("Type");
         String originalFacing = tag.contains("OriginalFacing") ? tag.getString("OriginalFacing") : "south";
 
-        // com.gtceuterminal.GTCEUTerminalMod.LOGGER.info("Loading schematic '{}' - originalFacing: {}", name, originalFacing);
-
         Map<BlockPos, BlockState> blocks = new HashMap<>();
         ListTag blocksList = tag.getList("Blocks", 10);
 

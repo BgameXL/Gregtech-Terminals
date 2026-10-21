@@ -11,26 +11,14 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.config.ServerConfig;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.math.BigInteger;
-
-// Infers machine state and energy usage by analyzing traits, capabilities, and recipe logic.
 public class MachineInferencer {
 
     private static final org.slf4j.Logger LOGGER = GTCEUTerminalMod.LOGGER;
-
-    private static boolean isDebug() {
-        try {
-            return ServerConfig.isDebugLoggingEnabled();
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     public static class MachineSnapshot {
         public final long euPerTick;
@@ -60,14 +48,6 @@ public class MachineInferencer {
             this.outputEuPerTick = outputEuPerTick;
             this.storedEu = storedEu;
             this.capacityEu = capacityEu;
-        }
-
-        public boolean hasInputOutputData() {
-            return inputEuPerTick > 0 || outputEuPerTick > 0;
-        }
-
-        public boolean hasStorageData() {
-            return capacityEu > 0 || storedEu > 0;
         }
     }
 
@@ -137,11 +117,6 @@ public class MachineInferencer {
 
     private static MachineSnapshot inferFromEnergyContainerWithDelta(MetaMachine metaMachine, BlockPos pos) {
         try {
-
-            var traits = metaMachine.getTraits();
-            for (var trait : traits) {
-            }
-
             var energyContainerOpt = metaMachine.getTraits().stream()
                     .filter(IEnergyContainer.class::isInstance)
                     .map(IEnergyContainer.class::cast)
@@ -289,13 +264,9 @@ public class MachineInferencer {
             long inputPerTick = inputPerSec / 20;
             long outputPerTick = Math.abs(outputPerSec) / 20;
 
-            if (inputPerTick > 0 || outputPerTick > 0) {
-            }
-
             long flowRate = Math.max(inputPerTick, outputPerTick);
 
-            if (flowRate > 0) {
-            } else {
+            if (flowRate <= 0) {
                 long maxEnergy = bigCapacity.compareTo(java.math.BigInteger.valueOf(Long.MAX_VALUE)) > 0
                         ? Long.MAX_VALUE
                         : bigCapacity.longValue();
@@ -394,9 +365,6 @@ public class MachineInferencer {
                         }
                     }
                 }
-            }
-
-            if (maxVoltage > 0) {
             }
 
             return (int) Math.min(maxVoltage, Integer.MAX_VALUE);

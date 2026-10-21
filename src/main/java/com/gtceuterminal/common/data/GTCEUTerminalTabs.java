@@ -20,17 +20,11 @@ public class GTCEUTerminalTabs {
             "gtceuterminal",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.gtceuterminal"))
-
                     .icon(() -> new ItemStack(GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get()))
-
                     .displayItems((parameters, output) -> {
                         output.accept(GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get());
-
                         output.accept(GTCEUTerminalItems.SCHEMATIC_INTERFACE.get());
-
                         output.accept(GTCEUTerminalItems.DISMANTLER.get());
-
-
                         output.accept(GTCEUTerminalItems.ENERGY_ANALYZER.get());
                     })
                     .build()

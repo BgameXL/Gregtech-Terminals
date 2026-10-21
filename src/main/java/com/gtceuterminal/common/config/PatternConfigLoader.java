@@ -70,7 +70,7 @@ public class PatternConfigLoader {
             try {
                 com.gtceuterminal.common.multiblock.ComponentType ct =
                         com.gtceuterminal.common.multiblock.ComponentType.valueOf(obj.get("componentType").getAsString());
-                group = com.gtceuterminal.common.multiblock.ComponentGroupRegistry.byId(ct.getAbilityId());
+                group = com.gtceuterminal.common.multiblock.ComponentGroupRegistry.fromCategory(ct.getAbilityId());
             } catch (IllegalArgumentException ignored) {
             }
             if (group == com.gtceuterminal.common.multiblock.ComponentGroupRegistry.UNKNOWN) {
@@ -82,7 +82,6 @@ public class PatternConfigLoader {
         ComponentPattern result = new ComponentPattern(pattern, group);
         if (obj.has("priority")) result.setPriority(obj.get("priority").getAsInt());
         if (obj.has("displayPrefix")) result.setDisplayPrefix(obj.get("displayPrefix").getAsString());
-        if (obj.has("description")) result.setDescription(obj.get("description").getAsString());
         return result;
     }
 

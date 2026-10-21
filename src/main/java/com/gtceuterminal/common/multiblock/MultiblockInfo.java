@@ -160,10 +160,7 @@ public class MultiblockInfo {
     public int getModColor() {
         return switch (sourceMod) {
             case "gtceu" -> 0xFFFFFF;
-            case "monifactory" -> 0x00FF00;
             case "terrafirmagreg" -> 0x00FFFF;
-            case "phoenix's technologies" -> 0xFFAA00;
-            case "astrogreg:exsilium" -> 0xFF00FF;
             default -> 0xAAAAAA;
         };
     }

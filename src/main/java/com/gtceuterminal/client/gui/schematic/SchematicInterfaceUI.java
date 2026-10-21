@@ -137,7 +137,7 @@ public class SchematicInterfaceUI {
         mainGroup.clearAllWidgets();
 
         if (!theme.isNativeStyle()) {
-            mainGroup.addWidget(new WallpaperWidget(0, 0, GUI_W, GUI_H, () -> this.theme));
+            mainGroup.addWidget(new WallpaperWidget(2, BODY_Y, BODY_W, BODY_H, () -> this.theme));
         }
 
         mainGroup.addWidget(buildHeader());
@@ -196,21 +196,9 @@ public class SchematicInterfaceUI {
         bpTab.addWidget(bpLabel);
         header.addWidget(bpTab);
 
-        int btnSize = 20;
-        int btnY = tabY + (HEADER_H - btnSize) / 2;
-        int closeX = GUI_W - 2 - btnSize - 6;
-        int themeX = closeX - btnSize - 4;
-
-        ButtonWidget gearBtn = TerminalButton.icon3d(themeX, btnY, btnSize, TerminalButton.ICON_THEME,
-                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
-        gearBtn.setHoverTooltips(
-                Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        header.addWidget(gearBtn);
-
-        ButtonWidget closeBtn = TerminalButton.icon3d(closeX, btnY, btnSize, TerminalButton.ICON_CLOSE,
-                cd -> gui.entityPlayer.closeContainer());
-        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        header.addWidget(closeBtn);
+        header.addWidget(TerminalTabs.actionCard(GUI_W - 2 - TerminalTabs.ACTION_CARD_W, tabY, HEADER_H,
+                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)),
+                cd -> gui.entityPlayer.closeContainer()));
 
         return header;
     }

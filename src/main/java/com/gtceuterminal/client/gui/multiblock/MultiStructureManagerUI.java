@@ -192,16 +192,13 @@ public class MultiStructureManagerUI {
                 multiblocks.size()).getString();
 
         int iconSize = 20;
-        int buttonSize = 20;
         int padL = 6;
         int padR = 6;
         int itemX = padL + iconSize + 6;
-        int desiredW = itemX + Math.max(font.width(itemName), font.width(toolName))
-                + 8 + buttonSize + padR;
-        int maxMainW = GUI_W - 4 - HEADER_GAP - SETTINGS_CARD_W;
+        int desiredW = itemX + Math.max(font.width(itemName), font.width(toolName)) + padR;
+        int maxMainW = GUI_W - 4 - HEADER_GAP - SETTINGS_CARD_W - HEADER_GAP - TerminalTabs.ACTION_CARD_W;
         int cardW = Math.min(maxMainW, Math.max(213, desiredW));
-        int buttonX = cardW - padR - buttonSize;
-        int textMaxWidth = Math.max(0, buttonX - 8 - itemX);
+        int textMaxWidth = Math.max(0, cardW - padR - itemX);
         int titleY = 6;
         int toolY = 17;
         int centerLabelY = (TITLE_H - 8) / 2;
@@ -244,12 +241,6 @@ public class MultiStructureManagerUI {
         toolLabel.setColor(TerminalUI.tokens().textMuted());
         card.addWidget(toolLabel);
 
-        ButtonWidget themeBtn = TerminalButton.icon3d(buttonX, (TITLE_H - buttonSize) / 2,
-                buttonSize, TerminalButton.ICON_THEME,
-                cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalRef)));
-        themeBtn.setHoverTooltips(
-                Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        card.addWidget(themeBtn);
         headers.addWidget(card);
 
         int settingsX = 2 + cardW + HEADER_GAP;
@@ -261,6 +252,12 @@ public class MultiStructureManagerUI {
         settingsLabel.setColor(TerminalUI.tokens().textStrong());
         settingsCard.addWidget(settingsLabel);
         headers.addWidget(settingsCard);
+
+        headers.addWidget(TerminalTabs.actionCard(GUI_W - 2 - TerminalTabs.ACTION_CARD_W, TITLE_Y, TITLE_H,
+                cd -> ThemeEditorDialog.open(rootGroup, ItemTheme.load(terminalRef)),
+                cd -> {
+                    if (player instanceof net.minecraft.client.player.LocalPlayer lp) lp.closeContainer();
+                }));
         return headers;
     }
 

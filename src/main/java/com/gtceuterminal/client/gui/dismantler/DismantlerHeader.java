@@ -1,11 +1,10 @@
 package com.gtceuterminal.client.gui.dismantler;
 
-import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.common.theme.ItemTheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.*;
@@ -34,64 +33,59 @@ final class DismantlerHeader {
             Runnable onClose
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
-        WidgetGroup header = new WidgetGroup(2, 2, guiW - 4, headerH);
-        header.setBackground(new BevelTexture(tokens.panel()));
+        var font = Minecraft.getInstance().font;
+        WidgetGroup g = new WidgetGroup(2, 2, guiW - 4, headerH);
 
-        int titleX = 8;
-        int iconSize = 20, iconY = (headerH - iconSize) / 2;
+        int iconSize = 20, padL = 6, padR = 6;
+        int itemX = padL + iconSize + 6;
+        int iconY = (headerH - iconSize) / 2;
+
+        String name = itemStack.getHoverName().getString();
+        String info = String.format("(%d, %d, %d)",
+                controllerPos.getX(), controllerPos.getY(), controllerPos.getZ());
+
+        int maxTitleW = g.getSizeWidth() - TerminalTabs.ACTION_CARD_W - 4;
+        int titleW = Math.min(maxTitleW, itemX + Math.max(font.width(name), font.width(info)) + padR);
+        int textMaxW = Math.max(0, titleW - padR - itemX);
+
+        WidgetGroup titleCard = TerminalTabs.tabCard(0, 0, titleW, headerH, true, cd -> {
+        });
+
+        boolean placedBundleIcon = false;
         if (theme.isBundleStyle()) {
             com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
                     com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null) {
-                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
-                if (bundleIcon != null) {
-                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
-                    titleX += iconSize + 4;
-                }
+            if (bundle != null && bundle.iconTexture() != null) {
+                titleCard.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundle.iconTexture()));
+                placedBundleIcon = true;
             }
-        } else {
-            header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
+        }
+        if (!placedBundleIcon) {
+            titleCard.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, itemStack,
                     tokens.panelDisabled(), tokens.border()));
-            titleX += iconSize + 6;
         }
 
-        LabelWidget title = new LabelWidget(titleX, 11,
-                fitText(itemStack.getHoverName().getString()));
-        title.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
-        header.addWidget(title);
+        LabelWidget nameLbl = new LabelWidget(itemX, 6, fitText(name, textMaxW));
+        nameLbl.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        titleCard.addWidget(nameLbl);
 
-        int btnSize = 20;
-        int btnY = (headerH - btnSize) / 2;
-        int closeX = header.getSizeWidth() - btnSize - 6;
-        int themeX = closeX - btnSize - 4;
+        LabelWidget infoLbl = new LabelWidget(itemX, 17, fitText(info, textMaxW));
+        infoLbl.setColor(tokens.textMuted());
+        titleCard.addWidget(infoLbl);
 
-        String coords = String.format("(%d, %d, %d)",
-                controllerPos.getX(), controllerPos.getY(), controllerPos.getZ());
-        int coordsX = themeX - Minecraft.getInstance().font.width(coords) - 12;
-        if (coordsX > titleX + 270) {
-            LabelWidget position = new LabelWidget(coordsX, 11, coords);
-            position.setColor(tokens.textMuted());
-            header.addWidget(position);
-        }
+        g.addWidget(titleCard);
 
-        ButtonWidget gearBtn = TerminalButton.icon3d(themeX, btnY, btnSize, TerminalButton.ICON_THEME,
-                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)));
-        gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        header.addWidget(gearBtn);
-
-        ButtonWidget closeBtn = TerminalButton.icon3d(closeX, btnY, btnSize, TerminalButton.ICON_CLOSE,
-                cd -> onClose.run());
-        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        header.addWidget(closeBtn);
-
-        return header;
+        g.addWidget(TerminalTabs.actionCard(g.getSizeWidth() - TerminalTabs.ACTION_CARD_W, 0, headerH,
+                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)),
+                cd -> onClose.run()));
+        return g;
     }
 
-    private static String fitText(String text) {
+    private static String fitText(String text, int maxWidth) {
         var font = Minecraft.getInstance().font;
-        if (font.width(text) <= 260) return text;
+        if (font.width(text) <= maxWidth) return text;
         String ellipsis = "…";
         return font.substrByWidth(Component.literal(text),
-                Math.max(0, 260 - font.width(ellipsis))).getString() + ellipsis;
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 }

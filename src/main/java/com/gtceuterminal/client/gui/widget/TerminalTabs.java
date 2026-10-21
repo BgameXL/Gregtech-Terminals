@@ -11,6 +11,8 @@ import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
+import net.minecraft.network.chat.Component;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -18,6 +20,11 @@ import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
 public final class TerminalTabs {
+
+    private static final int ACTION_BTN = 20;
+    private static final int ACTION_PAD = 6;
+    private static final int ACTION_GAP = 4;
+    public static final int ACTION_CARD_W = ACTION_PAD + ACTION_BTN + ACTION_GAP + ACTION_BTN + ACTION_PAD;
 
     private TerminalTabs() {
     }
@@ -30,6 +37,24 @@ public final class TerminalTabs {
         ButtonWidget target = new ButtonWidget(0, 0, w, h, new ColorRectTexture(Palette.CLEAR), onClick);
         target.setHoverTexture(new ColorRectTexture(tokens.hover()));
         card.addWidget(target);
+        return card;
+    }
+
+    public static WidgetGroup actionCard(int x, int y, int h,
+                                         Consumer<ClickData> onTheme, Consumer<ClickData> onClose) {
+        TerminalTheme tokens = TerminalUI.tokens();
+        WidgetGroup card = new WidgetGroup(x, y, ACTION_CARD_W, h);
+        card.addWidget(new ImageWidget(0, 0, ACTION_CARD_W, h, new BevelTexture(tokens.panelDisabled())));
+
+        int by = (h - ACTION_BTN) / 2;
+        ButtonWidget theme = TerminalButton.icon3d(ACTION_PAD, by, ACTION_BTN, TerminalButton.ICON_THEME, onTheme);
+        theme.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
+        card.addWidget(theme);
+
+        ButtonWidget close = TerminalButton.icon3d(ACTION_PAD + ACTION_BTN + ACTION_GAP, by, ACTION_BTN,
+                TerminalButton.ICON_CLOSE, onClose);
+        close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
+        card.addWidget(close);
         return card;
     }
 }

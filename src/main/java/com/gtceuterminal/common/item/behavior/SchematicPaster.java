@@ -152,6 +152,8 @@ public final class SchematicPaster {
         }
 
         int placedCount = 0;
+        boolean survival = !player.getAbilities().instabuild;
+        Map<Item, Integer> refunds = new HashMap<>();
 
         for (Placement p : placements) {
             if (p.state.getFluidState().isSource()) {
@@ -167,17 +169,23 @@ public final class SchematicPaster {
                     && p.state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
                 BlockPos upperPos = p.worldPos.above();
                 BlockState upperCurrent = level.getBlockState(upperPos);
-                if (upperCurrent.isAir() || upperCurrent.canBeReplaced()) {
+                if ((upperCurrent.isAir() || upperCurrent.canBeReplaced())
+                        && level.setBlock(p.worldPos, p.state, 3)) {
                     BlockState upperState = p.state.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
-                    level.setBlock(p.worldPos, p.state, 3);
                     level.setBlock(upperPos, upperState, 3);
                     placedCount++;
                 } else {
+                    refunds.merge(p.state.getBlock().asItem(), 1, Integer::sum);
                     skippedCount++;
                 }
                 continue;
             }
-            level.setBlock(p.worldPos, p.state, 3);
+
+            if (!level.setBlock(p.worldPos, p.state, 3)) {
+                refunds.merge(p.state.getBlock().asItem(), 1, Integer::sum);
+                skippedCount++;
+                continue;
+            }
             placedCount++;
 
             // Restore block-entity data
@@ -203,6 +211,14 @@ public final class SchematicPaster {
                         GTCEUTerminalMod.LOGGER.error("Failed to load block entity at {}", p.worldPos, e);
                     }
                 }
+            }
+        }
+
+        if (survival && !refunds.isEmpty()) {
+            for (Map.Entry<Item, Integer> e : refunds.entrySet()) {
+                if (e.getKey() == Items.AIR || e.getValue() <= 0) continue;
+                ItemStack back = new ItemStack(e.getKey(), e.getValue());
+                if (!player.getInventory().add(back)) player.drop(back, false);
             }
         }
 

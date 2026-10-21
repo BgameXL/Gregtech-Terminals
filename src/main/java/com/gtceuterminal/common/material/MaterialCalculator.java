@@ -253,7 +253,6 @@ public class MaterialCalculator {
         Map<Item, Integer> chests = scanNearbyChests(level, player.blockPosition());
 
         ItemStack linkedManager = findLinkedManager(player);
-        boolean isLinked = !linkedManager.isEmpty() && AccessPointLink.isLinked(linkedManager);
 
         for (Map.Entry<Item, Integer> entry : required.entrySet()) {
             MaterialAvailability mat = new MaterialAvailability(entry.getKey(), entry.getValue());
@@ -311,51 +310,62 @@ public class MaterialCalculator {
     }
 
     public static boolean extractFromInventory(Player player, Item item, int amount) {
-        int remaining = amount;
-
+        int available = 0;
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            if (player.getInventory().getItem(i).getItem() == item) {
+                available += player.getInventory().getItem(i).getCount();
+            }
+        }
+        if (available < amount) return false;
+
+        int remaining = amount;
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            if (remaining <= 0) break;
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.getItem() == item) {
                 int toTake = Math.min(remaining, stack.getCount());
                 stack.shrink(toTake);
                 remaining -= toTake;
-
-                if (remaining <= 0) {
-                    return true;
-                }
             }
         }
-
-        return remaining <= 0;
+        return true;
     }
 
     public static boolean extractFromChests(Level level, BlockPos center, Item item, int amount) {
-        int remaining = amount;
+        List<ChestBlockEntity> chests = new ArrayList<>();
+        int available = 0;
 
         for (BlockPos pos : BlockPos.betweenClosed(
                 center.offset(-CHEST_SCAN_RADIUS, -CHEST_SCAN_RADIUS, -CHEST_SCAN_RADIUS),
                 center.offset(CHEST_SCAN_RADIUS, CHEST_SCAN_RADIUS, CHEST_SCAN_RADIUS)
         )) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-
-            if (blockEntity instanceof ChestBlockEntity chest) {
+            if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
+                chests.add(chest);
                 for (int i = 0; i < chest.getContainerSize(); i++) {
                     ItemStack stack = chest.getItem(i);
-                    if (stack.getItem() == item) {
-                        int toTake = Math.min(remaining, stack.getCount());
-                        stack.shrink(toTake);
-                        remaining -= toTake;
-
-                        if (remaining <= 0) {
-                            chest.setChanged();
-                            return true;
-                        }
-                    }
+                    if (stack.getItem() == item) available += stack.getCount();
                 }
             }
         }
+        if (available < amount) return false;
 
-        return remaining <= 0;
+        int remaining = amount;
+        for (ChestBlockEntity chest : chests) {
+            if (remaining <= 0) break;
+            boolean changed = false;
+            for (int i = 0; i < chest.getContainerSize(); i++) {
+                if (remaining <= 0) break;
+                ItemStack stack = chest.getItem(i);
+                if (stack.getItem() == item) {
+                    int toTake = Math.min(remaining, stack.getCount());
+                    stack.shrink(toTake);
+                    remaining -= toTake;
+                    changed = true;
+                }
+            }
+            if (changed) chest.setChanged();
+        }
+        return true;
     }
 
     public static boolean extractMaterials(
@@ -367,65 +377,97 @@ public class MaterialCalculator {
     ) {
         GTCEUTerminalMod.LOGGER.debug("Extracting Materials (Server: {})", !level.isClientSide);
 
-        Map<Item, Integer> required = new HashMap<>();
-        for (MaterialAvailability mat : materials) {
-            required.put(mat.getItem(), mat.getRequired());
-        }
-
         ItemStack linkedManager = findLinkedManager(player);
+        boolean meUsable = MiscUtil.isAE2Loaded
+                && !linkedManager.isEmpty()
+                && AccessPointLink.isLinked(linkedManager);
 
-        if (!linkedManager.isEmpty()) {
-            GTCEUTerminalMod.LOGGER.debug("  Found wireless terminal, trying ME Network extraction...");
-
+        if (meUsable) {
+            Map<Item, Integer> required = new HashMap<>();
+            for (MaterialAvailability mat : materials) {
+                required.put(mat.getItem(), mat.getRequired());
+            }
             MENetworkItemExtractor.ExtractResult result =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(
                             linkedManager, level, player, required
                     );
-
             if (result.success) {
-                if (result.source == MENetworkItemExtractor.ExtractionSource.ME_NETWORK) {
-                    GTCEUTerminalMod.LOGGER.debug("  ✓ Successfully extracted from ME Network");
-                    return true;
-                } else if (result.source == MENetworkItemExtractor.ExtractionSource.PLAYER_INVENTORY) {
-                    GTCEUTerminalMod.LOGGER.debug("  ✓ Successfully extracted from Player Inventory");
-                    return true;
-                }
+                return true;
             }
-
-            GTCEUTerminalMod.LOGGER.warn("  ✗ ME Network extraction failed, trying traditional method...");
+            GTCEUTerminalMod.LOGGER.debug("  Single-source extraction failed, planning combined extraction");
         }
+
+        Map<Item, Integer> fromME = new HashMap<>();
+        Map<Item, Integer> fromInventory = new HashMap<>();
+        Map<Item, Integer> fromChests = new HashMap<>();
 
         for (MaterialAvailability mat : materials) {
             int remaining = mat.getRequired();
-            String itemName = mat.getItemName();
 
-            GTCEUTerminalMod.LOGGER.debug("  Item: {}, Required: {}", itemName, remaining);
-
-            if (useInventory && remaining > 0) {
-                int available = Math.min(remaining, mat.getInInventory());
-                if (available > 0 && extractFromInventory(player, mat.getItem(), available)) {
-                    GTCEUTerminalMod.LOGGER.debug("    Extracted {} from inventory", available);
-                    remaining -= available;
+            if (meUsable && remaining > 0) {
+                int take = (int) Math.min(remaining, mat.getInMENetwork());
+                if (take > 0) {
+                    fromME.put(mat.getItem(), take);
+                    remaining -= take;
                 }
             }
-
+            if (useInventory && remaining > 0) {
+                int take = Math.min(remaining, mat.getInInventory());
+                if (take > 0) {
+                    fromInventory.put(mat.getItem(), take);
+                    remaining -= take;
+                }
+            }
             if (useChests && remaining > 0) {
-                int available = Math.min(remaining, mat.getInNearbyChests());
-                if (available > 0 && extractFromChests(level, player.blockPosition(), mat.getItem(), available)) {
-                    GTCEUTerminalMod.LOGGER.debug("    Extracted {} from chests", available);
-                    remaining -= available;
+                int take = Math.min(remaining, mat.getInNearbyChests());
+                if (take > 0) {
+                    fromChests.put(mat.getItem(), take);
+                    remaining -= take;
                 }
             }
 
             if (remaining > 0) {
-                GTCEUTerminalMod.LOGGER.warn("  FAILED: Still missing {} of {}", remaining, itemName);
+                GTCEUTerminalMod.LOGGER.warn("  Cannot fully source {} ({} short), aborting before any extraction",
+                        mat.getItemName(), remaining);
                 return false;
             }
-
-            GTCEUTerminalMod.LOGGER.debug("  SUCCESS: Got all required {}", itemName);
         }
 
-        GTCEUTerminalMod.LOGGER.debug("All Materials Extracted Successfully");
+        Map<Item, Integer> taken = new HashMap<>();
+
+        if (!fromME.isEmpty()) {
+            if (!MENetworkItemExtractor.extractFromME(linkedManager, level, player, fromME)) {
+                return false;
+            }
+            fromME.forEach((item, count) -> taken.merge(item, count, Integer::sum));
+        }
+
+        for (Map.Entry<Item, Integer> e : fromInventory.entrySet()) {
+            if (!extractFromInventory(player, e.getKey(), e.getValue())) {
+                compensate(player, taken);
+                return false;
+            }
+            taken.merge(e.getKey(), e.getValue(), Integer::sum);
+        }
+
+        for (Map.Entry<Item, Integer> e : fromChests.entrySet()) {
+            if (!extractFromChests(level, player.blockPosition(), e.getKey(), e.getValue())) {
+                compensate(player, taken);
+                return false;
+            }
+            taken.merge(e.getKey(), e.getValue(), Integer::sum);
+        }
+
         return true;
+    }
+
+    private static void compensate(Player player, Map<Item, Integer> taken) {
+        for (Map.Entry<Item, Integer> e : taken.entrySet()) {
+            if (e.getValue() <= 0) continue;
+            ItemStack back = new ItemStack(e.getKey(), e.getValue());
+            if (!player.getInventory().add(back)) {
+                player.drop(back, false);
+            }
+        }
     }
 }

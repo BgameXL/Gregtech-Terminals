@@ -64,13 +64,17 @@ public class FluidPlacementHelper {
         if (playerInventory != null) {
             for (int i = 0; i < playerInventory.getSlots(); i++) {
                 ItemStack stack = playerInventory.getStackInSlot(i);
-                if (stack.getItem() instanceof BucketItem bucketItem) {
-                    if (bucketItem.getFluid() == fluid) {
-                        if (placeFluidBlock(world, pos, currentState, fluid, player)) {
-                            playerInventory.extractItem(i, 1, false);
-                            bucketFound = true;
-                            break;
+                if (stack.getItem() instanceof BucketItem bucketItem && bucketItem.getFluid() == fluid) {
+                    ItemStack emptyContainer = stack.getCraftingRemainingItem();
+                    if (placeFluidBlock(world, pos, currentState, fluid, player)) {
+                        playerInventory.extractItem(i, 1, false);
+                        if (!emptyContainer.isEmpty()) {
+                            ItemStack leftover = net.minecraftforge.items.ItemHandlerHelper
+                                    .insertItemStacked(playerInventory, emptyContainer, false);
+                            if (!leftover.isEmpty()) player.drop(leftover, false);
                         }
+                        bucketFound = true;
+                        break;
                     }
                 }
             }
@@ -79,11 +83,16 @@ public class FluidPlacementHelper {
         if (!bucketFound && fluidStorage != null) {
             FluidStack requiredFluid = new FluidStack(fluid, 1000);
 
-            FluidStack drained = fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.SIMULATE);
-            if (drained.getAmount() >= 1000) {
-                if (placeFluidBlock(world, pos, currentState, fluid, player)) {
-                    fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.EXECUTE);
-                    return true;
+            if (fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.SIMULATE).getAmount() >= 1000) {
+                FluidStack drained = fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.EXECUTE);
+                if (drained.getAmount() >= 1000) {
+                    if (placeFluidBlock(world, pos, currentState, fluid, player)) {
+                        return true;
+                    }
+                    GTCEUTerminalMod.LOGGER.warn("Drained 1000 mB from ME but could not place {} at {}", fluid, pos);
+                } else if (drained.getAmount() > 0) {
+                    GTCEUTerminalMod.LOGGER.warn("ME drained only {} mB (simulate promised 1000) at {}; cannot refund",
+                            drained.getAmount(), pos);
                 }
             }
         }
@@ -121,9 +130,11 @@ public class FluidPlacementHelper {
         }
 
         if (currentState.getBlock() instanceof LiquidBlockContainer container && fluid == Fluids.WATER) {
-            container.placeLiquid(world, pos, currentState, ((FlowingFluid) fluid).getSource(false));
-            playEmptySound(world, pos, fluid, player);
-            return true;
+            if (container.placeLiquid(world, pos, currentState, ((FlowingFluid) fluid).getSource(false))) {
+                playEmptySound(world, pos, fluid, player);
+                return true;
+            }
+            return false;
         }
 
         if (currentState.canBeReplaced(fluid) && !currentState.liquid()) {

@@ -54,27 +54,29 @@ public class MENetworkItemExtractor {
         return new ExtractResult(false, ExtractionSource.NONE);
     }
 
-    public static ExtractResult tryExtractFromMEOrInventory(ItemStack terminalStack,
-                                                            net.minecraft.world.level.Level level,
-                                                            Player player,
-                                                            Map<Item, Integer> required) {
+    public static ExtractResult tryExtractFromMEOrInventory(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player, Map<Item, Integer> required) {
+        if (!MENetworkScanner.isAE2Available()) {
+            return extractFromPlayerInventory(player, required) ? new ExtractResult(true, ExtractionSource.PLAYER_INVENTORY) : new ExtractResult(false, ExtractionSource.NONE);
+        }
         IGrid grid = resolveGrid(terminalStack, level, player);
         return tryExtractFromMEOrInventory(grid, required, player);
     }
 
-    public static long checkItemAvailability(ItemStack terminalStack,
-                                             net.minecraft.world.level.Level level,
-                                             Player player,
-                                             Item item) {
+    public static boolean extractFromME(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player, Map<Item, Integer> required) {
+        if (required.isEmpty()) return true;
+        if (!MENetworkScanner.isAE2Available()) return false;
+        IGrid grid = resolveGrid(terminalStack, level, player);
+        return extractItems(grid, required, player);
+    }
+
+    public static long checkItemAvailability(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player, Item item) {
         if (!MENetworkScanner.isAE2Available()) return 0;
         IGrid grid = resolveGrid(terminalStack, level, player);
         if (grid == null) return 0;
         return grid.getStorageService().getCachedInventory().get(appeng.api.stacks.AEItemKey.of(item));
     }
 
-    private static IGrid resolveGrid(ItemStack terminalStack,
-                                     net.minecraft.world.level.Level level,
-                                     Player player) {
+    private static IGrid resolveGrid(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player) {
         if (terminalStack == null || terminalStack.isEmpty()) return null;
         return AccessPointLink.getLinkedGrid(terminalStack, level, player);
     }

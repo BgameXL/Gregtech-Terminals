@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @OnlyIn(Dist.CLIENT)
-public final class InlineUpgradePanel {
+public final class MultiblockUpgradePanel {
 
     private static final int HEADER_H = 36;
     private static final int FOOTER_H = 36;
@@ -54,7 +54,7 @@ public final class InlineUpgradePanel {
     private static final AtomicInteger AVAILABILITY_REQUEST_IDS = new AtomicInteger(1);
     private static final Map<Integer, PanelState> AVAILABILITY_LISTENERS = new ConcurrentHashMap<>();
 
-    private InlineUpgradePanel() {
+    private MultiblockUpgradePanel() {
     }
 
     public static void handleAvailabilityResult(int requestId, AnalysisResult result) {

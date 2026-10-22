@@ -87,15 +87,13 @@ public class DismantlerUI {
         if (!preScanned.isEmpty()) {
             var level = player.level();
             Map<Block, Integer> counts = new HashMap<>();
-            Map<Block, List<BlockPos>> positions = new HashMap<>();
             for (BlockPos pos : preScanned) {
                 var state = level.getBlockState(pos);
                 if (state.isAir()) continue;
                 var block = state.getBlock();
                 counts.merge(block, 1, Integer::sum);
-                positions.computeIfAbsent(block, k -> new ArrayList<>()).add(pos);
             }
-            return new DismantleScanner.ScanResult(controllerPos, preScanned, counts, positions);
+            return new DismantleScanner.ScanResult(controllerPos, preScanned, counts);
         }
         return computeScanResult(player, controllerPos);
     }

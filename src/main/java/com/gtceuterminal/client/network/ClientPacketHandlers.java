@@ -5,7 +5,7 @@ import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmDialog;
 import com.gtceuterminal.client.gui.dismantler.DismantlerUI;
 import com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI;
 import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
-import com.gtceuterminal.client.gui.multiblock.InlineUpgradePanel;
+import com.gtceuterminal.client.gui.multiblock.MultiblockUpgradePanel;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
 import com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI;
 import com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI;
@@ -80,7 +80,7 @@ public final class ClientPacketHandlers {
     }
 
     public static void handleUpgradeAvailability(int requestId, AnalysisResult result) {
-        InlineUpgradePanel.handleAvailabilityResult(requestId, result);
+        MultiblockUpgradePanel.handleAvailabilityResult(requestId, result);
     }
 
     public static void handleOpenMultiStructureManager(String mode, ItemStack item) {

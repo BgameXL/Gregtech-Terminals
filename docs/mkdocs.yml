@@ -1,0 +1,62 @@
+site_name: GregTech Terminals
+site_description: Documentation for GregTech Terminals addon
+site_url: https://bgamexl.github.io/GTCEu-Terminals/
+repo_url: https://github.com/BgameXL/GTCEu-Terminals
+repo_name: BgameXL/GTCEu-Terminals
+docs_dir: content
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/BgameXL/GTCEu-Terminals
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/kAKk3wRAVh
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Gadgets:
+      - Multi-Structure Manager: multi-structure-manager.md
+      - Schematic Interface: schematic-interface.md
+      - Dismantler: dismantler.md
+      - Energy Analyzer: energy-analyzer.md
+  - Developers:
+      - Registering Components (Java): registering-components-java.md
+      - Registering Components (KubeJS): registering-components-kubejs.md
+      - Tier Reference: tier-reference.md

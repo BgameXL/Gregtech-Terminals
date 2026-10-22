@@ -341,7 +341,7 @@ public class MultiStructureManagerUI {
 
     private void openUpgradeDialog(com.gtceuterminal.common.multiblock.ComponentInfoGroup group,
                                    MultiblockInfo mb) {
-        swapDetailPanel(InlineUpgradePanel.build(
+        swapDetailPanel(MultiblockUpgradePanel.build(
                 rightX, CARD_INSET, rightW, bodyH,
                 group, mb, player, theme,
                 () -> swapDetailPanel(MultiblockDetailPanel.build(

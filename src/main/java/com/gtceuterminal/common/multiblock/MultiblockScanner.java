@@ -42,7 +42,6 @@ public class MultiblockScanner {
                 radius
         );
 
-        // GTCEUTerminalMod.LOGGER.info("Universal scanner found {} multiblocks", detected.size());
         for (DetectedMultiblock mb : detected) {
             try {
                 MultiblockInfo info = convertToMultiblockInfo(mb, playerVec, level);
@@ -62,10 +61,6 @@ public class MultiblockScanner {
             multiblocks = new ArrayList<>(multiblocks.subList(0, maxDetected));
         }
 
-        long uniqueMods = detected.stream()
-                .map(DetectedMultiblock::getModId)
-                .distinct()
-                .count();
         return multiblocks;
     }
 
@@ -130,11 +125,6 @@ public class MultiblockScanner {
     ) {
         BlockPos controllerPos = detected.getPosition();
         double distance = playerPos.distanceTo(Vec3.atCenterOf(controllerPos));
-
-        /**
-         * DEBUG
-         GTCEUTerminalMod.LOGGER.info("Multiblock: {}", detected.getName());
-         */
 
         MultiblockInfo info = new MultiblockInfo(
                 detected.getController(),

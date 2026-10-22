@@ -5,9 +5,6 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
-
-import com.gtceuterminal.GTCEUTerminalMod;
-
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -45,7 +42,7 @@ public class MENetworkItemExtractor {
     }
 
     public static ExtractResult tryExtractFromMEOrInventory(IGrid grid, Map<Item, Integer> required, Player player) {
-        if (grid != null && extractItems(grid, required, player)) {
+        if (extractItems(grid, required, player)) {
             return new ExtractResult(true, ExtractionSource.ME_NETWORK);
         }
         if (extractFromPlayerInventory(player, required)) {
@@ -116,17 +113,10 @@ public class MENetworkItemExtractor {
         return count;
     }
 
-    public static class ExtractResult {
-        public final boolean success;
-        public final ExtractionSource source;
-
-        public ExtractResult(boolean success, ExtractionSource source) {
-            this.success = success;
-            this.source = source;
-        }
-    }
-
     public enum ExtractionSource {
         ME_NETWORK, PLAYER_INVENTORY, NONE
+    }
+
+    public record ExtractResult(boolean success, ExtractionSource source) {
     }
 }

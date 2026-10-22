@@ -1,9 +1,8 @@
 package com.gtceuterminal.common.compat;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gtceuterminal.GTCEUTerminalMod;
 
 import java.lang.reflect.Field;
 import java.util.Optional;

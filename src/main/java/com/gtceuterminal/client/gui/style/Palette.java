@@ -8,9 +8,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public final class Palette {
 
-    private Palette() {
-    }
-
     public static final int N0 = 0xFF0A0A0A;
     public static final int N1 = 0xFF111111;
     public static final int N2 = 0xFF1A1A1A;
@@ -31,6 +28,8 @@ public final class Palette {
     public static final int OK = ItemTheme.DEFAULT_SUCCESS;
     public static final int WARN = ItemTheme.DEFAULT_WARNING;
     public static final int ERROR = ItemTheme.DEFAULT_ERROR;
+    private Palette() {
+    }
 
     public static int shade(int argb, float f) {
         int a = argb >>> 24;

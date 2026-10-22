@@ -1,35 +1,31 @@
 package com.gtceuterminal.client.gui.multiblock;
 
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.common.ae2.AccessPointLink;
+import com.gtceuterminal.common.ae2.MENetworkScanner;
+import com.gtceuterminal.common.autocraft.AnalysisResult;
+import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
-import com.gtceuterminal.common.material.ComponentUpgradeHelper;
-import com.gtceuterminal.common.autocraft.AnalysisResult;
-import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.network.CPacketComponentUpgrade;
 import com.gtceuterminal.common.network.CPacketRequestUpgradeAnalysis;
 import com.gtceuterminal.common.network.CPacketRequestUpgradeAvailability;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.common.ae2.AccessPointLink;
-
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.gtceuterminal.client.gui.style.Palette;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -123,6 +119,19 @@ public final class MultiblockUpgradePanel {
             root = new WidgetGroup(x, y, w, h);
             root.setBackground(new ColorRectTexture(tokens.surface()));
             build();
+        }
+
+        private static int tierCols(int count, int innerW) {
+            if (count <= 0) return 1;
+            int cols = Math.max(1, (innerW + TIER_GAP) / (TIER_BTN_MIN_W + TIER_GAP));
+            return Math.min(count, cols);
+        }
+
+        private static int tierRowHeight(int count, int innerW) {
+            if (count <= 0) return TIER_BTN_H;
+            int cols = tierCols(count, innerW);
+            int rows = (count + cols - 1) / cols;
+            return rows * (TIER_BTN_H + TIER_GAP) - TIER_GAP;
         }
 
         private void build() {
@@ -270,19 +279,6 @@ public final class MultiblockUpgradePanel {
                         new ColorBorderTexture(1, tokens.textStrong()), txt));
                 tierButtonsRow.addWidget(btn);
             }
-        }
-
-        private static int tierCols(int count, int innerW) {
-            if (count <= 0) return 1;
-            int cols = Math.max(1, (innerW + TIER_GAP) / (TIER_BTN_MIN_W + TIER_GAP));
-            return Math.min(count, cols);
-        }
-
-        private static int tierRowHeight(int count, int innerW) {
-            if (count <= 0) return TIER_BTN_H;
-            int cols = tierCols(count, innerW);
-            int rows = (count + cols - 1) / cols;
-            return rows * (TIER_BTN_H + TIER_GAP) - TIER_GAP;
         }
 
         private void populateScroll(ComponentInfo rep) {
@@ -466,15 +462,15 @@ public final class MultiblockUpgradePanel {
                 return;
             }
 
-            if (availabilityResult.entries.isEmpty()) {
+            if (availabilityResult.entries().isEmpty()) {
                 addStatusText(panel, 8, 22,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.availability.no_target").getString(),
                         tokens.error());
                 return;
             }
 
-            AnalysisResult.Entry entry = availabilityResult.entries.get(0);
-            String itemName = truncate(entry.stack.getHoverName().getString(), Math.max(16, panelW / 6));
+            AnalysisResult.Entry entry = availabilityResult.entries().get(0);
+            String itemName = truncate(entry.stack().getHoverName().getString(), Math.max(16, panelW / 6));
             addStatusText(panel, 8, 24, itemName, tokens.textStrong());
             addStatusText(panel, 8, 38,
                     Component.translatable("gui.gtceuterminal.inline_upgrade.availability.needed",
@@ -484,7 +480,7 @@ public final class MultiblockUpgradePanel {
             int countColor = ready ? tokens.success() : tokens.warning();
             LabelWidget count = new LabelWidget(8, 54,
                     Component.translatable("gui.gtceuterminal.inline_upgrade.availability.counts",
-                            entry.inME, entry.inInventory, entry.needed()).getString());
+                            entry.inME(), entry.inInventory(), entry.needed()).getString());
             count.setColor(countColor);
             panel.addWidget(count);
 
@@ -495,7 +491,7 @@ public final class MultiblockUpgradePanel {
             if (ready) {
                 badgeBg = tokens.successSurface();
                 badgeBorder = tokens.success();
-                badgeText = entry.inInventory >= entry.needed()
+                badgeText = entry.inInventory() >= entry.needed()
                         ? Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_in_inventory").getString()
                         : Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_available").getString();
             } else if (entry.totalAvailable() > 0) {

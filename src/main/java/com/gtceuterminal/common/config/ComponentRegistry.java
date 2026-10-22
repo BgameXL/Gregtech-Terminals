@@ -1,25 +1,17 @@
 package com.gtceuterminal.common.config;
 
 import com.gtceuterminal.common.compat.GTCEuReader;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 public final class ComponentRegistry {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentRegistry.class);
 
     public static final String FLUID_HATCHES = "fluid_hatches";
     public static final String BUSES = "buses";
@@ -32,7 +24,7 @@ public final class ComponentRegistry {
     public static final String MUFFLER_HATCHES = "muffler_hatches";
     public static final String MAINTENANCE_HATCHES = "maintenance_hatches";
     public static final String DUAL_HATCHES = "dual_hatches";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentRegistry.class);
     private static final Map<String, List<ComponentEntry>> DATA = new LinkedHashMap<>();
     private static final Map<String, List<ComponentEntry>> EXTERNAL = new LinkedHashMap<>();
     private static boolean initialized = false;
@@ -66,7 +58,7 @@ public final class ComponentRegistry {
     }
 
     public static synchronized void addExternal(String category, ComponentEntry entry) {
-        LOGGER.debug("addExternal called: category={} blockId={} initialized={}", category, entry.blockId, initialized);
+        LOGGER.debug("addExternal called: category={} blockId={} initialized={}", category, entry.blockId(), initialized);
         EXTERNAL.computeIfAbsent(category, k -> new ArrayList<>()).add(entry);
         if (initialized) DATA.computeIfAbsent(category, k -> new ArrayList<>()).add(entry);
     }
@@ -92,7 +84,7 @@ public final class ComponentRegistry {
     }
 
     public static ComponentEntry coilByTier(int tier) {
-        return first(COILS, e -> e.tier == tier);
+        return first(COILS, e -> e.tier() == tier);
     }
 
     public static ComponentEntry entryByBlockId(String blockId) {
@@ -100,7 +92,7 @@ public final class ComponentRegistry {
         ensureInit();
         for (List<ComponentEntry> entries : DATA.values()) {
             for (ComponentEntry e : entries) {
-                if (e.blockId.equalsIgnoreCase(blockId)) return e;
+                if (e.blockId().equalsIgnoreCase(blockId)) return e;
             }
         }
         return null;
@@ -122,10 +114,10 @@ public final class ComponentRegistry {
         ensureInit();
         if (amperage != null && !amperage.isEmpty()) {
             ComponentEntry exact = first(ENERGY_HATCHES,
-                    e -> e.tier == tier && e.attrIs("hatchType", hatchType) && amperage.equals(e.attr("amperage")));
+                    e -> e.tier() == tier && e.attrIs("hatchType", hatchType) && amperage.equals(e.attr("amperage")));
             if (exact != null) return exact;
         }
-        return first(ENERGY_HATCHES, e -> e.tier == tier && e.attrIs("hatchType", hatchType));
+        return first(ENERGY_HATCHES, e -> e.tier() == tier && e.attrIs("hatchType", hatchType));
     }
 
     public static List<ComponentEntry> getLaserHatches() {
@@ -136,10 +128,10 @@ public final class ComponentRegistry {
         ensureInit();
         if (amperage != null && !amperage.isEmpty()) {
             ComponentEntry exact = first(LASER_HATCHES,
-                    e -> e.tier == tier && e.attrIs("hatchType", hatchType) && amperage.equals(e.attr("amperage")));
+                    e -> e.tier() == tier && e.attrIs("hatchType", hatchType) && amperage.equals(e.attr("amperage")));
             if (exact != null) return exact;
         }
-        return first(LASER_HATCHES, e -> e.tier == tier && e.attrIs("hatchType", hatchType));
+        return first(LASER_HATCHES, e -> e.tier() == tier && e.attrIs("hatchType", hatchType));
     }
 
     public static List<ComponentEntry> getWirelessHatches() {
@@ -147,7 +139,7 @@ public final class ComponentRegistry {
     }
 
     public static ComponentEntry substationHatchForTier(String hatchType, int tier) {
-        return first(SUBSTATION_HATCHES, e -> e.tier == tier && e.attrIs("hatchType", hatchType));
+        return first(SUBSTATION_HATCHES, e -> e.tier() == tier && e.attrIs("hatchType", hatchType));
     }
 
     public static List<ComponentEntry> getParallelHatches() {
@@ -155,7 +147,7 @@ public final class ComponentRegistry {
     }
 
     public static ComponentEntry mufflerHatchForTier(int tier) {
-        return first(MUFFLER_HATCHES, e -> e.tier == tier);
+        return first(MUFFLER_HATCHES, e -> e.tier() == tier);
     }
 
     public static List<ComponentEntry> getMaintenanceHatches() {
@@ -164,6 +156,33 @@ public final class ComponentRegistry {
 
     public static List<ComponentEntry> getDualHatches(String hatchType) {
         return get(DUAL_HATCHES, e -> e.attrIs("hatchType", hatchType));
+    }
+
+    public static List<ItemStack> getExternalMatchingItemStacks(ComponentCategory category) {
+        String registryCategory = switch (category) {
+            case ENERGY_HATCH -> ENERGY_HATCHES;
+            case FLUID_HATCH -> FLUID_HATCHES;
+            case ITEM_HATCH -> BUSES;
+            case MAINTENANCE_HATCH -> MAINTENANCE_HATCHES;
+            case MUFFLER_HATCH -> MUFFLER_HATCHES;
+            case LASER_HATCH -> LASER_HATCHES;
+            case COIL -> COILS;
+            default -> null;
+        };
+        if (registryCategory == null) return List.of();
+
+        List<ItemStack> stacks = new ArrayList<>();
+        for (ComponentEntry e : EXTERNAL.getOrDefault(registryCategory, List.of())) {
+            ResourceLocation rl = ResourceLocation.tryParse(e.blockId());
+            if (rl == null) continue;
+            Block block = ForgeRegistries.BLOCKS.getValue(rl);
+            if (block != null) stacks.add(new ItemStack(block));
+        }
+        return stacks;
+    }
+
+    private static void ensureInit() {
+        if (!initialized) init();
     }
 
     // UI helpers
@@ -188,32 +207,5 @@ public final class ComponentRegistry {
         public String getDisplayName() {
             return displayName;
         }
-    }
-
-    public static List<ItemStack> getExternalMatchingItemStacks(ComponentCategory category) {
-        String registryCategory = switch (category) {
-            case ENERGY_HATCH -> ENERGY_HATCHES;
-            case FLUID_HATCH -> FLUID_HATCHES;
-            case ITEM_HATCH -> BUSES;
-            case MAINTENANCE_HATCH -> MAINTENANCE_HATCHES;
-            case MUFFLER_HATCH -> MUFFLER_HATCHES;
-            case LASER_HATCH -> LASER_HATCHES;
-            case COIL -> COILS;
-            default -> null;
-        };
-        if (registryCategory == null) return List.of();
-
-        List<ItemStack> stacks = new ArrayList<>();
-        for (ComponentEntry e : EXTERNAL.getOrDefault(registryCategory, List.of())) {
-            ResourceLocation rl = ResourceLocation.tryParse(e.blockId);
-            if (rl == null) continue;
-            Block block = ForgeRegistries.BLOCKS.getValue(rl);
-            if (block != null) stacks.add(new ItemStack(block));
-        }
-        return stacks;
-    }
-
-    private static void ensureInit() {
-        if (!initialized) init();
     }
 }

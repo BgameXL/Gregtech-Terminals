@@ -7,15 +7,14 @@ import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.material.MaterialCalculator;
 import com.gtceuterminal.common.pattern.FluidPlacementHelper;
 import com.gtceuterminal.common.util.SchematicUtils;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -71,7 +70,7 @@ public final class SchematicPaster {
         List<Placement> placements = new ArrayList<>();
         int skippedCount = 0;
 
-        for (Map.Entry<BlockPos, BlockState> entry : clipboard.getBlocks().entrySet()) {
+        for (Map.Entry<BlockPos, BlockState> entry : clipboard.blocks().entrySet()) {
             BlockPos relativePos = entry.getKey();
             BlockState state = entry.getValue();
 
@@ -131,7 +130,7 @@ public final class SchematicPaster {
             MENetworkItemExtractor.ExtractResult result =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(itemStack, level, player, required);
 
-            if (!result.success) {
+            if (!result.success()) {
                 player.displayClientMessage(buildMissingMessage(itemStack, level, player, required), true);
                 return;
             }
@@ -189,8 +188,8 @@ public final class SchematicPaster {
             placedCount++;
 
             // Restore block-entity data
-            if (clipboard.getBlockEntities().containsKey(p.relativeKey)) {
-                CompoundTag beTag = clipboard.getBlockEntities().get(p.relativeKey).copy();
+            if (clipboard.blockEntities().containsKey(p.relativeKey)) {
+                CompoundTag beTag = clipboard.blockEntities().get(p.relativeKey).copy();
                 BlockEntity be = level.getBlockEntity(p.worldPos);
                 if (be != null) {
                     try {
@@ -201,7 +200,7 @@ public final class SchematicPaster {
                         be.load(beTag);
                         try {
                             p.state.getBlock().setPlacedBy(
-                                    (net.minecraft.server.level.ServerLevel) level,
+                                    level,
                                     p.worldPos, p.state, player,
                                     net.minecraft.world.item.ItemStack.EMPTY);
                         } catch (RuntimeException e) {

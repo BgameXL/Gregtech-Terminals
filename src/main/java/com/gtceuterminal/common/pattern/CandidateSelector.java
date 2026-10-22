@@ -1,17 +1,11 @@
 package com.gtceuterminal.common.pattern;
 
-import com.gtceuterminal.common.config.ManagerSettings.AutoBuildSettings;
-
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-
+import com.gtceuterminal.common.config.ManagerSettings.AutoBuildSettings;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class CandidateSelector {
 

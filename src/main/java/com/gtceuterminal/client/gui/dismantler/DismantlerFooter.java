@@ -2,13 +2,10 @@ package com.gtceuterminal.client.gui.dismantler;
 
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
-
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

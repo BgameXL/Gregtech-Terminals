@@ -23,6 +23,22 @@ public class CPacketSaveManagerSettings {
         this.tag = buf.readNbt();
     }
 
+    private static ItemStack findManagerItem(ServerPlayer player) {
+        for (var hand : net.minecraft.world.InteractionHand.values()) {
+            ItemStack s = player.getItemInHand(hand);
+            if (isManagerItem(s)) return s;
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack s = player.getInventory().getItem(i);
+            if (isManagerItem(s)) return s;
+        }
+        return null;
+    }
+
+    private static boolean isManagerItem(ItemStack stack) {
+        return !stack.isEmpty() && stack.is(GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get());
+    }
+
     public void encode(FriendlyByteBuf buf) {
         buf.writeNbt(tag);
     }
@@ -42,21 +58,5 @@ public class CPacketSaveManagerSettings {
             player.getInventory().setChanged();
         });
         ctx.get().setPacketHandled(true);
-    }
-
-    private static ItemStack findManagerItem(ServerPlayer player) {
-        for (var hand : net.minecraft.world.InteractionHand.values()) {
-            ItemStack s = player.getItemInHand(hand);
-            if (isManagerItem(s)) return s;
-        }
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack s = player.getInventory().getItem(i);
-            if (isManagerItem(s)) return s;
-        }
-        return null;
-    }
-
-    private static boolean isManagerItem(ItemStack stack) {
-        return !stack.isEmpty() && stack.is(GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get());
     }
 }

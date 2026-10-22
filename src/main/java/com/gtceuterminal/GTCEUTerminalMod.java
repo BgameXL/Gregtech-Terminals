@@ -50,7 +50,7 @@ public class GTCEUTerminalMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         GTCEUTerminalItems.ITEMS.register(modEventBus);
-        GTCEUTerminalTabs.CREATIVE_TABS.register(modEventBus);
+        GTCEUTerminalTabs.register(modEventBus);
 
         UIFactory.register(EnergyAnalyzerUIFactory.INSTANCE);
         UIFactory.register(MultiStructureManagerUIFactory.INSTANCE);

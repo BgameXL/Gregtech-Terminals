@@ -1,21 +1,17 @@
 package com.gtceuterminal.common.pattern;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.config.ComponentRegistry;
-import com.gtceuterminal.common.config.ComponentRegistry.ComponentCategory;
-
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
-
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.config.ComponentRegistry;
+import com.gtceuterminal.common.config.ComponentRegistry.ComponentCategory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;

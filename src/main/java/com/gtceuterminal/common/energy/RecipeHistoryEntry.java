@@ -2,28 +2,7 @@ package com.gtceuterminal.common.energy;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-public class RecipeHistoryEntry {
-
-    public final String outputName;
-    public final int durationTicks;
-    public final long timestamp;
-    public final boolean completed;
-
-    public RecipeHistoryEntry(String outputName, int durationTicks,
-                              long timestamp, boolean completed) {
-        this.outputName = outputName;
-        this.durationTicks = durationTicks;
-        this.timestamp = timestamp;
-        this.completed = completed;
-    }
-
-    // Network
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeUtf(outputName);
-        buf.writeInt(durationTicks);
-        buf.writeLong(timestamp);
-        buf.writeBoolean(completed);
-    }
+public record RecipeHistoryEntry(String outputName, int durationTicks, long timestamp, boolean completed) {
 
     public static RecipeHistoryEntry decode(FriendlyByteBuf buf) {
         return new RecipeHistoryEntry(
@@ -32,6 +11,14 @@ public class RecipeHistoryEntry {
                 buf.readLong(),
                 buf.readBoolean()
         );
+    }
+
+    // Network
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeUtf(outputName);
+        buf.writeInt(durationTicks);
+        buf.writeLong(timestamp);
+        buf.writeBoolean(completed);
     }
 
     // Display helpers

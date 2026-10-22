@@ -41,31 +41,22 @@ public class ThemeEditorDialog {
 
     private final WidgetGroup rootGroup;
     private final ItemTheme working;
-
-    private String activeBundleId;
-    private Section activeSection;
-    private List<String> wallpapers;
-    private int wallpaperIdx;
-
     private final int[] editTargetHolder = {0};
     private final int[] channels = new int[4];
-
     private final ImageWidget[] swatches = new ImageWidget[COLOR_TARGETS];
     private final ImageWidget[] tabBgs = new ImageWidget[COLOR_TARGETS];
-    private TextFieldWidget[] hexFieldRef = new TextFieldWidget[1];
-    private ImageWidget[] wallThumbRef = new ImageWidget[1];
-    private LabelWidget[] wallLabelRef = new LabelWidget[1];
-    private ImageWidget[] animToggleBg = new ImageWidget[1];
-    private ImageWidget[] bundleCardBgs;
     private final ImageWidget[] sectionCardBgs = new ImageWidget[Section.values().length];
-
+    private String activeBundleId;
+    private Section activeSection;
+    private final List<String> wallpapers;
+    private int wallpaperIdx;
+    private final TextFieldWidget[] hexFieldRef = new TextFieldWidget[1];
+    private final ImageWidget[] wallThumbRef = new ImageWidget[1];
+    private final LabelWidget[] wallLabelRef = new LabelWidget[1];
+    private ImageWidget[] bundleCardBgs;
     private WidgetGroup contentHost;
 
     private int dw, dh;
-
-    public static void open(WidgetGroup rootGroup, ItemTheme current) {
-        new ThemeEditorDialog(rootGroup, current).buildAndShow();
-    }
 
     private ThemeEditorDialog(WidgetGroup rootGroup, ItemTheme current) {
         this.rootGroup = rootGroup;
@@ -75,6 +66,10 @@ public class ThemeEditorDialog {
         this.wallpapers = WallpaperManager.listWallpapers();
         this.wallpaperIdx = wallpapers.indexOf(current.wallpaper);
         syncChannels(working.accentColor);
+    }
+
+    public static void open(WidgetGroup rootGroup, ItemTheme current) {
+        new ThemeEditorDialog(rootGroup, current).buildAndShow();
     }
 
     private void buildAndShow() {
@@ -162,7 +157,7 @@ public class ThemeEditorDialog {
                     0, 0, contentH, activeBundleId, this::applyBundle, bundleCardBgs));
             contentHost.addWidget(ThemeEditorRightCol.buildBundleOptions(
                     rightX, 0, rightW, contentH,
-                    working, this::cycleParade, animToggleBg,
+                    working,
                     this::toggleSource,
                     () -> navigateWallpaper(-1),
                     () -> navigateWallpaper(1),
@@ -182,7 +177,6 @@ public class ThemeEditorDialog {
         hexFieldRef[0] = null;
         wallThumbRef[0] = null;
         wallLabelRef[0] = null;
-        animToggleBg[0] = null;
     }
 
     private void refreshSectionCards() {
@@ -219,19 +213,6 @@ public class ThemeEditorDialog {
         return ftr;
     }
 
-    private enum Section {
-        COLORS("◆", "gui.gtceuterminal.theme_editor.section.colors"),
-        BUNDLES("✦", "gui.gtceuterminal.theme_editor.section.bundles");
-
-        private final String glyph;
-        private final String translationKey;
-
-        Section(String glyph, String translationKey) {
-            this.glyph = glyph;
-            this.translationKey = translationKey;
-        }
-    }
-
     private void applyBundle(ThemeBundle bundle) {
         bundle.applyTo(working);
         working.slideshowMode = true; // bundles drive the wallpaper slideshow automatically
@@ -264,16 +245,6 @@ public class ThemeEditorDialog {
         channels[2] = rgb & 0xFF;
         applyChannels();
         refreshAll();
-    }
-
-    private void cycleParade() {
-        working.paradeMode = switch (working.paradeMode) {
-            case NONE -> ItemTheme.ParadeMode.ORBITAL;
-            case ORBITAL -> ItemTheme.ParadeMode.BOUNCING;
-            case BOUNCING -> ItemTheme.ParadeMode.NONE;
-        };
-        ThemeEditorRightCol.refreshAnimToggle(animToggleBg,
-                working.paradeMode != ItemTheme.ParadeMode.NONE);
     }
 
     private void toggleSource() {
@@ -362,7 +333,6 @@ public class ThemeEditorDialog {
         working.wallpaper = "";
         working.uiStyle = ItemTheme.UiStyle.DARK;
         working.bundleId = "";
-        working.paradeMode = ItemTheme.ParadeMode.NONE;
         working.slideshowMode = false;
         working.slideshowSource = ItemTheme.SlideshowSource.BUILTIN;
         activeBundleId = "";
@@ -419,7 +389,6 @@ public class ThemeEditorDialog {
         refreshSwatches();
         refreshTabHighlights();
         refreshHexField();
-        ThemeEditorRightCol.refreshAnimToggle(animToggleBg, working.paradeMode != ItemTheme.ParadeMode.NONE);
         ThemeEditorLeftCol.refreshBundleCards(bundleCardBgs, activeBundleId);
     }
 
@@ -458,6 +427,19 @@ public class ThemeEditorDialog {
                     () -> thumb.setImage(new ColorRectTexture(TerminalUI.tokens().borderDark())));
         } else {
             thumb.setImage(new ColorRectTexture(TerminalUI.tokens().borderDark()));
+        }
+    }
+
+    private enum Section {
+        COLORS("◆", "gui.gtceuterminal.theme_editor.section.colors"),
+        BUNDLES("✦", "gui.gtceuterminal.theme_editor.section.bundles");
+
+        private final String glyph;
+        private final String translationKey;
+
+        Section(String glyph, String translationKey) {
+            this.glyph = glyph;
+            this.translationKey = translationKey;
         }
     }
 }

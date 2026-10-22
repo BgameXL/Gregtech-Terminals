@@ -1,14 +1,10 @@
 package com.gtceuterminal.common.ae2;
 
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-
 import appeng.api.networking.IGrid;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
-
-import java.util.HashMap;
-import java.util.Map;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public final class MEQueryResult {
 
@@ -30,24 +26,6 @@ public final class MEQueryResult {
 
         KeyCounter inventory = grid.getStorageService().getCachedInventory();
         return new MEQueryResult(grid, inventory);
-    }
-
-    public boolean hasGrid() {
-        return grid != null;
-    }
-
-    public IGrid getGrid() {
-        return grid;
-    }
-
-    public long getAvailable(Item item) {
-        if (cachedInventory == null) return 0;
-        return cachedInventory.get(AEItemKey.of(item));
-    }
-
-    public boolean isCraftable(Item item) {
-        if (grid == null) return false;
-        return grid.getCraftingService().isCraftable(AEItemKey.of(item));
     }
 
     private static IGrid findLinkedGrid(net.minecraft.world.entity.player.Player player) {
@@ -74,5 +52,23 @@ public final class MEQueryResult {
     private static IGrid tryStack(ItemStack stack, net.minecraft.world.entity.player.Player player) {
         if (!AccessPointLink.isOurLinkedManager(stack)) return null;
         return AccessPointLink.getLinkedGrid(stack, player.level(), player);
+    }
+
+    public boolean hasGrid() {
+        return grid != null;
+    }
+
+    public IGrid getGrid() {
+        return grid;
+    }
+
+    public long getAvailable(Item item) {
+        if (cachedInventory == null) return 0;
+        return cachedInventory.get(AEItemKey.of(item));
+    }
+
+    public boolean isCraftable(Item item) {
+        if (grid == null) return false;
+        return grid.getCraftingService().isCraftable(AEItemKey.of(item));
     }
 }

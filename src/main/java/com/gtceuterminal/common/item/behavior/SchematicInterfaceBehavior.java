@@ -2,14 +2,11 @@ package com.gtceuterminal.common.item.behavior;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
-import com.gtceuterminal.common.util.SchematicUtils;
-
 import com.gtceuterminal.common.network.SPacketOpenSchematicInterfaceUI;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
+import com.gtceuterminal.common.util.SchematicUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-
 import org.jetbrains.annotations.NotNull;
 
 public class SchematicInterfaceBehavior {

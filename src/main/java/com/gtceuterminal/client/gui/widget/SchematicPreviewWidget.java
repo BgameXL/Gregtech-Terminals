@@ -1,35 +1,30 @@
 package com.gtceuterminal.client.gui.widget;
 
+import com.gregtechceu.gtceu.api.block.IMachineBlock;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.data.SchematicData;
-
-import com.gregtechceu.gtceu.api.block.IMachineBlock;
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import com.lowdragmc.lowdraglib.utils.TrackedDummyWorld;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class SchematicPreviewWidget extends WidgetGroup {
-
-    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {
-    }
 
     private final LinkedHashMap<String, SceneCacheEntry> sceneCache = new LinkedHashMap<>() {
         @Override
@@ -42,15 +37,12 @@ public class SchematicPreviewWidget extends WidgetGroup {
             return false;
         }
     };
-
     private SchematicData schematic;
-    private int rotSteps = 0;
+    private final int rotSteps = 0;
     private SceneWidget sceneWidget;
     private boolean pendingBuild = true;
-
     private int blockCount = 0;
     private String displayName = "Multiblock Structure";
-
     public SchematicPreviewWidget(int x, int y, int width, int height, SchematicData schematic) {
         super(x, y, width, height);
         this.schematic = schematic;
@@ -78,9 +70,9 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private void buildScene() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        if (schematic == null || schematic.getBlocks().isEmpty()) return;
+        if (schematic == null || schematic.blocks().isEmpty()) return;
 
-        String cacheKey = schematic.getName() + ":" + rotSteps;
+        String cacheKey = schematic.name() + ":" + rotSteps;
         if (sceneCache.containsKey(cacheKey)) {
             SceneCacheEntry entry = sceneCache.get(cacheKey);
             sceneWidget = entry.scene();
@@ -165,14 +157,14 @@ public class SchematicPreviewWidget extends WidgetGroup {
     }
 
     private void updateDisplayInfo() {
-        if (schematic == null || schematic.getBlocks().isEmpty()) {
+        if (schematic == null || schematic.blocks().isEmpty()) {
             blockCount = 0;
             displayName = "Multiblock Structure";
             return;
         }
-        blockCount = (int) schematic.getBlocks().values().stream().filter(s -> !s.isAir()).count();
+        blockCount = (int) schematic.blocks().values().stream().filter(s -> !s.isAir()).count();
 
-        for (var e : schematic.getBlocks().entrySet()) {
+        for (var e : schematic.blocks().entrySet()) {
             if (e.getValue().isAir()) continue;
             var block = e.getValue().getBlock();
             if (block instanceof IMachineBlock mb && mb.getDefinition() instanceof MultiblockMachineDefinition) {
@@ -182,7 +174,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
             }
         }
 
-        for (var e : schematic.getBlocks().entrySet()) {
+        for (var e : schematic.blocks().entrySet()) {
             if (!e.getValue().isAir()) {
                 String n = e.getValue().getBlock().getName().getString();
                 displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n;
@@ -195,7 +187,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private Map<BlockPos, BlockState> buildRotatedBlocks() {
         Map<BlockPos, BlockState> r = new HashMap<>();
         if (schematic == null) return r;
-        for (var e : schematic.getBlocks().entrySet())
+        for (var e : schematic.blocks().entrySet())
             r.put(rotatePos(e.getKey(), rotSteps), rotateState(e.getValue(), rotSteps));
         return r;
     }
@@ -203,7 +195,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private Map<BlockPos, CompoundTag> buildRotatedBEs() {
         Map<BlockPos, CompoundTag> r = new HashMap<>();
         if (schematic == null) return r;
-        for (var e : schematic.getBlockEntities().entrySet())
+        for (var e : schematic.blockEntities().entrySet())
             r.put(rotatePos(e.getKey(), rotSteps), e.getValue().copy());
         return r;
     }
@@ -299,5 +291,8 @@ public class SchematicPreviewWidget extends WidgetGroup {
 
     public String getMultiblockDisplayName() {
         return displayName;
+    }
+
+    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {
     }
 }

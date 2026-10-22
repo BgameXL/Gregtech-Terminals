@@ -1,20 +1,19 @@
 package com.gtceuterminal.client.gui.schematic;
 
 import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.common.data.SchematicData;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -87,10 +86,10 @@ final class SchematicPreviewPanel {
             previewArea.addWidget(nameLbl);
             ty += 14;
 
-            BlockPos size = sel.getSize();
+            BlockPos size = sel.size();
             String info = Component.translatable(
                     "gui.gtceuterminal.schematic_interface.preview.info",
-                    sel.getBlocks().size(), size.getX(), size.getY(), size.getZ()).getString();
+                    sel.blocks().size(), size.getX(), size.getY(), size.getZ()).getString();
             LabelWidget infoLbl = new LabelWidget(4, ty, TerminalText.strip(info));
             infoLbl.setColor(tokens.textMuted());
             previewArea.addWidget(infoLbl);
@@ -131,19 +130,19 @@ final class SchematicPreviewPanel {
     }
 
     private static String getMultiblockName(SchematicData schematic) {
-        if (schematic == null || schematic.getBlocks().isEmpty()) {
+        if (schematic == null || schematic.blocks().isEmpty()) {
             return Component.translatable(
                     "gui.gtceuterminal.schematic_interface.fallback.multiblock_structure").getString();
         }
 
-        for (Map.Entry<BlockPos, BlockState> e : schematic.getBlocks().entrySet()) {
+        for (Map.Entry<BlockPos, BlockState> e : schematic.blocks().entrySet()) {
             if (!(e.getValue().getBlock() instanceof com.gregtechceu.gtceu.api.block.MetaMachineBlock mmb)) continue;
             if (!(mmb.definition instanceof com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition)) continue;
             String n = e.getValue().getBlock().getName().getString();
             return n.length() > 35 ? n.substring(0, 32) + "…" : n;
         }
 
-        String type = schematic.getMultiblockType();
+        String type = schematic.multiblockType();
         if (type != null && !type.isEmpty()) {
             type = type.replace("WorkableElectricMultiblockMachine", "Electric Machine")
                     .replace("CoilWorkableElectricMultiblockMachine", "Coil Machine")

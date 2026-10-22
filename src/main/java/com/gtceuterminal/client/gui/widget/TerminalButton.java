@@ -1,20 +1,13 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TransformTexture;
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-
+import com.lowdragmc.lowdraglib.gui.texture.*;
+import com.lowdragmc.lowdraglib.gui.util.ClickData;
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.GuiGraphics;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -23,9 +16,6 @@ import java.util.function.Consumer;
 @OnlyIn(Dist.CLIENT)
 public final class TerminalButton {
 
-    private TerminalButton() {
-    }
-
     private static final String BTN_TEX = "gtceuterminal:textures/gui/buttons/";
     public static final ResourceTexture ICON_CLOSE = new ResourceTexture(BTN_TEX + "close.png");
     public static final ResourceTexture ICON_THEME = new ResourceTexture(BTN_TEX + "theme.png");
@@ -33,8 +23,10 @@ public final class TerminalButton {
     public static final ResourceTexture ICON_ARROW_LEFT = new ResourceTexture(BTN_TEX + "arrow_left.png");
     public static final ResourceTexture ICON_ARROW_RIGHT = new ResourceTexture(BTN_TEX + "arrow_right.png");
     public static final ResourceTexture ICON_RENAME = new ResourceTexture(BTN_TEX + "rename.png");
-
     private static final int ICON_MARGIN = 1;
+
+    private TerminalButton() {
+    }
 
     public static ButtonWidget icon3d(int x, int y, int size, IGuiTexture icon,
                                       Consumer<ClickData> action) {

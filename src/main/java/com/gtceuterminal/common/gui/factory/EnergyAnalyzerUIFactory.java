@@ -1,25 +1,22 @@
 package com.gtceuterminal.common.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.lowdragmc.lowdraglib.Platform;
+import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.item.EnergyAnalyzerItem;
-
+import com.gtceuterminal.common.theme.ItemTheme;
+import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
-
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import com.gtceuterminal.common.theme.ItemTheme;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -35,6 +32,14 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
 
     private EnergyAnalyzerUIFactory() {
         super(UI_ID);
+    }
+
+    private static ItemStack findAnalyzerItem(ServerPlayer player) {
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack s = player.getInventory().getItem(i);
+            if (s.getItem() instanceof EnergyAnalyzerItem) return s;
+        }
+        return ItemStack.EMPTY;
     }
 
     public void openUI(ServerPlayer player, int initialIndex) {
@@ -118,23 +123,14 @@ public class EnergyAnalyzerUIFactory extends UIFactory<EnergyAnalyzerUIFactory.E
         buf.writeNbt(holder.theme.toNBT());
     }
 
-    private static ItemStack findAnalyzerItem(ServerPlayer player) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack s = player.getInventory().getItem(i);
-            if (s.getItem() instanceof EnergyAnalyzerItem) return s;
-        }
-        return ItemStack.EMPTY;
-    }
-
     public static class EnergyAnalyzerHolder implements IUIHolder {
-        private final boolean remote;
-        private Player player;
-
         public final List<EnergySnapshot> snapshots;
         public final List<LinkedMachineData> machines;
         public final int initialIndex;
         public final ItemStack itemStack;
         public final ItemTheme theme;
+        private final boolean remote;
+        private Player player;
 
         public EnergyAnalyzerHolder(boolean remote, ItemStack itemStack, List<EnergySnapshot> snapshots,
                                     List<LinkedMachineData> machines, int initialIndex, ItemTheme theme) {

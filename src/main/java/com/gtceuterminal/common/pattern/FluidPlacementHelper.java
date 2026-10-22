@@ -1,5 +1,6 @@
 package com.gtceuterminal.common.pattern;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
@@ -15,24 +16,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.gregtechceu.gtceu.api.fluids.GTFluid;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
-import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
-import com.gregtechceu.gtceu.api.item.GTBucketItem;
-import com.gtceuterminal.GTCEUTerminalMod;
-
-import java.util.Optional;
 
 // Helper class to handle fluid placement logic, including checks for valid placement
 // handling of special cases (like water in the nether), and integration with player inventory and ME Network fluid storage.
@@ -152,11 +140,7 @@ public class FluidPlacementHelper {
     }
 
     private static boolean shouldVaporize(Level world, BlockPos pos, Fluid fluid) {
-        if (world.dimensionType().ultraWarm() && fluid.is(FluidTags.WATER)) {
-            return true;
-        }
-
-        return false;
+        return world.dimensionType().ultraWarm() && fluid.is(FluidTags.WATER);
     }
 
 

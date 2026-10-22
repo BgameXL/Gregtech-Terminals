@@ -1,25 +1,21 @@
 package com.gtceuterminal.client.gui.multiblock;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockStatus;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.theme.ItemTheme;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

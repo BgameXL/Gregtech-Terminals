@@ -1,41 +1,36 @@
 package com.gtceuterminal.common.autocraft;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
-import com.gtceuterminal.common.ae2.MEQueryResult;
-import com.gtceuterminal.common.material.ComponentUpgradeHelper;
-import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
-import com.gtceuterminal.common.pattern.AutoBuilderHelpers;
-import com.gtceuterminal.common.config.ManagerSettings;
-
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.ae2.MEQueryResult;
+import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
+import com.gtceuterminal.common.config.ManagerSettings;
+import com.gtceuterminal.common.material.ComponentUpgradeHelper;
+import com.gtceuterminal.common.multiblock.ComponentInfo;
+import com.gtceuterminal.common.pattern.AutoBuilderHelpers;
+import com.gtceuterminal.common.pattern.CandidateFilter;
+import com.gtceuterminal.common.pattern.CandidateSelector;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-
-import com.gtceuterminal.common.pattern.CandidateFilter;
-import com.gtceuterminal.common.pattern.CandidateSelector;
-
-import net.minecraft.world.item.BlockItem;
 
 import java.util.*;
 
@@ -108,7 +103,10 @@ public final class MultiblockAnalyzer {
                             if (!hasSolidCandidate && !fluidCandidates.isEmpty()) {
                                 Fluid chosen = null;
                                 for (Fluid f : fluidCandidates)
-                                    if (f instanceof FlowingFluid) { chosen = f; break; }
+                                    if (f instanceof FlowingFluid) {
+                                        chosen = f;
+                                        break;
+                                    }
                                 if (chosen == null) chosen = fluidCandidates.get(0);
                                 neededFluids.merge(chosen, 1, Integer::sum);
                                 continue;

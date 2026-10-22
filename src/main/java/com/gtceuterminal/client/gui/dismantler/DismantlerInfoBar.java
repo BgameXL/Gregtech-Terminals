@@ -5,14 +5,12 @@ import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

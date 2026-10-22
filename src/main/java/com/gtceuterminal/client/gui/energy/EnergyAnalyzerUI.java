@@ -1,25 +1,21 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.widget.TerminalParade;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.energy.EnergySnapshot;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.world.entity.player.Player;
-
-import java.util.List;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class EnergyAnalyzerUI {
@@ -99,8 +95,6 @@ public class EnergyAnalyzerUI {
                     if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H);
                 }));
         rootGroup.addWidget(body);
-
-        TerminalParade.setup(theme, W, H);
         return wrapUI(rootGroup);
     }
 

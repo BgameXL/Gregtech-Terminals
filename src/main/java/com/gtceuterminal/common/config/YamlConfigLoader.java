@@ -20,6 +20,85 @@ public class YamlConfigLoader {
         this.file = dir.resolve(fileName).toFile();
     }
 
+    private static String stripInlineComment(String line) {
+        boolean inSingle = false;
+        boolean inDouble = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '\'' && !inDouble) inSingle = !inSingle;
+            else if (c == '"' && !inSingle) inDouble = !inDouble;
+            else if (c == '#' && !inSingle && !inDouble) {
+                return line.substring(0, i).trim();
+            }
+        }
+        return line.trim();
+    }
+
+    private static String unquote(String value) {
+        if (value.length() >= 2) {
+            if ((value.startsWith("\"") && value.endsWith("\"")) ||
+                    (value.startsWith("'") && value.endsWith("'"))) {
+                return value.substring(1, value.length() - 1);
+            }
+        }
+        return value;
+    }
+
+    private static List<String> parseInlineList(String raw) {
+        String inner = raw.substring(1, raw.length() - 1).trim();
+        if (inner.isBlank()) return new ArrayList<>();
+
+        List<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inSingle = false;
+        boolean inDouble = false;
+
+        for (int i = 0; i < inner.length(); i++) {
+            char c = inner.charAt(i);
+            if (c == '\'' && !inDouble) {
+                inSingle = !inSingle;
+                continue;
+            }
+            if (c == '"' && !inSingle) {
+                inDouble = !inDouble;
+                continue;
+            }
+            if (c == ',' && !inSingle && !inDouble) {
+                String item = current.toString().trim();
+                if (!item.isBlank()) result.add(item);
+                current.setLength(0);
+            } else {
+                current.append(c);
+            }
+        }
+        String last = current.toString().trim();
+        if (!last.isBlank()) result.add(last);
+        return result;
+    }
+
+    private static void writeEntry(PrintWriter writer, ConfigEntry entry) {
+        if (entry.key == null) {
+            writer.println();
+            if (entry.comment != null && !entry.comment.isBlank()) {
+                writer.println("# --- " + entry.comment + " ---");
+            }
+            return;
+        }
+        if (entry.comment != null && !entry.comment.isBlank()) {
+            for (String line : entry.comment.split("\n")) {
+                writer.println("# " + line);
+            }
+        }
+        if (entry.value instanceof List<?> list) {
+            writer.println(entry.key + ":");
+            for (Object item : list) {
+                writer.println("  - " + item);
+            }
+        } else {
+            writer.println(entry.key + ": " + entry.value);
+        }
+    }
+
     public int getInt(String key, int defaultValue) {
         Object val = data.get(key);
         if (val instanceof Number n) return n.intValue();
@@ -167,85 +246,6 @@ public class YamlConfigLoader {
                 GTCEUTerminalMod.LOGGER.error("[YamlConfig] Failed to write {}: {}", file.getName(), e.getMessage());
             }
             load();
-        }
-    }
-
-    private static String stripInlineComment(String line) {
-        boolean inSingle = false;
-        boolean inDouble = false;
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (c == '\'' && !inDouble) inSingle = !inSingle;
-            else if (c == '"' && !inSingle) inDouble = !inDouble;
-            else if (c == '#' && !inSingle && !inDouble) {
-                return line.substring(0, i).trim();
-            }
-        }
-        return line.trim();
-    }
-
-    private static String unquote(String value) {
-        if (value.length() >= 2) {
-            if ((value.startsWith("\"") && value.endsWith("\"")) ||
-                    (value.startsWith("'") && value.endsWith("'"))) {
-                return value.substring(1, value.length() - 1);
-            }
-        }
-        return value;
-    }
-
-    private static List<String> parseInlineList(String raw) {
-        String inner = raw.substring(1, raw.length() - 1).trim();
-        if (inner.isBlank()) return new ArrayList<>();
-
-        List<String> result = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        boolean inSingle = false;
-        boolean inDouble = false;
-
-        for (int i = 0; i < inner.length(); i++) {
-            char c = inner.charAt(i);
-            if (c == '\'' && !inDouble) {
-                inSingle = !inSingle;
-                continue;
-            }
-            if (c == '"' && !inSingle) {
-                inDouble = !inDouble;
-                continue;
-            }
-            if (c == ',' && !inSingle && !inDouble) {
-                String item = current.toString().trim();
-                if (!item.isBlank()) result.add(item);
-                current.setLength(0);
-            } else {
-                current.append(c);
-            }
-        }
-        String last = current.toString().trim();
-        if (!last.isBlank()) result.add(last);
-        return result;
-    }
-
-    private static void writeEntry(PrintWriter writer, ConfigEntry entry) {
-        if (entry.key == null) {
-            writer.println();
-            if (entry.comment != null && !entry.comment.isBlank()) {
-                writer.println("# --- " + entry.comment + " ---");
-            }
-            return;
-        }
-        if (entry.comment != null && !entry.comment.isBlank()) {
-            for (String line : entry.comment.split("\n")) {
-                writer.println("# " + line);
-            }
-        }
-        if (entry.value instanceof List<?> list) {
-            writer.println(entry.key + ":");
-            for (Object item : list) {
-                writer.println("  - " + item);
-            }
-        } else {
-            writer.println(entry.key + ": " + entry.value);
         }
     }
 

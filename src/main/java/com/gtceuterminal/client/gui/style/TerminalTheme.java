@@ -27,6 +27,8 @@ public record TerminalTheme(
         int errorSurface
 ) {
 
+    public static final TerminalTheme DEFAULT = derive(new ItemTheme());
+
     public static TerminalTheme derive(ItemTheme it) {
         return new TerminalTheme(
                 it.bgColor,
@@ -48,6 +50,4 @@ public record TerminalTheme(
                 it.errorColor,
                 Palette.shade(it.errorColor, 0.28f));
     }
-
-    public static final TerminalTheme DEFAULT = derive(new ItemTheme());
 }

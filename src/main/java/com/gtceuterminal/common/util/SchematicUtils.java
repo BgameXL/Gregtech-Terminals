@@ -113,7 +113,7 @@ public final class SchematicUtils {
     }
 
     public static double calculateOptimalDistance(SchematicData schematic) {
-        BlockPos size = schematic.getSize();
+        BlockPos size = schematic.size();
         int maxDimension = Math.max(size.getX(), Math.max(size.getY(), size.getZ()));
         double distance = 4.0 + (maxDimension / 2.0);
         return Math.min(15.0, Math.max(4.0, distance));
@@ -140,7 +140,7 @@ public final class SchematicUtils {
     }
 
     public static Direction resolveOriginalFacing(SchematicData schematic) {
-        String facingStr = schematic.getOriginalFacing();
+        String facingStr = schematic.originalFacing();
         if (facingStr != null && !facingStr.isEmpty()) {
             Direction byName = Direction.byName(facingStr);
             if (byName != null) return byName;
@@ -149,7 +149,7 @@ public final class SchematicUtils {
     }
 
     public static int minRotatedY(SchematicData schematic, int rotationSteps) {
-        return schematic.getBlocks().keySet().stream()
+        return schematic.blocks().keySet().stream()
                 .mapToInt(pos -> rotatePositionSteps(pos, rotationSteps).getY())
                 .min()
                 .orElse(0);

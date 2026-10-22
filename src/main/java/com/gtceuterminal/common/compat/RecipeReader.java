@@ -1,15 +1,9 @@
 package com.gtceuterminal.common.compat;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
-
+import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.lang.reflect.Field;
@@ -20,28 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public final class RecipeReader {
-
-    private RecipeReader() {
-    }
-
-    public record FluidLine(String name, long amount) {
-    }
-
-    public static final class RecipeView {
-        public final List<ItemStack> items;
-        public final List<FluidLine> fluids;
-
-        public RecipeView(List<ItemStack> items, List<FluidLine> fluids) {
-            this.items = items;
-            this.fluids = fluids;
-        }
-
-        public boolean isEmpty() {
-            return items.isEmpty() && fluids.isEmpty();
-        }
-
-        public static final RecipeView EMPTY = new RecipeView(List.of(), List.of());
-    }
 
     private static boolean gtChecked = false;
     private static boolean gtReady = false;
@@ -56,6 +28,8 @@ public final class RecipeReader {
     private static Class<?> cFluidIng;
     private static Method mFluidStacks;
     private static Method mFluidAmount;
+    private RecipeReader() {
+    }
 
     private static synchronized void ensureGT() {
         if (gtChecked) return;
@@ -156,7 +130,7 @@ public final class RecipeReader {
                 Map<Object, List<?>> inputs = (Map<Object, List<?>>) fInputs.get(recipe);
                 if (inputs == null) continue;
 
-                List<ItemStack> items = collectGTItems((List<?>) inputs.get(itemCap));
+                List<ItemStack> items = collectGTItems(inputs.get(itemCap));
                 List<FluidLine> fluids = collectGTFluids(fluidCap == null ? null : (List<?>) inputs.get(fluidCap));
                 RecipeView view = new RecipeView(items, fluids);
                 if (!view.isEmpty()) return view;
@@ -251,4 +225,15 @@ public final class RecipeReader {
         copy.setCount(Math.max(1, count));
         return copy;
     }
+
+    public record FluidLine(String name, long amount) {
+    }
+
+    public record RecipeView(List<ItemStack> items, List<FluidLine> fluids) {
+            public static final RecipeView EMPTY = new RecipeView(List.of(), List.of());
+
+        public boolean isEmpty() {
+                return items.isEmpty() && fluids.isEmpty();
+            }
+        }
 }

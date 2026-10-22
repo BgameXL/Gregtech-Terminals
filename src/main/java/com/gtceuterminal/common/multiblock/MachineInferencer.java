@@ -19,44 +19,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 public class MachineInferencer {
 
     private static final org.slf4j.Logger LOGGER = GTCEUTerminalMod.LOGGER;
-
-    public static class MachineSnapshot {
-        public final long euPerTick;
-        public final MachineState state;
-        public final long inputEuPerTick;
-        public final long outputEuPerTick;
-        public final long storedEu;
-        public final long capacityEu;
-
-        public MachineSnapshot(long euPerTick, MachineState state) {
-            this(euPerTick, state, 0, 0, 0, 0);
-        }
-
-        public MachineSnapshot(long euPerTick, MachineState state, long inputEuPerTick, long outputEuPerTick) {
-            this(euPerTick, state, inputEuPerTick, outputEuPerTick, 0, 0);
-        }
-
-        public MachineSnapshot(long euPerTick,
-                               MachineState state,
-                               long inputEuPerTick,
-                               long outputEuPerTick,
-                               long storedEu,
-                               long capacityEu) {
-            this.euPerTick = euPerTick;
-            this.state = state;
-            this.inputEuPerTick = inputEuPerTick;
-            this.outputEuPerTick = outputEuPerTick;
-            this.storedEu = storedEu;
-            this.capacityEu = capacityEu;
-        }
-    }
-
-    private static class EnergyTracker {
-        long lastEnergy = -1;
-        long lastTime = -1;
-        int calculatedEuPerTick = 0;
-    }
-
     private static final int MAX_TRACKED_MACHINES = 1000; // ~36 KB max
     private static final java.util.Map<BlockPos, EnergyTracker> energyTrackers =
             java.util.Collections.synchronizedMap(
@@ -349,7 +311,6 @@ public class MachineInferencer {
         return new MachineSnapshot(0, MachineState.IDLE_NO_RECIPE);
     }
 
-
     private static int getMaxEnergyHatchVoltage(IMultiController controller) {
         try {
             long maxVoltage = 0;
@@ -448,5 +409,23 @@ public class MachineInferencer {
 
     public static void clearTracker(BlockPos pos) {
         energyTrackers.remove(pos);
+    }
+
+    public record MachineSnapshot(long euPerTick, MachineState state, long inputEuPerTick, long outputEuPerTick,
+                                  long storedEu, long capacityEu) {
+            public MachineSnapshot(long euPerTick, MachineState state) {
+                this(euPerTick, state, 0, 0, 0, 0);
+            }
+
+            public MachineSnapshot(long euPerTick, MachineState state, long inputEuPerTick, long outputEuPerTick) {
+                this(euPerTick, state, inputEuPerTick, outputEuPerTick, 0, 0);
+            }
+
+    }
+
+    private static class EnergyTracker {
+        long lastEnergy = -1;
+        long lastTime = -1;
+        int calculatedEuPerTick = 0;
     }
 }

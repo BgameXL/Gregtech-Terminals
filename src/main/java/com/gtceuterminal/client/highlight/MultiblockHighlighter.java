@@ -1,14 +1,11 @@
 package com.gtceuterminal.client.highlight;
 
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockScanner;
-
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -28,47 +25,6 @@ public class MultiblockHighlighter {
         if (event.getLevel().isClientSide()) {
             activeHighlights.clear();
             GTCEUTerminalMod.LOGGER.debug("MultiblockHighlighter: cleared highlights on level unload");
-        }
-    }
-
-    public static class HighlightInfo {
-        public final BlockPos controllerPos;
-        public final Set<BlockPos> blocks;
-        public final int color;
-        public final long startTime;
-        public final int duration;
-        public final AABB boundingBox;
-
-        public HighlightInfo(BlockPos controllerPos, Set<BlockPos> blocks, int color, int duration) {
-            this.controllerPos = controllerPos;
-            this.blocks = blocks;
-            this.color = color;
-            this.startTime = System.currentTimeMillis();
-            this.duration = duration;
-            this.boundingBox = calculateBoundingBox(blocks);
-        }
-
-        public boolean isExpired() {
-            if (duration < 0) return false;
-            return (System.currentTimeMillis() - startTime) > duration;
-        }
-
-        private AABB calculateBoundingBox(Set<BlockPos> blocks) {
-            if (blocks.isEmpty()) return new AABB(0, 0, 0, 0, 0, 0);
-
-            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
-            int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-
-            for (BlockPos pos : blocks) {
-                minX = Math.min(minX, pos.getX());
-                minY = Math.min(minY, pos.getY());
-                minZ = Math.min(minZ, pos.getZ());
-                maxX = Math.max(maxX, pos.getX());
-                maxY = Math.max(maxY, pos.getY());
-                maxZ = Math.max(maxZ, pos.getZ());
-            }
-
-            return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
         }
     }
 
@@ -147,5 +103,46 @@ public class MultiblockHighlighter {
 
     public static boolean isHighlighted(BlockPos controllerPos) {
         return activeHighlights.containsKey(controllerPos);
+    }
+
+    public static class HighlightInfo {
+        public final BlockPos controllerPos;
+        public final Set<BlockPos> blocks;
+        public final int color;
+        public final long startTime;
+        public final int duration;
+        public final AABB boundingBox;
+
+        public HighlightInfo(BlockPos controllerPos, Set<BlockPos> blocks, int color, int duration) {
+            this.controllerPos = controllerPos;
+            this.blocks = blocks;
+            this.color = color;
+            this.startTime = System.currentTimeMillis();
+            this.duration = duration;
+            this.boundingBox = calculateBoundingBox(blocks);
+        }
+
+        public boolean isExpired() {
+            if (duration < 0) return false;
+            return (System.currentTimeMillis() - startTime) > duration;
+        }
+
+        private AABB calculateBoundingBox(Set<BlockPos> blocks) {
+            if (blocks.isEmpty()) return new AABB(0, 0, 0, 0, 0, 0);
+
+            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+
+            for (BlockPos pos : blocks) {
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
+            }
+
+            return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package com.gtceuterminal.common.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.config.ModConfig;
 
 public class ServerConfig {
     public static final String FILE_NAME = "gtceuterminal-server.toml";

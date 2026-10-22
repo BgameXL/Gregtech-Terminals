@@ -1,17 +1,11 @@
 package com.gtceuterminal.client.gui.multiblock;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.client.gui.widget.TerminalParade;
-import com.gtceuterminal.common.ae2.MENetworkScanner;
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.gtceuterminal.common.theme.ItemTheme;
+import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
-
+import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -21,7 +15,6 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -39,12 +32,10 @@ public class ManagerSettingsUI {
     private static final int ROW_H = 32;
     private static final int CTL_W = 56;
     private static final int CTL_H = 18;
-
-    private ItemTheme theme;
     private final IUIHolder uiHolder;
     private final ItemStack itemStack;
     private final Player player;
-
+    private ItemTheme theme;
     private int noHatchMode;
     private int tierMode;
     private int repeatCount;
@@ -73,6 +64,11 @@ public class ManagerSettingsUI {
         this.player = player;
         loadFromItem();
         applyTheme();
+    }
+
+    public static void openDialog(WidgetGroup rootGroup, int parentW, int parentH,
+                                  ItemStack item, Player player) {
+        new ManagerSettingsUI(item, player).buildDialog(rootGroup, parentW, parentH);
     }
 
     private void loadFromItem() {
@@ -105,17 +101,10 @@ public class ManagerSettingsUI {
         root.addWidget(buildHeader());
         root.addWidget(buildSettingsPanel());
 
-        TerminalParade.setup(theme, GUI_W, GUI_H);
-
         ModularUI gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(root);
         gui.background(theme.modularUIBackground());
         return gui;
-    }
-
-    public static void openDialog(WidgetGroup rootGroup, int parentW, int parentH,
-                                  ItemStack item, Player player) {
-        new ManagerSettingsUI(item, player).buildDialog(rootGroup, parentW, parentH);
     }
 
     private void buildDialog(WidgetGroup rootGroup, int parentW, int parentH) {

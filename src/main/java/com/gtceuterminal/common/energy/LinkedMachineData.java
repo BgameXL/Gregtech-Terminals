@@ -11,11 +11,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class LinkedMachineData {
 
-    private BlockPos pos;
-    private String dimensionId;
+    private final BlockPos pos;
+    private final String dimensionId;
     private String customName;
-    private String controllerBlockKey;
-    private String legacyTypeDisplay;
+    private final String controllerBlockKey;
+    private final String legacyTypeDisplay;
 
     public LinkedMachineData(BlockPos pos, String dimensionId, String customName, String controllerBlockKey) {
         this(pos, dimensionId, customName, controllerBlockKey, "");
@@ -28,20 +28,6 @@ public class LinkedMachineData {
         this.customName = customName != null ? customName : "";
         this.controllerBlockKey = controllerBlockKey != null ? controllerBlockKey : "";
         this.legacyTypeDisplay = legacyTypeDisplay != null ? legacyTypeDisplay : "";
-    }
-
-    public CompoundTag toNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.putInt("X", pos.getX());
-        tag.putInt("Y", pos.getY());
-        tag.putInt("Z", pos.getZ());
-        tag.putString("Dim", dimensionId);
-        tag.putString("Name", customName);
-        tag.putString("BlockKey", controllerBlockKey);
-        if (!legacyTypeDisplay.isEmpty()) {
-            tag.putString("Type", legacyTypeDisplay);
-        }
-        return tag;
     }
 
     public static LinkedMachineData fromNBT(CompoundTag tag) {
@@ -68,6 +54,24 @@ public class LinkedMachineData {
                 blockKey,
                 ""
         );
+    }
+
+    public static String dimId(Level level) {
+        return level.dimension().location().toString();
+    }
+
+    public CompoundTag toNBT() {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("X", pos.getX());
+        tag.putInt("Y", pos.getY());
+        tag.putInt("Z", pos.getZ());
+        tag.putString("Dim", dimensionId);
+        tag.putString("Name", customName);
+        tag.putString("BlockKey", controllerBlockKey);
+        if (!legacyTypeDisplay.isEmpty()) {
+            tag.putString("Type", legacyTypeDisplay);
+        }
+        return tag;
     }
 
     // Helpers
@@ -108,10 +112,6 @@ public class LinkedMachineData {
         }
     }
 
-    public static String dimId(Level level) {
-        return level.dimension().location().toString();
-    }
-
     public BlockPos getPos() {
         return pos;
     }
@@ -124,15 +124,15 @@ public class LinkedMachineData {
         return customName;
     }
 
+    public void setCustomName(String n) {
+        this.customName = n != null ? n : "";
+    }
+
     public String getControllerBlockKey() {
         return controllerBlockKey;
     }
 
     public String getLegacyTypeDisplay() {
         return legacyTypeDisplay;
-    }
-
-    public void setCustomName(String n) {
-        this.customName = n != null ? n : "";
     }
 }

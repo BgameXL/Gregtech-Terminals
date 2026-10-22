@@ -28,6 +28,23 @@ public class ComponentInfo {
         this.amperage = detectAmperageFromBlockName(this.blockName);
     }
 
+    private static String detectAmperageFromBlockName(String name) {
+        if (name == null) return null;
+        String lower = name.toLowerCase(Locale.ROOT);
+        if (lower.contains("_65536a")) return "65536A";
+        if (lower.contains("_16384a")) return "16384A";
+        if (lower.contains("_4096a")) return "4096A";
+        if (lower.contains("_1024a")) return "1024A";
+        if (lower.contains("_256a")) return "256A";
+        if (lower.contains("_64a")) return "64A";
+        if (lower.contains("_16a")) return "16A";
+        if (lower.contains("_8a")) return "8A";
+        if (lower.contains("_4a")) return "4A";
+        if (lower.contains("_2a")) return "2A";
+        if (lower.contains("substation")) return "64A";
+        return null;
+    }
+
     public ComponentGroup getGroup() {
         return group;
     }
@@ -55,7 +72,7 @@ public class ComponentInfo {
     public String getTierName() {
         if (group == ComponentGroupRegistry.COIL) {
             var coilEntry = ComponentRegistry.coilByTier(tier);
-            String name = coilEntry != null ? coilEntry.displayName : "Unknown Coil";
+            String name = coilEntry != null ? coilEntry.displayName() : "Unknown Coil";
             return name.replace(" Coil", "").replace(" Block", "").trim();
         }
         if (tier < 0 || tier >= GTValues.VN.length) return "Unknown";
@@ -97,23 +114,6 @@ public class ComponentInfo {
                     true;
             default -> false;
         };
-    }
-
-    private static String detectAmperageFromBlockName(String name) {
-        if (name == null) return null;
-        String lower = name.toLowerCase(Locale.ROOT);
-        if (lower.contains("_65536a")) return "65536A";
-        if (lower.contains("_16384a")) return "16384A";
-        if (lower.contains("_4096a")) return "4096A";
-        if (lower.contains("_1024a")) return "1024A";
-        if (lower.contains("_256a")) return "256A";
-        if (lower.contains("_64a")) return "64A";
-        if (lower.contains("_16a")) return "16A";
-        if (lower.contains("_8a")) return "8A";
-        if (lower.contains("_4a")) return "4A";
-        if (lower.contains("_2a")) return "2A";
-        if (lower.contains("substation")) return "64A";
-        return null;
     }
 
     @Override

@@ -21,7 +21,7 @@ public class SchematicPreviewRenderer {
                                          MultiBufferSource bufferSource,
                                          SchematicData schematic,
                                          Minecraft minecraft) {
-        if (schematic == null || schematic.getBlocks().isEmpty()
+        if (schematic == null || schematic.blocks().isEmpty()
                 || minecraft.level == null || minecraft.player == null) return;
 
         Direction originalFacing = SchematicUtils.resolveOriginalFacing(schematic);
@@ -53,7 +53,7 @@ public class SchematicPreviewRenderer {
                                                  SchematicData schematic,
                                                  Minecraft minecraft,
                                                  int rotSteps) {
-        if (schematic == null || schematic.getBlocks().isEmpty()) return;
+        if (schematic == null || schematic.blocks().isEmpty()) return;
 
         renderRotatedBlocks(poseStack, bufferSource, schematic, rotSteps,
                 minecraft.getBlockRenderer(), 0, 0, 0);
@@ -65,7 +65,7 @@ public class SchematicPreviewRenderer {
                                             int rotSteps,
                                             BlockRenderDispatcher blockRenderer,
                                             double baseX, double baseY, double baseZ) {
-        for (var entry : schematic.getBlocks().entrySet()) {
+        for (var entry : schematic.blocks().entrySet()) {
             BlockState state = entry.getValue();
             if (state.isAir()) continue;
 

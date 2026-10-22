@@ -1,32 +1,27 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.EnergyGraphWidget;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergySnapshot;
-
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.texture.*;
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-
-import net.minecraftforge.registries.ForgeRegistries;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.function.Supplier;
 
@@ -34,25 +29,76 @@ import java.util.function.Supplier;
 final class EnergyAnalyzerDetail {
 
     static final int MAX_HATCHES = 5;
-
+    private static final int GRAPH_H_WIDGET = 80;
+    private static final int STATS_CELL_H = 38;
+    private static final int HATCH_ROW_H = 24;
+    private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(Palette.CLEAR);
+    private final int detailW;
+    private final int graphW;
+    private final TerminalTheme tokens;
     EnergyGraphWidget graphWidget;
     WidgetGroup energyBarFill;
     WidgetGroup recipeBarFill;
     WidgetGroup recipeBarBg;
     ButtonWidget recipeBtn;
 
-    private final int detailW;
-    private final int graphW;
-    private final TerminalTheme tokens;
-
-    private static final int GRAPH_H_WIDGET = 80;
-    private static final int STATS_CELL_H = 38;
-    private static final int HATCH_ROW_H = 24;
-
     EnergyAnalyzerDetail(int detailW, int graphW) {
         this.detailW = detailW;
         this.graphW = graphW;
         this.tokens = TerminalUI.tokens();
+    }
+
+    private static Supplier<IGuiTexture> hatchIconSupplier(int index, Supplier<EnergySnapshot> selSnap) {
+        final String[] lastId = {null};
+        final IGuiTexture[] cached = {EMPTY_TEX};
+        return () -> {
+            EnergySnapshot s = selSnap.get();
+            String id = (s != null && index < s.hatches.size()) ? s.hatches.get(index).blockId() : null;
+            if (id == null || id.isBlank()) {
+                lastId[0] = null;
+                return cached[0] = EMPTY_TEX;
+            }
+            if (!id.equals(lastId[0])) {
+                lastId[0] = id;
+                cached[0] = hatchTexture(id);
+            }
+            return cached[0];
+        };
+    }
+
+    private static IGuiTexture hatchTexture(String blockId) {
+        try {
+            Block b = ForgeRegistries.BLOCKS.getValue(ResourceLocation.parse(blockId));
+            if (b != null && b != Blocks.AIR) {
+                ItemStack stack = new ItemStack(b);
+                if (!stack.isEmpty()) return new ItemStackTexture(stack);
+            }
+        } catch (Exception ignored) {
+        }
+        return EMPTY_TEX;
+    }
+
+    private static String peakText(EnergySnapshot s) {
+        if (s == null || !s.isFormed) return "---";
+        long peak = 0;
+        for (long v : s.inputHistory) peak = Math.max(peak, v);
+        for (long v : s.outputHistory) peak = Math.max(peak, v);
+        if (peak <= 0) peak = Math.max(s.inputPerSec, s.outputPerSec);
+        return EnergyDisplayHelper.formatEU(peak / 20) + "/t";
+    }
+
+    private static String pct(int value) {
+        return value + "%%";
+    }
+
+    private static String storedPercent(EnergySnapshot s) {
+        if (s == null || !s.isFormed) return "---";
+        return pct(Math.round(Math.max(0f, Math.min(1f, s.chargePercent())) * 100f));
+    }
+
+    private static String recipeProgressText(EnergySnapshot s) {
+        if (s == null || !s.isFormed || !s.isRecipeActive) return pct(0);
+        return pct(Math.round(Math.max(0f, Math.min(1f, s.recipeProgress)) * 100f));
     }
 
     WidgetGroup build(
@@ -220,61 +266,6 @@ final class EnergyAnalyzerDetail {
         row.addWidget(euLbl);
 
         return row;
-    }
-
-    private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(Palette.CLEAR);
-
-    private static Supplier<IGuiTexture> hatchIconSupplier(int index, Supplier<EnergySnapshot> selSnap) {
-        final String[] lastId = {null};
-        final IGuiTexture[] cached = {EMPTY_TEX};
-        return () -> {
-            EnergySnapshot s = selSnap.get();
-            String id = (s != null && index < s.hatches.size()) ? s.hatches.get(index).blockId() : null;
-            if (id == null || id.isBlank()) {
-                lastId[0] = null;
-                return cached[0] = EMPTY_TEX;
-            }
-            if (!id.equals(lastId[0])) {
-                lastId[0] = id;
-                cached[0] = hatchTexture(id);
-            }
-            return cached[0];
-        };
-    }
-
-    private static IGuiTexture hatchTexture(String blockId) {
-        try {
-            Block b = ForgeRegistries.BLOCKS.getValue(ResourceLocation.parse(blockId));
-            if (b != null && b != Blocks.AIR) {
-                ItemStack stack = new ItemStack(b);
-                if (!stack.isEmpty()) return new ItemStackTexture(stack);
-            }
-        } catch (Exception ignored) {
-        }
-        return EMPTY_TEX;
-    }
-
-    private static String peakText(EnergySnapshot s) {
-        if (s == null || !s.isFormed) return "---";
-        long peak = 0;
-        for (long v : s.inputHistory) peak = Math.max(peak, v);
-        for (long v : s.outputHistory) peak = Math.max(peak, v);
-        if (peak <= 0) peak = Math.max(s.inputPerSec, s.outputPerSec);
-        return EnergyDisplayHelper.formatEU(peak / 20) + "/t";
-    }
-
-    private static String pct(int value) {
-        return value + "%%";
-    }
-
-    private static String storedPercent(EnergySnapshot s) {
-        if (s == null || !s.isFormed) return "---";
-        return pct(Math.round(Math.max(0f, Math.min(1f, s.chargePercent())) * 100f));
-    }
-
-    private static String recipeProgressText(EnergySnapshot s) {
-        if (s == null || !s.isFormed || !s.isRecipeActive) return pct(0);
-        return pct(Math.round(Math.max(0f, Math.min(1f, s.recipeProgress)) * 100f));
     }
 
     void updateDynamic(EnergySnapshot snap) {

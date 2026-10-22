@@ -1,26 +1,15 @@
 package com.gtceuterminal.client.gui.theme;
 
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-
+import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.network.chat.Component;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -174,8 +163,6 @@ final class ThemeEditorRightCol {
     static WidgetGroup buildBundleOptions(
             int x, int y, int colW, int colH,
             ItemTheme working,
-            Runnable onCycleParade,
-            ImageWidget[] animBgRef,
             Runnable onToggleSource,
             Runnable onWallPrev,
             Runnable onWallNext,
@@ -193,26 +180,8 @@ final class ThemeEditorRightCol {
 
         int cy = 26;
         int optionH = 20;
-        int animW = 118;
-        ImageWidget animBg = new ImageWidget(PAD, cy, animW, optionH,
-                animToggleTexture(working.paradeMode != ItemTheme.ParadeMode.NONE));
-        animBgRef[0] = animBg;
-        col.addWidget(animBg);
 
-        LabelWidget animLabel = new LabelWidget(PAD + 7, cy + 6, () -> paradeLabel(working.paradeMode));
-        animLabel.setClientSideWidget();
-        animLabel.setColor(tokens.textStrong());
-        col.addWidget(animLabel);
-
-        ButtonWidget animButton = new ButtonWidget(PAD, cy, animW, optionH,
-                new ColorRectTexture(Palette.CLEAR), cd -> onCycleParade.run());
-        animButton.setHoverTexture(new ColorRectTexture(tokens.hover()));
-        animButton.setHoverTooltips(
-                Component.translatable("gui.gtceuterminal.theme_editor.animations"),
-                Component.translatable("gui.gtceuterminal.theme_editor.animations_desc"));
-        col.addWidget(animButton);
-
-        int sourceX = PAD + animW + 6;
+        int sourceX = PAD;
         int sourceW = 94;
         col.addWidget(new ImageWidget(sourceX, cy, sourceW, optionH,
                 new BevelTexture(tokens.panel())));
@@ -273,24 +242,6 @@ final class ThemeEditorRightCol {
     static IGuiTexture targetTexture(boolean selected) {
         TerminalTheme tokens = TerminalUI.tokens();
         return new BevelTexture(selected ? tokens.action() : tokens.panel());
-    }
-
-    static IGuiTexture animToggleTexture(boolean on) {
-        TerminalTheme tokens = TerminalUI.tokens();
-        return new BevelTexture(on ? tokens.action() : tokens.panel());
-    }
-
-    static void refreshAnimToggle(ImageWidget[] ref, boolean on) {
-        if (ref == null || ref[0] == null) return;
-        ref[0].setImage(animToggleTexture(on));
-    }
-
-    private static String paradeLabel(ItemTheme.ParadeMode mode) {
-        return switch (mode) {
-            case ORBITAL -> "Anim: Orbit";
-            case BOUNCING -> "Anim: Bounce";
-            default -> "Anim: Off";
-        };
     }
 
     private static String sanitizeHex(String value) {

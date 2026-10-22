@@ -3,10 +3,8 @@ package com.gtceuterminal.common.network;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -78,7 +76,7 @@ public class CPacketSchematicAction {
 
                     List<SchematicData> existingSchematics = loadSchematics(stack, player);
                     boolean isDuplicate = existingSchematics.stream()
-                            .anyMatch(s -> s.getName().equals(this.schematicName));
+                            .anyMatch(s -> s.name().equals(this.schematicName));
 
                     if (isDuplicate) {
                         player.displayClientMessage(
@@ -90,17 +88,17 @@ public class CPacketSchematicAction {
 
                     SchematicData namedSchematic = new SchematicData(
                             this.schematicName,
-                            clipboard.getMultiblockType(),
-                            clipboard.getBlocks(),
-                            clipboard.getBlockEntities(),
-                            clipboard.getOriginalFacing()
+                            clipboard.multiblockType(),
+                            clipboard.blocks(),
+                            clipboard.blockEntities(),
+                            clipboard.originalFacing()
                     );
 
                     existingSchematics.add(namedSchematic);
                     saveSchematics(stack, existingSchematics);
 
                     GTCEUTerminalMod.LOGGER.info("Saved schematic '{}' with originalFacing: {}",
-                            this.schematicName, clipboard.getOriginalFacing());
+                            this.schematicName, clipboard.originalFacing());
 
                     player.displayClientMessage(
                             Component.translatable(
@@ -119,12 +117,12 @@ public class CPacketSchematicAction {
                         stackTag.put("Clipboard", schematic.toNBT());
 
                         GTCEUTerminalMod.LOGGER.info("Loaded schematic '{}' with originalFacing: {}",
-                                schematic.getName(), schematic.getOriginalFacing());
+                                schematic.name(), schematic.originalFacing());
 
                         player.displayClientMessage(
                                 Component.translatable(
                                         "item.gtceuterminal.schematic_action.message.loaded_schematic",
-                                        schematic.getName()
+                                        schematic.name()
                                 ),
                                 true
                         );
@@ -133,7 +131,7 @@ public class CPacketSchematicAction {
 
                 case DELETE:
                     List<SchematicData> allSchematics = loadSchematics(stack, player);
-                    boolean removed = allSchematics.removeIf(s -> s.getName().equals(this.schematicName));
+                    boolean removed = allSchematics.removeIf(s -> s.name().equals(this.schematicName));
                     if (removed) {
                         saveSchematics(stack, allSchematics);
                         player.displayClientMessage(
@@ -155,7 +153,7 @@ public class CPacketSchematicAction {
                         boolean nameTaken = false;
                         for (int i = 0; i < toRename.size(); i++) {
                             if (i != this.schematicIndex
-                                    && toRename.get(i).getName().equalsIgnoreCase(newName)) {
+                                    && toRename.get(i).name().equalsIgnoreCase(newName)) {
                                 nameTaken = true;
                                 break;
                             }
@@ -167,8 +165,8 @@ public class CPacketSchematicAction {
                             return;
                         }
                         SchematicData old = toRename.get(this.schematicIndex);
-                        toRename.set(this.schematicIndex, new SchematicData(newName, old.getMultiblockType(),
-                                old.getBlocks(), old.getBlockEntities(), old.getOriginalFacing()));
+                        toRename.set(this.schematicIndex, new SchematicData(newName, old.multiblockType(),
+                                old.blocks(), old.blockEntities(), old.originalFacing()));
                         saveSchematics(stack, toRename);
                         player.displayClientMessage(
                                 Component.translatable("item.gtceuterminal.schematic_action.message.renamed_schematic", newName),

@@ -1,12 +1,10 @@
 package com.gtceuterminal.common.compat.integrations;
 
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.api.TerminalAPI;
 import com.gtceuterminal.common.config.ComponentEntry;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
-
-import com.gregtechceu.gtceu.api.GTValues;
-
 import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 

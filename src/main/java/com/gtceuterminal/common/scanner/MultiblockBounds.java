@@ -1,10 +1,8 @@
 package com.gtceuterminal.common.scanner;
 
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.autocraft.MultiblockAnalyzer;
-
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 

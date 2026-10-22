@@ -3,11 +3,10 @@ package com.gtceuterminal.common.multiblock;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import net.minecraft.core.BlockPos;
 
-import java.util.Collections;
-import java.util.Set;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a detected multiblock structure in the world, containing information about its controller, components, status, and other metadata.
@@ -58,12 +57,12 @@ public class MultiblockInfo {
         return name;
     }
 
-    public void setCustomDisplayName(String name) {
-        this.customDisplayName = name;
-    }
-
     public String getCustomDisplayName() {
         return customDisplayName != null ? customDisplayName : "";
+    }
+
+    public void setCustomDisplayName(String name) {
+        this.customDisplayName = name;
     }
 
     public Set<BlockPos> getAllBlockPositions() {

@@ -103,6 +103,19 @@ public class ThemeBundleRegistry {
         }
     }
 
+    static int readColor(JsonObject json, String key, int fallback) {
+        if (!json.has(key)) return fallback;
+        try {
+            String hex = json.get(key).getAsString();
+            String s = hex.startsWith("#") ? hex.substring(1) : hex;
+            if (s.length() == 6) return 0xFF000000 | Integer.parseUnsignedInt(s, 16);
+            return (int) Long.parseLong(s, 16);
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.warn("ThemeBundleRegistry: invalid color for '{}': {}", key, e.getMessage());
+            return fallback;
+        }
+    }
+
     private static final class JsonOverrideBundle extends ThemeBundle {
         private final ThemeBundle base;
         private final int accent, bg, panel, text, textMuted, border, success, warning, error;
@@ -297,19 +310,6 @@ public class ThemeBundleRegistry {
         @Override
         public int errorColor() {
             return error;
-        }
-    }
-
-    static int readColor(JsonObject json, String key, int fallback) {
-        if (!json.has(key)) return fallback;
-        try {
-            String hex = json.get(key).getAsString();
-            String s = hex.startsWith("#") ? hex.substring(1) : hex;
-            if (s.length() == 6) return 0xFF000000 | Integer.parseUnsignedInt(s, 16);
-            return (int) Long.parseLong(s, 16);
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.warn("ThemeBundleRegistry: invalid color for '{}': {}", key, e.getMessage());
-            return fallback;
         }
     }
 }

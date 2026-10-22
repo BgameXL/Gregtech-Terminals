@@ -6,14 +6,13 @@ import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
 import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.common.theme.ItemTheme;
-
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

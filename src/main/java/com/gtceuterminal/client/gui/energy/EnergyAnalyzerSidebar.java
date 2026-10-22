@@ -6,19 +6,18 @@ import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.IntFunction;
 
 @OnlyIn(Dist.CLIENT)

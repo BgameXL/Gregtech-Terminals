@@ -1,16 +1,15 @@
 package com.gtceuterminal.client.gui.dismantler;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -18,7 +17,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -48,7 +46,7 @@ final class DismantlerPreviewPanel {
 
         if (scanResult != null && scanResult.getTotalBlocks() > 0) {
             SchematicData previewData = buildSchematic(scanResult, controllerPos, player);
-            if (previewData != null && !previewData.getBlocks().isEmpty()) {
+            if (previewData != null && !previewData.blocks().isEmpty()) {
                 SchematicPreviewWidget preview = new SchematicPreviewWidget(4, 22, w - 8, h - 26, previewData);
                 preview.setBackground(new ColorRectTexture(tokens.panelDisabled()));
                 panel.addWidget(preview);

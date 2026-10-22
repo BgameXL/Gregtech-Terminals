@@ -1,16 +1,13 @@
 package com.gtceuterminal.common.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.energy.LinkedMachineData;
+import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.scanner.MultiblockAnalysisHelper;
 import com.gtceuterminal.common.scanner.UniversalMultiblockScanner;
-import com.gtceuterminal.common.scanner.UniversalMultiblockScanner.DetectedMultiblock;
 import com.gtceuterminal.common.scanner.UniversalMultiblockScanner.ComponentData;
-
-import com.gtceuterminal.common.item.MultiStructureManagerItem;
-import com.gtceuterminal.common.energy.LinkedMachineData;
-
+import com.gtceuterminal.common.scanner.UniversalMultiblockScanner.DetectedMultiblock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -172,9 +169,9 @@ public class MultiblockScanner {
     private static ComponentInfo createComponentInfo(String category, ComponentData comp, Level level) {
         try {
             ComponentGroup group = ComponentGroupRegistry.fromCategory(category);
-            BlockPos pos = comp.getPosition();
+            BlockPos pos = comp.position();
             BlockState state = level.getBlockState(pos);
-            return new ComponentInfo(group, comp.getTier(), pos, state);
+            return new ComponentInfo(group, comp.tier(), pos, state);
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.warn("Could not create component info for {}: {}", category, e.getMessage());
             return null;

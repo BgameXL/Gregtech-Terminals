@@ -1,30 +1,26 @@
 package com.gtceuterminal.common.energy;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.compat.RecipeLogicReflection;
-import com.gtceuterminal.common.config.ItemsConfig;
-import com.gtceuterminal.common.multiblock.MachineInferencer;
-import com.gtceuterminal.common.energy.MultiblockHandlerRegistry;
-
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubstationMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.RecipeLogicReflection;
+import com.gtceuterminal.common.config.ItemsConfig;
+import com.gtceuterminal.common.multiblock.MachineInferencer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -78,8 +74,8 @@ public class EnergyDataCollector {
 
                 MachineInferencer.MachineSnapshot ms = MachineInferencer.inferMachine(level, pos);
                 if (ms != null) {
-                    snap.inputPerSec = ms.inputEuPerTick * 20;
-                    snap.outputPerSec = ms.outputEuPerTick * 20;
+                    snap.inputPerSec = ms.inputEuPerTick() * 20;
+                    snap.outputPerSec = ms.outputEuPerTick() * 20;
                 }
 
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
@@ -179,38 +175,35 @@ public class EnergyDataCollector {
     }
 
     private static void collectRecipeInfo(IRecipeLogicMachine rlm, EnergySnapshot snap) {
+        RecipeLogic logic = rlm.getRecipeLogic();
+        if (logic == null) return;
+
+        snap.isRecipeActive = logic.isWorking();
+        snap.recipeDuration = logic.getMaxProgress();
         try {
-            RecipeLogic logic = rlm.getRecipeLogic();
-            if (logic == null) return;
+            int progressTicks = RecipeLogicReflection.getProgress(logic);
+            snap.recipeProgress = snap.recipeDuration > 0
+                    ? (float) progressTicks / snap.recipeDuration : 0f;
+            snap.recipeProgressTicks = progressTicks;
+        } catch (Exception e2) {
+            snap.recipeProgress = (float) logic.getProgressPercent();
+            snap.recipeProgressTicks = (int) (snap.recipeProgress * snap.recipeDuration);
+        }
 
-            snap.isRecipeActive = logic.isWorking();
-            snap.recipeDuration = logic.getMaxProgress();
+        if (logic.isWorking() || logic.isWaiting()) {
             try {
-                int progressTicks = RecipeLogicReflection.getProgress(logic);
-                snap.recipeProgress = snap.recipeDuration > 0
-                        ? (float) progressTicks / snap.recipeDuration : 0f;
-                snap.recipeProgressTicks = progressTicks;
-            } catch (Exception e2) {
-                snap.recipeProgress = (float) logic.getProgressPercent();
-                snap.recipeProgressTicks = (int) (snap.recipeProgress * snap.recipeDuration);
-            }
-
-            if (logic.isWorking() || logic.isWaiting()) {
-                try {
-                    com.gregtechceu.gtceu.api.recipe.GTRecipe recipe =
-                            RecipeLogicReflection.getLastRecipe(logic).orElse(null);
-                    if (recipe != null) {
-                        snap.recipeId = getOutputName(recipe);
-                        if (recipe.recipeType != null) {
-                            snap.recipeTypeName = toReadableName(
-                                    recipe.recipeType.registryName.getPath());
-                        }
+                com.gregtechceu.gtceu.api.recipe.GTRecipe recipe =
+                        RecipeLogicReflection.getLastRecipe(logic).orElse(null);
+                if (recipe != null) {
+                    snap.recipeId = getOutputName(recipe);
+                    if (recipe.recipeType != null) {
+                        snap.recipeTypeName = toReadableName(
+                                recipe.recipeType.registryName.getPath());
                     }
-                } catch (RuntimeException e) {
-                    GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
                 }
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
             }
-        } finally {
         }
     }
 

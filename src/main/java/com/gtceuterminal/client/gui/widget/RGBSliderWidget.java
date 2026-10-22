@@ -3,14 +3,12 @@ package com.gtceuterminal.client.gui.widget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
-
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RGBSliderWidget extends Widget {
@@ -34,6 +32,10 @@ public class RGBSliderWidget extends Widget {
         this.thumbColor = thumbColor;
         this.getter = getter;
         this.setter = setter;
+    }
+
+    private static int clamp(int v) {
+        return Math.max(0, Math.min(255, v));
     }
 
     @Override
@@ -112,9 +114,5 @@ public class RGBSliderWidget extends Widget {
         double t = (mouseX - x) / (double) (w - thumbW);
         int val = clamp((int) Math.round(t * 255));
         setter.accept(val);
-    }
-
-    private static int clamp(int v) {
-        return Math.max(0, Math.min(255, v));
     }
 }

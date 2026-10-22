@@ -1,18 +1,15 @@
 package com.gtceuterminal.client.gui.multiblock;
 
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ComponentEntry;
 import com.gtceuterminal.common.config.ComponentRegistry;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 import com.gtceuterminal.common.upgrade.UniversalUpgradeCatalog;
-
-import com.gregtechceu.gtceu.api.GTValues;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -24,9 +21,6 @@ import java.util.List;
 public final class UpgradeCandidates {
 
     private UpgradeCandidates() {
-    }
-
-    public record UpgradeOption(String blockId, String displayName, int tier) {
     }
 
     public static List<UpgradeOption> universalCandidates(
@@ -56,13 +50,13 @@ public final class UpgradeCandidates {
         String currentId = blockId(rep);
         List<UpgradeOption> list = new ArrayList<>();
         for (ComponentEntry e : ComponentRegistry.getMaintenanceHatches()) {
-            if (e == null || e.blockId == null) continue;
-            if (currentId != null && currentId.equalsIgnoreCase(e.blockId)) continue;
-            String name = trimSuffixes(resolveBlockName(e.blockId, 48));
-            if (name.isBlank()) name = e.displayName != null ? e.displayName : e.blockId;
-            list.add(new UpgradeOption(e.blockId, name, e.tier));
+            if (e == null || e.blockId() == null) continue;
+            if (currentId != null && currentId.equalsIgnoreCase(e.blockId())) continue;
+            String name = trimSuffixes(resolveBlockName(e.blockId(), 48));
+            if (name.isBlank()) name = e.displayName() != null ? e.displayName() : e.blockId();
+            list.add(new UpgradeOption(e.blockId(), name, e.tier()));
         }
-        list.sort(Comparator.<UpgradeOption>comparingInt(UpgradeOption::tier)
+        list.sort(Comparator.comparingInt(UpgradeOption::tier)
                 .thenComparing(UpgradeOption::displayName, String.CASE_INSENSITIVE_ORDER));
         return list;
     }
@@ -71,17 +65,17 @@ public final class UpgradeCandidates {
         String currentId = blockId(rep);
         List<UpgradeOption> list = new ArrayList<>();
         for (var entry : ComponentRegistry.getCoils()) {
-            if (entry == null || entry.blockId == null) continue;
-            if (currentId != null && currentId.equalsIgnoreCase(entry.blockId)) continue;
+            if (entry == null || entry.blockId() == null) continue;
+            if (currentId != null && currentId.equalsIgnoreCase(entry.blockId())) continue;
 
-            String name = entry.displayName;
+            String name = entry.displayName();
             if (name != null && name.startsWith("block.")) {
                 name = trimSuffixes(Component.translatable(name).getString());
             }
-            if (name == null || name.isBlank()) name = entry.blockId;
-            list.add(new UpgradeOption(entry.blockId, name, entry.tier));
+            if (name == null || name.isBlank()) name = entry.blockId();
+            list.add(new UpgradeOption(entry.blockId(), name, entry.tier()));
         }
-        list.sort(Comparator.<UpgradeOption>comparingInt(UpgradeOption::tier)
+        list.sort(Comparator.comparingInt(UpgradeOption::tier)
                 .thenComparing(UpgradeOption::displayName, String.CASE_INSENSITIVE_ORDER));
         return list;
     }
@@ -122,5 +116,8 @@ public final class UpgradeCandidates {
         if (s == null) return "";
         return s.replace(" Coil Block", "").replace(" Heating Coil", "")
                 .replace(" Maintenance Hatch", " Maintenance").trim();
+    }
+
+    public record UpgradeOption(String blockId, String displayName, int tier) {
     }
 }

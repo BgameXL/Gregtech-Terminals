@@ -1,28 +1,25 @@
 package com.gtceuterminal.client.gui.autocraft;
 
+import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.TerminalText;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.network.CPacketConfirmAutobuild;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -38,15 +35,13 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private final AnalysisResult result;
     private final ItemTheme theme;
     private final TerminalTheme tokens;
-    private Runnable onClose;
-
-    private int w = DESIGN_W;
-    private int h = DESIGN_H;
-
-    private DraggableScrollableWidgetGroup ingredientScroll;
-    private int ingredientRowW;
     private final java.util.Set<Integer> expanded = new java.util.HashSet<>();
     private final java.util.Map<Integer, com.gtceuterminal.common.compat.RecipeReader.RecipeView> recipeCache = new java.util.HashMap<>();
+    private Runnable onClose;
+    private int w = DESIGN_W;
+    private int h = DESIGN_H;
+    private DraggableScrollableWidgetGroup ingredientScroll;
+    private int ingredientRowW;
 
     public AutocraftConfirmDialog(WidgetGroup parent, AnalysisResult result, Player player) {
         super(parent, true);
@@ -56,6 +51,15 @@ public class AutocraftConfirmDialog extends DialogWidget {
         this.tokens = TerminalUI.tokens();
 
         initDialog();
+    }
+
+    private static String fitText(String text, int maxWidth) {
+        if (text == null || maxWidth <= 0) return "";
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
     public void setOnClose(Runnable onClose) {
@@ -97,7 +101,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         WidgetGroup header = new WidgetGroup(2, 2, w - 4, HEADER_H);
         header.setBackground(new BevelTexture(tokens.panel()));
 
-        String title = result.kind == AnalysisResult.Kind.UPGRADE
+        String title = result.kind() == AnalysisResult.Kind.UPGRADE
                 ? Component.translatable("gui.gtceuterminal.autocraft.title.upgrade").getString()
                 : Component.translatable("gui.gtceuterminal.autocraft.title.build").getString();
 
@@ -149,7 +153,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         WidgetGroup group = new WidgetGroup(0, 0, panelW, hatchH);
         group.setBackground(new ColorRectTexture(tokens.panel()));
 
-        ItemStack target = result.targetItemStack;
+        ItemStack target = result.targetItemStack();
         if (!target.isEmpty()) {
             ItemStackTransfer transfer = new ItemStackTransfer(target.copy());
             SlotWidget slot = new SlotWidget(transfer, 0, 8, 10, false, false);
@@ -164,9 +168,9 @@ public class AutocraftConfirmDialog extends DialogWidget {
         nameLbl.setColor(tokens.textStrong());
         group.addWidget(nameLbl);
 
-        if (result.componentCount > 1) {
+        if (result.componentCount() > 1) {
             String countStr = Component.translatable("gui.gtceuterminal.autocraft.replace_count",
-                    result.componentCount).getString();
+                    result.componentCount()).getString();
             LabelWidget countLbl = new LabelWidget(34, 24, fitText(countStr, panelW - 42));
             countLbl.setColor(tokens.textMuted());
             group.addWidget(countLbl);
@@ -200,13 +204,13 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private void populateIngredients() {
         ingredientScroll.clearAllWidgets();
         int y = 0;
-        for (int i = 0; i < result.entries.size(); i++) {
-            AnalysisResult.Entry entry = result.entries.get(i);
+        for (int i = 0; i < result.entries().size(); i++) {
+            AnalysisResult.Entry entry = result.entries().get(i);
             ingredientScroll.addWidget(buildIngredientRow(i, entry, ingredientRowW, y));
             y += 22;
 
             if (expanded.contains(i)) {
-                com.gtceuterminal.common.compat.RecipeReader.RecipeView recipe = recipeFor(i, entry.stack);
+                com.gtceuterminal.common.compat.RecipeReader.RecipeView recipe = recipeFor(i, entry.stack());
                 if (recipe.isEmpty()) {
                     LabelWidget none = new LabelWidget(28, y + 3,
                             Component.translatable("gui.gtceuterminal.autocraft.no_recipe").getString());
@@ -214,11 +218,11 @@ public class AutocraftConfirmDialog extends DialogWidget {
                     ingredientScroll.addWidget(none);
                     y += 16;
                 } else {
-                    for (ItemStack ing : recipe.items) {
+                    for (ItemStack ing : recipe.items()) {
                         ingredientScroll.addWidget(buildRecipeSubRow(ing, ingredientRowW, y));
                         y += 18;
                     }
-                    for (var fluid : recipe.fluids) {
+                    for (var fluid : recipe.fluids()) {
                         ingredientScroll.addWidget(buildFluidSubRow(fluid, ingredientRowW, y));
                         y += 18;
                     }
@@ -240,12 +244,12 @@ public class AutocraftConfirmDialog extends DialogWidget {
         toggle.setHoverTooltips(Component.translatable("gui.gtceuterminal.autocraft.show_recipe").getString());
         row.addWidget(toggle);
 
-        ItemStackTransfer transfer = new ItemStackTransfer(entry.stack.copy());
+        ItemStackTransfer transfer = new ItemStackTransfer(entry.stack().copy());
         SlotWidget slot = new SlotWidget(transfer, 0, 16, 1, false, false);
         slot.setBackgroundTexture(new ColorBorderTexture(1, tokens.borderSubtle()));
         row.addWidget(slot);
 
-        String name = entry.stack.getHoverName().getString();
+        String name = entry.stack().getHoverName().getString();
         int quantityWidth = 40;
         LabelWidget nameLbl = new LabelWidget(38, 5,
                 fitText(name, Math.max(0, rowW - 38 - quantityWidth - 4)));
@@ -315,7 +319,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         scroll.setYScrollBarWidth(0);
 
         int y = 1;
-        for (AnalysisResult.Entry entry : result.entries) {
+        for (AnalysisResult.Entry entry : result.entries()) {
             scroll.addWidget(buildAvailRow(entry, panelW, y));
             y += 22;
         }
@@ -341,7 +345,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
             bgColor = tokens.successSurface();
             borderColor = tokens.success();
             label = have + " / " + entry.needed();
-        } else if (entry.craftable) {
+        } else if (entry.craftable()) {
             bgColor = tokens.warningSurface();
             borderColor = tokens.warning();
             label = have + " / " + entry.needed();
@@ -359,7 +363,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         qty.setColor(borderColor);
         row.addWidget(qty);
 
-        String tag = entry.hasAll() ? "have" : (entry.craftable ? "craft" : "missing");
+        String tag = entry.hasAll() ? "have" : (entry.craftable() ? "craft" : "missing");
         LabelWidget tagLbl = new LabelWidget(rowW - 60, 5, tag);
         tagLbl.setColor(borderColor);
         row.addWidget(tagLbl);
@@ -406,15 +410,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private void onRequest() {
         TerminalNetwork.sendToServer(new CPacketConfirmAutobuild(result));
         close();
-    }
-
-    private static String fitText(String text, int maxWidth) {
-        if (text == null || maxWidth <= 0) return "";
-        var font = Minecraft.getInstance().font;
-        if (font.width(text) <= maxWidth) return text;
-        String ellipsis = "…";
-        return font.substrByWidth(Component.literal(text),
-                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
 }

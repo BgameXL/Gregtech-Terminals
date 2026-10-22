@@ -1,21 +1,22 @@
 package com.gtceuterminal.common.data;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SchematicData {
-
-    private final String name;
-    private final String multiblockType;
-    private final Map<BlockPos, BlockState> blocks;
-    private final Map<BlockPos, CompoundTag> blockEntities;
-    private final BlockPos size;
-    private final String originalFacing;
+public record SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks,
+                            Map<BlockPos, CompoundTag> blockEntities, BlockPos size, String originalFacing) {
 
     public SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks) {
         this(name, multiblockType, blocks, Collections.emptyMap(), "south");
@@ -27,15 +28,43 @@ public class SchematicData {
 
     public SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks,
                          Map<BlockPos, CompoundTag> blockEntities, String originalFacing) {
-        this.name = name;
-        this.multiblockType = multiblockType;
-        this.blocks = new HashMap<>(blocks);
-        this.blockEntities = new HashMap<>(blockEntities);
-        this.originalFacing = originalFacing;
-        this.size = calculateSize();
+        this(name, multiblockType, new HashMap<>(blocks), new HashMap<>(blockEntities), calculateSize(blocks), originalFacing);
     }
 
-    private BlockPos calculateSize() {
+    public static SchematicData fromNBT(CompoundTag tag, HolderLookup.Provider provider) {
+        String name = tag.getString("Name");
+        String type = tag.getString("Type");
+        String originalFacing = tag.contains("OriginalFacing") ? tag.getString("OriginalFacing") : "south";
+
+        Map<BlockPos, BlockState> blocks = new HashMap<>();
+        ListTag blocksList = tag.getList("Blocks", 10);
+
+        var blockLookup = provider.lookupOrThrow(Registries.BLOCK);
+
+        for (int i = 0; i < blocksList.size(); i++) {
+            CompoundTag blockTag = blocksList.getCompound(i);
+            BlockPos pos = NbtUtils.readBlockPos(blockTag.getCompound("Pos"));
+            BlockState state = NbtUtils.readBlockState(blockLookup, blockTag.getCompound("State"));
+            blocks.put(pos, state);
+        }
+
+        Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
+        if (tag.contains("BlockEntities")) {
+            ListTag beList = tag.getList("BlockEntities", 10);
+            for (int i = 0; i < beList.size(); i++) {
+                CompoundTag beTag = beList.getCompound(i);
+                BlockPos pos = NbtUtils.readBlockPos(beTag.getCompound("Pos"));
+                CompoundTag nbt = beTag.getCompound("NBT");
+                if (!nbt.isEmpty()) {
+                    blockEntities.put(pos, nbt.copy());
+                }
+            }
+        }
+
+        return new SchematicData(name, type, blocks, blockEntities, originalFacing);
+    }
+
+    private static BlockPos calculateSize(Map<BlockPos, BlockState> blocks) {
         if (blocks.isEmpty()) return BlockPos.ZERO;
 
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
@@ -53,28 +82,14 @@ public class SchematicData {
         return new BlockPos(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getMultiblockType() {
-        return multiblockType;
-    }
-
-    public Map<BlockPos, BlockState> getBlocks() {
+    @Override
+    public Map<BlockPos, BlockState> blocks() {
         return Collections.unmodifiableMap(blocks);
     }
 
-    public Map<BlockPos, CompoundTag> getBlockEntities() {
+    @Override
+    public Map<BlockPos, CompoundTag> blockEntities() {
         return Collections.unmodifiableMap(blockEntities);
-    }
-
-    public BlockPos getSize() {
-        return size;
-    }
-
-    public String getOriginalFacing() {
-        return originalFacing;
     }
 
     public int getBlockCount() {
@@ -87,7 +102,7 @@ public class SchematicData {
         tag.putString("Type", multiblockType);
         tag.putString("OriginalFacing", originalFacing);
 
-        com.gtceuterminal.GTCEUTerminalMod.LOGGER.info("Saving schematic '{}' - originalFacing: {}", name, originalFacing);
+        GTCEUTerminalMod.LOGGER.info("Saving schematic '{}' - originalFacing: {}", name, originalFacing);
 
         // Able to copy and paste blocks from different mods, include liquids like water and lava.
         ListTag blocksList = new ListTag();
@@ -115,40 +130,7 @@ public class SchematicData {
         return tag;
     }
 
-    public static SchematicData fromNBT(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
-        String name = tag.getString("Name");
-        String type = tag.getString("Type");
-        String originalFacing = tag.contains("OriginalFacing") ? tag.getString("OriginalFacing") : "south";
-
-        Map<BlockPos, BlockState> blocks = new HashMap<>();
-        ListTag blocksList = tag.getList("Blocks", 10);
-
-        var blockLookup = provider.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK);
-
-        for (int i = 0; i < blocksList.size(); i++) {
-            CompoundTag blockTag = blocksList.getCompound(i);
-            BlockPos pos = NbtUtils.readBlockPos(blockTag.getCompound("Pos"));
-            BlockState state = NbtUtils.readBlockState(blockLookup, blockTag.getCompound("State"));
-            blocks.put(pos, state);
-        }
-
-        Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
-        if (tag.contains("BlockEntities")) {
-            ListTag beList = tag.getList("BlockEntities", 10);
-            for (int i = 0; i < beList.size(); i++) {
-                CompoundTag beTag = beList.getCompound(i);
-                BlockPos pos = NbtUtils.readBlockPos(beTag.getCompound("Pos"));
-                CompoundTag nbt = beTag.getCompound("NBT");
-                if (!nbt.isEmpty()) {
-                    blockEntities.put(pos, nbt.copy());
-                }
-            }
-        }
-
-        return new SchematicData(name, type, blocks, blockEntities, originalFacing);
-    }
-
-    public SchematicData rotate(net.minecraft.core.Direction.Axis axis) {
+    public SchematicData rotate(Direction.Axis axis) {
         Map<BlockPos, BlockState> rotatedBlocks = new HashMap<>();
         Map<BlockPos, CompoundTag> rotatedBEs = new HashMap<>();
 
@@ -170,7 +152,7 @@ public class SchematicData {
         return new SchematicData(name, multiblockType, rotatedBlocks, rotatedBEs, originalFacing);
     }
 
-    private BlockPos rotatePosition(BlockPos pos, net.minecraft.core.Direction.Axis axis) {
+    private BlockPos rotatePosition(BlockPos pos, Direction.Axis axis) {
         return switch (axis) {
             case X -> new BlockPos(pos.getX(), -pos.getZ(), pos.getY());
             case Y -> new BlockPos(-pos.getZ(), pos.getY(), pos.getX());
@@ -178,25 +160,25 @@ public class SchematicData {
         };
     }
 
-    private BlockState rotateBlockState(BlockState state, net.minecraft.core.Direction.Axis axis) {
+    private BlockState rotateBlockState(BlockState state, Direction.Axis axis) {
         try {
-            if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING)) {
-                var facing = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING);
+            if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+                var facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
                 var rotated = switch (axis) {
                     case Y -> facing.getClockWise();
                     case X, Z -> facing;
                 };
-                return state.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, rotated);
+                return state.setValue(BlockStateProperties.HORIZONTAL_FACING, rotated);
             }
 
-            if (state.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING)) {
-                var facing = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING);
+            if (state.hasProperty(BlockStateProperties.FACING)) {
+                var facing = state.getValue(BlockStateProperties.FACING);
                 var rotated = switch (axis) {
                     case Y -> facing.getClockWise();
                     case X -> rotateFacingX(facing);
                     case Z -> rotateFacingZ(facing);
                 };
-                return state.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, rotated);
+                return state.setValue(BlockStateProperties.FACING, rotated);
             }
         } catch (Exception e) {
         }
@@ -204,22 +186,22 @@ public class SchematicData {
         return state;
     }
 
-    private net.minecraft.core.Direction rotateFacingX(net.minecraft.core.Direction facing) {
+    private Direction rotateFacingX(Direction facing) {
         return switch (facing) {
-            case UP -> net.minecraft.core.Direction.NORTH;
-            case NORTH -> net.minecraft.core.Direction.DOWN;
-            case DOWN -> net.minecraft.core.Direction.SOUTH;
-            case SOUTH -> net.minecraft.core.Direction.UP;
+            case UP -> Direction.NORTH;
+            case NORTH -> Direction.DOWN;
+            case DOWN -> Direction.SOUTH;
+            case SOUTH -> Direction.UP;
             default -> facing;
         };
     }
 
-    private net.minecraft.core.Direction rotateFacingZ(net.minecraft.core.Direction facing) {
+    private Direction rotateFacingZ(Direction facing) {
         return switch (facing) {
-            case UP -> net.minecraft.core.Direction.EAST;
-            case EAST -> net.minecraft.core.Direction.DOWN;
-            case DOWN -> net.minecraft.core.Direction.WEST;
-            case WEST -> net.minecraft.core.Direction.UP;
+            case UP -> Direction.EAST;
+            case EAST -> Direction.DOWN;
+            case DOWN -> Direction.WEST;
+            case WEST -> Direction.UP;
             default -> facing;
         };
     }

@@ -1,20 +1,20 @@
 package com.gtceuterminal.client.gui.schematic;
 
-import com.gtceuterminal.client.gui.widget.TerminalParade;
-import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
-import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.network.CPacketSchematicAction;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -22,22 +22,18 @@ import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SchematicInterfaceUI {
@@ -64,12 +60,6 @@ public class SchematicInterfaceUI {
     private List<SchematicData> schematics = new ArrayList<>();
     private int selectedIndex = -1;
     private View activeView = View.SCHEMATIC;
-
-    private enum View {
-        SCHEMATIC,
-        BLUEPRINT
-    }
-
     private ModularUI gui;
     private WidgetGroup mainGroup;
     private WidgetGroup bodyGroup;
@@ -80,7 +70,6 @@ public class SchematicInterfaceUI {
     private ButtonWidget saveEnabledBtn;
     private ButtonWidget saveDisabledBtn;
     private LabelWidget clipboardIndicator;
-
     public SchematicInterfaceUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
         this.uiHolder = heldHolder;
         this.terminalItem = heldHolder.held;
@@ -101,6 +90,14 @@ public class SchematicInterfaceUI {
         loadSchematics();
     }
 
+    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {
+        return new SchematicInterfaceUI(heldHolder).createUI();
+    }
+
+    public static ModularUI create(SchematicItemUIFactory.Holder holder, Player player) {
+        return new SchematicInterfaceUI(holder, player).createUI();
+    }
+
     private void loadSchematics() {
         schematics = new ArrayList<>();
         CompoundTag tag = terminalItem.getTag();
@@ -108,7 +105,7 @@ public class SchematicInterfaceUI {
             ListTag list = tag.getList("SavedSchematics", 10);
             for (int i = 0; i < list.size(); i++) {
                 SchematicData data = SchematicData.fromNBT(list.getCompound(i), player.level().registryAccess());
-                if (!"Clipboard".equals(data.getName())) schematics.add(data);
+                if (!"Clipboard".equals(data.name())) schematics.add(data);
             }
         }
 
@@ -116,7 +113,7 @@ public class SchematicInterfaceUI {
         if (tag != null && tag.contains("Clipboard")) {
             try {
                 SchematicData clip = SchematicData.fromNBT(tag.getCompound("Clipboard"), player.level().registryAccess());
-                if (!clip.getBlocks().isEmpty()) this.clipboard = clip;
+                if (!clip.blocks().isEmpty()) this.clipboard = clip;
             } catch (Exception e) {
                 GTCEUTerminalMod.LOGGER.debug("Failed to read clipboard schematic: {}", e.getMessage());
             }
@@ -142,8 +139,6 @@ public class SchematicInterfaceUI {
 
         mainGroup.addWidget(buildHeader());
         mainGroup.addWidget(activeView == View.SCHEMATIC ? buildBody() : buildBlueprintBody());
-
-        TerminalParade.setup(theme, GUI_W, GUI_H);
     }
 
     private void switchView(View view) {
@@ -312,7 +307,7 @@ public class SchematicInterfaceUI {
 
     private boolean isDuplicateName(String name) {
         for (SchematicData s : schematics) {
-            if (s.getName().equalsIgnoreCase(name)) return true;
+            if (s.name().equalsIgnoreCase(name)) return true;
         }
         return false;
     }
@@ -345,7 +340,7 @@ public class SchematicInterfaceUI {
     }
 
     private String clipboardLabel() {
-        if (clipboard == null || clipboard.getBlocks().isEmpty()) {
+        if (clipboard == null || clipboard.blocks().isEmpty()) {
             return Component.translatable("gui.gtceuterminal.schematic_interface.clipboard.empty").getString();
         }
         String blocksWord = Component.translatable("gui.gtceuterminal.schematic_interface.clipboard.blocks").getString();
@@ -354,7 +349,7 @@ public class SchematicInterfaceUI {
     }
 
     private String clipboardTypeName() {
-        String type = clipboard.getMultiblockType();
+        String type = clipboard.multiblockType();
         if (type == null || type.isEmpty()) return null;
         try {
             var block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(new net.minecraft.resources.ResourceLocation(type));
@@ -394,13 +389,13 @@ public class SchematicInterfaceUI {
         }
         SchematicData s = schematics.get(selectedIndex);
         TerminalNetwork.CHANNEL.sendToServer(
-                new CPacketSchematicAction(CPacketSchematicAction.ActionType.LOAD, s.getName(), selectedIndex));
+                new CPacketSchematicAction(CPacketSchematicAction.ActionType.LOAD, s.name(), selectedIndex));
         this.clipboard = s;
         refreshClipboardIndicator();
         updateSaveState();
         player.displayClientMessage(
                 Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.loaded_to_clipboard",
-                        s.getName()), true);
+                        s.name()), true);
     }
 
     private void saveSchematic() {
@@ -417,7 +412,7 @@ public class SchematicInterfaceUI {
             msg("gui.gtceuterminal.schematic_interface.chat.error.reserved_name");
             return;
         }
-        if (schematics.stream().anyMatch(s -> s.getName().equalsIgnoreCase(name))) {
+        if (schematics.stream().anyMatch(s -> s.name().equalsIgnoreCase(name))) {
             msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists");
             return;
         }
@@ -425,8 +420,8 @@ public class SchematicInterfaceUI {
         TerminalNetwork.CHANNEL.sendToServer(new CPacketSchematicAction(CPacketSchematicAction.ActionType.SAVE, name, -1));
 
         if (clipboard != null) {
-            schematics.add(new SchematicData(name, clipboard.getMultiblockType(),
-                    clipboard.getBlocks(), clipboard.getBlockEntities(), clipboard.getOriginalFacing()));
+            schematics.add(new SchematicData(name, clipboard.multiblockType(),
+                    clipboard.blocks(), clipboard.blockEntities(), clipboard.originalFacing()));
             selectedIndex = schematics.size() - 1;
         }
 
@@ -443,7 +438,7 @@ public class SchematicInterfaceUI {
             msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected");
             return;
         }
-        String name = schematics.get(selectedIndex).getName();
+        String name = schematics.get(selectedIndex).name();
         TerminalNetwork.CHANNEL.sendToServer(
                 new CPacketSchematicAction(CPacketSchematicAction.ActionType.DELETE, name, -1));
         schematics.remove(selectedIndex);
@@ -460,7 +455,7 @@ public class SchematicInterfaceUI {
             return;
         }
         int idx = selectedIndex;
-        String current = schematics.get(idx).getName();
+        String current = schematics.get(idx).name();
         SchematicRenameDialog.open(mainGroup, GUI_W, GUI_H, current, newName -> {
             String name = newName.trim();
             if (name.isEmpty() || "Clipboard".equalsIgnoreCase(name)) {
@@ -469,7 +464,7 @@ public class SchematicInterfaceUI {
             }
             if (name.equals(current)) return;
             for (int i = 0; i < schematics.size(); i++) {
-                if (i != idx && schematics.get(i).getName().equalsIgnoreCase(name)) {
+                if (i != idx && schematics.get(i).name().equalsIgnoreCase(name)) {
                     msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists");
                     return;
                 }
@@ -477,15 +472,15 @@ public class SchematicInterfaceUI {
             TerminalNetwork.CHANNEL.sendToServer(
                     new CPacketSchematicAction(CPacketSchematicAction.ActionType.RENAME, name, idx));
             SchematicData old = schematics.get(idx);
-            schematics.set(idx, new SchematicData(name, old.getMultiblockType(),
-                    old.getBlocks(), old.getBlockEntities(), old.getOriginalFacing()));
+            schematics.set(idx, new SchematicData(name, old.multiblockType(),
+                    old.blocks(), old.blockEntities(), old.originalFacing()));
             refreshLeft();
             updateSaveState();
         });
     }
 
     private boolean hasClipboard() {
-        return clipboard != null && !clipboard.getBlocks().isEmpty();
+        return clipboard != null && !clipboard.blocks().isEmpty();
     }
 
     private void msg(String key) {
@@ -499,11 +494,8 @@ public class SchematicInterfaceUI {
         return ui;
     }
 
-    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        return new SchematicInterfaceUI(heldHolder).createUI();
-    }
-
-    public static ModularUI create(SchematicItemUIFactory.Holder holder, Player player) {
-        return new SchematicInterfaceUI(holder, player).createUI();
+    private enum View {
+        SCHEMATIC,
+        BLUEPRINT
     }
 }

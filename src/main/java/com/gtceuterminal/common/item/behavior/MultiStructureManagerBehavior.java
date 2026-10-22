@@ -2,16 +2,13 @@ package com.gtceuterminal.common.item.behavior;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MEQueryResult;
 import com.gtceuterminal.common.config.ManagerSettings;
-import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
-
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.network.SPacketOpenMultiStructureManagerUI;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
+import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +26,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-
 import org.jetbrains.annotations.NotNull;
 
 public class MultiStructureManagerBehavior {
@@ -108,14 +104,14 @@ public class MultiStructureManagerBehavior {
                             com.gtceuterminal.common.autocraft.AnalysisResult analysis =
                                     com.gtceuterminal.common.autocraft.MultiblockAnalyzer.analyzeForBuild(
                                             player, controller, buildSettings);
-                            boolean hasIntruders = analysis != null && !analysis.intruderPositions.isEmpty();
+                            boolean hasIntruders = analysis != null && !analysis.intruderPositions().isEmpty();
 
                             boolean success = AdvancedAutoBuilder.autoBuild(player, controller, buildSettings);
 
                             if (hasIntruders) {
                                 TerminalNetwork.sendToPlayer(
                                         new com.gtceuterminal.common.network.SPacketHighlightPositions(
-                                                controller.self().getPos(), analysis.intruderPositions),
+                                                controller.self().getPos(), analysis.intruderPositions()),
                                         (ServerPlayer) player);
                                 sendMessage(player,
                                         Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.invalid_blocks_highlighted"),
@@ -179,7 +175,7 @@ public class MultiStructureManagerBehavior {
                                         player, controller, buildSettings);
 
                         if (analysis == null
-                                || (analysis.entries.isEmpty() && analysis.intruderPositions.isEmpty())) {
+                                || (analysis.entries().isEmpty() && analysis.intruderPositions().isEmpty())) {
                             sendMessage(player,
                                     Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.nothing_to_build"),
                                     true);

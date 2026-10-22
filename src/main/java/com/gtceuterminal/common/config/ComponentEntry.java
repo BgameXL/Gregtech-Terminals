@@ -4,13 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class ComponentEntry {
-
-    public final String blockId;
-    public final String displayName;
-    public final String tierName;
-    public final int tier;
-    public final Map<String, String> attrs;
+public record ComponentEntry(String blockId, String displayName, String tierName, int tier, Map<String, String> attrs) {
 
     public ComponentEntry(String blockId, String displayName, String tierName, int tier,
                           Map<String, String> attrs) {
@@ -23,6 +17,10 @@ public final class ComponentEntry {
 
     public ComponentEntry(String blockId, String displayName, String tierName, int tier) {
         this(blockId, displayName, tierName, tier, null);
+    }
+
+    public static Builder builder(String blockId, String displayName, String tierName, int tier) {
+        return new Builder(blockId, displayName, tierName, tier);
     }
 
     public String attr(String key) {
@@ -41,10 +39,6 @@ public final class ComponentEntry {
     @Override
     public String toString() {
         return "ComponentEntry{" + blockId + ", tier=" + tier + ", attrs=" + attrs + "}";
-    }
-
-    public static Builder builder(String blockId, String displayName, String tierName, int tier) {
-        return new Builder(blockId, displayName, tierName, tier);
     }
 
     public static final class Builder {

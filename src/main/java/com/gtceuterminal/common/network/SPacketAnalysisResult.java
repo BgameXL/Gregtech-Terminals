@@ -20,12 +20,12 @@ public class SPacketAnalysisResult {
         this.result = result;
     }
 
-    public void encode(FriendlyByteBuf buf) {
-        result.encode(buf);
-    }
-
     public SPacketAnalysisResult(FriendlyByteBuf buf) {
         this.result = AnalysisResult.decode(buf);
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        result.encode(buf);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {

@@ -1,21 +1,20 @@
 package com.gtceuterminal.client.gui.schematic;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-
+import com.gtceuterminal.client.gui.widget.TerminalScrollGroup;
+import com.gtceuterminal.client.gui.widget.ViewportClippedButton;
+import com.gtceuterminal.common.data.SchematicData;
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.ViewportClippedButton;
-import com.gtceuterminal.client.gui.widget.TerminalScrollGroup;
-
+import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -104,13 +103,13 @@ final class SchematicListPanel {
                 tokens.hover(), scroll, cd -> onSelect.accept(index));
         entry.addWidget(click);
 
-        String name = schematic.getName();
+        String name = schematic.name();
         LabelWidget nameLbl = new LabelWidget(8, 7, fitText(name, entryW - 16));
         nameLbl.setColor(tokens.textStrong());
         entry.addWidget(nameLbl);
 
-        var size = schematic.getSize();
-        String sub = schematic.getBlocks().size() + " blocks · "
+        var size = schematic.size();
+        String sub = schematic.blocks().size() + " blocks · "
                 + size.getX() + "×" + size.getY() + "×" + size.getZ();
         LabelWidget subLbl = new LabelWidget(8, 21, fitText(sub, entryW - 16));
         subLbl.setColor(tokens.textFaint());

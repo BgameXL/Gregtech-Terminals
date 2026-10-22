@@ -1,27 +1,19 @@
 package com.gtceuterminal.common.scanner;
 
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ComponentPattern;
 import com.gtceuterminal.common.config.ComponentPatternRegistry;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
-
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public final class MultiblockAnalysisHelper {
 
@@ -99,7 +91,7 @@ public final class MultiblockAnalysisHelper {
                 if (part == null || part.self() == null) continue;
                 UniversalMultiblockScanner.ComponentData data = analyzeComponent(part.self(), level);
                 if (data != null) {
-                    components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
+                    components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
                     scanned.add(part.self().getPos());
                 }
             }
@@ -139,7 +131,7 @@ public final class MultiblockAnalysisHelper {
 
                 UniversalMultiblockScanner.ComponentData data = analyzeComponent(machine, level);
                 if (data != null) {
-                    components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
+                    components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
                     scanned.add(pos.immutable());
                 }
             }
@@ -222,7 +214,7 @@ public final class MultiblockAnalysisHelper {
                 UniversalMultiblockScanner.ComponentData data =
                         BlockIdClassifier.identifyStructureBlock(level.getBlockState(pos), pos, level);
                 if (data != null) {
-                    components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
+                    components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
                 }
             }
         } catch (Exception e) {

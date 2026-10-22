@@ -24,22 +24,6 @@ public class CPacketSaveTheme {
         this.themeTag = buf.readNbt();
     }
 
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeNbt(themeTag);
-    }
-
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer player = ctx.get().getSender();
-            if (player == null || themeTag == null) return;
-            ItemStack stack = findTerminalItem(player);
-            if (stack == null || stack.isEmpty()) return;
-            ItemTheme.save(stack, ItemTheme.fromNBT(themeTag));
-            player.getInventory().setChanged();
-        });
-        ctx.get().setPacketHandled(true);
-    }
-
     private static ItemStack findTerminalItem(ServerPlayer player) {
         for (var hand : net.minecraft.world.InteractionHand.values()) {
             ItemStack s = player.getItemInHand(hand);
@@ -56,5 +40,21 @@ public class CPacketSaveTheme {
         if (stack.isEmpty()) return false;
         var rl = ForgeRegistries.ITEMS.getKey(stack.getItem());
         return rl != null && "gtceuterminal".equals(rl.getNamespace());
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeNbt(themeTag);
+    }
+
+    public void handle(Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer player = ctx.get().getSender();
+            if (player == null || themeTag == null) return;
+            ItemStack stack = findTerminalItem(player);
+            if (stack == null || stack.isEmpty()) return;
+            ItemTheme.save(stack, ItemTheme.fromNBT(themeTag));
+            player.getInventory().setChanged();
+        });
+        ctx.get().setPacketHandled(true);
     }
 }

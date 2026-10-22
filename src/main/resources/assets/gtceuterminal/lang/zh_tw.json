@@ -13,7 +13,6 @@
   "item.gtceuterminal.multi_structure_manager.tooltip.place_in_me_wireless_access_point": "§8  放入ME無線訪問點以進行連線",
   "item.gtceuterminal.multi_structure_manager.tooltip.right_click_settings": "§8右鍵：§b管理多方塊",
   "item.gtceuterminal.multi_structure_manager.tooltip.shift_right_click_manage": "§8Shift + 右鍵：§c自動建造多方塊",
-
   "item.gtceuterminal.schematic_interface": "結構藍圖介面",
   "item.gtceuterminal.schematic_interface.tooltip": "複製與貼上多方塊結構藍圖",
   "item.gtceuterminal.schematic_interface.tooltip.linked": "§a✓ 已連線到ME網路",
@@ -23,13 +22,11 @@
   "item.gtceuterminal.schematic_interface.tooltip.open_schematic_gui": "§b開啟結構藍圖介面",
   "item.gtceuterminal.schematic_interface.tooltip.right_click_prefix": "§8右鍵：",
   "item.gtceuterminal.schematic_interface.tooltip.paste_schematic": "§e貼上結構藍圖",
-
   "item.gtceuterminal.dismantler": "§5結構拆卸器",
   "item.gtceuterminal.dismantler.tooltip": "拆卸多方塊結構並返還元件",
   "item.gtceuterminal.dismantler.tooltip.tool": "§6多方塊拆卸工具",
   "item.gtceuterminal.dismantler.tooltip.open_dismantler_gui": "§7Shift + 右鍵點選多方塊：§d開啟拆卸器介面",
   "item.gtceuterminal.dismantler.message.not_formed_controller": "§c不是已成型的多方塊控制器！",
-
   "item.gtceuterminal.energy_analyzer": "能量分析儀",
   "item.gtceuterminal.energy_analyzer.tooltip.tool": "§6能量監測工具",
   "item.gtceuterminal.energy_analyzer.tooltip.no_machines_linked": "§7未連線機器",
@@ -45,7 +42,6 @@
   "item.gtceuterminal.energy_analyzer.message.linked": "§a已連線：§f%s §7(%d/%d)",
   "item.gtceuterminal.energy_analyzer.message.machine_not_linked_prompt": "§e該機器尚未連線。§7按 Shift+右鍵先進行連線。",
   "item.gtceuterminal.energy_analyzer.message.no_machines_linked_air": "§e未連線任何機器。§7按 Shift+右鍵一臺 GTCEu 機器以進行連線。",
-
   "item.gtceuterminal.component_upgrade.extraction_source.me_network": " §a(ME 網路)",
   "item.gtceuterminal.component_upgrade.extraction_source.inventory": " §7(物品欄)",
   "item.gtceuterminal.component_upgrade.unknown_coil": "未知線圈",
@@ -54,7 +50,6 @@
   "item.gtceuterminal.component_upgrade.message.upgraded": "§a已升級 %d 個元件",
   "item.gtceuterminal.component_upgrade.message.warning_void_or_dropped": "§6升級/降級元件時，物品可能會被銷燬或掉落",
   "item.gtceuterminal.component_upgrade.message.failed": "§c升級失敗 %d 個元件",
-
   "item.gtceuterminal.autocraft_confirm.message.autocraft_failed": "§c[GTCEu Terminals] 自動裝配失敗：%s",
   "item.gtceuterminal.autocraft_confirm.message.controller_not_found": "§c在目標位置未找到控制器。",
   "item.gtceuterminal.autocraft_confirm.message.target_not_multiblock_controller": "§c目標不是多方塊控制器。",
@@ -67,7 +62,6 @@
   "item.gtceuterminal.autocraft_confirm.message.upgrade_success_no_failed": "§a已升級 %d 個元件。",
   "item.gtceuterminal.autocraft_confirm.message.upgrade_failed_check_materials": "§c升級失敗，請檢查材料。",
   "item.gtceuterminal.autocraft_confirm.message.not_connected_to_me": "§c未連線到 ME 網路。請將管理器連線到範圍內的無線訪問點。",
-
   "item.gtceuterminal.schematic_action.message.no_clipboard_to_save": "§e沒有可用於儲存的剪貼簿！",
   "item.gtceuterminal.schematic_action.message.clipboard_empty": "§e剪貼簿為空！",
   "item.gtceuterminal.schematic_action.message.schematic_name_already_exists": "§c該結構名稱已存在！",
@@ -75,8 +69,6 @@
   "item.gtceuterminal.schematic_action.message.loaded_schematic": "§a已載入結構：%s",
   "item.gtceuterminal.schematic_action.message.deleted_schematic": "§e已刪除結構：%s",
   "item.gtceuterminal.schematic_action.message.renamed_schematic": "Renamed schematic to %s",
-
-
   "command.gtceuterminal.theme.must_be_player": "§c必須由玩家執行。",
   "command.gtceuterminal.theme.hold_terminal_item": "§c請在主手或副手持有 GTCEu 終端。",
   "command.gtceuterminal.theme.set_default.success": "§a已儲存預設主題！新玩家將使用：強調色 §r%s 背景色 §r%s 面板 §r%s",
@@ -84,10 +76,8 @@
   "command.gtceuterminal.theme.reload.success": "§adefault_theme.json 已從磁碟重新載入。",
   "command.gtceuterminal.theme.info.with_wallpaper": "§7預設主題：§f強調色 §r%s §f背景色 §r%s §f面板 §r%s §f桌布：§e%s",
   "command.gtceuterminal.theme.info.no_wallpaper": "§7預設主題：§f強調色 §r%s §f背景色 §r%s §f面板 §r%s",
-
   "item.gtceuterminal.tooltip.me_range.in_range": "  §b在範圍內",
   "item.gtceuterminal.tooltip.me_range.out_of_range": "  §c超出範圍",
-
   "item.gtceuterminal.multi_structure_manager.behavior.linked_to_me_network": "§a✓ 已連線到ME網路",
   "item.gtceuterminal.multi_structure_manager.behavior.cooldown_active": "§c冷卻中！",
   "item.gtceuterminal.multi_structure_manager.behavior.multiblock_built": "§a多方塊已建造！",
@@ -99,7 +89,6 @@
   "item.gtceuterminal.multi_structure_manager.behavior.multiblock_already_formed": "§a多方塊結構已成型！",
   "item.gtceuterminal.multi_structure_manager.behavior.nothing_to_build": "§e無需建造，該多方塊可能已完成。",
   "item.gtceuterminal.multi_structure_manager.behavior.analysis_failed": "§c分析失敗！",
-
   "item.gtceuterminal.schematic_copier.failed_to_scan_multiblock": "§c無法掃描多方塊！",
   "item.gtceuterminal.schematic_copier.multiblock_copied": "§a多方塊已複製！%d 個方塊",
   "item.gtceuterminal.schematic_paster.no_schematic_in_clipboard": "§c剪貼簿中沒有結構藍圖！",
@@ -107,10 +96,7 @@
   "item.gtceuterminal.schematic_paster.paste_success.no_skipped": "§a結構已貼上！§f%d 個方塊已放置",
   "item.gtceuterminal.schematic_paster.paste_success.with_skipped": "§a結構已貼上！§f%d 個方塊已放置 §7(%d 個已跳過)",
   "item.gtceuterminal.schematic_paster.missing_materials": "§c缺少材料：§f%s",
-
   "item.gtceuterminal.power_logger.desc": "監控機器電力消耗",
-
-
   "gui.gtceuterminal.autocraft.title": "自動裝配確認",
   "gui.gtceuterminal.autocraft.header.build": "§f§l自動裝配：建造多方塊",
   "gui.gtceuterminal.autocraft.header.upgrade": "§f§l自動裝配：升級元件",
@@ -131,10 +117,7 @@
   "gui.gtceuterminal.autocraft.missing_items": "缺少 %s",
   "gui.gtceuterminal.autocraft.show_recipe": "顯示配方",
   "gui.gtceuterminal.autocraft.no_recipe": "未找到配方",
-
-
   "gui.gtceuterminal.theme_settings": "主題設定",
-
   "gui.gtceuterminal.schematic_interface.title": "§f§l結構藍圖介面",
   "gui.gtceuterminal.schematic_interface.button.rename": "Rename",
   "gui.gtceuterminal.schematic_interface.rename_dialog.title": "Rename Schematic",
@@ -171,7 +154,6 @@
   "gui.gtceuterminal.schematic_interface.chat.success.loaded_to_clipboard": "§a§l✓ §a已載入到剪貼簿：§f%s",
   "gui.gtceuterminal.schematic_interface.chat.success.deleted": "§c§l✗ §c已刪除：§f%s",
   "gui.gtceuterminal.schematic_interface.fallback.multiblock_structure": "多方塊結構",
-
   "gui.gtceuterminal.multiblock_manager.nearby_title": "附近的多方塊（%s）",
   "gui.gtceuterminal.multiblock_manager.refresh_tooltip": "重新整理",
   "gui.gtceuterminal.multiblock_manager.highlight_tooltip": "在世界中高亮",
@@ -181,7 +163,6 @@
   "gui.gtceuterminal.multiblock_manager.refreshed_found": "§a已重新整理 - 找到 %s 個多方塊",
   "gui.gtceuterminal.multiblock_manager.footer_summary": "%2$s 米內找到 %1$s 個多方塊",
   "gui.gtceuterminal.multiblock_manager.none_found": "附近未找到多方塊。",
-
   "gui.gtceuterminal.dismantler.title": "§l§f多方塊拆解器",
   "gui.gtceuterminal.dismantler.coords_format": "§7[%s, %s, %s]",
   "gui.gtceuterminal.dismantler.preview_label": "§7預覽",
@@ -199,7 +180,6 @@
   "gui.gtceuterminal.dismantler.bar.total": "§8總計：§f%s 個方塊",
   "gui.gtceuterminal.dismantler.bar.inventory_space": "§8背包空間：%s%s 空閒 §8/ 需要 %s",
   "gui.gtceuterminal.dismantler.bar.skipped": "§8跳過 §6%s",
-
   "gui.gtceuterminal.energy_analyzer.title": "能量分析器",
   "gui.gtceuterminal.energy_analyzer.header.linked": "已連線的機器：%s",
   "gui.gtceuterminal.energy_analyzer.no_machines_linked": "未連線任何機器。",
@@ -249,7 +229,6 @@
   "gui.gtceuterminal.energy_analyzer.legend_in_short": "§a入",
   "gui.gtceuterminal.energy_analyzer.legend_out_short": "§c出",
   "gui.gtceuterminal.energy_analyzer.recipe_progress": "§8配方進度",
-
   "gui.gtceuterminal.manager_settings.title": "§l管理設定",
   "gui.gtceuterminal.manager_settings.common.yes": "§a是",
   "gui.gtceuterminal.manager_settings.common.no": "§c否",
@@ -268,7 +247,6 @@
   "gui.gtceuterminal.manager_settings.mirror_mode.hint_toggle": "§8← Click to toggle",
   "gui.gtceuterminal.manager_settings.mirror_mode.tooltip": "§7Build the structure mirrored left to right. Only if the multiblock supports it.",
   "gui.gtceuterminal.manager_settings.use_ae2.hint_use_materials": "§8← 使用 AE2 作為材料",
-
   "gui.gtceuterminal.component_detail.header.title_compact": "§l§f%s",
   "gui.gtceuterminal.component_detail.header.title_full": "§l§f%s - 元件",
   "gui.gtceuterminal.component_detail.info.multiblock": "§7多方塊：§f%s",
@@ -298,8 +276,6 @@
   "gui.gtceuterminal.component_detail_dialog.entry.count": "§7數量：§f%s",
   "gui.gtceuterminal.component_detail_dialog.entry.tier": "§7等級：§f%s",
   "gui.gtceuterminal.component_detail_dialog.info.summary": "等級：%s · %s · %s 個元件（%s 類）",
-
-
   "gui.gtceuterminal.coil_tier.cupronickel": "白銅",
   "gui.gtceuterminal.coil_tier.kanthal": "坎塔爾合金",
   "gui.gtceuterminal.coil_tier.nichrome": "鎳鉻合金",
@@ -309,7 +285,6 @@
   "gui.gtceuterminal.coil_tier.trinium": "凱金",
   "gui.gtceuterminal.coil_tier.tritanium": "三鈦",
   "gui.gtceuterminal.coil_tier.unknown": "未知線圈",
-
   "component.gtceuterminal.component_type.energy_hatch": "能源倉",
   "component.gtceuterminal.component_type.dynamo_hatch": "動力倉",
   "component.gtceuterminal.component_type.wireless_energy_input": "無線能源輸入倉",
@@ -353,7 +328,6 @@
   "component.gtceuterminal.component_type.dual_hatch": "雙聯倉",
   "component.gtceuterminal.component_type.filter": "過濾器",
   "component.gtceuterminal.component_type.unknown": "未知元件",
-
   "gui.gtceuterminal.component_upgrade_dialog.info.count_components": "§7數量：§f%s 個元件",
   "gui.gtceuterminal.component_upgrade_dialog.info.current_tier": "§7當前等級：§f%s",
   "gui.gtceuterminal.component_upgrade_dialog.tier_selection.label_upgrade_option": "§l§7選擇升級選項：",
@@ -367,7 +341,6 @@
   "gui.gtceuterminal.component_upgrade_dialog.option_all_any": "§f全部\n§7(任意)",
   "gui.gtceuterminal.component_upgrade_dialog.title": "§l§f升級 %s",
   "gui.gtceuterminal.component_upgrade_dialog.tier_selection.pick_tier_first": "請先選擇上方等級以檢視變體",
-
   "gui.gtceuterminal.inline_upgrade.select_option": "§8選擇選項",
   "gui.gtceuterminal.inline_upgrade.target_tier": "§8目標等級",
   "gui.gtceuterminal.inline_upgrade.variant": "§8變體",
@@ -387,7 +360,6 @@
   "gui.gtceuterminal.inline_upgrade.availability.badge_available": "Available",
   "gui.gtceuterminal.inline_upgrade.availability.badge_partial": "Partial",
   "gui.gtceuterminal.inline_upgrade.availability.badge_missing": "Missing",
-
   "gui.gtceuterminal.material_list.quantity.me": "§a%s§7/%s §a[ME]",
   "gui.gtceuterminal.material_list.quantity.inv": "§7%s/%s [揹包]",
   "gui.gtceuterminal.material_list.quantity.mix": "§e%s§7/%s §e[混合]",
@@ -411,11 +383,9 @@
   "gui.gtceuterminal.material_list.source.me_plus_others": "ME + 其他",
   "gui.gtceuterminal.material_list.source.inventory_plus_others": "揹包 + 其他",
   "gui.gtceuterminal.material_list.source.none": "無",
-
   "gui.gtceuterminal.multiblock_preview.title_3d": "§73D預覽",
   "gui.gtceuterminal.multiblock_preview.coming_soon": "§8（即將推出）",
   "gui.gtceuterminal.multiblock_preview.total_blocks": "§f §7方塊總數: %s",
-
   "gui.gtceuterminal.theme_editor.title": "§f主題設定",
   "gui.gtceuterminal.theme_editor.presets": "§7預設",
   "gui.gtceuterminal.theme_editor.style.gtceu_native": "GTCEu 原生",
@@ -456,13 +426,10 @@
   "gui.gtceuterminal.theme_editor.swatch.bg": "§8背景",
   "gui.gtceuterminal.theme_editor.swatch.panel": "§8面板",
   "gui.gtceuterminal.theme_editor.swatch.accent": "§8強調色",
-  "gui.gtceuterminal.theme_editor.animations": "§e動畫",
-  "gui.gtceuterminal.theme_editor.animations_desc": "§7輪播樣式：關閉 / 軌道 / 彈跳",
   "gui.gtceuterminal.theme_editor.slideshow_source": "§e幻燈片來源",
   "gui.gtceuterminal.theme_editor.slideshow_source_desc1": "§7內建資源包圖片或自訂桌布",
   "gui.gtceuterminal.theme_editor.slideshow_source_desc2": "§8（適用於資源包幻燈片）",
   "gui.gtceuterminal.theme_editor.wallpaper_header": "§8桌布",
-
   "gui.gtceuterminal.close": "關閉",
   "gui.gtceuterminal.rename_dialog.cancel": "Cancel",
   "gui.gtceuterminal.rename_dialog.confirm": "Confirm",

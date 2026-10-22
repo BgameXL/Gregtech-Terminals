@@ -15,12 +15,9 @@ import java.util.function.Supplier;
 
 public class CPacketEnergyAnalyzerAction {
 
-    public enum Action {UNLINK, RENAME}
-
     private final Action action;
     private final int machineIndex;
     private final String newName;
-
     public CPacketEnergyAnalyzerAction(Action action, int machineIndex, String newName) {
         this.action = action;
         this.machineIndex = machineIndex;
@@ -92,4 +89,6 @@ public class CPacketEnergyAnalyzerAction {
         }
         return null;
     }
+
+    public enum Action {UNLINK, RENAME}
 }

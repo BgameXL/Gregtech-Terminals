@@ -3,19 +3,14 @@ package com.gtceuterminal.client.gui.widget;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
-import org.joml.Matrix4f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.joml.Matrix4f;
 
 @OnlyIn(Dist.CLIENT)
 public class EnergyGraphWidget extends Widget {
@@ -28,6 +23,32 @@ public class EnergyGraphWidget extends Widget {
         super(x, y, width, height);
         this.inputHistory = inputHistory != null ? inputHistory : new long[0];
         this.outputHistory = outputHistory != null ? outputHistory : new long[0];
+    }
+
+    private static void putLine(BufferBuilder buf, Matrix4f matrix,
+                                float x1, float y1, float x2, float y2, int color) {
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+        float a = ((color >> 24) & 0xFF) / 255f;
+        buf.vertex(matrix, x1, y1, 0).color(r, g, b, a).endVertex();
+        buf.vertex(matrix, x2, y2, 0).color(r, g, b, a).endVertex();
+    }
+
+    private static void fillRect(Matrix4f matrix, int x, int y, int w, int h, int color) {
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+        float a = ((color >> 24) & 0xFF) / 255f;
+
+        Tesselator tess = Tesselator.getInstance();
+        BufferBuilder buf = tess.getBuilder();
+        buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        buf.vertex(matrix, x, y, 0).color(r, g, b, a).endVertex();
+        buf.vertex(matrix, x, y + h, 0).color(r, g, b, a).endVertex();
+        buf.vertex(matrix, x + w, y + h, 0).color(r, g, b, a).endVertex();
+        buf.vertex(matrix, x + w, y, 0).color(r, g, b, a).endVertex();
+        tess.end();
     }
 
     public void updateData(long[] inputHistory, long[] outputHistory) {
@@ -154,32 +175,6 @@ public class EnergyGraphWidget extends Widget {
         putLine(buf, matrix, 0, h - 1, w, h - 1, color);
         putLine(buf, matrix, 0, 0, 0, h, color);
         putLine(buf, matrix, w - 1, 0, w - 1, h, color);
-        tess.end();
-    }
-
-    private static void putLine(BufferBuilder buf, Matrix4f matrix,
-                                float x1, float y1, float x2, float y2, int color) {
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float g = ((color >> 8) & 0xFF) / 255f;
-        float b = (color & 0xFF) / 255f;
-        float a = ((color >> 24) & 0xFF) / 255f;
-        buf.vertex(matrix, x1, y1, 0).color(r, g, b, a).endVertex();
-        buf.vertex(matrix, x2, y2, 0).color(r, g, b, a).endVertex();
-    }
-
-    private static void fillRect(Matrix4f matrix, int x, int y, int w, int h, int color) {
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float g = ((color >> 8) & 0xFF) / 255f;
-        float b = (color & 0xFF) / 255f;
-        float a = ((color >> 24) & 0xFF) / 255f;
-
-        Tesselator tess = Tesselator.getInstance();
-        BufferBuilder buf = tess.getBuilder();
-        buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        buf.vertex(matrix, x, y, 0).color(r, g, b, a).endVertex();
-        buf.vertex(matrix, x, y + h, 0).color(r, g, b, a).endVertex();
-        buf.vertex(matrix, x + w, y + h, 0).color(r, g, b, a).endVertex();
-        buf.vertex(matrix, x + w, y, 0).color(r, g, b, a).endVertex();
         tess.end();
     }
 }

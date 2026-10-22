@@ -12,13 +12,13 @@ import net.minecraftforge.network.simple.SimpleChannel;
 public class TerminalNetwork {
 
     private static final String PROTOCOL = "12";
+
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,
             PROTOCOL::equals,
             PROTOCOL::equals
     );
-
     private static int id = 0;
 
     public static void registerPackets() {

@@ -1,14 +1,11 @@
 package com.gtceuterminal.common.item;
 
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.network.SPacketOpenEnergyAnalyzerUI;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.LinkedMachineData;
-
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
+import com.gtceuterminal.common.network.SPacketOpenEnergyAnalyzerUI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -24,14 +21,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +34,28 @@ public class EnergyAnalyzerItem extends Item {
 
     public EnergyAnalyzerItem() {
         super(new Item.Properties().stacksTo(1));
+    }
+
+    // NBT helpers
+    public static List<LinkedMachineData> loadMachines(ItemStack stack) {
+        List<LinkedMachineData> result = new ArrayList<>();
+        CompoundTag tag = stack.getTag();
+        if (tag == null || !tag.contains(TAG_MACHINES)) return result;
+        ListTag list = tag.getList(TAG_MACHINES, Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            try {
+                result.add(LinkedMachineData.fromNBT(list.getCompound(i)));
+            } catch (Exception e) {
+                GTCEUTerminalMod.LOGGER.warn("Failed to load linked machine #{}", i);
+            }
+        }
+        return result;
+    }
+
+    public static void saveMachines(ItemStack stack, List<LinkedMachineData> machines) {
+        ListTag list = new ListTag();
+        for (LinkedMachineData m : machines) list.add(m.toNBT());
+        stack.getOrCreateTag().put(TAG_MACHINES, list);
     }
 
     @Override
@@ -163,28 +177,6 @@ public class EnergyAnalyzerItem extends Item {
             SPacketOpenEnergyAnalyzerUI.openFor(sp, 0);
         }
         return InteractionResultHolder.success(stack);
-    }
-
-    // NBT helpers
-    public static List<LinkedMachineData> loadMachines(ItemStack stack) {
-        List<LinkedMachineData> result = new ArrayList<>();
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(TAG_MACHINES)) return result;
-        ListTag list = tag.getList(TAG_MACHINES, Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); i++) {
-            try {
-                result.add(LinkedMachineData.fromNBT(list.getCompound(i)));
-            } catch (Exception e) {
-                GTCEUTerminalMod.LOGGER.warn("Failed to load linked machine #{}", i);
-            }
-        }
-        return result;
-    }
-
-    public static void saveMachines(ItemStack stack, List<LinkedMachineData> machines) {
-        ListTag list = new ListTag();
-        for (LinkedMachineData m : machines) list.add(m.toNBT());
-        stack.getOrCreateTag().put(TAG_MACHINES, list);
     }
 
     @Override

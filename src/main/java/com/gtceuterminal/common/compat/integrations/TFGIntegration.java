@@ -1,12 +1,10 @@
 package com.gtceuterminal.common.compat.integrations;
 
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.api.TerminalAPI;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.util.MiscUtil;
-
-import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 

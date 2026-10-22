@@ -1,12 +1,13 @@
 package com.gtceuterminal.client.gui.multiblock;
 
-import com.gtceuterminal.client.gui.widget.TerminalParade;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.client.highlight.MultiblockHighlighter;
 import com.gtceuterminal.common.config.ClientConfig;
@@ -15,22 +16,17 @@ import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockScanner;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -52,14 +48,11 @@ public class MultiStructureManagerUI {
     private static final int CARD_INSET = 2;
     private static final int LEFT_W = 210;
     private static final int DIVIDER_W = 1;
-
-    private int GUI_W, GUI_H;
-
     private final IUIHolder uiHolder;
     private final Player player;
     private final ItemStack terminalItem;
     private final ItemTheme theme;
-
+    private int GUI_W, GUI_H;
     private List<MultiblockInfo> multiblocks = new ArrayList<>();
     private int selectedIndex = -1;
 
@@ -101,6 +94,14 @@ public class MultiStructureManagerUI {
         scanMultiblocks();
     }
 
+    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {
+        return new MultiStructureManagerUI(heldHolder).createUI();
+    }
+
+    public static ModularUI create(MultiStructureManagerUIFactory.Holder holder, Player player) {
+        return new MultiStructureManagerUI(holder, player).createUI();
+    }
+
     private void scanMultiblocks() {
         this.multiblocks = MultiblockScanner.scanNearbyMultiblocks(player, player.level(), ClientConfig.getMultiblockScanRadius());
         GTCEUTerminalMod.LOGGER.debug("MultiStructureManagerUI: scanned {} multiblocks", multiblocks.size());
@@ -140,8 +141,6 @@ public class MultiStructureManagerUI {
 
         rootGroup.addWidget(activeView == View.SETTINGS ? buildSettingsHeader() : buildHeaderCards());
         rootGroup.addWidget(activeView == View.SETTINGS ? buildSettingsBodyCard() : buildMultiblockBodyCard());
-
-        TerminalParade.setup(theme, GUI_W, GUI_H);
     }
 
     private WidgetGroup buildMultiblockBodyCard() {
@@ -177,8 +176,8 @@ public class MultiStructureManagerUI {
         this.detailPanel = selected == null
                 ? MultiblockDetailPanel.buildEmpty(rightX, CARD_INSET, rightW, innerH)
                 : MultiblockDetailPanel.build(
-                        rightX, CARD_INSET, rightW, innerH, selected, player, theme,
-                        this::openUpgradeDialog);
+                rightX, CARD_INSET, rightW, innerH, selected, player, theme,
+                this::openUpgradeDialog);
         card.addWidget(detailPanel);
 
         return card;
@@ -306,11 +305,6 @@ public class MultiStructureManagerUI {
         return headers;
     }
 
-    private enum View {
-        MULTIBLOCKS,
-        SETTINGS
-    }
-
     private MultiblockInfo getSelectedMultiblock() {
         return (selectedIndex >= 0 && selectedIndex < multiblocks.size())
                 ? multiblocks.get(selectedIndex) : null;
@@ -376,11 +370,8 @@ public class MultiStructureManagerUI {
                 this::onEntryClicked);
     }
 
-    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        return new MultiStructureManagerUI(heldHolder).createUI();
-    }
-
-    public static ModularUI create(MultiStructureManagerUIFactory.Holder holder, Player player) {
-        return new MultiStructureManagerUI(holder, player).createUI();
+    private enum View {
+        MULTIBLOCKS,
+        SETTINGS
     }
 }

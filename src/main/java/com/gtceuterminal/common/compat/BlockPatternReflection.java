@@ -1,9 +1,8 @@
 package com.gtceuterminal.common.compat;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gtceuterminal.GTCEUTerminalMod;
 
 import java.lang.reflect.Field;
 

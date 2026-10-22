@@ -55,7 +55,7 @@ public class ClientEvents {
                 cachedClipboard = SchematicData.fromNBT(clipboardTag, minecraft.level.registryAccess());
                 cachedClipboardHash = currentHash;
             }
-            if (cachedClipboard == null || cachedClipboard.getBlocks().isEmpty()) return;
+            if (cachedClipboard == null || cachedClipboard.blocks().isEmpty()) return;
 
             poseStack.pushPose();
             RenderSystem.enableBlend();
@@ -72,48 +72,4 @@ public class ClientEvents {
         }
     }
 
-    private static com.gtceuterminal.client.gui.widget.MultiblockParadeWidget activeParade = null;
-    private static com.gtceuterminal.client.gui.widget.BouncingParadeRenderer activeBouncingParade = null;
-
-    public static void setActiveParade(
-            com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade,
-            com.gtceuterminal.common.theme.ItemTheme.ParadeMode mode) {
-        activeParade = null;
-        activeBouncingParade = null;
-        if (parade == null || parade.isEmpty()) return;
-
-        if (mode == com.gtceuterminal.common.theme.ItemTheme.ParadeMode.NONE) {
-        } else if (mode == com.gtceuterminal.common.theme.ItemTheme.ParadeMode.BOUNCING) {
-            com.gtceuterminal.client.gui.widget.BouncingParadeRenderer bouncer =
-                    new com.gtceuterminal.client.gui.widget.BouncingParadeRenderer();
-            bouncer.setEntries(parade.getEntries());
-            activeBouncingParade = bouncer;
-        } else {
-            activeParade = parade;
-        }
-    }
-
-    public static void clearActiveParade() {
-        activeParade = null;
-        activeBouncingParade = null;
-    }
-
-    @SubscribeEvent
-    public static void onContainerRenderForeground(
-            net.minecraftforge.client.event.ContainerScreenEvent.Render.Foreground event) {
-        if (!(event.getContainerScreen() instanceof
-                com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer)) return;
-        if (activeParade != null && !activeParade.isEmpty())
-            activeParade.render(event.getGuiGraphics(), 0f);
-        if (activeBouncingParade != null && !activeBouncingParade.isEmpty())
-            activeBouncingParade.render(event.getGuiGraphics(), 0f);
-    }
-
-    @SubscribeEvent
-    public static void onScreenClose(net.minecraftforge.client.event.ScreenEvent.Closing event) {
-        if (event.getScreen() instanceof
-                com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer) {
-            clearActiveParade();
-        }
-    }
 }

@@ -41,7 +41,7 @@ public class WallpaperWidget extends Widget {
 
     private final Supplier<ItemTheme> themeSupplier;
 
-    private List<ResourceLocation> slideList = new ArrayList<>();
+    private final List<ResourceLocation> slideList = new ArrayList<>();
     private int slideIdx = 0;
     private long slideStart = 0;
 
@@ -53,6 +53,10 @@ public class WallpaperWidget extends Widget {
         super(x, y, width, height);
         this.themeSupplier = themeSupplier;
         setClientSideWidget();
+    }
+
+    private static boolean textureExists(ResourceLocation rl) {
+        return Minecraft.getInstance().getResourceManager().getResource(rl).isPresent();
     }
 
     @Override
@@ -171,10 +175,6 @@ public class WallpaperWidget extends Widget {
         com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
                 "WallpaperWidget: built slideshow list ({} images, source={})",
                 slideList.size(), theme.slideshowSource);
-    }
-
-    private static boolean textureExists(ResourceLocation rl) {
-        return Minecraft.getInstance().getResourceManager().getResource(rl).isPresent();
     }
 
     private void drawImage(GuiGraphics graphics, ResourceLocation rl,

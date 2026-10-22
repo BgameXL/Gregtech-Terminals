@@ -1,36 +1,31 @@
 package com.gtceuterminal.client.gui.dismantler;
 
-import com.gtceuterminal.client.gui.widget.TerminalParade;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
+import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
 import com.gtceuterminal.common.network.CPacketDismantle;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class DismantlerUI {
@@ -113,6 +108,14 @@ public class DismantlerUI {
         return DismantleScanner.ScanResult.empty();
     }
 
+    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder, BlockPos controllerPos) {
+        return new DismantlerUI(heldHolder, controllerPos).createUI();
+    }
+
+    public static ModularUI create(DismantlerItemUIFactory.Holder holder, Player player) {
+        return new DismantlerUI(holder, player).createUI();
+    }
+
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
         mainGroup.setBackground(new ColorRectTexture(Palette.CLEAR));
@@ -150,8 +153,6 @@ public class DismantlerUI {
                 CARD_INSET, FOOTER_Y, INNER_W, FOOTER_H,
                 this::performDismantle, this::closeUI));
         mainGroup.addWidget(body);
-
-        TerminalParade.setup(theme, GUI_W, GUI_H);
         return buildModularUI(mainGroup);
     }
 
@@ -172,13 +173,5 @@ public class DismantlerUI {
 
     private void closeUI() {
         if (player.containerMenu != null) player.closeContainer();
-    }
-
-    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder, BlockPos controllerPos) {
-        return new DismantlerUI(heldHolder, controllerPos).createUI();
-    }
-
-    public static ModularUI create(DismantlerItemUIFactory.Holder holder, Player player) {
-        return new DismantlerUI(holder, player).createUI();
     }
 }

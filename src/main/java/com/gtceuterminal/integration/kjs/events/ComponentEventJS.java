@@ -10,6 +10,12 @@ import java.util.Map;
 
 public class ComponentEventJS extends EventJS {
 
+    private static String tierName(int tier) {
+        if (tier >= 0 && tier < com.gregtechceu.gtceu.api.GTValues.VN.length)
+            return com.gregtechceu.gtceu.api.GTValues.VN[tier];
+        return "T" + tier;
+    }
+
     public void addCoil(String blockId, String displayName, int tier, int temperature) {
         TerminalAPI.registerCoil(blockId, displayName, tier, temperature);
     }
@@ -67,11 +73,5 @@ public class ComponentEventJS extends EventJS {
             }
         }
         TerminalAPI.registerGroup(builder.build());
-    }
-
-    private static String tierName(int tier) {
-        if (tier >= 0 && tier < com.gregtechceu.gtceu.api.GTValues.VN.length)
-            return com.gregtechceu.gtceu.api.GTValues.VN[tier];
-        return "T" + tier;
     }
 }

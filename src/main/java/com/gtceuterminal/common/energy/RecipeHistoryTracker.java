@@ -4,23 +4,15 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.compat.RecipeLogicReflection;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.crafting.Ingredient;
-
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.lang.reflect.Field;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // Tracks recipe history for machines with RecipeLogic, detecting starts, completions, and interruptions.
 @Mod.EventBusSubscriber(modid = com.gtceuterminal.GTCEUTerminalMod.MOD_ID)
@@ -37,16 +29,6 @@ public class RecipeHistoryTracker {
         historyMap.clear();
         stateMap.clear();
         GTCEUTerminalMod.LOGGER.debug("RecipeHistoryTracker: cleared all state on level unload");
-    }
-
-    // Internal state per machine
-    private static class TrackState {
-        String lastRecipeId = "";
-        int lastProgress = 0;
-        long recipeStartTime = 0;
-        String currentOutput = "";
-        int currentDuration = 0;
-        boolean wasWorking = false;
     }
 
     // Public API
@@ -157,5 +139,15 @@ public class RecipeHistoryTracker {
             return EnergyDataCollector.toReadableName(slash >= 0 ? path.substring(slash + 1) : path);
         }
         return "Unknown";
+    }
+
+    // Internal state per machine
+    private static class TrackState {
+        String lastRecipeId = "";
+        int lastProgress = 0;
+        long recipeStartTime = 0;
+        String currentOutput = "";
+        int currentDuration = 0;
+        boolean wasWorking = false;
     }
 }

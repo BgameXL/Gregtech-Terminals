@@ -19,6 +19,11 @@ public class GTCEuCompat {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(GTCEuCompat.class);
     private static final boolean IS_LEGACY;
+    private static final Method METHOD_CLEAN;
+    private static final Method METHOD_UPDATE;
+    private static final Method METHOD_GET_ACTUAL_DIRECTION;
+    private static final Field FIELD_GLOBAL_COUNT;
+    private static final Field FIELD_LAYER_COUNT;
 
     static {
         boolean legacy = false;
@@ -33,13 +38,6 @@ public class GTCEuCompat {
         LOGGER.info("[GTCEuCompat] Detected GTCEu API: {}", IS_LEGACY ? "1.6.4 (legacy)" : "7.0.0+");
     }
 
-    public static boolean isLegacy() {
-        return IS_LEGACY;
-    }
-
-    private static final Method METHOD_CLEAN;
-    private static final Method METHOD_UPDATE;
-
     static {
         Method mClean = null, mUpdate = null;
         try {
@@ -52,6 +50,38 @@ public class GTCEuCompat {
         }
         METHOD_CLEAN = mClean;
         METHOD_UPDATE = mUpdate;
+    }
+
+    static {
+        Method m = null;
+        try {
+            if (IS_LEGACY) {
+                m = RelativeDirection.class.getMethod("getActualFacing", Direction.class);
+            } else {
+                m = RelativeDirection.class.getMethod("getActualDirection", Direction.class);
+            }
+        } catch (Exception e) {
+            LOGGER.error("[GTCEuCompat] Failed to cache RelativeDirection method", e);
+        }
+        METHOD_GET_ACTUAL_DIRECTION = m;
+    }
+
+    static {
+        Field fg = null, fl = null;
+        try {
+            fg = MultiblockState.class.getDeclaredField("globalCount");
+            fg.setAccessible(true);
+            fl = MultiblockState.class.getDeclaredField("layerCount");
+            fl.setAccessible(true);
+        } catch (Exception e) {
+            LOGGER.error("[GTCEuCompat] Could not access MultiblockState count fields", e);
+        }
+        FIELD_GLOBAL_COUNT = fg;
+        FIELD_LAYER_COUNT = fl;
+    }
+
+    public static boolean isLegacy() {
+        return IS_LEGACY;
     }
 
     public static void clean(MultiblockState state) {
@@ -71,22 +101,6 @@ public class GTCEuCompat {
         }
     }
 
-    private static final Method METHOD_GET_ACTUAL_DIRECTION;
-
-    static {
-        Method m = null;
-        try {
-            if (IS_LEGACY) {
-                m = RelativeDirection.class.getMethod("getActualFacing", Direction.class);
-            } else {
-                m = RelativeDirection.class.getMethod("getActualDirection", Direction.class);
-            }
-        } catch (Exception e) {
-            LOGGER.error("[GTCEuCompat] Failed to cache RelativeDirection method", e);
-        }
-        METHOD_GET_ACTUAL_DIRECTION = m;
-    }
-
     public static Direction getActualDirection(RelativeDirection relDir, Direction facing) {
         try {
             return (Direction) METHOD_GET_ACTUAL_DIRECTION.invoke(relDir, facing);
@@ -96,15 +110,30 @@ public class GTCEuCompat {
         }
     }
 
-    public static class PredicateCountMap {
+    public static PredicateCountMap getGlobalCount(MultiblockState state) {
+        try {
+            return new PredicateCountMap(FIELD_GLOBAL_COUNT.get(state));
+        } catch (Exception e) {
+            LOGGER.error("[GTCEuCompat] getGlobalCount failed", e);
+            return new PredicateCountMap(new java.util.HashMap<>());
+        }
+    }
 
-        private final Object inner;
+    public static PredicateCountMap getLayerCount(MultiblockState state) {
+        try {
+            return new PredicateCountMap(FIELD_LAYER_COUNT.get(state));
+        } catch (Exception e) {
+            LOGGER.error("[GTCEuCompat] getLayerCount failed", e);
+            return new PredicateCountMap(new java.util.HashMap<>());
+        }
+    }
+
+    public static class PredicateCountMap {
 
         private static Method mapGet;
         private static Method mapPut;
         private static Method mapGetOrDefault;
         private static Method mapClear;
-
         private static Method o2iGetInt;
         private static Method o2iAddTo;
         private static Method o2iGetOrDefault;
@@ -128,6 +157,8 @@ public class GTCEuCompat {
                 LOGGER.error("[GTCEuCompat] Failed to cache PredicateCountMap methods", e);
             }
         }
+
+        private final Object inner;
 
         private PredicateCountMap(Object inner) {
             this.inner = inner;
@@ -179,41 +210,6 @@ public class GTCEuCompat {
             } catch (ReflectiveOperationException e) {
                 GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.clear: reflection error: {}", e.getMessage());
             }
-        }
-    }
-
-    private static final Field FIELD_GLOBAL_COUNT;
-    private static final Field FIELD_LAYER_COUNT;
-
-    static {
-        Field fg = null, fl = null;
-        try {
-            fg = MultiblockState.class.getDeclaredField("globalCount");
-            fg.setAccessible(true);
-            fl = MultiblockState.class.getDeclaredField("layerCount");
-            fl.setAccessible(true);
-        } catch (Exception e) {
-            LOGGER.error("[GTCEuCompat] Could not access MultiblockState count fields", e);
-        }
-        FIELD_GLOBAL_COUNT = fg;
-        FIELD_LAYER_COUNT = fl;
-    }
-
-    public static PredicateCountMap getGlobalCount(MultiblockState state) {
-        try {
-            return new PredicateCountMap(FIELD_GLOBAL_COUNT.get(state));
-        } catch (Exception e) {
-            LOGGER.error("[GTCEuCompat] getGlobalCount failed", e);
-            return new PredicateCountMap(new java.util.HashMap<>());
-        }
-    }
-
-    public static PredicateCountMap getLayerCount(MultiblockState state) {
-        try {
-            return new PredicateCountMap(FIELD_LAYER_COUNT.get(state));
-        } catch (Exception e) {
-            LOGGER.error("[GTCEuCompat] getLayerCount failed", e);
-            return new PredicateCountMap(new java.util.HashMap<>());
         }
     }
 }

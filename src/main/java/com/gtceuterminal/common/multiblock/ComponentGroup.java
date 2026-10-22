@@ -36,6 +36,11 @@ public final class ComponentGroup {
         return new Builder(id, displayName);
     }
 
+    @Override
+    public String toString() {
+        return "ComponentGroup{" + id + "}";
+    }
+
     public static final class Builder {
         private final String id;
         private final String displayName;
@@ -98,10 +103,5 @@ public final class ComponentGroup {
         public ComponentGroup build() {
             return new ComponentGroup(this);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "ComponentGroup{" + id + "}";
     }
 }

@@ -1,9 +1,9 @@
 package com.gtceuterminal.common.material;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.AccessPointLink;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
-import com.gtceuterminal.common.ae2.AccessPointLink;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
@@ -393,7 +393,7 @@ public class MaterialCalculator {
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(
                             linkedManager, level, player, required
                     );
-            if (result.success) {
+            if (result.success()) {
                 return true;
             }
             GTCEUTerminalMod.LOGGER.debug("  Single-source extraction failed, planning combined extraction");

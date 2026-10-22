@@ -1,11 +1,10 @@
 package com.gtceuterminal.common.network;
 
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.item.DismantlerItem;
 import com.gtceuterminal.common.multiblock.DismantleExecutor;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;

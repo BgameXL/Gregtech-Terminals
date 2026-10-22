@@ -1,13 +1,11 @@
 package com.gtceuterminal.common.gui.factory;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.lowdragmc.lowdraglib.Platform;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-
+import com.lowdragmc.lowdraglib.Platform;
 import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -15,8 +13,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.Holder> {
@@ -29,12 +25,6 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
 
     private DismantlerItemUIFactory() {
         super(UI_ID);
-    }
-
-    // Server entry point
-    public void openUI(ServerPlayer player, ItemStack item, BlockPos controllerPos) {
-        Set<BlockPos> scannedPositions = scanPositions(player, controllerPos);
-        super.openUI(new Holder(false, item, controllerPos, scannedPositions), player);
     }
 
     private static Set<BlockPos> scanPositions(ServerPlayer player, BlockPos controllerPos) {
@@ -51,6 +41,12 @@ public class DismantlerItemUIFactory extends UIFactory<DismantlerItemUIFactory.H
             GTCEUTerminalMod.LOGGER.warn("DismantlerItemUIFactory: failed to pre-scan at {}", controllerPos, e);
         }
         return java.util.Collections.emptySet();
+    }
+
+    // Server entry point
+    public void openUI(ServerPlayer player, ItemStack item, BlockPos controllerPos) {
+        Set<BlockPos> scannedPositions = scanPositions(player, controllerPos);
+        super.openUI(new Holder(false, item, controllerPos, scannedPositions), player);
     }
 
     // UIFactory impl

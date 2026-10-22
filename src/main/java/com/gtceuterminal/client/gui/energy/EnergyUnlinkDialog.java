@@ -1,21 +1,17 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.network.CPacketEnergyAnalyzerAction;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

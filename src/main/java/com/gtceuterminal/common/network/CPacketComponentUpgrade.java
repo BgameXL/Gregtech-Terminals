@@ -1,6 +1,5 @@
 package com.gtceuterminal.common.network;
 
-import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
@@ -25,10 +24,10 @@ import java.util.function.Supplier;
 
 public class CPacketComponentUpgrade {
 
-    private List<BlockPos> positions = new ArrayList<>();
     private final int targetTier;
     private final String targetUpgradeId;
     private final BlockPos controllerPos;
+    private List<BlockPos> positions = new ArrayList<>();
     private ServerLevel level;
 
     public CPacketComponentUpgrade(List<BlockPos> positions, int targetTier, String targetUpgradeId, BlockPos controllerPos) {
@@ -50,19 +49,6 @@ public class CPacketComponentUpgrade {
         this(position, targetTier, null, controllerPos);
     }
 
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeInt(positions.size());
-        for (BlockPos pos : positions) {
-            buf.writeBlockPos(pos);
-        }
-        buf.writeInt(targetTier);
-        buf.writeBlockPos(controllerPos);
-
-        boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
-        buf.writeBoolean(hasId);
-        if (hasId) buf.writeUtf(targetUpgradeId);
-    }
-
     public static CPacketComponentUpgrade decode(FriendlyByteBuf buf) {
         int size = buf.readInt();
         List<BlockPos> positions = new ArrayList<>();
@@ -79,6 +65,19 @@ public class CPacketComponentUpgrade {
         }
 
         return new CPacketComponentUpgrade(positions, targetTier, upgradeId, controllerPos);
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeInt(positions.size());
+        for (BlockPos pos : positions) {
+            buf.writeBlockPos(pos);
+        }
+        buf.writeInt(targetTier);
+        buf.writeBlockPos(controllerPos);
+
+        boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
+        buf.writeBoolean(hasId);
+        if (hasId) buf.writeUtf(targetUpgradeId);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
@@ -121,7 +120,7 @@ public class CPacketComponentUpgrade {
                         linkedManager
                 );
 
-                if (result.success) {
+                if (result.success()) {
                     upgraded++;
                 } else {
                     failed++;

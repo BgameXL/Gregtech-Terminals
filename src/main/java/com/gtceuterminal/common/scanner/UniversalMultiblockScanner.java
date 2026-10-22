@@ -1,21 +1,15 @@
 package com.gtceuterminal.common.scanner;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.config.ServerConfig;
-
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.config.ServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class UniversalMultiblockScanner {
 
@@ -65,59 +59,22 @@ public class UniversalMultiblockScanner {
         return MultiblockBounds.getMultiblockBlocks(controller, level);
     }
 
-    public static class ComponentData {
-        private final String category;
-        private final String name;
-        private final int tier;
-        private final BlockPos position;
-
-        public ComponentData(String category, String name, int tier, BlockPos position) {
-            this.category = category;
-            this.name = name;
-            this.tier = tier;
-            this.position = position;
-        }
-
-        public String getCategory() {
-            return category;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getTier() {
-            return tier;
-        }
-
-        public BlockPos getPosition() {
-            return position;
-        }
+    public record ComponentData(String category, String name, int tier, BlockPos position) {
 
         @Override
-        public String toString() {
-            return String.format("%s (T%d) at %s", name, tier, position);
+            public String toString() {
+                return String.format("%s (T%d) at %s", name, tier, position);
+            }
         }
-    }
 
     public static class DetectedMultiblock {
-        private boolean formed = true;
-
-        public boolean isFormed() {
-            return formed;
-        }
-
-        public void setFormed(boolean formed) {
-            this.formed = formed;
-        }
-
         private final String name;
         private final String modId;
         private final BlockPos position;
         private final int tier;
         private final Map<String, List<ComponentData>> components;
         private final MultiblockControllerMachine controller;
-
+        private boolean formed = true;
         public DetectedMultiblock(String name, String modId, BlockPos position, int tier,
                                   Map<String, List<ComponentData>> components,
                                   MultiblockControllerMachine controller) {
@@ -127,30 +84,6 @@ public class UniversalMultiblockScanner {
             this.tier = tier;
             this.components = components;
             this.controller = controller;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getModId() {
-            return modId;
-        }
-
-        public BlockPos getPosition() {
-            return position;
-        }
-
-        public int getTier() {
-            return tier;
-        }
-
-        public Map<String, List<ComponentData>> getComponents() {
-            return components;
-        }
-
-        public MultiblockControllerMachine getController() {
-            return controller;
         }
 
         public static DetectedMultiblock unformed(MultiblockControllerMachine controller, BlockPos pos) {
@@ -176,6 +109,38 @@ public class UniversalMultiblockScanner {
                     name, modId, pos, tier, new java.util.HashMap<>(), controller);
             stub.setFormed(false);
             return stub;
+        }
+
+        public boolean isFormed() {
+            return formed;
+        }
+
+        public void setFormed(boolean formed) {
+            this.formed = formed;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getModId() {
+            return modId;
+        }
+
+        public BlockPos getPosition() {
+            return position;
+        }
+
+        public int getTier() {
+            return tier;
+        }
+
+        public Map<String, List<ComponentData>> getComponents() {
+            return components;
+        }
+
+        public MultiblockControllerMachine getController() {
+            return controller;
         }
 
         public int getTotalComponentCount() {

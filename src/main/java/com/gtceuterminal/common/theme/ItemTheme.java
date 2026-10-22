@@ -11,6 +11,16 @@ import net.minecraft.world.item.ItemStack;
 // Represents the theme configuration stored in the terminal item. This is what the user edits in the Theme Editor.
 public class ItemTheme {
 
+    // Defaults
+    public static final int DEFAULT_ACCENT = 0xFF2E75B6;
+    public static final int DEFAULT_BG = 0xFF1A1A1A;
+    public static final int DEFAULT_PANEL = 0xFF252525;
+    public static final int DEFAULT_TEXT = 0xFFFFFFFF;
+    public static final int DEFAULT_TEXT_MUTED = 0xFFAAAAAA;
+    public static final int DEFAULT_BORDER = DEFAULT_ACCENT;
+    public static final int DEFAULT_SUCCESS = 0xFF57C07A;
+    public static final int DEFAULT_WARNING = 0xFFD8A43C;
+    public static final int DEFAULT_ERROR = 0xFFD05656;
     // NBT keys
     private static final String TAG_ROOT = "Theme";
     private static final String TAG_ACCENT = "accentColor";
@@ -28,56 +38,8 @@ public class ItemTheme {
     private static final String TAG_WALLPAPER = "wallpaper";
     private static final String TAG_STYLE = "uiStyle";
     private static final String TAG_BUNDLE = "bundleId";
-    private static final String TAG_PARADE_MODE = "paradeMode";
     private static final String TAG_SLIDESHOW = "slideshowMode";
     private static final String TAG_SLIDESHOW_SRC = "slideshowSource";
-
-    // Defaults
-    public static final int DEFAULT_ACCENT = 0xFF2E75B6;
-    public static final int DEFAULT_BG = 0xFF1A1A1A;
-    public static final int DEFAULT_PANEL = 0xFF252525;
-    public static final int DEFAULT_TEXT = 0xFFFFFFFF;
-    public static final int DEFAULT_TEXT_MUTED = 0xFFAAAAAA;
-    public static final int DEFAULT_BORDER = DEFAULT_ACCENT;
-    public static final int DEFAULT_SUCCESS = 0xFF57C07A;
-    public static final int DEFAULT_WARNING = 0xFFD8A43C;
-    public static final int DEFAULT_ERROR = 0xFFD05656;
-
-    public enum UiStyle {
-        DARK("Dark"),
-        GTCEU_NATIVE("GTCEu Native"),
-        BUNDLE("Bundle");
-
-        public final String label;
-
-        UiStyle(String label) {
-            this.label = label;
-        }
-    }
-
-    public enum ParadeMode {
-        ORBITAL("Orbital"),
-        BOUNCING("Bouncing"),
-        NONE("Off");
-
-        public final String label;
-
-        ParadeMode(String label) {
-            this.label = label;
-        }
-    }
-
-    public enum SlideshowSource {
-        BUILTIN("Built-in"),
-        CUSTOM("Custom");
-
-        public final String label;
-
-        SlideshowSource(String label) {
-            this.label = label;
-        }
-    }
-
     public int accentColor;
     public int bgColor;
     public int panelColor;
@@ -93,10 +55,8 @@ public class ItemTheme {
     public String wallpaper;
     public UiStyle uiStyle;
     public String bundleId;
-    public ParadeMode paradeMode;
     public boolean slideshowMode;
     public SlideshowSource slideshowSource;
-
     public ItemTheme() {
         accentColor = DEFAULT_ACCENT;
         bgColor = DEFAULT_BG;
@@ -113,11 +73,9 @@ public class ItemTheme {
         wallpaper = "";
         uiStyle = UiStyle.DARK;
         bundleId = "";
-        paradeMode = ParadeMode.NONE;
         slideshowMode = false;
         slideshowSource = SlideshowSource.BUILTIN;
     }
-
     public ItemTheme(ItemTheme other) {
         accentColor = other.accentColor;
         bgColor = other.bgColor;
@@ -134,32 +92,8 @@ public class ItemTheme {
         wallpaper = other.wallpaper;
         uiStyle = other.uiStyle;
         bundleId = other.bundleId != null ? other.bundleId : "";
-        paradeMode = other.paradeMode != null ? other.paradeMode : ParadeMode.NONE;
         slideshowMode = other.slideshowMode;
         slideshowSource = other.slideshowSource != null ? other.slideshowSource : SlideshowSource.BUILTIN;
-    }
-
-    public CompoundTag toNBT() {
-        CompoundTag tag = new CompoundTag();
-        tag.putInt(TAG_ACCENT, accentColor);
-        tag.putInt(TAG_BG, bgColor);
-        tag.putInt(TAG_PANEL, panelColor);
-        tag.putInt(TAG_TEXT, textColor);
-        tag.putInt(TAG_TEXT_MUTED, textMutedColor);
-        tag.putInt(TAG_BORDER, borderColor);
-        tag.putInt(TAG_SUCCESS, successColor);
-        tag.putInt(TAG_WARNING, warningColor);
-        tag.putInt(TAG_ERROR, errorColor);
-        tag.putBoolean(TAG_COMPACT, compactMode);
-        tag.putBoolean(TAG_TOOLTIPS, showTooltips);
-        tag.putBoolean(TAG_BORDERS, showBorders);
-        tag.putString(TAG_WALLPAPER, wallpaper != null ? wallpaper : "");
-        tag.putString(TAG_STYLE, uiStyle != null ? uiStyle.name() : UiStyle.DARK.name());
-        tag.putString(TAG_BUNDLE, bundleId != null ? bundleId : "");
-        tag.putString(TAG_PARADE_MODE, paradeMode != null ? paradeMode.name() : ParadeMode.NONE.name());
-        tag.putBoolean(TAG_SLIDESHOW, slideshowMode);
-        tag.putString(TAG_SLIDESHOW_SRC, slideshowSource != null ? slideshowSource.name() : SlideshowSource.BUILTIN.name());
-        return tag;
     }
 
     public static ItemTheme fromNBT(CompoundTag tag) {
@@ -179,13 +113,6 @@ public class ItemTheme {
         if (tag.contains(TAG_BORDERS)) t.showBorders = tag.getBoolean(TAG_BORDERS);
         if (tag.contains(TAG_WALLPAPER)) t.wallpaper = tag.getString(TAG_WALLPAPER);
         if (tag.contains(TAG_BUNDLE)) t.bundleId = tag.getString(TAG_BUNDLE);
-        if (tag.contains(TAG_PARADE_MODE)) {
-            try {
-                t.paradeMode = ParadeMode.valueOf(tag.getString(TAG_PARADE_MODE));
-            } catch (IllegalArgumentException e) {
-                t.paradeMode = ParadeMode.NONE;
-            }
-        }
         if (tag.contains(TAG_SLIDESHOW)) t.slideshowMode = tag.getBoolean(TAG_SLIDESHOW);
         if (tag.contains(TAG_SLIDESHOW_SRC)) {
             try {
@@ -232,6 +159,28 @@ public class ItemTheme {
     public static void save(ItemStack stack, ItemTheme theme) {
         if (stack.isEmpty()) return;
         stack.getOrCreateTag().put(TAG_ROOT, theme.toNBT());
+    }
+
+    public CompoundTag toNBT() {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt(TAG_ACCENT, accentColor);
+        tag.putInt(TAG_BG, bgColor);
+        tag.putInt(TAG_PANEL, panelColor);
+        tag.putInt(TAG_TEXT, textColor);
+        tag.putInt(TAG_TEXT_MUTED, textMutedColor);
+        tag.putInt(TAG_BORDER, borderColor);
+        tag.putInt(TAG_SUCCESS, successColor);
+        tag.putInt(TAG_WARNING, warningColor);
+        tag.putInt(TAG_ERROR, errorColor);
+        tag.putBoolean(TAG_COMPACT, compactMode);
+        tag.putBoolean(TAG_TOOLTIPS, showTooltips);
+        tag.putBoolean(TAG_BORDERS, showBorders);
+        tag.putString(TAG_WALLPAPER, wallpaper != null ? wallpaper : "");
+        tag.putString(TAG_STYLE, uiStyle != null ? uiStyle.name() : UiStyle.DARK.name());
+        tag.putString(TAG_BUNDLE, bundleId != null ? bundleId : "");
+        tag.putBoolean(TAG_SLIDESHOW, slideshowMode);
+        tag.putString(TAG_SLIDESHOW_SRC, slideshowSource != null ? slideshowSource.name() : SlideshowSource.BUILTIN.name());
+        return tag;
     }
 
     public boolean isNativeStyle() {
@@ -347,5 +296,28 @@ public class ItemTheme {
 
     public boolean hasWallpaper() {
         return wallpaper != null && !wallpaper.isBlank();
+    }
+
+    public enum UiStyle {
+        DARK("Dark"),
+        GTCEU_NATIVE("GTCEu Native"),
+        BUNDLE("Bundle");
+
+        public final String label;
+
+        UiStyle(String label) {
+            this.label = label;
+        }
+    }
+
+    public enum SlideshowSource {
+        BUILTIN("Built-in"),
+        CUSTOM("Custom");
+
+        public final String label;
+
+        SlideshowSource(String label) {
+            this.label = label;
+        }
     }
 }

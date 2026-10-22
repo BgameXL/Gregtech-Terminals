@@ -4,8 +4,8 @@ import com.gtceuterminal.common.multiblock.ComponentGroup;
 
 public class ComponentPattern {
 
-    private String pattern;
-    private ComponentGroup group;
+    private final String pattern;
+    private final ComponentGroup group;
     private int priority = 50;
     private String displayPrefix;
 

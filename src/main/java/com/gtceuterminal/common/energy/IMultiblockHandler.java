@@ -6,5 +6,6 @@ import net.minecraft.server.level.ServerLevel;
 
 public interface IMultiblockHandler {
     boolean canHandle(MetaMachine machine);
+
     EnergySnapshot collect(MetaMachine machine, ServerLevel level, BlockPos pos);
 }

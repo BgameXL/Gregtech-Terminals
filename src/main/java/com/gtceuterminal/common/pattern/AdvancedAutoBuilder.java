@@ -1,13 +1,5 @@
 package com.gtceuterminal.common.pattern;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.ae2.MENetworkExtractor;
-import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
-import com.gtceuterminal.common.compat.BlockPatternReflection;
-import com.gtceuterminal.common.compat.GTCEuCompat;
-import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
-import com.gtceuterminal.common.config.ManagerSettings;
-
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -16,11 +8,15 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkExtractor;
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.compat.BlockPatternReflection;
+import com.gtceuterminal.common.compat.GTCEuCompat;
+import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
+import com.gtceuterminal.common.config.ManagerSettings;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
-
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -33,21 +29,14 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Advanced Auto-Builder for GTCEu Multiblocks (rebased on GTCEu BlockPattern.autoBuild)
@@ -135,7 +124,8 @@ public class AdvancedAutoBuilder {
                                 if (infos != null) for (BlockInfo info : infos) {
                                     BlockState bs = info.getBlockState();
                                     if (bs.isAir()) continue;
-                                    if (bs.getFluidState().isSource()) fluidCandidates.add(bs.getFluidState().getType());
+                                    if (bs.getFluidState().isSource())
+                                        fluidCandidates.add(bs.getFluidState().getType());
                                     else hasSolidCandidate = true;
                                 }
 

@@ -194,17 +194,14 @@ public class ComponentUpgrader {
         return upgradeMultipleComponents(components, targetTier, player, level, ItemStack.EMPTY);
     }
 
-    private record ExtractionResult(boolean success, String source, String message) {
-    }
-
     private static ExtractionResult extractMaterials(
             Map<Item, Integer> required, Player player, Level level, ItemStack linkedManager) {
 
         if (linkedManager != null && !linkedManager.isEmpty() && ItemsConfig.isMgrAllowMENetworkUpgrade()) {
             MENetworkItemExtractor.ExtractResult me =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(linkedManager, level, player, required);
-            if (me.success) {
-                String src = me.source == MENetworkItemExtractor.ExtractionSource.ME_NETWORK
+            if (me.success()) {
+                String src = me.source() == MENetworkItemExtractor.ExtractionSource.ME_NETWORK
                         ? " §a(ME Network)" : " §7(Inventory)";
                 return new ExtractionResult(true, src, null);
             }
@@ -286,14 +283,10 @@ public class ComponentUpgrader {
         return sb.toString();
     }
 
-    public static class UpgradeResult {
-        public final boolean success;
-        public final String message;
+    private record ExtractionResult(boolean success, String source, String message) {
+    }
 
-        public UpgradeResult(boolean success, String message) {
-            this.success = success;
-            this.message = message;
-        }
+    public record UpgradeResult(boolean success, String message) {
     }
 
     public static class BulkUpgradeResult {

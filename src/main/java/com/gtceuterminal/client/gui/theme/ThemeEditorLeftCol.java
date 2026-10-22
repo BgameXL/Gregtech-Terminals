@@ -8,19 +8,12 @@ import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ThemePreset;
 import com.gtceuterminal.common.theme.bundle.ThemeBundle;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-
+import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.network.chat.Component;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

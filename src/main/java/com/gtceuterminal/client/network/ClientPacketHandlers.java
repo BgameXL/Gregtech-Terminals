@@ -5,9 +5,9 @@ import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmDialog;
 import com.gtceuterminal.client.gui.dismantler.DismantlerUI;
 import com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI;
 import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
-import com.gtceuterminal.client.gui.multiblock.MultiblockUpgradePanel;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
 import com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI;
+import com.gtceuterminal.client.gui.multiblock.MultiblockUpgradePanel;
 import com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI;
 import com.gtceuterminal.client.highlight.MultiblockHighlighter;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
@@ -23,7 +23,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -36,6 +35,8 @@ import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
 public final class ClientPacketHandlers {
+
+    private static final int CLIENT_ONLY_CONTAINER_ID = 30000;
 
     private ClientPacketHandlers() {
     }
@@ -64,10 +65,10 @@ public final class ClientPacketHandlers {
             Player player = mc.player;
             if (player == null) return;
 
-            boolean hasIntruders = result.kind == AnalysisResult.Kind.BUILD
-                    && !result.intruderPositions.isEmpty();
+            boolean hasIntruders = result.kind() == AnalysisResult.Kind.BUILD
+                    && !result.intruderPositions().isEmpty();
 
-            if (result.entries.isEmpty() && hasIntruders) {
+            if (result.entries().isEmpty() && hasIntruders) {
                 highlightIntruders(result);
                 return;
             }
@@ -88,7 +89,7 @@ public final class ClientPacketHandlers {
     }
 
     private static void highlightIntruders(AnalysisResult result) {
-        handleHighlightPositions(result.controllerPos, result.intruderPositions);
+        handleHighlightPositions(result.controllerPos(), result.intruderPositions());
     }
 
     public static void handleHighlightPositions(BlockPos controllerPos, java.util.List<BlockPos> positions) {
@@ -173,8 +174,6 @@ public final class ClientPacketHandlers {
             GTCEUTerminalMod.LOGGER.error("ClientPacketHandlers: failed to apply energy update", t);
         }
     }
-
-    private static final int CLIENT_ONLY_CONTAINER_ID = 30000;
 
     private static void openClientOnly(ModularUI ui) {
         Minecraft mc = Minecraft.getInstance();

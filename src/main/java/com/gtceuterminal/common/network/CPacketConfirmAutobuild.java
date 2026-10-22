@@ -1,36 +1,32 @@
 package com.gtceuterminal.common.network;
 
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.AccessPointLink;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.ae2.MENetworkCrafting;
 import com.gtceuterminal.common.ae2.MEQueryResult;
-import com.gtceuterminal.common.ae2.AccessPointLink;
-import com.gtceuterminal.common.util.MiscUtil;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.autocraft.MultiblockAnalyzer;
-import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
-import com.gtceuterminal.common.upgrade.ComponentUpgrader;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
-
-import net.minecraft.world.item.Item;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
+import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
+import com.gtceuterminal.common.upgrade.ComponentUpgrader;
+import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class CPacketConfirmAutobuild {
@@ -42,20 +38,11 @@ public class CPacketConfirmAutobuild {
     private final List<BlockPos> componentPositions;
 
     public CPacketConfirmAutobuild(AnalysisResult result) {
-        this.kind = result.kind;
-        this.controllerPos = result.controllerPos;
-        this.targetTier = result.targetTier;
-        this.upgradeId = result.upgradeId != null ? result.upgradeId : "";
-        this.componentPositions = new ArrayList<>(result.componentPositions);
-    }
-
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeEnum(kind);
-        buf.writeBlockPos(controllerPos);
-        buf.writeInt(targetTier);
-        buf.writeUtf(upgradeId);
-        buf.writeInt(componentPositions.size());
-        for (BlockPos pos : componentPositions) buf.writeBlockPos(pos);
+        this.kind = result.kind();
+        this.controllerPos = result.controllerPos();
+        this.targetTier = result.targetTier();
+        this.upgradeId = result.upgradeId() != null ? result.upgradeId() : "";
+        this.componentPositions = new ArrayList<>(result.componentPositions());
     }
 
     public CPacketConfirmAutobuild(FriendlyByteBuf buf) {
@@ -66,6 +53,96 @@ public class CPacketConfirmAutobuild {
         int count = buf.readInt();
         this.componentPositions = new ArrayList<>(count);
         for (int i = 0; i < count; i++) componentPositions.add(buf.readBlockPos());
+    }
+
+    private static ManagerSettings.AutoBuildSettings getSettings(ServerPlayer player) {
+        ItemStack held = player.getMainHandItem();
+        if (held.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
+            return new ManagerSettings.Settings(held).toAutoBuildSettings();
+        }
+        held = player.getOffhandItem();
+        if (held.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
+            return new ManagerSettings.Settings(held).toAutoBuildSettings();
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack s = player.getInventory().getItem(i);
+            if (s.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
+                return new ManagerSettings.Settings(s).toAutoBuildSettings();
+            }
+        }
+        return new ManagerSettings.AutoBuildSettings();
+    }
+
+    private static ItemStack findLinkedManager(ServerPlayer player) {
+        if (AccessPointLink.isOurLinkedManager(player.getMainHandItem())) return player.getMainHandItem();
+        if (AccessPointLink.isOurLinkedManager(player.getOffhandItem())) return player.getOffhandItem();
+        for (ItemStack s : player.getInventory().items) {
+            if (AccessPointLink.isOurLinkedManager(s)) return s;
+        }
+        if (MiscUtil.isCuriosLoaded) {
+            for (ItemStack s : CuriosCompat.getEquippedItems(player)) {
+                if (AccessPointLink.isOurLinkedManager(s)) return s;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static FulfillResult evaluate(ServerPlayer player, List<AnalysisResult.Entry> entries, boolean aeOnly) {
+        Map<Item, Integer> craftDeficits = new LinkedHashMap<>();
+        boolean hardMissing = false;
+        boolean anyDeficit = false;
+
+        for (AnalysisResult.Entry e : entries) {
+            if (e.informational()) continue;
+            int needed = e.needed();
+            long avail = aeOnly ? e.inME() : e.inME() + countInInventory(player, e.stack().getItem());
+            if (avail >= needed) continue;
+
+            anyDeficit = true;
+            if (e.craftable()) {
+                craftDeficits.merge(e.stack().getItem(), (int) (needed - avail), Integer::sum);
+            } else {
+                hardMissing = true;
+            }
+        }
+
+        if (!anyDeficit) return new FulfillResult(Fulfillment.READY, 0, "");
+        if (hardMissing) return new FulfillResult(Fulfillment.MISSING, 0, "");
+
+        int queued = MENetworkCrafting.requestCrafts(player, craftDeficits);
+        return new FulfillResult(queued > 0 ? Fulfillment.CRAFTING : Fulfillment.MISSING,
+                queued, describeDeficits(craftDeficits));
+    }
+
+    private static String describeDeficits(Map<Item, Integer> deficits) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Item, Integer> e : deficits.entrySet()) {
+            if (sb.length() > 0) sb.append("§e, ");
+            sb.append(e.getValue()).append("× §f")
+                    .append(new ItemStack(e.getKey()).getHoverName().getString()).append("§e");
+        }
+        return sb.length() > 0 ? sb.toString() : "—";
+    }
+
+    private static int countInInventory(ServerPlayer player, Item item) {
+        int count = 0;
+        for (ItemStack s : player.getInventory().items) {
+            if (s.getItem() == item) count += s.getCount();
+        }
+        return count;
+    }
+
+    private static void msg(ServerPlayer p, Component component, boolean actionBar) {
+        p.displayClientMessage(component, actionBar);
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeEnum(kind);
+        buf.writeBlockPos(controllerPos);
+        buf.writeInt(targetTier);
+        buf.writeUtf(upgradeId);
+        buf.writeInt(componentPositions.size());
+        for (BlockPos pos : componentPositions) buf.writeBlockPos(pos);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
@@ -136,7 +213,7 @@ public class CPacketConfirmAutobuild {
         AnalysisResult analysis = MultiblockAnalyzer.analyzeForBuild(player, controller, settings);
         FulfillResult fr = analysis == null
                 ? new FulfillResult(Fulfillment.READY, 0, "")
-                : evaluate(player, analysis.entries, true);
+                : evaluate(player, analysis.entries(), true);
 
         switch (fr.status) {
             case MISSING -> msg(player,
@@ -182,7 +259,7 @@ public class CPacketConfirmAutobuild {
                     upgradeId.isEmpty() ? null : upgradeId, controllerPos);
             FulfillResult fr = analysis == null
                     ? new FulfillResult(Fulfillment.READY, 0, "")
-                    : evaluate(player, analysis.entries, true);
+                    : evaluate(player, analysis.entries(), true);
             if (fr.status == Fulfillment.MISSING) {
                 msg(player,
                         Component.translatable("item.gtceuterminal.autocraft_confirm.message.upgrade_failed_check_materials"), false);
@@ -209,7 +286,7 @@ public class CPacketConfirmAutobuild {
                     true,
                     terminal);
 
-            if (result.success) succeeded++;
+            if (result.success()) succeeded++;
             else failed++;
         }
 
@@ -232,89 +309,8 @@ public class CPacketConfirmAutobuild {
         }
     }
 
-    private static ManagerSettings.AutoBuildSettings getSettings(ServerPlayer player) {
-        ItemStack held = player.getMainHandItem();
-        if (held.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
-            return new ManagerSettings.Settings(held).toAutoBuildSettings();
-        }
-        held = player.getOffhandItem();
-        if (held.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
-            return new ManagerSettings.Settings(held).toAutoBuildSettings();
-        }
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack s = player.getInventory().getItem(i);
-            if (s.is(com.gtceuterminal.common.data.GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get())) {
-                return new ManagerSettings.Settings(s).toAutoBuildSettings();
-            }
-        }
-        return new ManagerSettings.AutoBuildSettings();
-    }
-
-    private static ItemStack findLinkedManager(ServerPlayer player) {
-        if (AccessPointLink.isOurLinkedManager(player.getMainHandItem())) return player.getMainHandItem();
-        if (AccessPointLink.isOurLinkedManager(player.getOffhandItem())) return player.getOffhandItem();
-        for (ItemStack s : player.getInventory().items) {
-            if (AccessPointLink.isOurLinkedManager(s)) return s;
-        }
-        if (MiscUtil.isCuriosLoaded) {
-            for (ItemStack s : CuriosCompat.getEquippedItems(player)) {
-                if (AccessPointLink.isOurLinkedManager(s)) return s;
-            }
-        }
-        return ItemStack.EMPTY;
-    }
-
     private enum Fulfillment {READY, CRAFTING, MISSING}
 
     private record FulfillResult(Fulfillment status, int craftCount, String description) {
-    }
-
-    private static FulfillResult evaluate(ServerPlayer player, List<AnalysisResult.Entry> entries, boolean aeOnly) {
-        Map<Item, Integer> craftDeficits = new LinkedHashMap<>();
-        boolean hardMissing = false;
-        boolean anyDeficit = false;
-
-        for (AnalysisResult.Entry e : entries) {
-            if (e.informational) continue;
-            int needed = e.needed();
-            long avail = aeOnly ? e.inME : e.inME + countInInventory(player, e.stack.getItem());
-            if (avail >= needed) continue;
-
-            anyDeficit = true;
-            if (e.craftable) {
-                craftDeficits.merge(e.stack.getItem(), (int) (needed - avail), Integer::sum);
-            } else {
-                hardMissing = true;
-            }
-        }
-
-        if (!anyDeficit) return new FulfillResult(Fulfillment.READY, 0, "");
-        if (hardMissing) return new FulfillResult(Fulfillment.MISSING, 0, "");
-
-        int queued = MENetworkCrafting.requestCrafts(player, craftDeficits);
-        return new FulfillResult(queued > 0 ? Fulfillment.CRAFTING : Fulfillment.MISSING,
-                queued, describeDeficits(craftDeficits));
-    }
-
-    private static String describeDeficits(Map<Item, Integer> deficits) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<Item, Integer> e : deficits.entrySet()) {
-            if (sb.length() > 0) sb.append("§e, ");
-            sb.append(e.getValue()).append("× §f")
-                    .append(new ItemStack(e.getKey()).getHoverName().getString()).append("§e");
-        }
-        return sb.length() > 0 ? sb.toString() : "—";
-    }
-
-    private static int countInInventory(ServerPlayer player, Item item) {
-        int count = 0;
-        for (ItemStack s : player.getInventory().items) {
-            if (s.getItem() == item) count += s.getCount();
-        }
-        return count;
-    }
-
-    private static void msg(ServerPlayer p, Component component, boolean actionBar) {
-        p.displayClientMessage(component, actionBar);
     }
 }

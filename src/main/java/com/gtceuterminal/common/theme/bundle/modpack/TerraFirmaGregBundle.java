@@ -1,7 +1,10 @@
 package com.gtceuterminal.common.theme.bundle.modpack;
 
 import com.gtceuterminal.common.theme.bundle.ThemeBundle;
-import com.lowdragmc.lowdraglib.gui.texture.*;
+import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
+import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -15,17 +18,6 @@ public class TerraFirmaGregBundle extends ThemeBundle {
     private static final int ACCENT = 0xFFEA097B;
     private static final int BRIGHT = 0xFFF43B7D;
     private static final int TEXT = 0xFFFFE8F0;
-
-    private static final Class<?> TFG_MACHINES;
-
-    static {
-        Class<?> c = null;
-        try {
-            c = Class.forName("su.terrafirmagreg.core.common.data.tfgt.TFGMultiMachines");
-        } catch (ClassNotFoundException ignored) {
-        }
-        TFG_MACHINES = c;
-    }
 
     @Override
     public String id() {
@@ -65,66 +57,6 @@ public class TerraFirmaGregBundle extends ThemeBundle {
     @Override
     public int separatorColor() {
         return (BRIGHT & 0x00FFFFFF) | 0xAA000000;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public com.gtceuterminal.client.gui.widget.MultiblockParadeWidget createParadeWidget(
-            int x, int y, int guiW, int guiH) {
-
-        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget widget =
-                new com.gtceuterminal.client.gui.widget.MultiblockParadeWidget();
-
-        loadTFGShapes(widget);
-
-        return widget;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private void loadTFGShapes(com.gtceuterminal.client.gui.widget.MultiblockParadeWidget widget) {
-        if (TFG_MACHINES == null) return;
-
-        String[][] machines = {
-                {"ELECTRIC_GREENHOUSE", "Electric Greenhouse"},
-                {"BIOREACTOR", "Bioreactor"},
-                {"LARGE_STEAM_TURBINE", "Large Steam Turbine"},
-                {"SMR_GENERATOR", "SMR Generator"},
-                {"EVAPORATION_TOWER", "Evaporation Tower"},
-                {"STEAM_BLOOMERY", "Steam Bloomery"},
-        };
-
-        for (String[] entry : machines) {
-            try {
-                java.lang.reflect.Field field = TFG_MACHINES.getField(entry[0]);
-                Object def = field.get(null);
-
-                java.lang.reflect.Method getShapeInfos = null;
-                for (String methodName : new String[]{
-                        "getMatchingShapes", "getShapeInfos", "getShapes", "matchingShapes"}) {
-                    try {
-                        getShapeInfos = def.getClass().getMethod(methodName);
-                        break;
-                    } catch (NoSuchMethodException ignored) {
-                    }
-                }
-                if (getShapeInfos == null) {
-                    com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                            "MultiblockParade: no shape method found for '{}'", entry[0]);
-                    continue;
-                }
-                @SuppressWarnings("unchecked")
-                java.util.List<com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo> shapes =
-                        (java.util.List<com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo>) getShapeInfos.invoke(def);
-
-                if (shapes != null && !shapes.isEmpty()) {
-                    widget.addFromShapeInfo(entry[1], shapes.get(0));
-                    com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                            "MultiblockParade: loaded shape for '{}'", entry[1]);
-                }
-            } catch (Exception inner) {
-                com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                        "MultiblockParade: skipped '{}': {}", entry[0], inner.getMessage());
-            }
-        }
     }
 
     @Override

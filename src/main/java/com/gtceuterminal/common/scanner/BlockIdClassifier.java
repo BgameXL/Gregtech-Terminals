@@ -1,19 +1,16 @@
 package com.gtceuterminal.common.scanner;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gtceuterminal.common.compat.integrations.StarTCoreIntegration;
 import com.gtceuterminal.common.config.ComponentEntry;
 import com.gtceuterminal.common.config.ComponentRegistry;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
-
-import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
-
 import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-
 import org.jetbrains.annotations.Nullable;
 
 final class BlockIdClassifier {
@@ -104,9 +101,9 @@ final class BlockIdClassifier {
         ComponentGroup group = ComponentGroupRegistry.detectFromBlock(blockState.getBlock());
         if (group != ComponentGroupRegistry.UNKNOWN) {
             String category = group.registryCategory != null ? group.registryCategory : group.id;
-            ComponentEntry entry = ComponentRegistry.first(category, e -> e.blockId.equalsIgnoreCase(blockId));
-            int tier = entry != null ? entry.tier : 0;
-            String name = entry != null ? entry.displayName : blockState.getBlock().getName().getString();
+            ComponentEntry entry = ComponentRegistry.first(category, e -> e.blockId().equalsIgnoreCase(blockId));
+            int tier = entry != null ? entry.tier() : 0;
+            String name = entry != null ? entry.displayName() : blockState.getBlock().getName().getString();
             return new UniversalMultiblockScanner.ComponentData(group.id, name, tier, pos);
         }
 

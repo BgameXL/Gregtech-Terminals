@@ -1,14 +1,12 @@
 package com.gtceuterminal.common.theme.bundle;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.texture.*;
-
-import javax.annotation.Nullable;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import javax.annotation.Nullable;
 
 public abstract class ThemeBundle {
 
@@ -157,17 +155,6 @@ public abstract class ThemeBundle {
                 base,
                 new ColorBorderTexture(1, borderColor())
         );
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    @Nullable
-    public com.gtceuterminal.client.gui.widget.MultiblockParadeWidget createParadeWidget(
-            int x,
-            int y,
-            int guiW,
-            int guiH
-    ) {
-        return null;
     }
 
     @OnlyIn(Dist.CLIENT)

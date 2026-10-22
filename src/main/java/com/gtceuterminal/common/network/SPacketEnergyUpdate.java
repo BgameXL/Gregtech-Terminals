@@ -1,5 +1,6 @@
 package com.gtceuterminal.common.network;
 
+import com.gtceuterminal.client.network.ClientPacketHandlers;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,19 +12,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SPacketEnergyUpdate {
-
-    public final List<EnergySnapshot> snapshots;
+public record SPacketEnergyUpdate(List<EnergySnapshot> snapshots) {
 
     public SPacketEnergyUpdate(List<EnergySnapshot> snapshots) {
         this.snapshots = snapshots != null ? snapshots : List.of();
     }
 
     public SPacketEnergyUpdate(FriendlyByteBuf buf) {
+        this(readSnapshots(buf));
+    }
+
+    private static List<EnergySnapshot> readSnapshots(FriendlyByteBuf buf) {
         int count = buf.readInt();
         List<EnergySnapshot> decoded = new ArrayList<>(count);
         for (int i = 0; i < count; i++) decoded.add(EnergySnapshot.decode(buf));
-        this.snapshots = decoded;
+        return decoded;
     }
 
     public static void encode(SPacketEnergyUpdate msg, FriendlyByteBuf buf) {
@@ -34,7 +37,7 @@ public class SPacketEnergyUpdate {
     public static void handle(SPacketEnergyUpdate msg, Supplier<NetworkEvent.Context> ctx) {
         NetworkEvent.Context context = ctx.get();
         context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                com.gtceuterminal.client.network.ClientPacketHandlers.handleEnergyUpdate(msg.snapshots)));
+                ClientPacketHandlers.handleEnergyUpdate(msg.snapshots)));
         context.setPacketHandled(true);
     }
 }

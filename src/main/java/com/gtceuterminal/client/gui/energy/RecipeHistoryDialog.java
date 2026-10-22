@@ -1,18 +1,14 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.TerminalText;
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
-import com.gtceuterminal.client.gui.style.TerminalTheme;
-import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
-
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.RecipeHistoryEntry;
-
 import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
@@ -84,11 +80,11 @@ public final class RecipeHistoryDialog {
                 RecipeHistoryEntry e = list.get(i);
 
                 WidgetGroup dot = new WidgetGroup(8, cy + 3, 6, 6);
-                dot.setBackground(new ColorRectTexture(e.completed ? tokens.success() : tokens.error()));
+                dot.setBackground(new ColorRectTexture(e.completed() ? tokens.success() : tokens.error()));
                 panel.addWidget(dot);
 
-                panel.addWidget(mkLabel(18, cy, EnergyDisplayHelper.truncate(e.outputName, 22),
-                        e.completed ? tokens.textStrong() : tokens.textMuted()));
+                panel.addWidget(mkLabel(18, cy, EnergyDisplayHelper.truncate(e.outputName(), 22),
+                        e.completed() ? tokens.textStrong() : tokens.textMuted()));
                 panel.addWidget(mkLabel(210, cy, e.durationStr(), tokens.textMuted()));
 
                 int ago = e.secondsAgo();

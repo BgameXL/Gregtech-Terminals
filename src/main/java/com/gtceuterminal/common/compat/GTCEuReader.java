@@ -1,13 +1,12 @@
 package com.gtceuterminal.common.compat;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.machines.GCYMMachines;
 import com.gtceuterminal.common.config.ComponentEntry;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.ArrayList;

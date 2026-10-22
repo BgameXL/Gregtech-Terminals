@@ -13,15 +13,6 @@ import java.util.List;
 
 final class CandidateClassifier {
 
-    enum Role {
-        STRUCTURAL,
-        REQUIRED,
-        OPTIONAL
-    }
-
-    record CandidateGroup(Role role, SimplePredicate predicate, List<ItemStack> candidates) {
-    }
-
     private CandidateClassifier() {
     }
 
@@ -60,5 +51,14 @@ final class CandidateClassifier {
             if (stack != null && !stack.isEmpty()) out.add(stack);
         }
         return out;
+    }
+
+    enum Role {
+        STRUCTURAL,
+        REQUIRED,
+        OPTIONAL
+    }
+
+    record CandidateGroup(Role role, SimplePredicate predicate, List<ItemStack> candidates) {
     }
 }

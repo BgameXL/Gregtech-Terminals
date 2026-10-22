@@ -9,29 +9,23 @@ import java.util.List;
 
 public class EnergySnapshot {
 
-    public enum MachineMode {CONSUMER, GENERATOR, STORAGE, UNKNOWN}
-
     // Identity
     public String machineCustomName = "";
     public String machineTypeKey = "";
     public MachineMode mode;
     public boolean isFormed;
-
     public long energyStored;
     public long energyCapacity;
     public BigInteger bigStored;
     public BigInteger bigCapacity;
     public boolean usesBigInt;
-
     public long inputPerSec;
     public long outputPerSec;
     public long inputVoltage;
     public long inputAmperage;
     public long outputVoltage;
     public long outputAmperage;
-
     public List<HatchInfo> hatches = new ArrayList<>();
-
     public boolean isRecipeActive = false;
     public String recipeId = "";
     public float recipeProgress = 0f;
@@ -39,9 +33,55 @@ public class EnergySnapshot {
     public int recipeDuration = 0;
     public String recipeTypeName = "";
     public List<RecipeHistoryEntry> recipeHistory = new ArrayList<>();
-
     public long[] inputHistory = new long[0];
     public long[] outputHistory = new long[0];
+
+    public static EnergySnapshot decode(FriendlyByteBuf buf) {
+        EnergySnapshot s = new EnergySnapshot();
+        s.machineCustomName = buf.readUtf();
+        s.machineTypeKey = buf.readUtf();
+        s.mode = buf.readEnum(MachineMode.class);
+        s.isFormed = buf.readBoolean();
+        s.energyStored = buf.readLong();
+        s.energyCapacity = buf.readLong();
+        s.usesBigInt = buf.readBoolean();
+        if (s.usesBigInt) {
+            byte[] bs = new byte[buf.readInt()];
+            buf.readBytes(bs);
+            s.bigStored = new BigInteger(bs);
+            byte[] bc = new byte[buf.readInt()];
+            buf.readBytes(bc);
+            s.bigCapacity = new BigInteger(bc);
+        }
+        s.inputPerSec = buf.readLong();
+        s.outputPerSec = buf.readLong();
+        s.inputVoltage = buf.readLong();
+        s.inputAmperage = buf.readLong();
+        s.outputVoltage = buf.readLong();
+        s.outputAmperage = buf.readLong();
+
+        int hc = buf.readInt();
+        for (int i = 0; i < hc; i++) s.hatches.add(HatchInfo.decode(buf));
+
+        int rhc = buf.readInt();
+        for (int i = 0; i < rhc; i++) s.recipeHistory.add(RecipeHistoryEntry.decode(buf));
+        s.isRecipeActive = buf.readBoolean();
+        s.recipeId = buf.readUtf();
+        s.recipeProgress = buf.readFloat();
+        s.recipeProgressTicks = buf.readInt();
+        s.recipeDuration = buf.readInt();
+        s.recipeTypeName = buf.readUtf();
+
+        int ih = buf.readInt();
+        s.inputHistory = new long[ih];
+        for (int i = 0; i < ih; i++) s.inputHistory[i] = buf.readLong();
+
+        int oh = buf.readInt();
+        s.outputHistory = new long[oh];
+        for (int i = 0; i < oh; i++) s.outputHistory[i] = buf.readLong();
+
+        return s;
+    }
 
     public long netPerSec() {
         return inputPerSec - outputPerSec;
@@ -69,21 +109,6 @@ public class EnergySnapshot {
                     ? bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue()
                     : energyStored;
             return stored <= 0 ? -1 : stored / (-net);
-        }
-    }
-
-    public record HatchInfo(String blockNameKey, String blockId, long voltage, long amperage, boolean isInput) {
-
-        public void encode(FriendlyByteBuf buf) {
-            buf.writeUtf(blockNameKey);
-            buf.writeUtf(blockId);
-            buf.writeLong(voltage);
-            buf.writeLong(amperage);
-            buf.writeBoolean(isInput);
-        }
-
-        public static HatchInfo decode(FriendlyByteBuf buf) {
-            return new HatchInfo(buf.readUtf(), buf.readUtf(), buf.readLong(), buf.readLong(), buf.readBoolean());
         }
     }
 
@@ -138,50 +163,20 @@ public class EnergySnapshot {
         for (long v : outputHistory) buf.writeLong(v);
     }
 
-    public static EnergySnapshot decode(FriendlyByteBuf buf) {
-        EnergySnapshot s = new EnergySnapshot();
-        s.machineCustomName = buf.readUtf();
-        s.machineTypeKey = buf.readUtf();
-        s.mode = buf.readEnum(MachineMode.class);
-        s.isFormed = buf.readBoolean();
-        s.energyStored = buf.readLong();
-        s.energyCapacity = buf.readLong();
-        s.usesBigInt = buf.readBoolean();
-        if (s.usesBigInt) {
-            byte[] bs = new byte[buf.readInt()];
-            buf.readBytes(bs);
-            s.bigStored = new BigInteger(bs);
-            byte[] bc = new byte[buf.readInt()];
-            buf.readBytes(bc);
-            s.bigCapacity = new BigInteger(bc);
+    public enum MachineMode {CONSUMER, GENERATOR, STORAGE, UNKNOWN}
+
+    public record HatchInfo(String blockNameKey, String blockId, long voltage, long amperage, boolean isInput) {
+
+        public static HatchInfo decode(FriendlyByteBuf buf) {
+            return new HatchInfo(buf.readUtf(), buf.readUtf(), buf.readLong(), buf.readLong(), buf.readBoolean());
         }
-        s.inputPerSec = buf.readLong();
-        s.outputPerSec = buf.readLong();
-        s.inputVoltage = buf.readLong();
-        s.inputAmperage = buf.readLong();
-        s.outputVoltage = buf.readLong();
-        s.outputAmperage = buf.readLong();
 
-        int hc = buf.readInt();
-        for (int i = 0; i < hc; i++) s.hatches.add(HatchInfo.decode(buf));
-
-        int rhc = buf.readInt();
-        for (int i = 0; i < rhc; i++) s.recipeHistory.add(RecipeHistoryEntry.decode(buf));
-        s.isRecipeActive = buf.readBoolean();
-        s.recipeId = buf.readUtf();
-        s.recipeProgress = buf.readFloat();
-        s.recipeProgressTicks = buf.readInt();
-        s.recipeDuration = buf.readInt();
-        s.recipeTypeName = buf.readUtf();
-
-        int ih = buf.readInt();
-        s.inputHistory = new long[ih];
-        for (int i = 0; i < ih; i++) s.inputHistory[i] = buf.readLong();
-
-        int oh = buf.readInt();
-        s.outputHistory = new long[oh];
-        for (int i = 0; i < oh; i++) s.outputHistory[i] = buf.readLong();
-
-        return s;
+        public void encode(FriendlyByteBuf buf) {
+            buf.writeUtf(blockNameKey);
+            buf.writeUtf(blockId);
+            buf.writeLong(voltage);
+            buf.writeLong(amperage);
+            buf.writeBoolean(isInput);
+        }
     }
 }

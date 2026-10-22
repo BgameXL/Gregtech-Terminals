@@ -16,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,11 +24,11 @@ import java.util.List;
 
 public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
+    private static final long CACHE_DURATION = 1000;
     private final MEStorage inventory;
     private final IActionSource actionSource;
-    private List<FluidStack> cachedFluids;
+    private final List<FluidStack> cachedFluids;
     private long lastCacheUpdate = 0;
-    private static final long CACHE_DURATION = 1000;
 
     public MENetworkFluidHandlerWrapper(MEStorage inventory, IActionSource actionSource) {
         this.inventory = inventory;

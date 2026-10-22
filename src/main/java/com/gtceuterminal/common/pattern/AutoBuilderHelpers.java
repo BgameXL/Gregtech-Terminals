@@ -1,19 +1,15 @@
 package com.gtceuterminal.common.pattern;
 
-import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
-import com.gtceuterminal.common.config.ManagerSettings;
-
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gtceuterminal.common.compat.GTCEuCompat;
-
+import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
+import com.gtceuterminal.common.config.ManagerSettings;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
-
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +19,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
-
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;

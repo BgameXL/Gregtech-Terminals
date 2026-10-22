@@ -1,15 +1,13 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.network.CPacketRequestEnergyUpdate;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class EnergyUpdateWidget extends Widget {
 
@@ -36,14 +33,14 @@ public class EnergyUpdateWidget extends Widget {
         this.holder = holder;
     }
 
-    public void setRebuildCallback(Runnable callback) {
-        this.rebuildCallback = callback;
-        activeClient = this;
-    }
-
     public static void onServerUpdate(List<EnergySnapshot> fresh) {
         EnergyUpdateWidget w = activeClient;
         if (w != null) w.applyUpdate(fresh);
+    }
+
+    public void setRebuildCallback(Runnable callback) {
+        this.rebuildCallback = callback;
+        activeClient = this;
     }
 
     private void applyUpdate(List<EnergySnapshot> fresh) {

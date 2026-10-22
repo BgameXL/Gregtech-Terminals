@@ -9,7 +9,9 @@ import com.gtceuterminal.client.gui.multiblock.MultiblockUpgradePanel;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
 import com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI;
 import com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI;
+import com.gtceuterminal.client.highlight.MultiblockHighlighter;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
@@ -38,12 +40,7 @@ public final class ClientPacketHandlers {
     private ClientPacketHandlers() {
     }
 
-    public static void handleDefaultTheme(int accentColor, int bgColor, int panelColor,
-                                          int textColor, int textMutedColor, int borderColor,
-                                          int successColor, int warningColor, int errorColor,
-                                          boolean compactMode,
-                                          boolean showTooltips, boolean showBorders,
-                                          String wallpaper) {
+    public static void handleDefaultTheme(int accentColor, int bgColor, int panelColor, int textColor, int textMutedColor, int borderColor, int successColor, int warningColor, int errorColor, boolean compactMode, boolean showTooltips, boolean showBorders, String wallpaper) {
         ItemTheme theme = new ItemTheme();
         theme.accentColor = accentColor;
         theme.bgColor = bgColor;
@@ -67,16 +64,39 @@ public final class ClientPacketHandlers {
             Player player = mc.player;
             if (player == null) return;
 
+            boolean hasIntruders = result.kind == AnalysisResult.Kind.BUILD
+                    && !result.intruderPositions.isEmpty();
+
+            if (result.entries.isEmpty() && hasIntruders) {
+                highlightIntruders(result);
+                return;
+            }
+
             ModularUI ui = new ModularUI(IUIHolder.EMPTY, player);
             ui.setFullScreen();
             ui.mainGroup.setClientSideWidget();
 
-            new AutocraftConfirmDialog(ui.mainGroup, result, player);
+            AutocraftConfirmDialog dialog = new AutocraftConfirmDialog(ui.mainGroup, result, player);
+            if (hasIntruders) {
+                dialog.setOnClose(() -> highlightIntruders(result));
+            }
 
             openClientOnly(ui);
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("ClientPacketHandlers: failed to open confirm dialog", e);
         }
+    }
+
+    private static void highlightIntruders(AnalysisResult result) {
+        handleHighlightPositions(result.controllerPos, result.intruderPositions);
+    }
+
+    public static void handleHighlightPositions(BlockPos controllerPos, java.util.List<BlockPos> positions) {
+        if (positions == null || positions.isEmpty()) return;
+        MultiblockHighlighter.highlightPositions(controllerPos,
+                new java.util.HashSet<>(positions),
+                ItemsConfig.getMgrIntruderHighlightColor(),
+                ItemsConfig.getMgrHighlightDurationMs());
     }
 
     public static void handleUpgradeAvailability(int requestId, AnalysisResult result) {

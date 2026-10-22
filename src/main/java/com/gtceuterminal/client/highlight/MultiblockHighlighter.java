@@ -3,7 +3,6 @@ package com.gtceuterminal.client.highlight;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockScanner;
-import com.gtceuterminal.common.multiblock.MultiblockStatus;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 
@@ -99,10 +98,6 @@ public class MultiblockHighlighter {
 
         HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
         activeHighlights.put(controllerPos, info);
-
-        /**com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
-         "Highlight: {} blocks at {} color=0x{} duration={}ms",
-         blocks.size(), controllerPos, Integer.toHexString(color), durationMs);**/
     }
 
     public static void highlightByStatus(MultiblockInfo multiblock, int durationMs) {
@@ -125,6 +120,12 @@ public class MultiblockHighlighter {
 
         com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
                 "Highlight added: {} blocks at {} color=0x{}", blocks.size(), controllerPos, Integer.toHexString(color));
+    }
+
+    public static void highlightPositions(BlockPos controllerPos, Set<BlockPos> blocks, int color, int durationMs) {
+        if (blocks == null || blocks.isEmpty()) return;
+        HighlightInfo info = new HighlightInfo(controllerPos, new java.util.HashSet<>(blocks), color, durationMs);
+        activeHighlights.put(controllerPos, info);
     }
 
     public static void highlight(IMultiController controller) {

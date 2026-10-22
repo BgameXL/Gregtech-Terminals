@@ -122,11 +122,40 @@ public class AdvancedAutoBuilder {
 
                             GTCEuCompat.update(worldState, pos, predicate);
 
-                            if (!world.isEmptyBlock(pos)) {
-                                blocks.put(pos, world.getBlockState(pos));
+                            BlockState existing = world.getBlockState(pos);
+                            boolean floodedSolid = AutoBuilderHelpers.isLiquidReplaceableForSolid(existing, predicate);
+                            if (!existing.isAir() && !floodedSolid) {
+                                blocks.put(pos, existing);
                                 for (SimplePredicate limit : predicate.limited) limit.testLimited(worldState);
                             } else {
                                 BlockInfo[] infos = AutoBuilderHelpers.pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
+
+                                List<net.minecraft.world.level.material.Fluid> fluidCandidates = new ArrayList<>();
+                                boolean hasSolidCandidate = false;
+                                if (infos != null) for (BlockInfo info : infos) {
+                                    BlockState bs = info.getBlockState();
+                                    if (bs.isAir()) continue;
+                                    if (bs.getFluidState().isSource()) fluidCandidates.add(bs.getFluidState().getType());
+                                    else hasSolidCandidate = true;
+                                }
+
+                                if (!hasSolidCandidate && !fluidCandidates.isEmpty()) {
+                                    IItemHandler fluidInv = player.isCreative() ? null
+                                            : player.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
+                                    IFluidHandler fluidSource = (!player.isCreative() && settings.isUseAE == 1) ? fluidStorage : null;
+                                    boolean placedFluid = false;
+                                    for (net.minecraft.world.level.material.Fluid f : fluidCandidates) {
+                                        placedFluid = FluidPlacementHelper.tryPlaceFluid(world, pos, player, f, fluidInv, fluidSource);
+                                        if (placedFluid) break;
+                                    }
+                                    if (placedFluid) {
+                                        placedByUs.add(pos);
+                                        placedCount++;
+                                        blocks.put(pos, world.getBlockState(pos));
+                                    }
+                                    continue;
+                                }
+
                                 List<ItemStack> candidates = new ArrayList<>();
                                 if (infos != null) for (BlockInfo info : infos)
                                     if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
@@ -136,33 +165,6 @@ public class AdvancedAutoBuilder {
                                     candidates = CandidateFilter.filterOutMultiblockParts(candidates);
                                 candidates = CandidateSelector.excludeOptionalAllowances(candidates, predicate);
                                 candidates = CandidateSelector.applyTierPreference(candidates, settings);
-
-                                // Fluid block handling
-                                boolean isFluidBlock = false;
-                                net.minecraft.world.level.material.Fluid targetFluid = null;
-                                for (ItemStack cand : candidates) {
-                                    if (cand.getItem() instanceof BlockItem bi) {
-                                        BlockState cs = bi.getBlock().defaultBlockState();
-                                        if (cs.getFluidState().isSource()) {
-                                            isFluidBlock = true;
-                                            targetFluid = cs.getFluidState().getType();
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (isFluidBlock && targetFluid != null) {
-                                    boolean placed = player.isCreative()
-                                            ? FluidPlacementHelper.tryPlaceFluid(world, pos, player, targetFluid, null, null)
-                                            : FluidPlacementHelper.tryPlaceFluid(world, pos, player, targetFluid,
-                                            player.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null), fluidStorage);
-                                    if (placed) {
-                                        placedByUs.add(pos);
-                                        placedCount++;
-                                        blocks.put(pos, world.getBlockState(pos));
-                                    }
-                                    continue;
-                                }
 
                                 ItemStack found = null;
                                 int foundSlot = -1;

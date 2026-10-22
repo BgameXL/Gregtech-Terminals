@@ -23,6 +23,7 @@ public class ItemsConfig {
     private static boolean mgr_allowMENetworkUpgrade = true;
     private static int mgr_highlightDurationSec = 10;
     private static int mgr_highlightColor = 0x00AAFF;
+    private static int mgr_intruderHighlightColor = 0xFF3030;
 
     private static boolean sch_allowAE2ConfigCopy = true;
     private static Set<Block> sch_blockBlacklist = new HashSet<>();
@@ -79,6 +80,7 @@ public class ItemsConfig {
         mgr_allowMENetworkUpgrade = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
         mgr_highlightDurationSec = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
         mgr_highlightColor = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
+        mgr_intruderHighlightColor = parseHexColor(LOADER.getString("manager.intruder_highlight_color", "FF3030"), 0xFF3030);
 
         sch_allowAE2ConfigCopy = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
 
@@ -147,6 +149,10 @@ public class ItemsConfig {
 
     public static int getMgrHighlightDurationMs() {
         return mgr_highlightDurationSec * 1000;
+    }
+
+    public static int getMgrIntruderHighlightColor() {
+        return mgr_intruderHighlightColor;
     }
 
     public static int getMgrHighlightColor() {

@@ -21,9 +21,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -58,6 +61,50 @@ public final class AutoBuilderHelpers {
         int desired = Math.max(repeatCount, min);
         if (max >= min && max > 0) desired = Math.min(desired, max);
         return Math.max(1, desired);
+    }
+
+    public static boolean isLiquidReplaceableForSolid(BlockState current, TraceabilityPredicate pred) { // NO IT DOES NOT NOW
+        if (current == null || current.isAir()) return false;
+        var fluidState = current.getFluidState();
+        if (fluidState.isEmpty() || !current.canBeReplaced()) return false;
+
+        Fluid currentFluid = normalizeSource(fluidState.getType());
+        boolean wantsSolid = false;
+        boolean acceptsCurrentFluid = false;
+
+        for (SimplePredicate sp : allSimple(pred)) {
+            if (sp == null || sp.candidates == null) continue;
+            BlockInfo[] infos;
+            try {
+                infos = sp.candidates.get();
+            } catch (Throwable t) {
+                continue;
+            }
+            if (infos == null) continue;
+            for (BlockInfo info : infos) {
+                if (info == null) continue;
+                BlockState bs = info.getBlockState();
+                if (bs.isAir()) continue;
+                var candFluid = bs.getFluidState();
+                if (candFluid.isSource()) {
+                    if (normalizeSource(candFluid.getType()) == currentFluid) acceptsCurrentFluid = true;
+                } else {
+                    wantsSolid = true;
+                }
+            }
+        }
+        return wantsSolid && !acceptsCurrentFluid;
+    }
+
+    private static Fluid normalizeSource(Fluid fluid) {
+        return fluid instanceof FlowingFluid ff ? ff.getSource() : fluid;
+    }
+
+    private static List<SimplePredicate> allSimple(TraceabilityPredicate pred) {
+        List<SimplePredicate> out = new ArrayList<>(pred.common.size() + pred.limited.size());
+        out.addAll(pred.common);
+        out.addAll(pred.limited);
+        return out;
     }
 
     static BlockInfo[] pickInfosForPredicate(TraceabilityPredicate predicate,

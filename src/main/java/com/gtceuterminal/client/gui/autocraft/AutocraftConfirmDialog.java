@@ -38,6 +38,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private final AnalysisResult result;
     private final ItemTheme theme;
     private final TerminalTheme tokens;
+    private Runnable onClose;
 
     private int w = DESIGN_W;
     private int h = DESIGN_H;
@@ -57,6 +58,10 @@ public class AutocraftConfirmDialog extends DialogWidget {
         initDialog();
     }
 
+    public void setOnClose(Runnable onClose) {
+        this.onClose = onClose;
+    }
+
     @Override
     public void close() {
         super.close();
@@ -66,6 +71,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         } else {
             mc.setScreen(null);
         }
+        if (onClose != null) onClose.run();
     }
 
     private void initDialog() {

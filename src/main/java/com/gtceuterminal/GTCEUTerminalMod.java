@@ -3,6 +3,7 @@ package com.gtceuterminal;
 import com.gtceuterminal.common.ae2.AE2Integration;
 import com.gtceuterminal.common.command.GTCETerminalCommands;
 import com.gtceuterminal.common.compat.integrations.StarTCoreIntegration;
+import com.gtceuterminal.common.compat.integrations.TFGIntegration;
 import com.gtceuterminal.common.config.ClientConfig;
 import com.gtceuterminal.common.config.ComponentPatternRegistry;
 import com.gtceuterminal.common.config.ItemsConfig;
@@ -95,6 +96,7 @@ public class GTCEUTerminalMod {
                 com.gtceuterminal.common.ae2.MENetworkCrafting.init();
             }
             StarTCoreIntegration.init();
+            TFGIntegration.init();
         });
 
     }

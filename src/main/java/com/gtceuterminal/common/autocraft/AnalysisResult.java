@@ -13,12 +13,18 @@ public final class AnalysisResult {
         public final long inME;
         public final long inInventory;
         public final boolean craftable;
+        public final boolean informational;
 
         public Entry(ItemStack stack, long inME, long inInventory, boolean craftable) {
+            this(stack, inME, inInventory, craftable, false);
+        }
+
+        public Entry(ItemStack stack, long inME, long inInventory, boolean craftable, boolean informational) {
             this.stack = stack;
             this.inME = inME;
             this.inInventory = inInventory;
             this.craftable = craftable;
+            this.informational = informational;
         }
 
         public int needed() {
@@ -38,10 +44,11 @@ public final class AnalysisResult {
             buf.writeLong(inME);
             buf.writeLong(inInventory);
             buf.writeBoolean(craftable);
+            buf.writeBoolean(informational);
         }
 
         public static Entry decode(FriendlyByteBuf buf) {
-            return new Entry(buf.readItem(), buf.readLong(), buf.readLong(), buf.readBoolean());
+            return new Entry(buf.readItem(), buf.readLong(), buf.readLong(), buf.readBoolean(), buf.readBoolean());
         }
     }
 
@@ -55,9 +62,15 @@ public final class AnalysisResult {
     public final int targetTier;
     public final ItemStack targetItemStack;
     public final int componentCount;
+    public final List<net.minecraft.core.BlockPos> intruderPositions;
 
     // BUILD constructor
     public AnalysisResult(List<Entry> entries, net.minecraft.core.BlockPos controllerPos) {
+        this(entries, controllerPos, List.of());
+    }
+
+    public AnalysisResult(List<Entry> entries, net.minecraft.core.BlockPos controllerPos,
+                          List<net.minecraft.core.BlockPos> intruderPositions) {
         this.kind = Kind.BUILD;
         this.entries = entries;
         this.controllerPos = controllerPos;
@@ -66,6 +79,7 @@ public final class AnalysisResult {
         this.componentPositions = List.of();
         this.targetItemStack = ItemStack.EMPTY;
         this.componentCount = 0;
+        this.intruderPositions = intruderPositions;
     }
 
     // UPGRADE constructor
@@ -84,6 +98,7 @@ public final class AnalysisResult {
         this.componentPositions = componentPositions;
         this.targetItemStack = targetItemStack;
         this.componentCount = componentCount;
+        this.intruderPositions = List.of();
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -100,6 +115,9 @@ public final class AnalysisResult {
 
         buf.writeInt(entries.size());
         for (Entry e : entries) e.encode(buf);
+
+        buf.writeInt(intruderPositions.size());
+        for (var pos : intruderPositions) buf.writeBlockPos(pos);
     }
 
     public static AnalysisResult decode(FriendlyByteBuf buf) {
@@ -120,8 +138,12 @@ public final class AnalysisResult {
         List<Entry> entries = new ArrayList<>(entryCount);
         for (int i = 0; i < entryCount; i++) entries.add(Entry.decode(buf));
 
+        int intruderCount = buf.readInt();
+        List<net.minecraft.core.BlockPos> intruders = new ArrayList<>(intruderCount);
+        for (int i = 0; i < intruderCount; i++) intruders.add(buf.readBlockPos());
+
         if (kind == Kind.BUILD) {
-            return new AnalysisResult(entries, controllerPos);
+            return new AnalysisResult(entries, controllerPos, intruders);
         } else {
             return new AnalysisResult(entries, controllerPos, targetTier, upgradeId,
                     comps, targetStack, componentCnt);
@@ -129,14 +151,14 @@ public final class AnalysisResult {
     }
 
     public boolean allAvailable() {
-        return entries.stream().allMatch(Entry::hasAll);
+        return entries.stream().filter(e -> !e.informational).allMatch(Entry::hasAll);
     }
 
     public boolean anyMissing() {
-        return entries.stream().anyMatch(e -> !e.hasAll() && !e.craftable);
+        return entries.stream().filter(e -> !e.informational).anyMatch(e -> !e.hasAll() && !e.craftable);
     }
 
     public int missingCount() {
-        return (int) entries.stream().filter(e -> !e.hasAll()).count();
+        return (int) entries.stream().filter(e -> !e.informational && !e.hasAll()).count();
     }
 }

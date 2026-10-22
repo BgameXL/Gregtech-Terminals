@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.autocraft;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
 import com.gtceuterminal.common.ae2.MEQueryResult;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
@@ -24,7 +25,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import com.gtceuterminal.common.pattern.CandidateFilter;
 import com.gtceuterminal.common.pattern.CandidateSelector;
@@ -66,6 +72,8 @@ public final class MultiblockAnalyzer {
             GTCEuCompat.clean(worldState);
 
             Map<Item, Integer> needed = new LinkedHashMap<>();
+            Map<Fluid, Integer> neededFluids = new LinkedHashMap<>();
+            List<BlockPos> intruders = new ArrayList<>();
 
             for (int c = 0, z = minZ++; c < blockMatches.length; c++) {
                 int reps = getRepetitions(c, aisleReps, settings.repeatCount);
@@ -77,13 +85,35 @@ public final class MultiblockAnalyzer {
                             BlockPos pos = relativeOffset(structDir, x, y, z, facing, upFacing, isFlipped)
                                     .offset(centerPos);
 
-                            if (!player.level().isEmptyBlock(pos)) {
+                            var currentState = player.level().getBlockState(pos);
+                            boolean floodedSolid = AutoBuilderHelpers.isLiquidReplaceableForSolid(currentState, pred);
+                            if (!currentState.isAir() && !floodedSolid) {
                                 GTCEuCompat.update(worldState, pos, pred);
-                                for (SimplePredicate lim : pred.limited) lim.testLimited(worldState);
+                                if (!pred.test(worldState)) intruders.add(pos.immutable());
                                 continue;
                             }
 
                             BlockInfo[] infos = pickInfos(pred, cacheGlobal, cacheLayer);
+
+                            List<Fluid> fluidCandidates = new ArrayList<>();
+                            boolean hasSolidCandidate = false;
+                            if (infos != null) for (BlockInfo info : infos) {
+                                if (info == null) continue;
+                                var bs = info.getBlockState();
+                                if (bs.isAir()) continue;
+                                if (bs.getFluidState().isSource()) fluidCandidates.add(bs.getFluidState().getType());
+                                else hasSolidCandidate = true;
+                            }
+
+                            if (!hasSolidCandidate && !fluidCandidates.isEmpty()) {
+                                Fluid chosen = null;
+                                for (Fluid f : fluidCandidates)
+                                    if (f instanceof FlowingFluid) { chosen = f; break; }
+                                if (chosen == null) chosen = fluidCandidates.get(0);
+                                neededFluids.merge(chosen, 1, Integer::sum);
+                                continue;
+                            }
+
                             List<ItemStack> candidates = new ArrayList<>();
                             if (infos != null) for (BlockInfo info : infos)
                                 if (info != null && !info.getBlockState().isAir())
@@ -105,7 +135,9 @@ public final class MultiblockAnalyzer {
             }
 
             MEQueryResult meQuery = MEQueryResult.resolve(player);
-            return buildEntries(needed, meQuery, controller.self().getPos(), player);
+            List<AnalysisResult.Entry> entries = buildEntries(needed, meQuery, player);
+            entries.addAll(buildFluidEntries(neededFluids, player, settings));
+            return new AnalysisResult(entries, controller.self().getPos(), intruders);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForBuild failed", e);
@@ -140,9 +172,8 @@ public final class MultiblockAnalyzer {
 
         try {
             MEQueryResult meQuery = MEQueryResult.resolve(player);
-            AnalysisResult base = buildEntries(needed, meQuery, controllerPos, player);
-            if (base == null) return null;
-            return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId,
+            List<AnalysisResult.Entry> entries = buildEntries(needed, meQuery, player);
+            return new AnalysisResult(entries, controllerPos, targetTier, upgradeId,
                     positions, targetStack, components.size());
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForUpgrade failed", e);
@@ -150,10 +181,9 @@ public final class MultiblockAnalyzer {
         }
     }
 
-    private static AnalysisResult buildEntries(Map<Item, Integer> needed,
-                                               MEQueryResult meQuery,
-                                               BlockPos controllerPos,
-                                               Player player) {
+    private static List<AnalysisResult.Entry> buildEntries(Map<Item, Integer> needed,
+                                                           MEQueryResult meQuery,
+                                                           Player player) {
         List<AnalysisResult.Entry> entries = new ArrayList<>();
         for (Map.Entry<Item, Integer> e : needed.entrySet()) {
             Item item = e.getKey();
@@ -164,7 +194,44 @@ public final class MultiblockAnalyzer {
                     && (inME + inInv < required) && meQuery.isCraftable(item);
             entries.add(new AnalysisResult.Entry(new ItemStack(item, required), inME, inInv, craftable));
         }
-        return new AnalysisResult(entries, controllerPos);
+        return entries;
+    }
+
+    private static List<AnalysisResult.Entry> buildFluidEntries(Map<Fluid, Integer> neededFluids,
+                                                                Player player,
+                                                                ManagerSettings.AutoBuildSettings settings) {
+        List<AnalysisResult.Entry> out = new ArrayList<>();
+        if (neededFluids.isEmpty()) return out;
+
+        IFluidHandler meFluids = null;
+        if (settings.isUseAE == 1) {
+            try {
+                meFluids = MENetworkFluidHandlerWrapper.getFromPlayer(player);
+            } catch (Throwable t) {
+                GTCEUTerminalMod.LOGGER.debug("buildFluidEntries: ME fluid storage unavailable: {}", t.toString());
+            }
+        }
+
+        for (Map.Entry<Fluid, Integer> e : neededFluids.entrySet()) {
+            Fluid fluid = e.getKey();
+            int required = e.getValue();
+            Item bucket = fluid.getBucket();
+            if (bucket == null || bucket == Items.AIR) continue;
+
+            long inInv = countInInventory(player, bucket);
+            long inME = 0;
+            if (meFluids != null) {
+                try {
+                    int mb = meFluids.drain(new FluidStack(fluid, Integer.MAX_VALUE),
+                            IFluidHandler.FluidAction.SIMULATE).getAmount();
+                    inME = mb / 1000L;
+                } catch (Throwable t) {
+                    GTCEUTerminalMod.LOGGER.debug("buildFluidEntries: drain simulate failed: {}", t.toString());
+                }
+            }
+            out.add(new AnalysisResult.Entry(new ItemStack(bucket, required), inME, inInv, false, true));
+        }
+        return out;
     }
 
     private static long countInInventory(Player player, Item item) {

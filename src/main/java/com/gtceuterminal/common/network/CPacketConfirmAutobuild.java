@@ -275,6 +275,7 @@ public class CPacketConfirmAutobuild {
         boolean anyDeficit = false;
 
         for (AnalysisResult.Entry e : entries) {
+            if (e.informational) continue;
             int needed = e.needed();
             long avail = aeOnly ? e.inME : e.inME + countInInventory(player, e.stack.getItem());
             if (avail >= needed) continue;

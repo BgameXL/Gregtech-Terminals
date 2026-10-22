@@ -105,8 +105,23 @@ public class MultiStructureManagerBehavior {
                                     false);
                         }
                         try {
+                            com.gtceuterminal.common.autocraft.AnalysisResult analysis =
+                                    com.gtceuterminal.common.autocraft.MultiblockAnalyzer.analyzeForBuild(
+                                            player, controller, buildSettings);
+                            boolean hasIntruders = analysis != null && !analysis.intruderPositions.isEmpty();
+
                             boolean success = AdvancedAutoBuilder.autoBuild(player, controller, buildSettings);
-                            if (success) {
+
+                            if (hasIntruders) {
+                                TerminalNetwork.sendToPlayer(
+                                        new com.gtceuterminal.common.network.SPacketHighlightPositions(
+                                                controller.self().getPos(), analysis.intruderPositions),
+                                        (ServerPlayer) player);
+                                sendMessage(player,
+                                        Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.invalid_blocks_highlighted"),
+                                        false);
+                                playSound(level, blockPos, SoundEvents.ANVIL_LAND, 0.5f, 0.8f);
+                            } else if (success) {
                                 if (cooldownTicks > 0)
                                     player.getCooldowns().addCooldown(itemStack.getItem(), cooldownTicks);
                                 sendMessage(player,
@@ -163,7 +178,8 @@ public class MultiStructureManagerBehavior {
                                 com.gtceuterminal.common.autocraft.MultiblockAnalyzer.analyzeForBuild(
                                         player, controller, buildSettings);
 
-                        if (analysis == null || analysis.entries.isEmpty()) {
+                        if (analysis == null
+                                || (analysis.entries.isEmpty() && analysis.intruderPositions.isEmpty())) {
                             sendMessage(player,
                                     Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.nothing_to_build"),
                                     true);

@@ -151,6 +151,28 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
+        if (resource == null || resource.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            long dropletsOffered = resource.getAmount() * 81L;
+            AEFluidKey fluidKey = AEFluidKey.of(resource.getFluid());
+
+            long inserted;
+            if (action == FluidAction.SIMULATE) {
+                inserted = inventory.insert(fluidKey, dropletsOffered, Actionable.SIMULATE, actionSource);
+            } else {
+                inserted = inventory.insert(fluidKey, dropletsOffered, Actionable.MODULATE, actionSource);
+                lastCacheUpdate = 0;
+            }
+
+            return (int) (inserted / 81);
+
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.error("Error inserting fluid into ME Network", e);
+        }
+
         return 0;
     }
 

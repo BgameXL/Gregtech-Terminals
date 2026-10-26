@@ -8,11 +8,28 @@ import appeng.api.stacks.AEItemKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class MENetworkItemExtractor {
+
+    public static long insertItem(IGrid grid, ItemStack stack, Player player) {
+        if (stack.isEmpty()) return 0;
+        if (grid == null) return stack.getCount();
+        IStorageService storage = grid.getStorageService();
+        if (storage == null) return stack.getCount();
+        AEItemKey key = AEItemKey.of(stack);
+        if (key == null) return stack.getCount();
+        long inserted = storage.getInventory().insert(key, stack.getCount(), Actionable.MODULATE,
+                IActionSource.ofPlayer(player));
+        return stack.getCount() - inserted;
+    }
+
+    public static long insertItem(ItemStack terminalStack, Level level, Player player, ItemStack stack) {
+        return insertItem(resolveGrid(terminalStack, level, player), stack, player);
+    }
 
     public static boolean extractItems(IGrid grid, Map<Item, Integer> required, Player player) {
         if (grid == null) return false;

@@ -86,10 +86,16 @@ public class AdvancedAutoBuilder {
 
             int placedCount = 0;
 
-            IFluidHandler fluidStorage = null;
-            try {
-                fluidStorage = getMENetworkFluidStorage(player);
-            } catch (Exception ignored) {
+            PlayerFluidReservoir fluidReservoir = null;
+            if (!player.isCreative()) {
+                IFluidHandler me = null;
+                if (settings.isUseAE == 1) {
+                    try {
+                        me = getMENetworkFluidStorage(player);
+                    } catch (Exception ignored) {
+                    }
+                }
+                fluidReservoir = new PlayerFluidReservoir(player, me);
             }
 
             final int fingerLength = blockMatches.length;
@@ -130,12 +136,9 @@ public class AdvancedAutoBuilder {
                                 }
 
                                 if (!hasSolidCandidate && !fluidCandidates.isEmpty()) {
-                                    IItemHandler fluidInv = player.isCreative() ? null
-                                            : player.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null);
-                                    IFluidHandler fluidSource = (!player.isCreative() && settings.isUseAE == 1) ? fluidStorage : null;
                                     boolean placedFluid = false;
                                     for (net.minecraft.world.level.material.Fluid f : fluidCandidates) {
-                                        placedFluid = FluidPlacementHelper.tryPlaceFluid(world, pos, player, f, fluidInv, fluidSource);
+                                        placedFluid = FluidPlacementHelper.tryPlaceFluid(world, pos, player, f, fluidReservoir);
                                         if (placedFluid) break;
                                     }
                                     if (placedFluid) {

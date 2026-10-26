@@ -70,90 +70,14 @@ public class EnergyAnalyzerItem extends Item {
         if (level.isClientSide) return InteractionResult.SUCCESS;
 
         MetaMachine machine = MetaMachine.getMachine(level, pos);
-        if (machine == null) return InteractionResult.PASS;
-
-        String dimId = LinkedMachineData.dimId(level);
-        Block ctrlBlock = level.getBlockState(pos).getBlock();
-        var blockRl = ForgeRegistries.BLOCKS.getKey(ctrlBlock);
-        String controllerBlockKey = blockRl != null ? blockRl.toString() : "";
-        Component controllerName = ctrlBlock.getName();
 
         if (player.isShiftKeyDown()) {
-            List<LinkedMachineData> machines = loadMachines(stack);
-
-            for (int i = 0; i < machines.size(); i++) {
-                if (machines.get(i).matches(pos, dimId)) {
-                    machines.remove(i);
-                    EnergyDataCollector.clearHistory(level, pos);
-                    saveMachines(stack, machines);
-                    player.displayClientMessage(
-                            Component.translatable(
-                                    "item.gtceuterminal.energy_analyzer.message.unlinked",
-                                    controllerName
-                            ),
-                            true
-                    );
-                    return InteractionResult.SUCCESS;
-                }
-            }
-
-            int max = ItemsConfig.getEAMaxLinkedMachines();
-            if (machines.size() >= max) {
-                player.displayClientMessage(
-                        Component.translatable(
-                                "item.gtceuterminal.energy_analyzer.message.cannot_link_more",
-                                max
-                        ),
-                        true
-                );
-                return InteractionResult.FAIL;
-            }
-
-            if (!ItemsConfig.isEADimensionAllowed(dimId)) {
-                player.displayClientMessage(
-                        Component.translatable(
-                                "item.gtceuterminal.energy_analyzer.message.dimension_not_allowed",
-                                dimId
-                        ),
-                        true
-                );
-                return InteractionResult.FAIL;
-            }
-
-            machines.add(new LinkedMachineData(pos, dimId, "", controllerBlockKey));
-            saveMachines(stack, machines);
-            player.displayClientMessage(
-                    Component.translatable(
-                            "item.gtceuterminal.energy_analyzer.message.linked",
-                            controllerName, machines.size(), max
-                    ),
-                    true
-            );
-            return InteractionResult.SUCCESS;
-
-        } else {
-            List<LinkedMachineData> machines = loadMachines(stack);
-            int idx = -1;
-            for (int i = 0; i < machines.size(); i++) {
-                if (machines.get(i).matches(pos, dimId)) {
-                    idx = i;
-                    break;
-                }
-            }
-            if (idx < 0) {
-                player.displayClientMessage(
-                        Component.translatable(
-                                "item.gtceuterminal.energy_analyzer.message.machine_not_linked_prompt"
-                        ),
-                        true
-                );
-                return InteractionResult.SUCCESS;
-            }
-            if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
-                SPacketOpenEnergyAnalyzerUI.openFor(sp, idx);
-            }
-            return InteractionResult.SUCCESS;
+            if (machine == null) return InteractionResult.PASS;
+            return linkOrUnlink(player, stack, level, pos);
         }
+
+        openAnalyzer(player, stack, level, machine != null ? pos : null);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -162,21 +86,80 @@ public class EnergyAnalyzerItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide) return InteractionResultHolder.success(stack);
 
+        if (!player.isShiftKeyDown()) {
+            openAnalyzer(player, stack, level, null);
+        }
+        return InteractionResultHolder.success(stack);
+    }
+
+    private void openAnalyzer(Player player, ItemStack stack, Level level, @Nullable BlockPos clickedPos) {
         List<LinkedMachineData> machines = loadMachines(stack);
         if (machines.isEmpty()) {
             player.displayClientMessage(
-                    Component.translatable(
-                            "item.gtceuterminal.energy_analyzer.message.no_machines_linked_air"
-                    ),
-                    true
-            );
-            return InteractionResultHolder.success(stack);
+                    Component.translatable("item.gtceuterminal.energy_analyzer.message.no_machines_linked_air"),
+                    true);
+            return;
+        }
+
+        int idx = 0;
+        if (clickedPos != null) {
+            String dimId = LinkedMachineData.dimId(level);
+            for (int i = 0; i < machines.size(); i++) {
+                if (machines.get(i).matches(clickedPos, dimId)) {
+                    idx = i;
+                    break;
+                }
+            }
         }
 
         if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
-            SPacketOpenEnergyAnalyzerUI.openFor(sp, 0);
+            SPacketOpenEnergyAnalyzerUI.openFor(sp, idx);
         }
-        return InteractionResultHolder.success(stack);
+    }
+
+    private InteractionResult linkOrUnlink(Player player, ItemStack stack, Level level, BlockPos pos) {
+        String dimId = LinkedMachineData.dimId(level);
+        Block ctrlBlock = level.getBlockState(pos).getBlock();
+        var blockRl = ForgeRegistries.BLOCKS.getKey(ctrlBlock);
+        String controllerBlockKey = blockRl != null ? blockRl.toString() : "";
+        Component controllerName = ctrlBlock.getName();
+
+        List<LinkedMachineData> machines = loadMachines(stack);
+
+        for (int i = 0; i < machines.size(); i++) {
+            if (machines.get(i).matches(pos, dimId)) {
+                machines.remove(i);
+                EnergyDataCollector.clearHistory(level, pos);
+                saveMachines(stack, machines);
+                player.displayClientMessage(
+                        Component.translatable("item.gtceuterminal.energy_analyzer.message.unlinked", controllerName),
+                        true);
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        int max = ItemsConfig.getEAMaxLinkedMachines();
+        if (machines.size() >= max) {
+            player.displayClientMessage(
+                    Component.translatable("item.gtceuterminal.energy_analyzer.message.cannot_link_more", max),
+                    true);
+            return InteractionResult.FAIL;
+        }
+
+        if (!ItemsConfig.isEADimensionAllowed(dimId)) {
+            player.displayClientMessage(
+                    Component.translatable("item.gtceuterminal.energy_analyzer.message.dimension_not_allowed", dimId),
+                    true);
+            return InteractionResult.FAIL;
+        }
+
+        machines.add(new LinkedMachineData(pos, dimId, "", controllerBlockKey));
+        saveMachines(stack, machines);
+        player.displayClientMessage(
+                Component.translatable("item.gtceuterminal.energy_analyzer.message.linked",
+                        controllerName, machines.size(), max),
+                true);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -215,7 +198,6 @@ public class EnergyAnalyzerItem extends Item {
 
         tooltip.add(Component.literal(""));
         tooltip.add(Component.translatable("item.gtceuterminal.energy_analyzer.tooltip.right_click_open"));
-        tooltip.add(Component.translatable("item.gtceuterminal.energy_analyzer.tooltip.right_click_air_open"));
         tooltip.add(Component.translatable("item.gtceuterminal.energy_analyzer.tooltip.shift_right_click_manage"));
     }
 }

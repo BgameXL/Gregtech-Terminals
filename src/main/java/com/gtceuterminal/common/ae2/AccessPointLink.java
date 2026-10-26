@@ -27,8 +27,20 @@ public class AccessPointLink {
     public static boolean isOurLinkedItem(ItemStack stack) {
         return !stack.isEmpty()
                 && (stack.getItem() instanceof com.gtceuterminal.common.item.MultiStructureManagerItem
-                || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem)
+                || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem
+                || stack.getItem() instanceof com.gtceuterminal.common.item.DismantlerItem)
                 && isLinked(stack);
+    }
+
+    public static boolean isAccessPoint(BlockEntity be) {
+        return be instanceof IWirelessAccessPoint;
+    }
+
+    public static void linkTo(ItemStack stack, Level level, BlockPos pos) {
+        GlobalPos globalPos = GlobalPos.of(level.dimension(), pos);
+        stack.getOrCreateTag().put(TAG_ACCESS_POINT_POS,
+                GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, globalPos).getOrThrow(false, err -> {
+                }));
     }
 
     public static boolean isOurLinkedManager(ItemStack stack) {

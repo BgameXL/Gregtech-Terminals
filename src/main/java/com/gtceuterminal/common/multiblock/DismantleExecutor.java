@@ -1,7 +1,10 @@
 package com.gtceuterminal.common.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.config.ItemsConfig;
+import com.gtceuterminal.common.pattern.PlayerFluidReservoir;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,6 +15,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.*;
 
@@ -26,6 +32,13 @@ public class DismantleExecutor {
 
         List<ItemStack> items = new ArrayList<>();
         BlockPos controllerPos = controller.getPos();
+
+        IFluidHandler me = null;
+        try {
+            me = MENetworkFluidHandlerWrapper.fromTerminal(player.getMainHandItem(), player);
+        } catch (Exception ignored) {
+        }
+        PlayerFluidReservoir fluidReservoir = new PlayerFluidReservoir(player, me);
 
         Set<BlockPos> skipPositions = new HashSet<>();
         for (BlockPos pos : scanResult.getAllBlocks()) {
@@ -55,6 +68,11 @@ public class DismantleExecutor {
             if (pos.equals(controllerPos)) continue;
             BlockState bsBreak = level.getBlockState(pos);
             if (ItemsConfig.isDismantlerBlacklisted(bsBreak.getBlock())) continue;
+            if (bsBreak.getFluidState().isSource()) {
+                Fluid fluid = bsBreak.getFluidState().getType();
+                int leftover = fluidReservoir.insert(new FluidStack(fluid, 1000));
+                if (leftover > 0) continue;
+            }
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
 
@@ -63,17 +81,16 @@ public class DismantleExecutor {
             level.setBlock(controllerPos, Blocks.AIR.defaultBlockState(), 3);
         }
 
+        ItemStack dismantler = player.getMainHandItem();
         for (ItemStack stack : items) {
-            if (!player.getInventory().add(stack)) {
-                ItemEntity itemEntity = new ItemEntity(
-                        level,
-                        player.getX(),
-                        player.getY(),
-                        player.getZ(),
-                        stack.copy()
-                );
-                level.addFreshEntity(itemEntity);
-            }
+            long leftover = MENetworkItemExtractor.insertItem(dismantler, level, player, stack);
+            if (leftover <= 0) continue;
+            stack.setCount((int) leftover);
+
+            if (player.getInventory().add(stack)) continue;
+
+            level.addFreshEntity(new ItemEntity(
+                    level, player.getX(), player.getY(), player.getZ(), stack.copy()));
         }
 
         return true;

@@ -7,8 +7,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BucketItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlockContainer;
@@ -17,8 +15,6 @@ import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,8 +27,7 @@ public class FluidPlacementHelper {
             @NotNull BlockPos pos,
             @NotNull Player player,
             @NotNull Fluid fluid,
-            @Nullable IItemHandler playerInventory,
-            @Nullable IFluidHandler fluidStorage
+            @Nullable PlayerFluidReservoir reservoir
     ) {
         if (!(fluid instanceof FlowingFluid)) {
             return false;
@@ -48,44 +43,20 @@ public class FluidPlacementHelper {
             return placeFluidBlock(world, pos, currentState, fluid, player);
         }
 
-        boolean bucketFound = false;
-        if (playerInventory != null) {
-            for (int i = 0; i < playerInventory.getSlots(); i++) {
-                ItemStack stack = playerInventory.getStackInSlot(i);
-                if (stack.getItem() instanceof BucketItem bucketItem && bucketItem.getFluid() == fluid) {
-                    ItemStack emptyContainer = stack.getCraftingRemainingItem();
-                    if (placeFluidBlock(world, pos, currentState, fluid, player)) {
-                        playerInventory.extractItem(i, 1, false);
-                        if (!emptyContainer.isEmpty()) {
-                            ItemStack leftover = net.minecraftforge.items.ItemHandlerHelper
-                                    .insertItemStacked(playerInventory, emptyContainer, false);
-                            if (!leftover.isEmpty()) player.drop(leftover, false);
-                        }
-                        bucketFound = true;
-                        break;
-                    }
-                }
-            }
+        if (reservoir == null || !reservoir.extract(fluid, 1000)) {
+            return false;
         }
 
-        if (!bucketFound && fluidStorage != null) {
-            FluidStack requiredFluid = new FluidStack(fluid, 1000);
-
-            if (fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.SIMULATE).getAmount() >= 1000) {
-                FluidStack drained = fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.EXECUTE);
-                if (drained.getAmount() >= 1000) {
-                    if (placeFluidBlock(world, pos, currentState, fluid, player)) {
-                        return true;
-                    }
-                    GTCEUTerminalMod.LOGGER.warn("Drained 1000 mB from ME but could not place {} at {}", fluid, pos);
-                } else if (drained.getAmount() > 0) {
-                    GTCEUTerminalMod.LOGGER.warn("ME drained only {} mB (simulate promised 1000) at {}; cannot refund",
-                            drained.getAmount(), pos);
-                }
-            }
+        if (placeFluidBlock(world, pos, currentState, fluid, player)) {
+            return true;
         }
 
-        return bucketFound;
+        int leftover = reservoir.insert(new FluidStack(fluid, 1000));
+        if (leftover > 0) {
+            GTCEUTerminalMod.LOGGER.warn("Extracted 1000 mB of {} but placement failed at {}; {} mB could not be refunded",
+                    fluid, pos, leftover);
+        }
+        return false;
     }
 
 
@@ -160,32 +131,5 @@ public class FluidPlacementHelper {
     private static void playEmptySound(Level world, BlockPos pos, Fluid fluid, @Nullable Player player) {
         var soundEvent = fluid.is(FluidTags.LAVA) ? SoundEvents.BUCKET_EMPTY_LAVA : SoundEvents.BUCKET_EMPTY;
         world.playSound(player, pos, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
-    }
-
-
-    @Nullable
-    public static Fluid findAvailableFluid(IItemHandler playerInventory, @Nullable IFluidHandler fluidStorage) {
-        if (playerInventory != null) {
-            for (int i = 0; i < playerInventory.getSlots(); i++) {
-                ItemStack stack = playerInventory.getStackInSlot(i);
-                if (stack.getItem() instanceof BucketItem bucketItem) {
-                    Fluid fluid = bucketItem.getFluid();
-                    if (fluid != Fluids.EMPTY) {
-                        return fluid;
-                    }
-                }
-            }
-        }
-
-        if (fluidStorage != null) {
-            for (int tank = 0; tank < fluidStorage.getTanks(); tank++) {
-                FluidStack fluidInTank = fluidStorage.getFluidInTank(tank);
-                if (!fluidInTank.isEmpty() && fluidInTank.getAmount() >= 1000) {
-                    return fluidInTank.getFluid();
-                }
-            }
-        }
-
-        return null;
     }
 }

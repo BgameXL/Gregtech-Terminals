@@ -136,18 +136,16 @@ public final class SchematicPaster {
             }
         }
 
-        IFluidHandler fluidStorage = null;
-        net.minecraftforge.items.IItemHandler playerInventory = null;
+        com.gtceuterminal.common.pattern.PlayerFluidReservoir fluidReservoir = null;
 
         if (!player.getAbilities().instabuild) {
+            IFluidHandler fluidStorage = null;
             try {
                 fluidStorage = MENetworkFluidHandlerWrapper.fromTerminal(itemStack, player);
             } catch (RuntimeException e) {
                 GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not resolve AE2 fluid storage: {}", e.getMessage());
             }
-
-            var cap = player.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER);
-            playerInventory = cap.resolve().orElse(null);
+            fluidReservoir = new com.gtceuterminal.common.pattern.PlayerFluidReservoir(player, fluidStorage);
         }
 
         int placedCount = 0;
@@ -157,7 +155,7 @@ public final class SchematicPaster {
         for (Placement p : placements) {
             if (p.state.getFluidState().isSource()) {
                 Fluid fluid = p.state.getFluidState().getType();
-                if (FluidPlacementHelper.tryPlaceFluid(level, p.worldPos, player, fluid, playerInventory, fluidStorage))
+                if (FluidPlacementHelper.tryPlaceFluid(level, p.worldPos, player, fluid, fluidReservoir))
                     placedCount++;
                 else
                     skippedCount++;

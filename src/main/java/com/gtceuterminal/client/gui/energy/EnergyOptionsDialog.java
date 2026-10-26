@@ -3,7 +3,6 @@ package com.gtceuterminal.client.gui.energy;
 import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.LinkedMachineData;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -30,7 +29,7 @@ final class EnergyOptionsDialog {
         final int DW = 220, DH = 110;
         TerminalTheme tokens = TerminalUI.tokens();
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(Palette.SCRIM));
+        dialog.setBackground(TerminalUI.scrim());
         dialog.setClickClose(true);
 
         WidgetGroup panel = new WidgetGroup((parentW - DW) / 2, (parentH - DH) / 2, DW, DH);
@@ -38,7 +37,7 @@ final class EnergyOptionsDialog {
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 18);
-        titleBar.setBackground(new BevelTexture(tokens.panel()));
+        titleBar.setBackground(TerminalUI.bevel(tokens.panel()));
         panel.addWidget(titleBar);
 
         LabelWidget titleLbl = new LabelWidget(8, 4,

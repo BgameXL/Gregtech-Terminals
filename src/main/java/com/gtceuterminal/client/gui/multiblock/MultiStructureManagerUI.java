@@ -1,8 +1,6 @@
 package com.gtceuterminal.client.gui.multiblock;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
@@ -19,7 +17,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.client.Minecraft;
@@ -112,11 +109,11 @@ public class MultiStructureManagerUI {
 
         WidgetGroup main = new WidgetGroup(0, 0, GUI_W, GUI_H);
         this.rootGroup = main;
-        main.setBackground(new ColorRectTexture(Palette.CLEAR));
+        main.setBackground(TerminalUI.transparent());
 
         this.gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(main);
-        gui.background(new ColorRectTexture(Palette.CLEAR));
+        gui.background(TerminalUI.transparent());
 
         rebuildContent();
         return gui;
@@ -170,7 +167,7 @@ public class MultiStructureManagerUI {
         card.addWidget(footerRef[0]);
 
         card.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER_W, innerH,
-                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+                TerminalUI.divider()));
 
         MultiblockInfo selected = getSelectedMultiblock();
         this.detailPanel = selected == null
@@ -207,16 +204,10 @@ public class MultiStructureManagerUI {
         WidgetGroup card = TerminalTabs.tabCard(2, TITLE_Y, cardW, TITLE_H,
                 activeView == View.MULTIBLOCKS, cd -> switchView(View.MULTIBLOCKS));
 
-        boolean placedBundleIcon = false;
-        if (theme.isBundleStyle()) {
-            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null && bundle.iconTexture() != null) {
-                card.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundle.iconTexture()));
-                placedBundleIcon = true;
-            }
-        }
-        if (!placedBundleIcon) {
+        var bundleIcon = TerminalUI.bundleIcon();
+        if (bundleIcon != null) {
+            card.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundleIcon));
+        } else {
             card.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, terminalRef,
                     TerminalUI.tokens().panelDisabled(), TerminalUI.tokens().border()));
         }
@@ -233,7 +224,7 @@ public class MultiStructureManagerUI {
         }
 
         LabelWidget itemLabel = new LabelWidget(itemX, titleY, itemName);
-        itemLabel.setColor(theme.isBundleStyle() ? theme.labelColor() : TerminalUI.tokens().textStrong());
+        itemLabel.setColor(TerminalUI.itemLabelColor());
         card.addWidget(itemLabel);
 
         LabelWidget toolLabel = new LabelWidget(itemX, toolY, toolName);
@@ -247,7 +238,7 @@ public class MultiStructureManagerUI {
                 activeView == View.SETTINGS, cd -> switchView(View.SETTINGS));
 
         LabelWidget settingsLabel = new LabelWidget(10, centerLabelY,
-                "# " + Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
+                Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
         settingsLabel.setColor(TerminalUI.tokens().textStrong());
         settingsCard.addWidget(settingsLabel);
         headers.addWidget(settingsCard);
@@ -290,7 +281,8 @@ public class MultiStructureManagerUI {
         WidgetGroup headers = new WidgetGroup(0, 0, GUI_W, TITLE_Y + TITLE_H);
         int cardW = GUI_W - 4;
         WidgetGroup card = new WidgetGroup(2, TITLE_Y, cardW, TITLE_H);
-        card.addWidget(new ImageWidget(0, 0, cardW, TITLE_H, new BevelTexture(TerminalUI.tokens().panel())));
+        card.addWidget(new ImageWidget(0, 0, cardW, TITLE_H,
+                TerminalUI.bevel(TerminalUI.tokens().panel())));
 
         ButtonWidget back = TerminalButton.icon3d(6, (TITLE_H - 18) / 2, 18, TerminalButton.ICON_ARROW_LEFT,
                 cd -> switchView(View.MULTIBLOCKS));

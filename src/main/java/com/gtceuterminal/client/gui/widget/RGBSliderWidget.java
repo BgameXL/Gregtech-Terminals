@@ -1,5 +1,6 @@
 package com.gtceuterminal.client.gui.widget;
 
+import com.gtceuterminal.client.gui.style.Palette;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -66,7 +67,7 @@ public class RGBSliderWidget extends Widget {
             graphics.fill(x, trackY, x + fillW, trackY + trackH, fillColor);
 
         // Thumb
-        graphics.fill(thumbX, y, thumbX + thumbW, y + thumbH, 0xFF000000);
+        graphics.fill(thumbX, y, thumbX + thumbW, y + thumbH, Palette.BLACK);
         graphics.fill(thumbX + 1, y + 1, thumbX + thumbW - 1, y + thumbH - 1, thumbColor);
     }
 

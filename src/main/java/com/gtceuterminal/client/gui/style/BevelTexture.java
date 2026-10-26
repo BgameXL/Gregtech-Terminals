@@ -37,20 +37,20 @@ public class BevelTexture implements IGuiTexture {
             return;
         }
 
-        // Outer edge (1px, all four sides).
+        // Outer edge
         g.fill(x0, y0, x1, y0 + 1, edge);
         g.fill(x0, y1 - 1, x1, y1, edge);
         g.fill(x0, y0, x0 + 1, y1, edge);
         g.fill(x1 - 1, y0, x1, y1, edge);
 
-        // Interior fill.
+        // Interior fill
         g.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, fill);
 
-        // Inner highlight: top + left.
+        // Inner highlight: top + left
         g.fill(x0 + 1, y0 + 1, x1 - 1, y0 + 2, highlight);
         g.fill(x0 + 1, y0 + 1, x0 + 2, y1 - 1, highlight);
 
-        // Inner shadow: bottom + right.
+        // Inner shadow: bottom + right
         g.fill(x0 + 1, y1 - 2, x1 - 1, y1 - 1, shadow);
         g.fill(x1 - 2, y0 + 1, x1 - 1, y1 - 1, shadow);
     }

@@ -7,7 +7,6 @@ import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.client.Minecraft;
@@ -37,7 +36,7 @@ final class DismantlerPreviewPanel {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new ColorRectTexture(tokens.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         LabelWidget label = new LabelWidget(8, 7, TerminalText.strip(
                 Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString()));
@@ -48,7 +47,7 @@ final class DismantlerPreviewPanel {
             SchematicData previewData = buildSchematic(scanResult, controllerPos, player);
             if (previewData != null && !previewData.blocks().isEmpty()) {
                 SchematicPreviewWidget preview = new SchematicPreviewWidget(4, 22, w - 8, h - 26, previewData);
-                preview.setBackground(new ColorRectTexture(tokens.panelDisabled()));
+                preview.setBackground(TerminalUI.panelDisabled());
                 panel.addWidget(preview);
                 return panel;
             }

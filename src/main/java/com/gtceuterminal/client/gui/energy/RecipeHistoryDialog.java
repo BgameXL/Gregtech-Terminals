@@ -4,7 +4,6 @@ import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.RecipeHistoryEntry;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -22,7 +21,7 @@ public final class RecipeHistoryDialog {
     public static void open(WidgetGroup rootGroup, EnergySnapshot snap, int parentW, int parentH) {
         TerminalTheme tokens = TerminalUI.tokens();
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(Palette.SCRIM));
+        dialog.setBackground(TerminalUI.scrim());
         dialog.setClickClose(true);
 
         int entries = snap.recipeHistory.size();
@@ -36,7 +35,7 @@ public final class RecipeHistoryDialog {
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, dW, 18);
-        titleBar.setBackground(new BevelTexture(tokens.panel()));
+        titleBar.setBackground(TerminalUI.bevel(tokens.panel()));
         panel.addWidget(titleBar);
 
         String titleText = TerminalText.strip(Component.translatable(
@@ -64,7 +63,7 @@ public final class RecipeHistoryDialog {
         cy += 10;
 
         WidgetGroup sep = new WidgetGroup(0, cy, dW, 1);
-        sep.setBackground(new ColorRectTexture(tokens.borderDark()));
+        sep.setBackground(TerminalUI.divider());
         panel.addWidget(sep);
         cy += 4;
 
@@ -80,7 +79,7 @@ public final class RecipeHistoryDialog {
                 RecipeHistoryEntry e = list.get(i);
 
                 WidgetGroup dot = new WidgetGroup(8, cy + 3, 6, 6);
-                dot.setBackground(new ColorRectTexture(e.completed() ? tokens.success() : tokens.error()));
+                dot.setBackground(TerminalUI.color(e.completed() ? tokens.success() : tokens.error()));
                 panel.addWidget(dot);
 
                 panel.addWidget(mkLabel(18, cy, EnergyDisplayHelper.truncate(e.outputName(), 22),

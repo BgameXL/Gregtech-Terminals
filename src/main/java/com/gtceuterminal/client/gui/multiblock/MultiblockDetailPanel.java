@@ -9,9 +9,6 @@ import com.gtceuterminal.common.multiblock.ComponentInfoGroup;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockStatus;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -35,7 +32,7 @@ final class MultiblockDetailPanel {
     static WidgetGroup buildEmpty(int x, int y, int w, int h) {
         TerminalTheme t = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new ColorRectTexture(t.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         LabelWidget hint = new LabelWidget(w / 2 - 60, h / 2 - 6,
                 "Select a multiblock");
@@ -53,7 +50,7 @@ final class MultiblockDetailPanel {
     ) {
         TerminalTheme t = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new ColorRectTexture(t.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         panel.addWidget(buildDetailHeader(w, mb, t));
 
@@ -68,7 +65,7 @@ final class MultiblockDetailPanel {
 
     private static WidgetGroup buildDetailHeader(int w, MultiblockInfo mb, TerminalTheme t) {
         WidgetGroup header = new WidgetGroup(0, 0, w, DETAIL_HEADER_H);
-        header.setBackground(new ColorRectTexture(t.panel()));
+        header.setBackground(TerminalUI.panel());
 
         String displayName = resolveDisplayName(mb);
         LabelWidget name = new LabelWidget(10, 8, TerminalText.truncate(displayName, 32));
@@ -103,7 +100,7 @@ final class MultiblockDetailPanel {
             BiConsumer<ComponentInfoGroup, MultiblockInfo> onUpgrade
     ) {
         WidgetGroup listPanel = new WidgetGroup(x, y, w, h);
-        listPanel.setBackground(new ColorRectTexture(t.surface()));
+        listPanel.setBackground(TerminalUI.surface());
 
         int scrollW = w;
         DraggableScrollableWidgetGroup scroll =
@@ -141,9 +138,9 @@ final class MultiblockDetailPanel {
         boolean upgradeable = rep != null
                 && (rep.getGroup().isUpgradeable || !rep.getPossibleUpgradeTiers().isEmpty());
 
-        entry.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(upgradeable ? t.panel() : t.panelDisabled()),
-                new ColorBorderTexture(1, upgradeable ? t.border() : t.borderSubtle())));
+        entry.setBackground(TerminalUI.outlined(
+                upgradeable ? t.panel() : t.panelDisabled(),
+                upgradeable ? t.border() : t.borderSubtle()));
 
         if (upgradeable && onUpgrade != null) {
             ButtonWidget clickArea = TerminalButton.entry(0, 0, entryW, ENTRY_H,
@@ -154,7 +151,7 @@ final class MultiblockDetailPanel {
         // Color dot
         int dotColor = 0xFF000000 | group.getGroup().color;
         int dotY = (ENTRY_H - 8) / 2;
-        entry.addWidget(new ImageWidget(8, dotY, 8, 8, new ColorRectTexture(dotColor)));
+        entry.addWidget(new ImageWidget(8, dotY, 8, 8, TerminalUI.color(dotColor)));
 
         // Group name
         String groupName = group.getGroup().displayName;

@@ -1,6 +1,5 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -32,7 +31,7 @@ final class EnergyAnalyzerDetail {
     private static final int GRAPH_H_WIDGET = 80;
     private static final int STATS_CELL_H = 38;
     private static final int HATCH_ROW_H = 24;
-    private static final IGuiTexture EMPTY_TEX = new ColorRectTexture(Palette.CLEAR);
+    private static final IGuiTexture EMPTY_TEX = TerminalUI.transparent();
     private final int detailW;
     private final int graphW;
     private final TerminalTheme tokens;
@@ -107,7 +106,7 @@ final class EnergyAnalyzerDetail {
             Runnable onRecipeHistoryClick
     ) {
         WidgetGroup g = new WidgetGroup(detailX, detailY, detailW, detailH);
-        g.setBackground(new ColorRectTexture(tokens.surface()));
+        g.setBackground(TerminalUI.surface());
 
         int y = pad;
 
@@ -156,7 +155,7 @@ final class EnergyAnalyzerDetail {
         y += STATS_CELL_H + 8;
 
         g.addWidget(new ImageWidget(pad, y, detailW - pad * 2, 1,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
         y += 6;
 
         LabelWidget progressHdr = new LabelWidget(pad, y,
@@ -171,12 +170,10 @@ final class EnergyAnalyzerDetail {
         y += 10;
 
         recipeBarBg = new WidgetGroup(pad, y, graphW - pad, 8);
-        recipeBarBg.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        recipeBarBg.setBackground(TerminalUI.outlined(tokens.panelDisabled(), tokens.borderSubtle()));
         g.addWidget(recipeBarBg);
         recipeBarFill = new WidgetGroup(pad + 1, y + 1, 0, 6);
-        recipeBarFill.setBackground(new ColorRectTexture(tokens.success()));
+        recipeBarFill.setBackground(TerminalUI.color(tokens.success()));
         g.addWidget(recipeBarFill);
         y += 12;
 
@@ -211,9 +208,7 @@ final class EnergyAnalyzerDetail {
     private WidgetGroup buildStatCell(int x, int y, int w, int h,
                                       String lbl, Supplier<String> valSup, int valColor) {
         WidgetGroup cell = new WidgetGroup(x, y, w, h);
-        cell.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panel()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        cell.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
         LabelWidget label = new LabelWidget(6, 6, lbl);
         label.setColor(tokens.textFaint());
@@ -230,14 +225,10 @@ final class EnergyAnalyzerDetail {
     private WidgetGroup buildHatchRow(int x, int y, int w, int index,
                                       Supplier<EnergySnapshot> selSnap) {
         WidgetGroup row = new WidgetGroup(x, y, w, HATCH_ROW_H - 2);
-        row.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panel()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        row.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
         WidgetGroup slot = new WidgetGroup(4, 1, 20, 20);
-        slot.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        slot.setBackground(TerminalUI.outlined(tokens.panelDisabled(), tokens.borderSubtle()));
         ImageWidget icon = new ImageWidget(1, 1, 18, 18, hatchIconSupplier(index, selSnap));
         icon.setClientSideWidget();
         slot.addWidget(icon);
@@ -275,7 +266,7 @@ final class EnergyAnalyzerDetail {
             energyBarFill.setSize(new Size(Math.max(fw, 0), 6));
             if (snap != null) {
                 int fc = pct < 0.1f ? tokens.error() : pct < 0.25f ? tokens.warning() : tokens.success();
-                energyBarFill.setBackground(new ColorRectTexture(fc));
+                energyBarFill.setBackground(TerminalUI.color(fc));
             }
         }
 
@@ -285,7 +276,7 @@ final class EnergyAnalyzerDetail {
                     : 0f;
             int fw = (int) ((recipeBarBg.getSizeWidth() - 2) * pct);
             recipeBarFill.setSize(new Size(Math.max(0, fw), 6));
-            recipeBarFill.setBackground(new ColorRectTexture(
+            recipeBarFill.setBackground(TerminalUI.color(
                     pct > 0f ? tokens.success() : tokens.panelDisabled()));
         }
 

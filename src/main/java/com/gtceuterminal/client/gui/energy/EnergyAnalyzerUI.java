@@ -1,13 +1,11 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -59,7 +57,7 @@ public class EnergyAnalyzerUI {
 
     private ModularUI buildUI() {
         rootGroup = new WidgetGroup(0, 0, W, H);
-        rootGroup.setBackground(new ColorRectTexture(Palette.CLEAR));
+        rootGroup.setBackground(TerminalUI.transparent());
         EnergyUpdateWidget updater = new EnergyUpdateWidget(holder);
         updater.setRebuildCallback(this::onDataRefresh);
         rootGroup.addWidget(updater);
@@ -84,7 +82,7 @@ public class EnergyAnalyzerUI {
                 sidebarSelects));
 
         body.addWidget(new ImageWidget(CARD_INSET + SIDEBAR_W, CARD_INSET, DIVIDER, INNER_H,
-                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+                TerminalUI.divider()));
 
         detail = new EnergyAnalyzerDetail(DETAIL_W, GRAPH_W);
         body.addWidget(detail.build(
@@ -127,7 +125,7 @@ public class EnergyAnalyzerUI {
     private ModularUI wrapUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(W, H), holder, player);
         ui.widget(content);
-        ui.background(new ColorRectTexture(Palette.CLEAR));
+        ui.background(TerminalUI.transparent());
         return ui;
     }
 }

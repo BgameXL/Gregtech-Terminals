@@ -9,10 +9,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.nbt.CompoundTag;
@@ -87,13 +83,13 @@ public class ManagerSettingsUI {
 
     public ModularUI createUI() {
         WidgetGroup root = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        root.setBackground(new ColorRectTexture(Palette.CLEAR));
+        root.setBackground(TerminalUI.transparent());
 
         if (!theme.isNativeStyle()) {
             root.addWidget(new com.gtceuterminal.client.gui.widget.WallpaperWidget(
                     0, 0, GUI_W, GUI_H, () -> this.theme));
         } else {
-            root.setBackground(theme.backgroundTexture());
+            root.setBackground(TerminalUI.background());
         }
 
         addFrame(root);
@@ -103,26 +99,26 @@ public class ManagerSettingsUI {
 
         ModularUI gui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         gui.widget(root);
-        gui.background(theme.modularUIBackground());
+        gui.background(TerminalUI.modularBackground());
         return gui;
     }
 
     private void buildDialog(WidgetGroup rootGroup, int parentW, int parentH) {
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(Palette.SCRIM));
+        dialog.setBackground(TerminalUI.scrim());
         dialog.setClickClose(false);
 
         int ox = (parentW - GUI_W) / 2;
         int oy = (parentH - GUI_H) / 2;
 
         WidgetGroup root = new WidgetGroup(ox, oy, GUI_W, GUI_H);
-        root.setBackground(new ColorRectTexture(Palette.CLEAR));
+        root.setBackground(TerminalUI.transparent());
 
         if (!theme.isNativeStyle()) {
             root.addWidget(new com.gtceuterminal.client.gui.widget.WallpaperWidget(
                     0, 0, GUI_W, GUI_H, () -> this.theme));
         } else {
-            root.setBackground(theme.backgroundTexture());
+            root.setBackground(TerminalUI.background());
         }
 
         addFrame(root);
@@ -142,21 +138,15 @@ public class ManagerSettingsUI {
     private WidgetGroup buildHeader() {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
-        header.setBackground(new BevelTexture(tokens.panel()));
+        header.setBackground(TerminalUI.bevel(tokens.panel()));
 
         int titleX = 10;
         int iconSize = 18;
         int iconY = (HEADER_H - iconSize) / 2;
-        if (theme.isBundleStyle()) {
-            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null) {
-                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
-                if (bundleIcon != null) {
-                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
-                    titleX += iconSize + 4;
-                }
-            }
+        var bundleIcon = TerminalUI.bundleIcon();
+        if (bundleIcon != null) {
+            header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
+            titleX += iconSize + 4;
         } else {
             header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
                     tokens.panelDisabled(), tokens.border()));
@@ -165,7 +155,7 @@ public class ManagerSettingsUI {
 
         LabelWidget title = new LabelWidget(titleX, 9,
                 Component.translatable("gui.gtceuterminal.manager_settings.title").getString());
-        title.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        title.setColor(TerminalUI.itemLabelColor());
         header.addWidget(title);
 
         return header;
@@ -184,7 +174,7 @@ public class ManagerSettingsUI {
     private WidgetGroup buildSettingsPanel(int x, int y, int width, int height) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, width, height);
-        panel.setBackground(new ColorRectTexture(tokens.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         int rowY = 8;
         int innerW = width;
@@ -256,7 +246,7 @@ public class ManagerSettingsUI {
 
         ButtonWidget[] btnRef = new ButtonWidget[1];
         btnRef[0] = new ButtonWidget(ctlX, y - 2, CTL_W, CTL_H,
-                new ColorRectTexture(Palette.CLEAR),
+                TerminalUI.transparent(),
                 cd -> {
                     toggler.run();
                     state[0] = getter.getAsBoolean();
@@ -294,12 +284,8 @@ public class ManagerSettingsUI {
         input.setClientSideWidget();
         input.setNumbersOnly(min, max);
         input.setTextColor(tokens.textStrong());
-        input.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.border())));
-        input.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.textStrong())));
+        input.setBackground(TerminalUI.field(tokens.border()));
+        input.setHoverTexture(TerminalUI.field(tokens.textStrong()));
         input.setWheelDur(1);
         input.setHoverTooltips(Component.literal(tooltip));
         panel.addWidget(input);
@@ -321,24 +307,16 @@ public class ManagerSettingsUI {
                 ? "gui.gtceuterminal.manager_settings.common.yes"
                 : "gui.gtceuterminal.manager_settings.common.no").getString());
 
-        btn.setButtonTexture(toggleTexture(fill, text, label));
-        btn.setHoverTexture(new GuiTextureGroup(
-                new BevelTexture(Palette.shade(fill, 1.30f)),
-                new TextTexture(label, text).setWidth(CTL_W).setType(TextTexture.TextType.NORMAL)));
-    }
-
-    private GuiTextureGroup toggleTexture(int fill, int text, String label) {
-        return new GuiTextureGroup(
-                new BevelTexture(fill),
-                new TextTexture(label, text).setWidth(CTL_W).setType(TextTexture.TextType.NORMAL));
+        btn.setButtonTexture(TerminalUI.button(label, CTL_W, fill, text));
+        btn.setHoverTexture(TerminalUI.buttonHover(label, CTL_W, fill, text));
     }
 
     private void addFrame(WidgetGroup root) {
         TerminalTheme tokens = TerminalUI.tokens();
-        root.addWidget(new ImageWidget(0, 0, GUI_W, 2, new ColorRectTexture(tokens.border())));
-        root.addWidget(new ImageWidget(0, 0, 2, GUI_H, new ColorRectTexture(tokens.border())));
-        root.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, new ColorRectTexture(tokens.borderDark())));
-        root.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, new ColorRectTexture(tokens.borderDark())));
+        root.addWidget(new ImageWidget(0, 0, GUI_W, 2, TerminalUI.color(tokens.border())));
+        root.addWidget(new ImageWidget(0, 0, 2, GUI_H, TerminalUI.color(tokens.border())));
+        root.addWidget(new ImageWidget(GUI_W - 2, 0, 2, GUI_H, TerminalUI.color(tokens.borderDark())));
+        root.addWidget(new ImageWidget(0, GUI_H - 2, GUI_W, 2, TerminalUI.color(tokens.borderDark())));
     }
 
     // NBT helpers

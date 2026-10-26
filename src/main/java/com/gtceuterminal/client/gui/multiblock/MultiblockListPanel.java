@@ -8,9 +8,6 @@ import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.client.gui.widget.ViewportClippedButton;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockStatus;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -47,7 +44,7 @@ final class MultiblockListPanel {
         int scrollW = panelW;
 
         WidgetGroup panel = new WidgetGroup(panelX, panelY, panelW, listH);
-        panel.setBackground(new ColorRectTexture(t.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         DraggableScrollableWidgetGroup scroll =
                 new DraggableScrollableWidgetGroup(0, 0, scrollW, listH);
@@ -112,9 +109,7 @@ final class MultiblockListPanel {
 
         int bg = selected ? t.accentSoft() : t.panel();
         int borderColor = selected ? t.border() : Palette.CLEAR;
-        entry.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(bg),
-                new ColorBorderTexture(1, borderColor)));
+        entry.setBackground(TerminalUI.outlined(bg, borderColor));
 
         // Clickable area (full entry minus buttons)
         ButtonWidget clickBtn = new ViewportClippedButton(
@@ -151,7 +146,7 @@ final class MultiblockListPanel {
             Consumer<MultiblockInfo> onRename
     ) {
         WidgetGroup footer = new WidgetGroup(x, y, panelW, FOOTER_H);
-        footer.addWidget(new ImageWidget(0, 0, panelW, 1, new ColorRectTexture(t.borderDark())));
+        footer.addWidget(new ImageWidget(0, 0, panelW, 1, TerminalUI.divider()));
 
         ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "Highlight",
                 cd -> {

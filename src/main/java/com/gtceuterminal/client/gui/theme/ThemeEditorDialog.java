@@ -1,8 +1,6 @@
 package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
@@ -14,9 +12,7 @@ import com.gtceuterminal.common.theme.ThemePreset;
 import com.gtceuterminal.common.theme.bundle.ThemeBundle;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
@@ -74,7 +70,7 @@ public class ThemeEditorDialog {
 
     private void buildAndShow() {
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(Palette.CLEAR));
+        dialog.setBackground(TerminalUI.transparent());
         dialog.setClickClose(false);
         dialog.setParentInVisible();
 
@@ -82,7 +78,7 @@ public class ThemeEditorDialog {
         this.dh = rootGroup.getSize().height;
 
         WidgetGroup panel = new WidgetGroup(0, 0, dw, dh);
-        panel.setBackground(new ColorRectTexture(Palette.CLEAR));
+        panel.setBackground(TerminalUI.transparent());
 
         List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
                 .filter(ThemeBundle::isAvailable)
@@ -93,7 +89,7 @@ public class ThemeEditorDialog {
         int bodyY = cardsY + SECTION_H;
         int bodyH = dh - bodyY - FTR_H;
         panel.addWidget(new ImageWidget(PAD, bodyY, dw - PAD * 2, dh - bodyY,
-                new BevelTexture(TerminalUI.tokens().surface())));
+                TerminalUI.bevel(TerminalUI.tokens().surface())));
         contentHost = new WidgetGroup(PAD, bodyY, dw - PAD * 2, bodyH);
         panel.addWidget(contentHost);
 
@@ -119,8 +115,8 @@ public class ThemeEditorDialog {
         card.addWidget(label);
 
         ButtonWidget button = new ButtonWidget(0, 0, SECTION_W, SECTION_H,
-                new ColorRectTexture(Palette.CLEAR), cd -> switchSection(section));
-        button.setHoverTexture(new ColorRectTexture(tokens.hover()));
+                TerminalUI.transparent(), cd -> switchSection(section));
+        button.setHoverTexture(TerminalUI.hover());
         card.addWidget(button);
         return card;
     }
@@ -165,7 +161,7 @@ public class ThemeEditorDialog {
         }
 
         contentHost.addWidget(new ImageWidget(dividerX, 0, 1, contentH,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
         refreshSectionCards();
         refreshWallpaperThumb();
     }
@@ -186,9 +182,9 @@ public class ThemeEditorDialog {
         }
     }
 
-    private BevelTexture sectionCardTexture(Section section) {
+    private IGuiTexture sectionCardTexture(Section section) {
         TerminalTheme tokens = TerminalUI.tokens();
-        return new BevelTexture(section == activeSection ? tokens.panel() : tokens.panelDisabled());
+        return TerminalUI.bevel(section == activeSection ? tokens.panel() : tokens.panelDisabled());
     }
 
     private WidgetGroup buildFooter(int w, int h, DialogWidget dialog) {
@@ -405,8 +401,9 @@ public class ThemeEditorDialog {
                 working.successColor, working.warningColor, working.errorColor
         };
         for (int i = 0; i < COLOR_TARGETS; i++) {
-            if (swatches[i] != null) swatches[i].setImage(new GuiTextureGroup(
-                    new ColorRectTexture(colors[i]), new ColorBorderTexture(1, tokens.border())));
+            if (swatches[i] != null) {
+                swatches[i].setImage(TerminalUI.outlined(colors[i], tokens.border()));
+            }
         }
     }
 
@@ -424,9 +421,9 @@ public class ThemeEditorDialog {
         if (working.hasWallpaper()) {
             WallpaperManager.getTexture(working.wallpaper).ifPresentOrElse(
                     rl -> thumb.setImage(new com.lowdragmc.lowdraglib.gui.texture.ResourceTexture(rl.toString())),
-                    () -> thumb.setImage(new ColorRectTexture(TerminalUI.tokens().borderDark())));
+                    () -> thumb.setImage(TerminalUI.divider()));
         } else {
-            thumb.setImage(new ColorRectTexture(TerminalUI.tokens().borderDark()));
+            thumb.setImage(TerminalUI.divider());
         }
     }
 

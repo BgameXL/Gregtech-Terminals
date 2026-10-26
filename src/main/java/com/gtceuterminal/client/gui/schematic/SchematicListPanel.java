@@ -7,9 +7,6 @@ import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.TerminalScrollGroup;
 import com.gtceuterminal.client.gui.widget.ViewportClippedButton;
 import com.gtceuterminal.common.data.SchematicData;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -40,7 +37,7 @@ final class SchematicListPanel {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(panelX, panelY, leftW, listH);
-        panel.setBackground(new ColorRectTexture(tokens.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         LabelWidget title = new LabelWidget(8, 7, TerminalText.strip(Component.translatable(
                 "gui.gtceuterminal.schematic_interface.saved_schematics_label").getString()));
@@ -95,9 +92,9 @@ final class SchematicListPanel {
     ) {
         boolean sel = index == selectedIndex;
         WidgetGroup entry = new WidgetGroup(1, yPos, entryW, ENTRY_H);
-        entry.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(sel ? tokens.accentSoft() : tokens.panel()),
-                new ColorBorderTexture(1, sel ? tokens.border() : Palette.CLEAR)));
+        entry.setBackground(TerminalUI.outlined(
+                sel ? tokens.accentSoft() : tokens.panel(),
+                sel ? tokens.border() : Palette.CLEAR));
 
         ViewportClippedButton click = new ViewportClippedButton(0, 0, entryW, ENTRY_H,
                 tokens.hover(), scroll, cd -> onSelect.accept(index));

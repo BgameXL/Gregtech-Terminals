@@ -1,6 +1,5 @@
 package com.gtceuterminal.client.gui.autocraft;
 
-import com.gtceuterminal.client.gui.style.BevelTexture;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -9,9 +8,6 @@ import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.network.CPacketConfirmAutobuild;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 import com.lowdragmc.lowdraglib.utils.Position;
@@ -91,7 +87,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 Math.max(0, (sw - w) / 2) - abs.x,
                 Math.max(0, (sh - h) / 2) - abs.y));
         setSize(new Size(w, h));
-        setBackground(theme.backgroundTexture());
+        setBackground(TerminalUI.background());
 
         addWidget(buildHeader());
         addWidget(buildBody());
@@ -99,7 +95,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, w - 4, HEADER_H);
-        header.setBackground(new BevelTexture(tokens.panel()));
+        header.setBackground(TerminalUI.bevel(tokens.panel()));
 
         String title = result.kind() == AnalysisResult.Kind.UPGRADE
                 ? Component.translatable("gui.gtceuterminal.autocraft.title.upgrade").getString()
@@ -130,16 +126,16 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int colR = innerW - colL - 1;
 
         WidgetGroup left = new WidgetGroup(CARD_INSET, CARD_INSET, colL, contentH);
-        left.setBackground(new ColorRectTexture(tokens.surface()));
+        left.setBackground(TerminalUI.surface());
         left.addWidget(buildTargetHatch(colL));
         left.addWidget(buildIngredientList(colL, contentH));
         body.addWidget(left);
 
         body.addWidget(new ImageWidget(CARD_INSET + colL, CARD_INSET, 1, contentH,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
 
         WidgetGroup right = new WidgetGroup(CARD_INSET + colL + 1, CARD_INSET, colR, contentH);
-        right.setBackground(new ColorRectTexture(tokens.surface()));
+        right.setBackground(TerminalUI.surface());
         right.addWidget(buildAvailabilityList(colR, contentH));
         body.addWidget(right);
 
@@ -151,13 +147,13 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private WidgetGroup buildTargetHatch(int panelW) {
         int hatchH = 48;
         WidgetGroup group = new WidgetGroup(0, 0, panelW, hatchH);
-        group.setBackground(new ColorRectTexture(tokens.panel()));
+        group.setBackground(TerminalUI.panel());
 
         ItemStack target = result.targetItemStack();
         if (!target.isEmpty()) {
             ItemStackTransfer transfer = new ItemStackTransfer(target.copy());
             SlotWidget slot = new SlotWidget(transfer, 0, 8, 10, false, false);
-            slot.setBackgroundTexture(new ColorBorderTexture(1, tokens.border()));
+            slot.setBackgroundTexture(TerminalUI.border(tokens.border()));
             group.addWidget(slot);
         }
 
@@ -177,7 +173,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         }
 
         group.addWidget(new ImageWidget(0, hatchH - 1, panelW, 1,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
         return group;
     }
 
@@ -246,7 +242,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         ItemStackTransfer transfer = new ItemStackTransfer(entry.stack().copy());
         SlotWidget slot = new SlotWidget(transfer, 0, 16, 1, false, false);
-        slot.setBackgroundTexture(new ColorBorderTexture(1, tokens.borderSubtle()));
+        slot.setBackgroundTexture(TerminalUI.border(tokens.borderSubtle()));
         row.addWidget(slot);
 
         String name = entry.stack().getHoverName().getString();
@@ -269,7 +265,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         ItemStackTransfer transfer = new ItemStackTransfer(ing.copy());
         SlotWidget slot = new SlotWidget(transfer, 0, 0, 0, false, false);
-        slot.setBackgroundTexture(new ColorBorderTexture(1, tokens.borderSubtle()));
+        slot.setBackgroundTexture(TerminalUI.border(tokens.borderSubtle()));
         row.addWidget(slot);
 
         LabelWidget nameLbl = new LabelWidget(20, 4,
@@ -287,8 +283,8 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private WidgetGroup buildFluidSubRow(com.gtceuterminal.common.compat.RecipeReader.FluidLine fluid, int rowW, int y) {
         WidgetGroup row = new WidgetGroup(24, y, rowW - 24, 16);
 
-        ImageWidget marker = new ImageWidget(2, 3, 10, 10, new GuiTextureGroup(
-                new ColorRectTexture(tokens.accentSoft()), new ColorBorderTexture(1, tokens.border())));
+        ImageWidget marker = new ImageWidget(2, 3, 10, 10,
+                TerminalUI.outlined(tokens.accentSoft(), tokens.border()));
         row.addWidget(marker);
 
         LabelWidget nameLbl = new LabelWidget(20, 4,
@@ -355,9 +351,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
             label = have + " / " + entry.needed();
         }
 
-        row.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, borderColor)));
+        row.setBackground(TerminalUI.outlined(bgColor, borderColor));
 
         LabelWidget qty = new LabelWidget(5, 5, label);
         qty.setColor(borderColor);
@@ -374,7 +368,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private WidgetGroup buildFooter(int x, int y, int innerW) {
         WidgetGroup footer = new WidgetGroup(x, y, innerW, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, innerW, 1,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
 
         int btnH = 24;
         int btnY = (FOOTER_H - btnH) / 2;

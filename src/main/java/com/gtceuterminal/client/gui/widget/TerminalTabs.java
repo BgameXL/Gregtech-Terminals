@@ -1,11 +1,8 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -33,9 +30,9 @@ public final class TerminalTabs {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup card = new WidgetGroup(x, y, w, h);
         card.addWidget(new ImageWidget(0, 0, w, h,
-                new BevelTexture(active ? tokens.panel() : tokens.panelDisabled())));
-        ButtonWidget target = new ButtonWidget(0, 0, w, h, new ColorRectTexture(Palette.CLEAR), onClick);
-        target.setHoverTexture(new ColorRectTexture(tokens.hover()));
+                TerminalUI.bevel(active ? tokens.panel() : tokens.panelDisabled())));
+        ButtonWidget target = new ButtonWidget(0, 0, w, h, TerminalUI.transparent(), onClick);
+        target.setHoverTexture(TerminalUI.hover());
         card.addWidget(target);
         return card;
     }
@@ -44,7 +41,7 @@ public final class TerminalTabs {
                                          Consumer<ClickData> onTheme, Consumer<ClickData> onClose) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup card = new WidgetGroup(x, y, ACTION_CARD_W, h);
-        card.addWidget(new ImageWidget(0, 0, ACTION_CARD_W, h, new BevelTexture(tokens.panelDisabled())));
+        card.addWidget(new ImageWidget(0, 0, ACTION_CARD_W, h, TerminalUI.bevel(tokens.panelDisabled())));
 
         int by = (h - ACTION_BTN) / 2;
         ButtonWidget theme = TerminalButton.icon3d(ACTION_PAD, by, ACTION_BTN, TerminalButton.ICON_THEME, onTheme);

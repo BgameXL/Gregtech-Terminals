@@ -4,9 +4,6 @@ import com.gtceuterminal.client.gui.style.*;
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.network.chat.Component;
@@ -21,7 +18,12 @@ final class ThemeEditorRightCol {
 
     private static final int PAD = 8;
     private static final int COLOR_TARGETS = 9;
-    private static final int[] CHAN_FILL = {0xCCFF4444, 0xCC44FF44, 0xCC4444FF, 0xCCCCCCCC};
+    private static final int[] CHAN_FILL = {
+            Palette.RED_CHANNEL,
+            Palette.GREEN_CHANNEL,
+            Palette.BLUE_CHANNEL,
+            Palette.ALPHA_CHANNEL
+    };
 
     private ThemeEditorRightCol() {
     }
@@ -40,7 +42,7 @@ final class ThemeEditorRightCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, colW, colH);
-        col.setBackground(new BevelTexture(tokens.surface()));
+        col.setBackground(TerminalUI.bevel(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_customization").getString());
@@ -76,11 +78,11 @@ final class ThemeEditorRightCol {
             col.addWidget(label);
 
             ButtonWidget button = new ButtonWidget(bx, by, targetW, targetH,
-                    new ColorRectTexture(Palette.CLEAR), cd -> {
+                    TerminalUI.transparent(), cd -> {
                 editTargetHolder[0] = target;
                 onChannelChanged.accept(target);
             });
-            button.setHoverTexture(new ColorRectTexture(tokens.hover()));
+            button.setHoverTexture(TerminalUI.hover());
             col.addWidget(button);
         }
         cy += 3 * (targetH + 4) + 6;
@@ -121,8 +123,8 @@ final class ThemeEditorRightCol {
         hexField.setMaxStringLength(6);
         hexField.setValidator(ThemeEditorRightCol::sanitizeHex);
         hexField.setTextColor(tokens.textStrong());
-        hexField.setBackground(new BevelTexture(tokens.panelDisabled()));
-        hexField.setHoverTexture(new BevelTexture(tokens.panel()));
+        hexField.setBackground(TerminalUI.bevel(tokens.panelDisabled()));
+        hexField.setHoverTexture(TerminalUI.bevel(tokens.panel()));
         hexField.setCurrentString(String.format("%06X",
                 currentColor(working, editTargetHolder[0]) & 0xFFFFFF));
         hexFieldRef[0] = hexField;
@@ -147,8 +149,7 @@ final class ThemeEditorRightCol {
             int sx = PAD + (i % 3) * cellW;
             int sy = cy + (i / 3) * 26;
             ImageWidget swatch = new ImageWidget(sx, sy, swatchSize, swatchSize,
-                    new GuiTextureGroup(new ColorRectTexture(colors[i]),
-                            new ColorBorderTexture(1, tokens.border())));
+                    TerminalUI.outlined(colors[i], tokens.border()));
             swatchRefs[i] = swatch;
             col.addWidget(swatch);
 
@@ -171,7 +172,7 @@ final class ThemeEditorRightCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, colW, colH);
-        col.setBackground(new BevelTexture(tokens.surface()));
+        col.setBackground(TerminalUI.bevel(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_options").getString());
@@ -184,7 +185,7 @@ final class ThemeEditorRightCol {
         int sourceX = PAD;
         int sourceW = 94;
         col.addWidget(new ImageWidget(sourceX, cy, sourceW, optionH,
-                new BevelTexture(tokens.panel())));
+                TerminalUI.bevel(tokens.panel())));
         LabelWidget sourceLabel = new LabelWidget(sourceX + 7, cy + 6, () ->
                 working.slideshowSource == ItemTheme.SlideshowSource.CUSTOM ? "Custom" : "Built-in");
         sourceLabel.setClientSideWidget();
@@ -192,8 +193,8 @@ final class ThemeEditorRightCol {
         col.addWidget(sourceLabel);
 
         ButtonWidget sourceButton = new ButtonWidget(sourceX, cy, sourceW, optionH,
-                new ColorRectTexture(Palette.CLEAR), cd -> onToggleSource.run());
-        sourceButton.setHoverTexture(new ColorRectTexture(tokens.hover()));
+                TerminalUI.transparent(), cd -> onToggleSource.run());
+        sourceButton.setHoverTexture(TerminalUI.hover());
         sourceButton.setHoverTooltips(
                 Component.translatable("gui.gtceuterminal.theme_editor.slideshow_source"),
                 Component.translatable("gui.gtceuterminal.theme_editor.slideshow_source_desc1"),
@@ -229,10 +230,10 @@ final class ThemeEditorRightCol {
         int previewH = colH - cy - PAD;
         if (previewH > 12) {
             col.addWidget(new ImageWidget(PAD, cy, colW - PAD * 2, previewH,
-                    new BevelTexture(tokens.panelDisabled())));
+                    TerminalUI.bevel(tokens.panelDisabled())));
             ImageWidget thumb = new ImageWidget(PAD + 2, cy + 2,
                     colW - PAD * 2 - 4, previewH - 4,
-                    new ColorRectTexture(tokens.borderDark()));
+                    TerminalUI.divider());
             wallThumbRef[0] = thumb;
             col.addWidget(thumb);
         }
@@ -241,7 +242,7 @@ final class ThemeEditorRightCol {
 
     static IGuiTexture targetTexture(boolean selected) {
         TerminalTheme tokens = TerminalUI.tokens();
-        return new BevelTexture(selected ? tokens.action() : tokens.panel());
+        return TerminalUI.bevel(selected ? tokens.action() : tokens.panel());
     }
 
     private static String sanitizeHex(String value) {

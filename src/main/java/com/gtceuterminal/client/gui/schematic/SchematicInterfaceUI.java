@@ -1,7 +1,6 @@
 package com.gtceuterminal.client.gui.schematic;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -18,9 +17,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.client.Minecraft;
@@ -123,7 +119,7 @@ public class SchematicInterfaceUI {
 
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        mainGroup.setBackground(new ColorRectTexture(Palette.CLEAR));
+        mainGroup.setBackground(TerminalUI.transparent());
         this.gui = buildModularUI(mainGroup);
         rebuildContent();
         return gui;
@@ -217,22 +213,22 @@ public class SchematicInterfaceUI {
         body.addWidget(leftPanel);
 
         body.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER, topH,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
 
         WidgetGroup preview = new WidgetGroup(previewX, CARD_INSET, previewW, topH);
-        preview.setBackground(new ColorRectTexture(tokens.surface()));
+        preview.setBackground(TerminalUI.surface());
         this.previewArea = preview;
         refreshPreview();
         body.addWidget(preview);
 
         body.addWidget(new ImageWidget(toolsX - DIVIDER, CARD_INSET, DIVIDER, topH,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
 
         body.addWidget(buildToolsColumn(toolsX, CARD_INSET, TOOLS_W, topH));
 
         int clipY = CARD_INSET + topH + DIVIDER;
         body.addWidget(new ImageWidget(CARD_INSET, clipY - DIVIDER, innerW, DIVIDER,
-                new ColorRectTexture(tokens.borderDark())));
+                TerminalUI.divider()));
         body.addWidget(buildClipboardBar(CARD_INSET, clipY, innerW, CLIP_H));
 
         return body;
@@ -240,7 +236,7 @@ public class SchematicInterfaceUI {
 
     private WidgetGroup buildToolsColumn(int x, int y, int w, int h) {
         WidgetGroup col = new WidgetGroup(x, y, w, h);
-        col.setBackground(new ColorRectTexture(tokens.panel()));
+        col.setBackground(TerminalUI.panel());
 
         int pad = 8;
         LabelWidget title = new LabelWidget(pad, 8, TerminalText.strip(Component.translatable(
@@ -269,7 +265,7 @@ public class SchematicInterfaceUI {
 
     private WidgetGroup buildClipboardBar(int x, int y, int w, int h) {
         WidgetGroup bar = new WidgetGroup(x, y, w, h);
-        bar.setBackground(new ColorRectTexture(tokens.panel()));
+        bar.setBackground(TerminalUI.panel());
 
         LabelWidget clipLbl = new LabelWidget(10, (h - 8) / 2, clipboardIndicatorText());
         clipLbl.setColor(tokens.textMuted());
@@ -322,12 +318,8 @@ public class SchematicInterfaceUI {
         saveDisabledBtn.setVisible(!valid);
 
         int border = dup ? tokens.error() : tokens.border();
-        nameInput.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, border)));
-        nameInput.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, dup ? tokens.error() : tokens.textStrong())));
+        nameInput.setBackground(TerminalUI.field(border));
+        nameInput.setHoverTexture(TerminalUI.field(dup ? tokens.error() : tokens.textStrong()));
     }
 
     private String clipboardIndicatorText() {
@@ -490,7 +482,7 @@ public class SchematicInterfaceUI {
     private ModularUI buildModularUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         ui.widget(content);
-        ui.background(new ColorRectTexture(Palette.CLEAR));
+        ui.background(TerminalUI.transparent());
         return ui;
     }
 

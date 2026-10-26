@@ -3,7 +3,6 @@ package com.gtceuterminal.client.gui.dismantler;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,7 +21,7 @@ final class DismantlerFooter {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup footer = new WidgetGroup(x, y, w, h);
-        footer.setBackground(new ColorRectTexture(tokens.panel()));
+        footer.setBackground(TerminalUI.panel());
 
         int btnH = 22, btnY = (h - btnH) / 2;
         int allW = 220;

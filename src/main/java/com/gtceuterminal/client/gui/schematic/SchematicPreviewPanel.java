@@ -5,7 +5,6 @@ import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.common.data.SchematicData;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -68,14 +67,14 @@ final class SchematicPreviewPanel {
         int previewH = panelH - 16 - infoH;
 
         WidgetGroup previewArea = new WidgetGroup(8, 8, previewW, panelH - 16);
-        previewArea.setBackground(new ColorRectTexture(tokens.panel()));
+        previewArea.setBackground(TerminalUI.panel());
 
         if (selectedIndex >= 0 && selectedIndex < schematics.size()) {
             SchematicData sel = schematics.get(selectedIndex);
 
             if (player.level().isClientSide) {
                 SchematicPreviewWidget preview = new SchematicPreviewWidget(0, 0, previewW, previewH, sel);
-                preview.setBackground(new ColorRectTexture(tokens.panelDisabled()));
+                preview.setBackground(TerminalUI.panelDisabled());
                 previewArea.addWidget(preview);
             }
 

@@ -1,12 +1,8 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -35,7 +31,7 @@ public final class TerminalRenameDialog {
         int dh = buttonY + 30;
 
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(Palette.SCRIM));
+        dialog.setBackground(TerminalUI.scrim());
         dialog.setClickClose(false);
         if (listToDisable != null) {
             listToDisable.setActive(false);
@@ -47,7 +43,7 @@ public final class TerminalRenameDialog {
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, TITLE_H);
-        titleBar.setBackground(new ColorRectTexture(tokens.panel()));
+        titleBar.setBackground(TerminalUI.panel());
         panel.addWidget(titleBar);
 
         LabelWidget titleLbl = new LabelWidget(8, 7,
@@ -70,12 +66,8 @@ public final class TerminalRenameDialog {
         textField.setMaxStringLength(32);
         textField.setBordered(false);
         textField.setTextColor(tokens.textStrong());
-        textField.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.border())));
-        textField.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.textStrong())));
+        textField.setBackground(TerminalUI.field(tokens.border()));
+        textField.setHoverTexture(TerminalUI.field(tokens.textStrong()));
         textField.setCurrentString(initialValue == null ? "" : initialValue);
         panel.addWidget(textField);
 

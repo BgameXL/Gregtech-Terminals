@@ -1,7 +1,6 @@
 package com.gtceuterminal.client.gui.dismantler;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
@@ -12,7 +11,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -118,7 +116,7 @@ public class DismantlerUI {
 
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        mainGroup.setBackground(new ColorRectTexture(Palette.CLEAR));
+        mainGroup.setBackground(TerminalUI.transparent());
 
         if (!theme.isNativeStyle()) {
             mainGroup.addWidget(new WallpaperWidget(2, BODY_Y, GUI_W - 4, BODY_H, () -> this.theme));
@@ -135,19 +133,19 @@ public class DismantlerUI {
                 scanResult, controllerPos, player));
 
         body.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER, CONTENT_H,
-                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+                TerminalUI.divider()));
 
         body.addWidget(DismantlerBlockListPanel.build(
                 RIGHT_X, CARD_INSET, RIGHT_W, CONTENT_H, scanResult));
 
         body.addWidget(new ImageWidget(CARD_INSET, CARD_INSET + CONTENT_H, INNER_W, DIVIDER,
-                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+                TerminalUI.divider()));
 
         body.addWidget(DismantlerInfoBar.build(
                 CARD_INSET, INFO_Y, INNER_W, INFO_H, scanResult, player));
 
         body.addWidget(new ImageWidget(CARD_INSET, INFO_Y + INFO_H, INNER_W, DIVIDER,
-                new ColorRectTexture(TerminalUI.tokens().borderDark())));
+                TerminalUI.divider()));
 
         body.addWidget(DismantlerFooter.build(
                 CARD_INSET, FOOTER_Y, INNER_W, FOOTER_H,
@@ -159,7 +157,7 @@ public class DismantlerUI {
     private ModularUI buildModularUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         ui.widget(content);
-        ui.background(new ColorRectTexture(Palette.CLEAR));
+        ui.background(TerminalUI.transparent());
         return ui;
     }
 

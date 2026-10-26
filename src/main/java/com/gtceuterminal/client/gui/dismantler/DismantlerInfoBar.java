@@ -5,7 +5,6 @@ import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
@@ -29,7 +28,7 @@ final class DismantlerInfoBar {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup bar = new WidgetGroup(x, y, w, h);
-        bar.setBackground(new ColorRectTexture(tokens.panel()));
+        bar.setBackground(TerminalUI.panel());
         int total = 0, skipped = 0, requiredSlots = 0;
         if (scanResult != null) {
             for (Map.Entry<Block, Integer> e : scanResult.getBlockCounts().entrySet()) {

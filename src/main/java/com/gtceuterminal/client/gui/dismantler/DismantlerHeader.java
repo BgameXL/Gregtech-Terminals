@@ -50,22 +50,16 @@ final class DismantlerHeader {
         WidgetGroup titleCard = TerminalTabs.tabCard(0, 0, titleW, headerH, true, cd -> {
         });
 
-        boolean placedBundleIcon = false;
-        if (theme.isBundleStyle()) {
-            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null && bundle.iconTexture() != null) {
-                titleCard.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundle.iconTexture()));
-                placedBundleIcon = true;
-            }
-        }
-        if (!placedBundleIcon) {
+        var bundleIcon = TerminalUI.bundleIcon();
+        if (bundleIcon != null) {
+            titleCard.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundleIcon));
+        } else {
             titleCard.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, itemStack,
                     tokens.panelDisabled(), tokens.border()));
         }
 
         LabelWidget nameLbl = new LabelWidget(itemX, 6, fitText(name, textMaxW));
-        nameLbl.setColor(theme.isBundleStyle() ? theme.labelColor() : tokens.textStrong());
+        nameLbl.setColor(TerminalUI.itemLabelColor());
         titleCard.addWidget(nameLbl);
 
         LabelWidget infoLbl = new LabelWidget(itemX, 17, fitText(info, textMaxW));

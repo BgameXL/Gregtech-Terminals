@@ -1,8 +1,7 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
@@ -19,9 +18,9 @@ public class ViewportClippedButton extends ButtonWidget {
     private final DraggableScrollableWidgetGroup viewport;
 
     public ViewportClippedButton(int x, int y, int w, int h, int hoverColor, DraggableScrollableWidgetGroup viewport, Consumer<ClickData> action) {
-        super(x, y, w, h, new ColorRectTexture(Palette.CLEAR), action);
+        super(x, y, w, h, TerminalUI.transparent(), action);
         this.viewport = viewport;
-        setHoverTexture(new ColorRectTexture(hoverColor));
+        setHoverTexture(TerminalUI.color(hoverColor));
     }
 
     @Override

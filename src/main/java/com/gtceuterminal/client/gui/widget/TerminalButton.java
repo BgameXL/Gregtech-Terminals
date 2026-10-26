@@ -1,7 +1,5 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.client.gui.style.BevelTexture;
-import com.gtceuterminal.client.gui.style.Palette;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.lowdragmc.lowdraglib.gui.texture.*;
@@ -17,12 +15,12 @@ import java.util.function.Consumer;
 public final class TerminalButton {
 
     private static final String BTN_TEX = "gtceuterminal:textures/gui/buttons/";
-    public static final ResourceTexture ICON_CLOSE = new ResourceTexture(BTN_TEX + "close.png");
-    public static final ResourceTexture ICON_THEME = new ResourceTexture(BTN_TEX + "theme.png");
-    public static final ResourceTexture ICON_CONFIG = new ResourceTexture(BTN_TEX + "config.png");
-    public static final ResourceTexture ICON_ARROW_LEFT = new ResourceTexture(BTN_TEX + "arrow_left.png");
-    public static final ResourceTexture ICON_ARROW_RIGHT = new ResourceTexture(BTN_TEX + "arrow_right.png");
-    public static final ResourceTexture ICON_RENAME = new ResourceTexture(BTN_TEX + "rename.png");
+    public static final ResourceTexture ICON_CLOSE = TerminalUI.resource(BTN_TEX + "close.png");
+    public static final ResourceTexture ICON_THEME = TerminalUI.resource(BTN_TEX + "theme.png");
+    public static final ResourceTexture ICON_CONFIG = TerminalUI.resource(BTN_TEX + "config.png");
+    public static final ResourceTexture ICON_ARROW_LEFT = TerminalUI.resource(BTN_TEX + "arrow_left.png");
+    public static final ResourceTexture ICON_ARROW_RIGHT = TerminalUI.resource(BTN_TEX + "arrow_right.png");
+    public static final ResourceTexture ICON_RENAME = TerminalUI.resource(BTN_TEX + "rename.png");
     private static final int ICON_MARGIN = 1;
 
     private TerminalButton() {
@@ -33,16 +31,13 @@ public final class TerminalButton {
         int fill = TerminalUI.tokens().panel();
         IGuiTexture centered = new IconTexture(icon, Math.max(1, size - ICON_MARGIN * 2));
         ButtonWidget btn = new ButtonWidget(x, y, size, size,
-                new GuiTextureGroup(new BevelTexture(fill), centered), action);
-        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), centered));
+                TerminalUI.buttonContent(fill, centered), action);
+        btn.setHoverTexture(TerminalUI.buttonContentHover(fill, centered));
         return btn;
     }
 
     private static IGuiTexture glyph(String s, int w) {
-        return new TextTexture(TerminalText.strip(s))
-                .setColor(TerminalUI.tokens().textStrong())
-                .setWidth(w)
-                .setType(TextTexture.TextType.NORMAL);
+        return TerminalUI.text(TerminalText.strip(s), TerminalUI.tokens().textStrong(), w);
     }
 
     public static ButtonWidget icon3d(int x, int y, int size, String glyph,
@@ -50,8 +45,8 @@ public final class TerminalButton {
         int fill = TerminalUI.tokens().panel();
         IGuiTexture g = glyph(glyph, size);
         ButtonWidget btn = new ButtonWidget(x, y, size, size,
-                new GuiTextureGroup(new BevelTexture(fill), g), action);
-        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), g));
+                TerminalUI.buttonContent(fill, g), action);
+        btn.setHoverTexture(TerminalUI.buttonContentHover(fill, g));
         return btn;
     }
 
@@ -64,18 +59,15 @@ public final class TerminalButton {
                                       Consumer<ClickData> action) {
         IGuiTexture txt = glyph(label, w);
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new GuiTextureGroup(new BevelTexture(fill), txt), action);
-        btn.setHoverTexture(new GuiTextureGroup(new BevelTexture(Palette.shade(fill, 1.30f)), txt));
+                TerminalUI.buttonContent(fill, txt), action);
+        btn.setHoverTexture(TerminalUI.buttonContentHover(fill, txt));
         return btn;
     }
 
     public static ButtonWidget disabled(int x, int y, int w, int h, String label) {
         var tokens = TerminalUI.tokens();
-        TextTexture txt = new TextTexture(TerminalText.strip(label), tokens.textFaint())
-                .setWidth(w).setType(TextTexture.TextType.NORMAL);
-        IGuiTexture normal = new GuiTextureGroup(
-                new BevelTexture(tokens.panelDisabled()),
-                txt);
+        IGuiTexture normal = TerminalUI.button(
+                TerminalText.strip(label), w, tokens.panelDisabled(), tokens.textFaint());
         ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {
         });
         btn.setHoverTexture(normal);
@@ -87,8 +79,8 @@ public final class TerminalButton {
                                      int hoverColor,
                                      Consumer<ClickData> action) {
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new ColorRectTexture(Palette.CLEAR), action);
-        btn.setHoverTexture(new ColorRectTexture(hoverColor));
+                TerminalUI.transparent(), action);
+        btn.setHoverTexture(TerminalUI.color(hoverColor));
         return btn;
     }
 

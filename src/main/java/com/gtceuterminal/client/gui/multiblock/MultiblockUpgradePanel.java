@@ -18,10 +18,6 @@ import com.gtceuterminal.common.network.CPacketRequestUpgradeAnalysis;
 import com.gtceuterminal.common.network.CPacketRequestUpgradeAvailability;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -117,7 +113,7 @@ public final class MultiblockUpgradePanel {
             }
 
             root = new WidgetGroup(x, y, w, h);
-            root.setBackground(new ColorRectTexture(tokens.surface()));
+            root.setBackground(TerminalUI.surface());
             build();
         }
 
@@ -143,7 +139,7 @@ public final class MultiblockUpgradePanel {
 
         private WidgetGroup buildHeader() {
             WidgetGroup header = new WidgetGroup(0, 0, w, HEADER_H);
-            header.setBackground(new ColorRectTexture(tokens.panel()));
+            header.setBackground(TerminalUI.panel());
 
             int backW = 64;
             ButtonWidget back = TerminalButton.text3d(PAD, (HEADER_H - 18) / 2, backW, 18,
@@ -169,7 +165,7 @@ public final class MultiblockUpgradePanel {
             }
 
             header.addWidget(new ImageWidget(0, HEADER_H - 1, w, 1,
-                    new ColorRectTexture(tokens.border())));
+                    TerminalUI.color(tokens.border())));
             return header;
         }
 
@@ -179,7 +175,7 @@ public final class MultiblockUpgradePanel {
             int optY = HEADER_H + 2;
             int optH = h - optY - FOOTER_H - 2;
             optionsPanel = new WidgetGroup(0, optY, w, optH);
-            optionsPanel.setBackground(new ColorRectTexture(tokens.surface()));
+            optionsPanel.setBackground(TerminalUI.surface());
 
             ComponentInfo rep = group.getRepresentative();
             if (rep == null) {
@@ -226,7 +222,7 @@ public final class MultiblockUpgradePanel {
 
                 int divY = 18 + tierRowH + 3;
                 optionsPanel.addWidget(new ImageWidget(PAD, divY, innerW, 1,
-                        new ColorRectTexture(tokens.border())));
+                        TerminalUI.color(tokens.border())));
 
                 LabelWidget varLbl = new LabelWidget(PAD, divY + 4,
                         Component.translatable("gui.gtceuterminal.inline_upgrade.variant").getString());
@@ -269,14 +265,13 @@ public final class MultiblockUpgradePanel {
                 boolean sel = selectedTier != null && selectedTier == tier;
                 int bg = sel ? tokens.accentSoft() : tokens.panel();
                 int brd = sel ? tokens.border() : tokens.borderSubtle();
-                TextTexture txt = new TextTexture(UpgradeCandidates.tierName(tier), tokens.textStrong())
-                        .setWidth(btnW).setType(TextTexture.TextType.NORMAL);
+                var txt = TerminalUI.text(UpgradeCandidates.tierName(tier), tokens.textStrong(), btnW);
                 final int t = tier;
                 ButtonWidget btn = new ButtonWidget(xp, yp, btnW, TIER_BTN_H,
-                        new GuiTextureGroup(new ColorRectTexture(bg), new ColorBorderTexture(1, brd), txt),
+                        TerminalUI.layers(TerminalUI.color(bg), TerminalUI.border(brd), txt),
                         cd -> onTierClicked(t));
-                btn.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(bg),
-                        new ColorBorderTexture(1, tokens.textStrong()), txt));
+                btn.setHoverTexture(TerminalUI.layers(
+                        TerminalUI.color(bg), TerminalUI.border(tokens.textStrong()), txt));
                 tierButtonsRow.addWidget(btn);
             }
         }
@@ -351,13 +346,12 @@ public final class MultiblockUpgradePanel {
             int brd = selected ? tokens.border() : tokens.borderSubtle();
             String name = truncate(option.displayName(), Math.max(18, rowW / 6));
             String tier = UpgradeCandidates.tierName(option.tier());
-            TextTexture txt = new TextTexture(name + "\n" + tier, tokens.textStrong())
-                    .setWidth(rowW).setType(TextTexture.TextType.NORMAL);
+            var txt = TerminalUI.text(name + "\n" + tier, tokens.textStrong(), rowW);
             ButtonWidget btn = new ButtonWidget(x, y, rowW, rowH,
-                    new GuiTextureGroup(new ColorRectTexture(bg), new ColorBorderTexture(1, brd), txt),
+                    TerminalUI.layers(TerminalUI.color(bg), TerminalUI.border(brd), txt),
                     cd -> selectUpgrade(option.blockId(), option.tier()));
-            btn.setHoverTexture(new GuiTextureGroup(
-                    new ColorRectTexture(bg), new ColorBorderTexture(1, tokens.textStrong()), txt));
+            btn.setHoverTexture(TerminalUI.layers(
+                    TerminalUI.color(bg), TerminalUI.border(tokens.textStrong()), txt));
             return btn;
         }
 
@@ -405,9 +399,8 @@ public final class MultiblockUpgradePanel {
 
         private WidgetGroup buildAvailabilityPanel(int x, int y, int panelW, int panelH) {
             WidgetGroup panel = new WidgetGroup(x, y, panelW, panelH);
-            panel.setBackground(new GuiTextureGroup(
-                    new ColorRectTexture(Palette.withAlpha(tokens.surface(), 0x66)),
-                    new ColorBorderTexture(1, tokens.border())));
+            panel.setBackground(TerminalUI.outlined(
+                    Palette.withAlpha(tokens.surface(), 0x66), tokens.border()));
             populateAvailabilityPanel(panel);
             return panel;
         }
@@ -503,7 +496,7 @@ public final class MultiblockUpgradePanel {
                 badgeBorder = tokens.error();
                 badgeText = Component.translatable("gui.gtceuterminal.inline_upgrade.availability.badge_missing").getString();
             }
-            badge.setBackground(new GuiTextureGroup(new ColorRectTexture(badgeBg), new ColorBorderTexture(1, badgeBorder)));
+            badge.setBackground(TerminalUI.outlined(badgeBg, badgeBorder));
             LabelWidget badgeLabel = new LabelWidget(5, 4, badgeText);
             badgeLabel.setColor(badgeBorder);
             badge.addWidget(badgeLabel);
@@ -628,7 +621,7 @@ public final class MultiblockUpgradePanel {
         private WidgetGroup buildFooter() {
             int footerY = h - FOOTER_H;
             WidgetGroup footer = new WidgetGroup(0, footerY, w, FOOTER_H);
-            footer.addWidget(new ImageWidget(0, 0, w, 1, new ColorRectTexture(tokens.border())));
+            footer.addWidget(new ImageWidget(0, 0, w, 1, TerminalUI.color(tokens.border())));
 
             int btnH = 22, btnY = (FOOTER_H - btnH) / 2;
             int confirmW = 130;

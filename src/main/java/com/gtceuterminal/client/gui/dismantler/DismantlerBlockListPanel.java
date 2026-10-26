@@ -4,9 +4,6 @@ import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -37,12 +34,10 @@ final class DismantlerBlockListPanel {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new ColorRectTexture(tokens.surface()));
+        panel.setBackground(TerminalUI.surface());
 
         WidgetGroup colHeader = new WidgetGroup(0, 0, w, COL_H);
-        colHeader.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panel()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        colHeader.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
         if (scanResult != null) {
             int types = scanResult.getBlockCounts().size();
@@ -89,14 +84,10 @@ final class DismantlerBlockListPanel {
             Block block, int count, int yPos, int rowW, TerminalTheme tokens
     ) {
         WidgetGroup row = new WidgetGroup(1, yPos, rowW, ENTRY_H);
-        row.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panel()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        row.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
         WidgetGroup slot = new WidgetGroup(6, 2, 20, 20);
-        slot.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(tokens.panelDisabled()),
-                new ColorBorderTexture(1, tokens.borderSubtle())));
+        slot.setBackground(TerminalUI.outlined(tokens.panelDisabled(), tokens.borderSubtle()));
         ItemStack blockStack = new ItemStack(block);
         if (!blockStack.isEmpty()) {
             slot.addWidget(new ImageWidget(1, 1, 18, 18, new ItemStackTexture(blockStack)));

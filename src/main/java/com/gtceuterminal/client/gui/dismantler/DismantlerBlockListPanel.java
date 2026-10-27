@@ -87,7 +87,7 @@ final class DismantlerBlockListPanel {
         row.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
         WidgetGroup slot = new WidgetGroup(6, 2, 20, 20);
-        slot.setBackground(TerminalUI.outlined(tokens.panelDisabled(), tokens.borderSubtle()));
+        slot.setBackground(TerminalUI.well(tokens.panelDisabled()));
         ItemStack blockStack = new ItemStack(block);
         if (!blockStack.isEmpty()) {
             slot.addWidget(new ImageWidget(1, 1, 18, 18, new ItemStackTexture(blockStack)));

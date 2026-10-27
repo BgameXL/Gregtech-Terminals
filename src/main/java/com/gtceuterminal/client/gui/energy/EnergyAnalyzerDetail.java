@@ -170,7 +170,7 @@ final class EnergyAnalyzerDetail {
         y += 10;
 
         recipeBarBg = new WidgetGroup(pad, y, graphW - pad, 8);
-        recipeBarBg.setBackground(TerminalUI.outlined(tokens.panelDisabled(), tokens.borderSubtle()));
+        recipeBarBg.setBackground(TerminalUI.well(tokens.panelDisabled()));
         g.addWidget(recipeBarBg);
         recipeBarFill = new WidgetGroup(pad + 1, y + 1, 0, 6);
         recipeBarFill.setBackground(TerminalUI.color(tokens.success()));
@@ -228,7 +228,7 @@ final class EnergyAnalyzerDetail {
         row.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
         WidgetGroup slot = new WidgetGroup(4, 1, 20, 20);
-        slot.setBackground(TerminalUI.outlined(tokens.panelDisabled(), tokens.borderSubtle()));
+        slot.setBackground(TerminalUI.well(tokens.panelDisabled()));
         ImageWidget icon = new ImageWidget(1, 1, 18, 18, hatchIconSupplier(index, selSnap));
         icon.setClientSideWidget();
         slot.addWidget(icon);

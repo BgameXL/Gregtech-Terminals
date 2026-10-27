@@ -14,16 +14,22 @@ public class BevelTexture implements IGuiTexture {
     private final int highlight;
     private final int shadow;
     private final int edge;
+    private final boolean inset;
 
     public BevelTexture(int fill) {
-        this(fill, Palette.shade(fill, 1.45f), Palette.shade(fill, 0.62f), Palette.shade(fill, 0.30f));
+        this(fill, false);
     }
 
-    public BevelTexture(int fill, int highlight, int shadow, int edge) {
+    public BevelTexture(int fill, boolean inset) {
+        this(fill, Palette.shade(fill, 1.45f), Palette.shade(fill, 0.62f), Palette.shade(fill, 0.30f), inset);
+    }
+
+    public BevelTexture(int fill, int highlight, int shadow, int edge, boolean inset) {
         this.fill = fill;
         this.highlight = highlight;
         this.shadow = shadow;
         this.edge = edge;
+        this.inset = inset;
     }
 
     @Override
@@ -46,12 +52,12 @@ public class BevelTexture implements IGuiTexture {
         // Interior fill
         g.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, fill);
 
-        // Inner highlight: top + left
-        g.fill(x0 + 1, y0 + 1, x1 - 1, y0 + 2, highlight);
-        g.fill(x0 + 1, y0 + 1, x0 + 2, y1 - 1, highlight);
-
-        // Inner shadow: bottom + right
-        g.fill(x0 + 1, y1 - 2, x1 - 1, y1 - 1, shadow);
-        g.fill(x1 - 2, y0 + 1, x1 - 1, y1 - 1, shadow);
+        // Raised lights top + left and shadows bottom + right; inset swaps them for a carved look
+        int topLeft = inset ? shadow : highlight;
+        int bottomRight = inset ? highlight : shadow;
+        g.fill(x0 + 1, y0 + 1, x1 - 1, y0 + 2, topLeft);
+        g.fill(x0 + 1, y0 + 1, x0 + 2, y1 - 1, topLeft);
+        g.fill(x0 + 1, y1 - 2, x1 - 1, y1 - 1, bottomRight);
+        g.fill(x1 - 2, y0 + 1, x1 - 1, y1 - 1, bottomRight);
     }
 }

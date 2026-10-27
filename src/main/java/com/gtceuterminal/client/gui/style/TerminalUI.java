@@ -44,7 +44,8 @@ public final class TerminalUI {
     }
 
     public static int itemLabelColor() {
-        return activeTheme.isBundleStyle() ? activeTheme.labelColor() : tokens.textStrong();
+        if (activeTheme.isBundleStyle()) return activeTheme.labelColor();
+        return Palette.contrast(tokens.surface(), tokens.textStrong(), Palette.BLACK);
     }
 
     public static IGuiTexture scrim() {
@@ -59,10 +60,6 @@ public final class TerminalUI {
         return new ColorBorderTexture(1, color);
     }
 
-    public static IGuiTexture border(int width, int color) {
-        return new ColorBorderTexture(width, color);
-    }
-
     public static IGuiTexture layers(IGuiTexture... textures) {
         return new GuiTextureGroup(textures);
     }
@@ -73,6 +70,10 @@ public final class TerminalUI {
 
     public static IGuiTexture bevel(int fill) {
         return new BevelTexture(fill);
+    }
+
+    public static IGuiTexture well(int fill) {
+        return new BevelTexture(fill, true);
     }
 
     public static IGuiTexture surface() {
@@ -127,9 +128,5 @@ public final class TerminalUI {
 
     public static IGuiTexture cardBg() {
         return bevel(tokens.surface());
-    }
-
-    public static IGuiTexture cardBg(int fill) {
-        return bevel(fill);
     }
 }

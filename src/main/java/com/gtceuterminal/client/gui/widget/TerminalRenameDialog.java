@@ -39,7 +39,7 @@ public final class TerminalRenameDialog {
         }
 
         WidgetGroup panel = new WidgetGroup((parentW - DW) / 2, (parentH - dh) / 2, DW, dh);
-        panel.setBackground(TerminalUI.cardBg());
+        panel.setBackground(TerminalUI.cardBG());
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, TITLE_H);
@@ -51,7 +51,7 @@ public final class TerminalRenameDialog {
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
-        ButtonWidget closeBtn = TerminalButton.icon3d(DW - 23, 4, 18, TerminalButton.ICON_CLOSE, cd -> dialog.close());
+        ButtonWidget closeBtn = TerminalButton.icon3D(DW - 23, 4, 18, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         titleBar.addWidget(closeBtn);
 
@@ -72,12 +72,12 @@ public final class TerminalRenameDialog {
         panel.addWidget(textField);
 
         int btnW = (DW - 22) / 2;
-        ButtonWidget cancelBtn = TerminalButton.text3d(8, buttonY, btnW, 18,
+        ButtonWidget cancelBtn = TerminalButton.text3D(8, buttonY, btnW, 18,
                 Component.translatable("gui.gtceuterminal.rename_dialog.cancel").getString(),
                 cd -> dialog.close());
         panel.addWidget(cancelBtn);
 
-        ButtonWidget confirmBtn = TerminalButton.text3d(14 + btnW, buttonY, btnW, 18,
+        ButtonWidget confirmBtn = TerminalButton.text3D(14 + btnW, buttonY, btnW, 18,
                 Component.translatable("gui.gtceuterminal.rename_dialog.confirm").getString(),
                 tokens.successSurface(),
                 cd -> {

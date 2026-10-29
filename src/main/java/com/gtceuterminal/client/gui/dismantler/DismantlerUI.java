@@ -86,7 +86,8 @@ public class DismantlerUI {
                 var block = state.getBlock();
                 counts.merge(block, 1, Integer::sum);
             }
-            return new DismantleScanner.ScanResult(controllerPos, preScanned, counts);
+            return new DismantleScanner.ScanResult(controllerPos, preScanned, counts,
+                    DismantleScanner.collectCoverStacks(level, preScanned));
         }
         return computeScanResult(player, controllerPos);
     }
@@ -126,7 +127,7 @@ public class DismantlerUI {
                 GUI_W, HEADER_H, controllerPos, itemStack, theme, mainGroup, this::closeUI));
 
         WidgetGroup body = new WidgetGroup(2, BODY_Y, GUI_W - 4, BODY_H);
-        body.setBackground(TerminalUI.cardBg());
+        body.setBackground(TerminalUI.cardBG());
 
         body.addWidget(DismantlerPreviewPanel.build(
                 CARD_INSET, CARD_INSET, LEFT_W, CONTENT_H,

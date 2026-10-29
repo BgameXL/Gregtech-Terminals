@@ -89,7 +89,7 @@ public class ThemeEditorDialog {
         int bodyY = cardsY + SECTION_H;
         int bodyH = dh - bodyY - FTR_H;
         panel.addWidget(new ImageWidget(PAD, bodyY, dw - PAD * 2, dh - bodyY,
-                TerminalUI.bevel(TerminalUI.tokens().surface())));
+                TerminalUI.color(TerminalUI.tokens().surface())));
         contentHost = new WidgetGroup(PAD, bodyY, dw - PAD * 2, bodyH);
         panel.addWidget(contentHost);
 
@@ -196,12 +196,12 @@ public class ThemeEditorDialog {
         int resetW = totalW / 3;
         int saveW = totalW - resetW - PAD;
 
-        ButtonWidget save = TerminalButton.text3d(0, btnY, saveW, btnH,
+        ButtonWidget save = TerminalButton.text3D(0, btnY, saveW, btnH,
                 Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString(),
                 tokens.successSurface(), cd -> saveAndClose(dialog));
         ftr.addWidget(save);
 
-        ButtonWidget reset = TerminalButton.text3d(saveW + PAD, btnY, resetW, btnH,
+        ButtonWidget reset = TerminalButton.text3D(saveW + PAD, btnY, resetW, btnH,
                 Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString(),
                 tokens.errorSurface(), cd -> resetDefaults());
         ftr.addWidget(reset);

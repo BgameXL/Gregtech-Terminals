@@ -142,7 +142,7 @@ public class MultiStructureManagerUI {
 
     private WidgetGroup buildMultiblockBodyCard() {
         WidgetGroup card = new WidgetGroup(2, BODY_Y, GUI_W - 4, BODY_H);
-        card.setBackground(TerminalUI.cardBg());
+        card.setBackground(TerminalUI.cardBG());
         this.bodyGroup = card;
 
         int innerW = (GUI_W - 4) - CARD_INSET * 2;
@@ -261,7 +261,7 @@ public class MultiStructureManagerUI {
 
     private WidgetGroup buildSettingsBodyCard() {
         WidgetGroup card = new WidgetGroup(2, BODY_Y, GUI_W - 4, SETTINGS_BODY_H);
-        card.setBackground(TerminalUI.cardBg());
+        card.setBackground(TerminalUI.cardBG());
         this.bodyGroup = card;
         this.listScroll = null;
         this.detailPanel = null;
@@ -284,7 +284,7 @@ public class MultiStructureManagerUI {
         card.addWidget(new ImageWidget(0, 0, cardW, TITLE_H,
                 TerminalUI.bevel(TerminalUI.tokens().panel())));
 
-        ButtonWidget back = TerminalButton.icon3d(6, (TITLE_H - 18) / 2, 18, TerminalButton.ICON_ARROW_LEFT,
+        ButtonWidget back = TerminalButton.icon3D(6, (TITLE_H - 18) / 2, 18, TerminalButton.ICON_ARROW_LEFT,
                 cd -> switchView(View.MULTIBLOCKS));
         card.addWidget(back);
 

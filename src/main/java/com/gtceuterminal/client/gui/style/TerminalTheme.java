@@ -33,21 +33,21 @@ public record TerminalTheme(
         return new TerminalTheme(
                 it.bgColor,
                 it.panelColor,
-                Palette.shade(it.panelColor, 0.72f),
-                Palette.withAlpha(it.accentColor, 0xAA),
-                Palette.shade(it.accentColor, 0.55f),
+                TerminalPalette.shade(it.panelColor, 0.72f),
+                TerminalPalette.withAlpha(it.accentColor, 0xAA),
+                TerminalPalette.shade(it.accentColor, 0.55f),
                 it.borderColor,
-                Palette.withAlpha(it.borderColor, 0x55),
-                Palette.shade(it.borderColor, 0.25f),
-                Palette.shade(it.textMutedColor, 0.80f),
+                TerminalPalette.withAlpha(it.borderColor, 0x55),
+                TerminalPalette.shade(it.borderColor, 0.25f),
+                TerminalPalette.shade(it.textMutedColor, 0.80f),
                 it.textMutedColor,
                 it.textColor,
-                Palette.HOVER,
+                TerminalPalette.HOVER,
                 it.successColor,
-                Palette.shade(it.successColor, 0.32f),
+                TerminalPalette.shade(it.successColor, 0.32f),
                 it.warningColor,
-                Palette.shade(it.warningColor, 0.28f),
+                TerminalPalette.shade(it.warningColor, 0.28f),
                 it.errorColor,
-                Palette.shade(it.errorColor, 0.28f));
+                TerminalPalette.shade(it.errorColor, 0.28f));
     }
 }

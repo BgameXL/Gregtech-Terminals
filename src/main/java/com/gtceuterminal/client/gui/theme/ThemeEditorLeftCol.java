@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.theme;
 
-import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalPalette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
@@ -36,7 +36,7 @@ final class ThemeEditorLeftCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, COL_W, colH);
-        col.setBackground(TerminalUI.bevel(tokens.surface()));
+        col.setBackground(TerminalUI.color(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_presets").getString());
@@ -51,9 +51,10 @@ final class ThemeEditorLeftCol {
                 curX = PAD;
                 curY += PRESET_H + 4;
             }
-            int fill = Palette.blend(preset.bgColor, tokens.panel(), 0.35f);
-            col.addWidget(TerminalButton.text3d(curX, curY, btnW, PRESET_H,
-                    presetLabel(preset), fill, cd -> onPreset.accept(preset)));
+            int fill = TerminalPalette.blend(preset.accentColor, tokens.panel(), 0.25f);
+            int textColor = TerminalPalette.contrast(fill, tokens.textStrong(), TerminalPalette.BLACK);
+            col.addWidget(TerminalButton.text3D(curX, curY, btnW, PRESET_H,
+                    preset.label, fill, textColor, cd -> onPreset.accept(preset)));
             curX += btnW + 4;
         }
 
@@ -72,7 +73,7 @@ final class ThemeEditorLeftCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, COL_W, colH);
-        col.setBackground(TerminalUI.bevel(tokens.surface()));
+        col.setBackground(TerminalUI.color(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_themes").getString());
@@ -103,7 +104,7 @@ final class ThemeEditorLeftCol {
             IGuiTexture icon = bundle.iconTexture();
             IGuiTexture iconTexture = icon != null
                     ? TerminalUI.layers(TerminalUI.color(bundle.bgColor()), icon,
-                    TerminalUI.border(Palette.withAlpha(tokens.borderDark(), 0xAA)))
+                    TerminalUI.border(TerminalPalette.withAlpha(tokens.borderDark(), 0xAA)))
                     : TerminalUI.outlined(bundle.accentColor(), tokens.borderDark());
             scroll.addWidget(new ImageWidget(7, cardY + 6, 24, 24, iconTexture));
 
@@ -150,22 +151,8 @@ final class ThemeEditorLeftCol {
 
     private static IGuiTexture bundleCardTexture(ThemeBundle bundle, boolean selected) {
         TerminalTheme tokens = TerminalUI.tokens();
-        int fill = selected ? Palette.withAlpha(bundle.accentColor(), 0x66) : tokens.panel();
+        int fill = selected ? TerminalPalette.withAlpha(bundle.accentColor(), 0x66) : tokens.panel();
         return TerminalUI.bevel(fill);
-    }
-
-    private static String presetLabel(ThemePreset preset) {
-        return switch (preset) {
-            case DEFAULT -> "§fDefault";
-            case GTCEU_RED -> "§cRed";
-            case MATRIX -> "§aMatrix";
-            case GOLD -> "§6Gold";
-            case PURPLE -> "§5Purple";
-            case CYAN -> "§bCyan";
-            case ORANGE -> "§6Orange";
-            case MONO -> "§7Mono";
-            case PITCH_BLACK -> "§8Pitch Black";
-        };
     }
 
 }

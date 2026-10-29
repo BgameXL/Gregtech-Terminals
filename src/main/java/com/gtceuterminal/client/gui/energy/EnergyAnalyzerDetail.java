@@ -177,7 +177,7 @@ final class EnergyAnalyzerDetail {
         g.addWidget(recipeBarFill);
         y += 12;
 
-        recipeBtn = TerminalButton.text3d(pad, y, 112, 18,
+        recipeBtn = TerminalButton.text3D(pad, y, 112, 18,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_button").getString(),
                 tokens.panelDisabled(), cd -> onRecipeHistoryClick.run());
         g.addWidget(recipeBtn);

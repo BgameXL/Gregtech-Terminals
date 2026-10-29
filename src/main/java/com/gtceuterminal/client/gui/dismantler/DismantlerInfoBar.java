@@ -9,6 +9,7 @@ import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -39,6 +40,9 @@ final class DismantlerInfoBar {
                     requiredSlots += (e.getValue() + 63) / 64;
                 }
             }
+            for (ItemStack cover : scanResult.getCoverStacks()) {
+                requiredSlots += (cover.getCount() + 63) / 64;
+            }
         }
 
         int emptySlots = 0;
@@ -54,7 +58,7 @@ final class DismantlerInfoBar {
         bar.addWidget(totalLabel);
         xPos += 96;
 
-        LabelWidget dot1 = new LabelWidget(xPos, h / 2 - 4, "·");
+        LabelWidget dot1 = new LabelWidget(xPos, h / 2 - 4, "");
         dot1.setColor(tokens.textFaint());
         bar.addWidget(dot1);
         xPos += 14;

@@ -70,7 +70,7 @@ public class EnergyAnalyzerUI {
                 W, HEADER_H, holder.machines.size(), holder.itemStack, theme, rootGroup, player));
 
         WidgetGroup body = new WidgetGroup(2, BODY_Y, W - 4, BODY_H);
-        body.setBackground(TerminalUI.cardBg());
+        body.setBackground(TerminalUI.cardBG());
 
         sidebarSelects = new WidgetGroup[holder.machines.size()];
         body.addWidget(EnergyAnalyzerSidebar.build(

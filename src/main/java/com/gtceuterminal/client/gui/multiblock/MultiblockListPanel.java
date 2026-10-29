@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.multiblock;
 
-import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalPalette;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -108,7 +108,7 @@ final class MultiblockListPanel {
         WidgetGroup entry = new WidgetGroup(1, yPos, rowW, ENTRY_H);
 
         int bg = selected ? t.accentSoft() : t.panel();
-        int borderColor = selected ? t.border() : Palette.CLEAR;
+        int borderColor = selected ? t.border() : TerminalPalette.CLEAR;
         entry.setBackground(TerminalUI.outlined(bg, borderColor));
 
         // Clickable area (full entry minus buttons)
@@ -148,7 +148,7 @@ final class MultiblockListPanel {
         WidgetGroup footer = new WidgetGroup(x, y, panelW, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, panelW, 1, TerminalUI.divider()));
 
-        ButtonWidget highlightBtn = TerminalButton.text3d(6, 5, panelW - 40, 18, "Highlight",
+        ButtonWidget highlightBtn = TerminalButton.text3D(6, 5, panelW - 40, 18, "Highlight",
                 cd -> {
                     MultiblockInfo sel = getSelected.get();
                     if (sel != null) onHighlight.accept(sel);
@@ -157,7 +157,7 @@ final class MultiblockListPanel {
                 Component.translatable("gui.gtceuterminal.multiblock_manager.highlight_tooltip").getString());
         footer.addWidget(highlightBtn);
 
-        ButtonWidget renameBtn = TerminalButton.icon3d(panelW - 28, 4, 20, TerminalButton.ICON_RENAME,
+        ButtonWidget renameBtn = TerminalButton.icon3D(panelW - 28, 4, 20, TerminalButton.ICON_RENAME,
                 cd -> {
                     MultiblockInfo sel = getSelected.get();
                     if (sel != null) onRename.accept(sel);

@@ -33,11 +33,11 @@ final class EnergyOptionsDialog {
         dialog.setClickClose(true);
 
         WidgetGroup panel = new WidgetGroup((parentW - DW) / 2, (parentH - DH) / 2, DW, DH);
-        panel.setBackground(TerminalUI.cardBg());
+        panel.setBackground(TerminalUI.cardBG());
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 18);
-        titleBar.setBackground(TerminalUI.bevel(tokens.panel()));
+        titleBar.setBackground(TerminalUI.bevel(tokens.surface()));
         panel.addWidget(titleBar);
 
         LabelWidget titleLbl = new LabelWidget(8, 4,
@@ -46,7 +46,7 @@ final class EnergyOptionsDialog {
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
-        ButtonWidget closeBtn = TerminalButton.icon3d(DW - 18, 1, 16, TerminalButton.ICON_CLOSE, cd -> dialog.close());
+        ButtonWidget closeBtn = TerminalButton.icon3D(DW - 18, 1, 16, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         titleBar.addWidget(closeBtn);
 
@@ -55,7 +55,7 @@ final class EnergyOptionsDialog {
         nameLbl.setColor(tokens.textMuted());
         panel.addWidget(nameLbl);
 
-        ButtonWidget renameBtn = TerminalButton.text3d(8, 38, DW - 16, 18,
+        ButtonWidget renameBtn = TerminalButton.text3D(8, 38, DW - 16, 18,
                 Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.machine_options.rename").getString(),
                 tokens.warningSurface(),
@@ -65,7 +65,7 @@ final class EnergyOptionsDialog {
                 });
         panel.addWidget(renameBtn);
 
-        ButtonWidget unlinkBtn = TerminalButton.text3d(8, 60, DW - 16, 18,
+        ButtonWidget unlinkBtn = TerminalButton.text3D(8, 60, DW - 16, 18,
                 Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.machine_options.unlink_machine").getString(),
                 tokens.errorSurface(),
@@ -75,7 +75,7 @@ final class EnergyOptionsDialog {
                 });
         panel.addWidget(unlinkBtn);
 
-        ButtonWidget cancelBtn = TerminalButton.text3d(8, 84, DW - 16, 18,
+        ButtonWidget cancelBtn = TerminalButton.text3D(8, 84, DW - 16, 18,
                 Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.machine_options.cancel").getString(),
                 tokens.panelDisabled(), cd -> dialog.close());

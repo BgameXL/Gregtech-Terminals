@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalPalette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -73,8 +73,8 @@ public class EnergyGraphWidget extends Widget {
 
         fillRect(matrix, 0, 0, w, h, tokens.panelDisabled());
         drawGrid(matrix, w, h,
-                Palette.withAlpha(tokens.border(), 0x22),
-                Palette.withAlpha(tokens.border(), 0x66));
+                TerminalPalette.withAlpha(tokens.border(), 0x22),
+                TerminalPalette.withAlpha(tokens.border(), 0x66));
 
         int len = Math.max(inputHistory.length, outputHistory.length);
         if (len >= 2) {

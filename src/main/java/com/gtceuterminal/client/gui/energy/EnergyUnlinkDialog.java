@@ -36,7 +36,7 @@ final class EnergyUnlinkDialog {
         dialog.setClickClose(true);
 
         WidgetGroup panel = new WidgetGroup((parentW - DW) / 2, (parentH - DH) / 2, DW, DH);
-        panel.setBackground(TerminalUI.cardBg());
+        panel.setBackground(TerminalUI.cardBG());
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 18);
@@ -57,7 +57,7 @@ final class EnergyUnlinkDialog {
         panel.addWidget(confirmLbl);
 
         int buttonW = (DW - 20) / 2;
-        ButtonWidget unlinkBtn = TerminalButton.text3d(8, 40, buttonW, 18,
+        ButtonWidget unlinkBtn = TerminalButton.text3D(8, 40, buttonW, 18,
                 Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.unlink_dialog.unlink").getString(),
                 tokens.errorSurface(),
@@ -70,7 +70,7 @@ final class EnergyUnlinkDialog {
                 });
         panel.addWidget(unlinkBtn);
 
-        ButtonWidget cancelBtn = TerminalButton.text3d(DW / 2 + 2, 40, buttonW, 18,
+        ButtonWidget cancelBtn = TerminalButton.text3D(DW / 2 + 2, 40, buttonW, 18,
                 Component.translatable(
                         "gui.gtceuterminal.energy_analyzer.unlink_dialog.cancel").getString(),
                 tokens.panelDisabled(), cd -> dialog.close());

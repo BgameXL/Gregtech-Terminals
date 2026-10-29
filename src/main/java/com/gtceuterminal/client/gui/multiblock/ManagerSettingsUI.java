@@ -124,7 +124,7 @@ public class ManagerSettingsUI {
         addFrame(root);
 
         WidgetGroup header = buildHeader();
-        ButtonWidget close = TerminalButton.icon3d(
+        ButtonWidget close = TerminalButton.icon3D(
                 header.getSize().width - 24, (HEADER_H - 18) / 2, 18, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         header.addWidget(close);
@@ -138,7 +138,7 @@ public class ManagerSettingsUI {
     private WidgetGroup buildHeader() {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup header = new WidgetGroup(2, 2, GUI_W - 4, HEADER_H);
-        header.setBackground(TerminalUI.bevel(tokens.panel()));
+        header.setBackground(TerminalUI.bevel(tokens.surface()));
 
         int titleX = 10;
         int iconSize = 18;

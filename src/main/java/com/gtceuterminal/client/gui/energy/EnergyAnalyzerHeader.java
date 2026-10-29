@@ -47,8 +47,8 @@ final class EnergyAnalyzerHeader {
         int titleW = Math.min(maxTitleW, itemX + Math.max(font.width(name), font.width(info)) + padR);
         int textMaxW = Math.max(0, titleW - padR - itemX);
 
-        WidgetGroup titleCard = TerminalTabs.tabCard(0, 0, titleW, headerH, true, cd -> {
-        });
+        WidgetGroup titleCard = new WidgetGroup(0, 0, titleW, headerH);
+        titleCard.setBackground(TerminalUI.bevel(tokens.surface()));
 
         var bundleIcon = TerminalUI.bundleIcon();
         if (bundleIcon != null) {

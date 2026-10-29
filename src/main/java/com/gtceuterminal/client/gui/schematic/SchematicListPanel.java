@@ -1,6 +1,6 @@
 package com.gtceuterminal.client.gui.schematic;
 
-import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalPalette;
 import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
@@ -94,7 +94,7 @@ final class SchematicListPanel {
         WidgetGroup entry = new WidgetGroup(1, yPos, entryW, ENTRY_H);
         entry.setBackground(TerminalUI.outlined(
                 sel ? tokens.accentSoft() : tokens.panel(),
-                sel ? tokens.border() : Palette.CLEAR));
+                sel ? tokens.border() : TerminalPalette.CLEAR));
 
         ViewportClippedButton click = new ViewportClippedButton(0, 0, entryW, ENTRY_H,
                 tokens.hover(), scroll, cd -> onSelect.accept(index));

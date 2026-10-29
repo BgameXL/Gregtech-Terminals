@@ -1,11 +1,14 @@
 package com.gtceuterminal.common.multiblock;
 
+import com.gregtechceu.gtceu.api.cover.CoverBehavior;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.pattern.PlayerFluidReservoir;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -56,12 +59,14 @@ public class DismantleExecutor {
             if (ItemsConfig.isDismantlerBlacklisted(bsCheck.getBlock())) continue;
             ItemStack refund = createRefundStack(level, pos);
             mergeInto(items, refund);
+            collectCovers(level, pos, items);
         }
 
         BlockState controllerBs = level.getBlockState(controllerPos);
         if (!ItemsConfig.isDismantlerBlacklisted(controllerBs.getBlock())) {
             ItemStack controllerRefund = createRefundStack(level, controllerPos);
             mergeInto(items, controllerRefund);
+            collectCovers(level, controllerPos, items);
         }
 
         for (BlockPos pos : scanResult.getAllBlocks()) {
@@ -105,6 +110,25 @@ public class DismantleExecutor {
         }
 
         return new ItemStack(state.getBlock().asItem());
+    }
+
+    private static void collectCovers(ServerLevel level, BlockPos pos, List<ItemStack> out) {
+        MetaMachine machine = MetaMachine.getMachine(level, pos);
+        if (machine == null) return;
+
+        var covers = machine.getCoverContainer();
+        for (Direction side : Direction.values()) {
+            CoverBehavior cover = covers.getCoverAtSide(side);
+            if (cover == null) continue;
+
+            for (ItemStack drop : cover.getAdditionalDrops()) {
+                mergeInto(out, drop);
+            }
+            mergeInto(out, cover.getPickItem());
+
+            cover.onRemoved();
+            covers.setCoverAtSide(null, side);
+        }
     }
 
     // Combines identical stacks (same item + same NBT) respecting maxStackSize.

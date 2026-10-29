@@ -31,11 +31,11 @@ public final class RecipeHistoryDialog {
         int dY = (parentH - dH) / 2;
 
         WidgetGroup panel = new WidgetGroup(dX, dY, dW, dH);
-        panel.setBackground(TerminalUI.cardBg());
+        panel.setBackground(TerminalUI.cardBG());
         dialog.addWidget(panel);
 
         WidgetGroup titleBar = new WidgetGroup(0, 0, dW, 18);
-        titleBar.setBackground(TerminalUI.bevel(tokens.panel()));
+        titleBar.setBackground(TerminalUI.bevel(tokens.surface()));
         panel.addWidget(titleBar);
 
         String titleText = TerminalText.strip(Component.translatable(
@@ -46,7 +46,7 @@ public final class RecipeHistoryDialog {
         titleLbl.setColor(tokens.textStrong());
         titleBar.addWidget(titleLbl);
 
-        ButtonWidget closeBtn = TerminalButton.icon3d(dW - 18, 1, 16, TerminalButton.ICON_CLOSE, cd -> dialog.close());
+        ButtonWidget closeBtn = TerminalButton.icon3D(dW - 18, 1, 16, TerminalButton.ICON_CLOSE, cd -> dialog.close());
         closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         titleBar.addWidget(closeBtn);
 

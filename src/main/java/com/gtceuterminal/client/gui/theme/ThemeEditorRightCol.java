@@ -19,10 +19,10 @@ final class ThemeEditorRightCol {
     private static final int PAD = 8;
     private static final int COLOR_TARGETS = 9;
     private static final int[] CHAN_FILL = {
-            Palette.RED_CHANNEL,
-            Palette.GREEN_CHANNEL,
-            Palette.BLUE_CHANNEL,
-            Palette.ALPHA_CHANNEL
+            TerminalPalette.RED,
+            TerminalPalette.GREEN,
+            TerminalPalette.BLUE,
+            TerminalPalette.ALPHA
     };
 
     private ThemeEditorRightCol() {
@@ -42,7 +42,7 @@ final class ThemeEditorRightCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, colW, colH);
-        col.setBackground(TerminalUI.bevel(tokens.surface()));
+        col.setBackground(TerminalUI.color(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.color_customization").getString());
@@ -172,7 +172,7 @@ final class ThemeEditorRightCol {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup col = new WidgetGroup(x, y, colW, colH);
-        col.setBackground(TerminalUI.bevel(tokens.surface()));
+        col.setBackground(TerminalUI.color(tokens.surface()));
 
         LabelWidget title = new LabelWidget(PAD, 8,
                 Component.translatable("gui.gtceuterminal.theme_editor.bundle_options").getString());
@@ -207,12 +207,12 @@ final class ThemeEditorRightCol {
         wallpaperTitle.setColor(tokens.textMuted());
         col.addWidget(wallpaperTitle);
 
-        ButtonWidget previous = TerminalButton.icon3d(PAD + 74, cy, 20, TerminalButton.ICON_ARROW_LEFT, cd -> onWallPrev.run());
+        ButtonWidget previous = TerminalButton.icon3D(PAD + 74, cy, 20, TerminalButton.ICON_ARROW_LEFT, cd -> onWallPrev.run());
         previous.setHoverTooltips(Component.translatable(
                 "gui.gtceuterminal.theme_editor.wallpaper_prev").getString());
         col.addWidget(previous);
 
-        ButtonWidget next = TerminalButton.icon3d(PAD + 98, cy, 20, TerminalButton.ICON_ARROW_RIGHT, cd -> onWallNext.run());
+        ButtonWidget next = TerminalButton.icon3D(PAD + 98, cy, 20, TerminalButton.ICON_ARROW_RIGHT, cd -> onWallNext.run());
         next.setHoverTooltips(Component.translatable(
                 "gui.gtceuterminal.theme_editor.wallpaper_next").getString());
         col.addWidget(next);

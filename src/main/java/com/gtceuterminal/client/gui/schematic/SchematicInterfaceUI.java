@@ -145,7 +145,7 @@ public class SchematicInterfaceUI {
 
     private WidgetGroup buildBlueprintBody() {
         WidgetGroup body = new WidgetGroup(2, BODY_Y, BODY_W, BODY_H);
-        body.setBackground(TerminalUI.cardBg());
+        body.setBackground(TerminalUI.cardBG());
         this.bodyGroup = body;
         this.schematicsScroll = null;
         this.previewArea = null;
@@ -196,7 +196,7 @@ public class SchematicInterfaceUI {
 
     private WidgetGroup buildBody() {
         WidgetGroup body = new WidgetGroup(2, BODY_Y, BODY_W, BODY_H);
-        body.setBackground(TerminalUI.cardBg());
+        body.setBackground(TerminalUI.cardBG());
         this.bodyGroup = body;
 
         int innerW = BODY_W - CARD_INSET * 2;
@@ -246,17 +246,17 @@ public class SchematicInterfaceUI {
 
         int bx = pad, bw = w - pad * 2, btnH = 22, gap = 6, by = 24;
 
-        col.addWidget(TerminalButton.text3d(bx, by, bw, btnH,
+        col.addWidget(TerminalButton.text3D(bx, by, bw, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.load").getString(),
                 tokens.action(), cd -> pasteSchematic()));
         by += btnH + gap;
 
-        col.addWidget(TerminalButton.text3d(bx, by, bw, btnH,
+        col.addWidget(TerminalButton.text3D(bx, by, bw, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.rename").getString(),
                 tokens.panel(), cd -> renameSchematic()));
         by += btnH + gap;
 
-        col.addWidget(TerminalButton.text3d(bx, by, bw, btnH,
+        col.addWidget(TerminalButton.text3D(bx, by, bw, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.delete").getString(),
                 tokens.errorSurface(), cd -> deleteSchematic()));
 
@@ -292,7 +292,7 @@ public class SchematicInterfaceUI {
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString());
         bar.addWidget(saveDisabledBtn);
 
-        this.saveEnabledBtn = TerminalButton.text3d(saveX, saveY, saveW, saveH,
+        this.saveEnabledBtn = TerminalButton.text3D(saveX, saveY, saveW, saveH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString(),
                 tokens.successSurface(), cd -> saveSchematic());
         bar.addWidget(saveEnabledBtn);

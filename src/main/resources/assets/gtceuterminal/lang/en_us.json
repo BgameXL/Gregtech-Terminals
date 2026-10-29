@@ -177,6 +177,7 @@
   "gui.gtceuterminal.dismantler.chat.success": "§aMultiblock dismantled successfully!",
   "gui.gtceuterminal.dismantler.blocks_to_collect": "§8blocks to collect",
   "gui.gtceuterminal.dismantler.blocks_to_collect_count": "§8blocks to collect  §7%s types · %s total",
+  "gui.gtceuterminal.dismantler.cover": "Cover",
   "gui.gtceuterminal.dismantler.bar.total": "§8Total: §f%s blocks",
   "gui.gtceuterminal.dismantler.bar.inventory_space": "§8Inventory space: %s%s free §8/ %s needed",
   "gui.gtceuterminal.dismantler.bar.skipped": "§8skipped §6%s",

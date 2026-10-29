@@ -26,7 +26,7 @@ public final class TerminalButton {
     private TerminalButton() {
     }
 
-    public static ButtonWidget icon3d(int x, int y, int size, IGuiTexture icon,
+    public static ButtonWidget icon3D(int x, int y, int size, IGuiTexture icon,
                                       Consumer<ClickData> action) {
         int fill = TerminalUI.tokens().panel();
         IGuiTexture centered = new IconTexture(icon, Math.max(1, size - ICON_MARGIN * 2));
@@ -37,10 +37,14 @@ public final class TerminalButton {
     }
 
     private static IGuiTexture glyph(String s, int w) {
-        return TerminalUI.text(TerminalText.strip(s), TerminalUI.tokens().textStrong(), w);
+        return glyph(s, w, TerminalUI.tokens().textStrong());
     }
 
-    public static ButtonWidget icon3d(int x, int y, int size, String glyph,
+    private static IGuiTexture glyph(String s, int w, int color) {
+        return TerminalUI.text(TerminalText.strip(s), color, w);
+    }
+
+    public static ButtonWidget icon3D(int x, int y, int size, String glyph,
                                       Consumer<ClickData> action) {
         int fill = TerminalUI.tokens().panel();
         IGuiTexture g = glyph(glyph, size);
@@ -50,14 +54,19 @@ public final class TerminalButton {
         return btn;
     }
 
-    public static ButtonWidget text3d(int x, int y, int w, int h, String label,
+    public static ButtonWidget text3D(int x, int y, int w, int h, String label,
                                       Consumer<ClickData> action) {
-        return text3d(x, y, w, h, label, TerminalUI.tokens().panel(), action);
+        return text3D(x, y, w, h, label, TerminalUI.tokens().panel(), action);
     }
 
-    public static ButtonWidget text3d(int x, int y, int w, int h, String label, int fill,
+    public static ButtonWidget text3D(int x, int y, int w, int h, String label, int fill,
                                       Consumer<ClickData> action) {
-        IGuiTexture txt = glyph(label, w);
+        return text3D(x, y, w, h, label, fill, TerminalUI.tokens().textStrong(), action);
+    }
+
+    public static ButtonWidget text3D(int x, int y, int w, int h, String label, int fill,
+                                      int textColor, Consumer<ClickData> action) {
+        IGuiTexture txt = glyph(label, w, textColor);
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
                 TerminalUI.buttonContent(fill, txt), action);
         btn.setHoverTexture(TerminalUI.buttonContentHover(fill, txt));

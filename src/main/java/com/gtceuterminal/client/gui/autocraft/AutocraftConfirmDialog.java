@@ -95,7 +95,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, w - 4, HEADER_H);
-        header.setBackground(TerminalUI.bevel(tokens.panel()));
+        header.setBackground(TerminalUI.bevel(tokens.surface()));
 
         String title = result.kind() == AnalysisResult.Kind.UPGRADE
                 ? Component.translatable("gui.gtceuterminal.autocraft.title.upgrade").getString()
@@ -106,7 +106,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         header.addWidget(lbl);
 
         int closeSize = 20;
-        ButtonWidget close = TerminalButton.icon3d(
+        ButtonWidget close = TerminalButton.icon3D(
                 header.getSizeWidth() - closeSize - 6, (HEADER_H - closeSize) / 2,
                 closeSize, TerminalButton.ICON_CLOSE, cd -> close());
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
@@ -118,7 +118,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int bodyY = HEADER_H + 1;
         int bodyH = h - bodyY - 2;
         WidgetGroup body = new WidgetGroup(2, bodyY, w - 4, bodyH);
-        body.setBackground(TerminalUI.cardBg());
+        body.setBackground(TerminalUI.cardBG());
 
         int innerW = body.getSizeWidth() - CARD_INSET * 2;
         int contentH = bodyH - FOOTER_H - CARD_INSET;
@@ -232,7 +232,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         WidgetGroup row = new WidgetGroup(4, y, rowW, 20);
 
         boolean isOpen = expanded.contains(index);
-        ButtonWidget toggle = TerminalButton.icon3d(0, 2, 16,
+        ButtonWidget toggle = TerminalButton.icon3D(0, 2, 16,
                 isOpen ? "-" : "+", cd -> {
                     if (!expanded.add(index)) expanded.remove(index);
                     populateIngredients();
@@ -378,13 +378,13 @@ public class AutocraftConfirmDialog extends DialogWidget {
         ButtonWidget request = hasMissing
                 ? TerminalButton.disabled(0, btnY, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString())
-                : TerminalButton.text3d(0, btnY, requestW, btnH,
+                : TerminalButton.text3D(0, btnY, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString(),
                 tokens.action(), cd -> onRequest());
         footer.addWidget(request);
 
         int cancelW = 110;
-        ButtonWidget cancel = TerminalButton.text3d(innerW - cancelW, btnY, cancelW, btnH,
+        ButtonWidget cancel = TerminalButton.text3D(innerW - cancelW, btnY, cancelW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.cancel").getString(),
                 tokens.errorSurface(), cd -> close());
         footer.addWidget(cancel);

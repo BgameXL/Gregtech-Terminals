@@ -27,11 +27,11 @@ final class DismantlerFooter {
         int allW = 220;
         int cancelW = 110;
 
-        footer.addWidget(TerminalButton.text3d(0, btnY, allW, btnH,
+        footer.addWidget(TerminalButton.text3D(0, btnY, allW, btnH,
                 Component.translatable("gui.gtceuterminal.dismantler.action.dismantle").getString(),
                 tokens.errorSurface(), cd -> onDismantle.run()));
 
-        footer.addWidget(TerminalButton.text3d(w - cancelW, btnY, cancelW, btnH,
+        footer.addWidget(TerminalButton.text3D(w - cancelW, btnY, cancelW, btnH,
                 Component.translatable("gui.gtceuterminal.dismantler.action.cancel").getString(),
                 tokens.panelDisabled(), cd -> onCancel.run()));
 

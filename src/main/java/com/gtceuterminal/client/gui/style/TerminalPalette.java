@@ -4,17 +4,17 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public final class Palette {
+public final class TerminalPalette {
 
     public static final int BLACK = 0xFF000000;
     public static final int CLEAR = 0x00000000;
     public static final int HOVER = 0x40FFFFFF;
     public static final int SCRIM = 0xA0000000;
-    public static final int RED_CHANNEL = 0xCCFF4444;
-    public static final int GREEN_CHANNEL = 0xCC44FF44;
-    public static final int BLUE_CHANNEL = 0xCC4444FF;
-    public static final int ALPHA_CHANNEL = 0xCCCCCCCC;
-    private Palette() {
+    public static final int RED = 0xCCFF4444;
+    public static final int GREEN = 0xCC44FF44;
+    public static final int BLUE = 0xCC4444FF;
+    public static final int ALPHA = 0xCCCCCCCC;
+    private TerminalPalette() {
     }
 
     public static int shade(int argb, float f) {

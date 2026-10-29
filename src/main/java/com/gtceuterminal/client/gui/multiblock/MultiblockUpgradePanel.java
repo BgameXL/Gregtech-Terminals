@@ -1,7 +1,7 @@
 package com.gtceuterminal.client.gui.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-import com.gtceuterminal.client.gui.style.Palette;
+import com.gtceuterminal.client.gui.style.TerminalPalette;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
@@ -142,7 +142,7 @@ public final class MultiblockUpgradePanel {
             header.setBackground(TerminalUI.panel());
 
             int backW = 64;
-            ButtonWidget back = TerminalButton.text3d(PAD, (HEADER_H - 18) / 2, backW, 18,
+            ButtonWidget back = TerminalButton.text3D(PAD, (HEADER_H - 18) / 2, backW, 18,
                     Component.translatable("gui.gtceuterminal.inline_upgrade.back").getString(),
                     tokens.surface(), cd -> {
                         cleanupAvailabilityRequest();
@@ -400,7 +400,7 @@ public final class MultiblockUpgradePanel {
         private WidgetGroup buildAvailabilityPanel(int x, int y, int panelW, int panelH) {
             WidgetGroup panel = new WidgetGroup(x, y, panelW, panelH);
             panel.setBackground(TerminalUI.outlined(
-                    Palette.withAlpha(tokens.surface(), 0x66), tokens.border()));
+                    TerminalPalette.withAlpha(tokens.surface(), 0x66), tokens.border()));
             populateAvailabilityPanel(panel);
             return panel;
         }
@@ -504,7 +504,7 @@ public final class MultiblockUpgradePanel {
 
             if (!ready) {
                 int btnY = Math.max(92, panelH - 26);
-                ButtonWidget ac = TerminalButton.text3d(8, btnY, panelW - 16, 20,
+                ButtonWidget ac = TerminalButton.text3D(8, btnY, panelW - 16, 20,
                         Component.translatable("gui.gtceuterminal.component_upgrade_dialog.actions.auto_craft")
                                 .getString(),
                         tokens.action(), cd -> performAutoCraft());
@@ -625,7 +625,7 @@ public final class MultiblockUpgradePanel {
 
             int btnH = 22, btnY = (FOOTER_H - btnH) / 2;
             int confirmW = 130;
-            ButtonWidget confirm = TerminalButton.text3d(PAD, btnY, confirmW, btnH,
+            ButtonWidget confirm = TerminalButton.text3D(PAD, btnY, confirmW, btnH,
                     Component.translatable("gui.gtceuterminal.component_upgrade_dialog.actions.confirm_change")
                             .getString(),
                     tokens.successSurface(), cd -> performUpgrade());

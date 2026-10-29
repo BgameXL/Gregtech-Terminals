@@ -41,14 +41,14 @@ public final class TerminalTabs {
                                          Consumer<ClickData> onTheme, Consumer<ClickData> onClose) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup card = new WidgetGroup(x, y, ACTION_CARD_W, h);
-        card.addWidget(new ImageWidget(0, 0, ACTION_CARD_W, h, TerminalUI.bevel(tokens.panelDisabled())));
+        card.addWidget(new ImageWidget(0, 0, ACTION_CARD_W, h, TerminalUI.bevel(tokens.surface())));
 
         int by = (h - ACTION_BTN) / 2;
-        ButtonWidget theme = TerminalButton.icon3d(ACTION_PAD, by, ACTION_BTN, TerminalButton.ICON_THEME, onTheme);
+        ButtonWidget theme = TerminalButton.icon3D(ACTION_PAD, by, ACTION_BTN, TerminalButton.ICON_THEME, onTheme);
         theme.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
         card.addWidget(theme);
 
-        ButtonWidget close = TerminalButton.icon3d(ACTION_PAD + ACTION_BTN + ACTION_GAP, by, ACTION_BTN,
+        ButtonWidget close = TerminalButton.icon3D(ACTION_PAD + ACTION_BTN + ACTION_GAP, by, ACTION_BTN,
                 TerminalButton.ICON_CLOSE, onClose);
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         card.addWidget(close);

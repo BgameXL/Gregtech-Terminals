@@ -109,8 +109,7 @@ public class ThemeEditorDialog {
         sectionCardBgs[section.ordinal()] = background;
         card.addWidget(background);
 
-        LabelWidget label = new LabelWidget(10, (SECTION_H - 8) / 2,
-                section.glyph + " " + Component.translatable(section.translationKey).getString());
+        LabelWidget label = new LabelWidget(10, (SECTION_H - 8) / 2, Component.translatable(section.translationKey).getString());
         label.setColor(tokens.textStrong());
         card.addWidget(label);
 
@@ -193,15 +192,15 @@ public class ThemeEditorDialog {
 
         int btnH = 18, btnY = (FTR_H - btnH) / 2;
         int totalW = ftr.getSize().width;
-        int resetW = totalW / 3;
-        int saveW = totalW - resetW - PAD;
+        int resetW = totalW / 6;
+        int saveW = totalW / 4;
 
-        ButtonWidget save = TerminalButton.text3D(0, btnY, saveW, btnH,
+        ButtonWidget save = TerminalButton.text3D(8, btnY, saveW, btnH,
                 Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString(),
                 tokens.successSurface(), cd -> saveAndClose(dialog));
         ftr.addWidget(save);
 
-        ButtonWidget reset = TerminalButton.text3D(saveW + PAD, btnY, resetW, btnH,
+        ButtonWidget reset = TerminalButton.text3D(totalW - resetW - 8, btnY, resetW, btnH,
                 Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString(),
                 tokens.errorSurface(), cd -> resetDefaults());
         ftr.addWidget(reset);
@@ -428,14 +427,12 @@ public class ThemeEditorDialog {
     }
 
     private enum Section {
-        COLORS("◆", "gui.gtceuterminal.theme_editor.section.colors"),
-        BUNDLES("✦", "gui.gtceuterminal.theme_editor.section.bundles");
+        COLORS("gui.gtceuterminal.theme_editor.section.colors"),
+        BUNDLES("gui.gtceuterminal.theme_editor.section.bundles");
 
-        private final String glyph;
         private final String translationKey;
 
-        Section(String glyph, String translationKey) {
-            this.glyph = glyph;
+        Section(String translationKey) {
             this.translationKey = translationKey;
         }
     }

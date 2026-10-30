@@ -78,6 +78,7 @@ public class RGBSliderWidget extends Widget {
             applyMouse(mouseX);
             return true;
         }
+        dragging = false;
         return super.mouseClicked(mouseX, mouseY, button);
     }
 

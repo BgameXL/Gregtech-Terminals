@@ -166,13 +166,13 @@ public class SchematicInterfaceUI {
         int x = 2;
         int gap = 4;
 
-        int schW = 112;
+        int schW = 172;
         WidgetGroup schTab = TerminalTabs.tabCard(x, tabY, schW, HEADER_H,
                 activeView == View.SCHEMATIC, cd -> switchView(View.SCHEMATIC));
         schTab.addWidget(HeaderItemIcon.build(8, (HEADER_H - iconSize) / 2, iconSize, terminalItem,
                 tokens.panelDisabled(), tokens.border()));
         LabelWidget schLabel = new LabelWidget(8 + iconSize + 6, (HEADER_H - 8) / 2,
-                Component.translatable("gui.gtceuterminal.schematic_interface.tab.schematic").getString());
+                Component.translatable("item.gtceuterminal.schematic_interface").getString());
         schLabel.setColor(tokens.textStrong());
         schTab.addWidget(schLabel);
         header.addWidget(schTab);
@@ -337,7 +337,7 @@ public class SchematicInterfaceUI {
         }
         String blocksWord = Component.translatable("gui.gtceuterminal.schematic_interface.clipboard.blocks").getString();
         String typeName = clipboardTypeName();
-        return (typeName != null ? typeName + " · " : "") + clipboard.getBlockCount() + " " + blocksWord;
+        return (typeName != null ? typeName + " " : "") + clipboard.getBlockCount() + " " + blocksWord;
     }
 
     private String clipboardTypeName() {

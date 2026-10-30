@@ -46,7 +46,8 @@ final class ThemeEditorLeftCol {
         int curX = PAD;
         int curY = 24;
         for (ThemePreset preset : ThemePreset.values()) {
-            int btnW = Math.max(42, preset.label.length() * 5 + 12);
+            String label = Component.translatable(preset.langKey()).getString();
+            int btnW = Math.max(42, label.length() * 5 + 12);
             if (curX + btnW > COL_W - PAD && curX > PAD) {
                 curX = PAD;
                 curY += PRESET_H + 4;
@@ -54,7 +55,7 @@ final class ThemeEditorLeftCol {
             int fill = TerminalPalette.blend(preset.accentColor, tokens.panel(), 0.25f);
             int textColor = TerminalPalette.contrast(fill, tokens.textStrong(), TerminalPalette.BLACK);
             col.addWidget(TerminalButton.text3D(curX, curY, btnW, PRESET_H,
-                    preset.label, fill, textColor, cd -> onPreset.accept(preset)));
+                    label, fill, textColor, cd -> onPreset.accept(preset)));
             curX += btnW + 4;
         }
 

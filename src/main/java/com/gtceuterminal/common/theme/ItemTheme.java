@@ -300,7 +300,7 @@ public class ItemTheme {
 
     public enum UiStyle {
         DARK("Dark"),
-        GTCEU_NATIVE("GTCEu Native"),
+        GTCEU_NATIVE("GTCEu"),
         BUNDLE("Bundle");
 
         public final String label;

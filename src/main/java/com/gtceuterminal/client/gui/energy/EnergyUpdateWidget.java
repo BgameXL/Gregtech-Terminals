@@ -23,8 +23,6 @@ public class EnergyUpdateWidget extends Widget {
     private static EnergyUpdateWidget activeClient;
 
     private final EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder;
-    private int tickCounter = 0;
-    private int clientTickCounter = 0;
 
     private Runnable rebuildCallback;
 
@@ -44,28 +42,46 @@ public class EnergyUpdateWidget extends Widget {
     }
 
     private void applyUpdate(List<EnergySnapshot> fresh) {
+        int cap = Math.max(2, ItemsConfig.getEAHistorySeconds() * 20);
+        List<EnergySnapshot> prev = holder.snapshots;
+        for (int i = 0; i < fresh.size(); i++) {
+            EnergySnapshot s = fresh.get(i);
+            EnergySnapshot p = i < prev.size() ? prev.get(i) : null;
+            long[] prevIn = p != null ? p.inputHistory : new long[0];
+            long[] prevOut = p != null ? p.outputHistory : new long[0];
+            long prevTick = p != null ? p.clientLastTick : 0L;
+            if (s.sampleTick > prevTick) {
+                s.inputHistory = appendCapped(prevIn, s.inputPerSec, cap);
+                s.outputHistory = appendCapped(prevOut, s.outputPerSec, cap);
+                s.clientLastTick = s.sampleTick;
+            } else {
+                s.inputHistory = prevIn;
+                s.outputHistory = prevOut;
+                s.clientLastTick = prevTick;
+            }
+        }
         holder.snapshots.clear();
         holder.snapshots.addAll(fresh);
         if (rebuildCallback != null) rebuildCallback.run();
     }
 
+    private static long[] appendCapped(long[] prev, long value, int cap) {
+        int n = Math.min(prev.length + 1, cap);
+        long[] out = new long[n];
+        int skip = prev.length + 1 - n;
+        System.arraycopy(prev, skip, out, 0, prev.length - skip);
+        out[n - 1] = value;
+        return out;
+    }
+
     @Override
     public void updateScreen() {
         super.updateScreen();
-        clientTickCounter++;
-        int interval = Math.max(5, ItemsConfig.getEARefreshIntervalTicks());
-        if (clientTickCounter < interval) return;
-        clientTickCounter = 0;
         TerminalNetwork.sendToServer(new CPacketRequestEnergyUpdate());
     }
 
     @Override
     public void detectAndSendChanges() {
-        tickCounter++;
-        int interval = ItemsConfig.getEARefreshIntervalTicks();
-        if (tickCounter < interval) return;
-        tickCounter = 0;
-
         if (gui == null) return;
         ServerPlayer player = (ServerPlayer) gui.entityPlayer;
         if (player == null) return;

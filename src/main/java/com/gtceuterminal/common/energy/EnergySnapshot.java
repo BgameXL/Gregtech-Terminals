@@ -32,9 +32,10 @@ public class EnergySnapshot {
     public int recipeProgressTicks = 0;
     public int recipeDuration = 0;
     public String recipeTypeName = "";
-    public List<RecipeHistoryEntry> recipeHistory = new ArrayList<>();
     public long[] inputHistory = new long[0];
     public long[] outputHistory = new long[0];
+    public long sampleTick;
+    public long clientLastTick;
 
     public static EnergySnapshot decode(FriendlyByteBuf buf) {
         EnergySnapshot s = new EnergySnapshot();
@@ -63,8 +64,6 @@ public class EnergySnapshot {
         int hc = buf.readInt();
         for (int i = 0; i < hc; i++) s.hatches.add(HatchInfo.decode(buf));
 
-        int rhc = buf.readInt();
-        for (int i = 0; i < rhc; i++) s.recipeHistory.add(RecipeHistoryEntry.decode(buf));
         s.isRecipeActive = buf.readBoolean();
         s.recipeId = buf.readUtf();
         s.recipeProgress = buf.readFloat();
@@ -80,6 +79,7 @@ public class EnergySnapshot {
         s.outputHistory = new long[oh];
         for (int i = 0; i < oh; i++) s.outputHistory[i] = buf.readLong();
 
+        s.sampleTick = buf.readLong();
         return s;
     }
 
@@ -148,8 +148,6 @@ public class EnergySnapshot {
         buf.writeInt(hatches.size());
         for (HatchInfo h : hatches) h.encode(buf);
 
-        buf.writeInt(recipeHistory.size());
-        for (RecipeHistoryEntry e : recipeHistory) e.encode(buf);
         buf.writeBoolean(isRecipeActive);
         buf.writeUtf(recipeId);
         buf.writeFloat(recipeProgress);
@@ -161,6 +159,7 @@ public class EnergySnapshot {
         for (long v : inputHistory) buf.writeLong(v);
         buf.writeInt(outputHistory.length);
         for (long v : outputHistory) buf.writeLong(v);
+        buf.writeLong(sampleTick);
     }
 
     public enum MachineMode {CONSUMER, GENERATOR, STORAGE, UNKNOWN}

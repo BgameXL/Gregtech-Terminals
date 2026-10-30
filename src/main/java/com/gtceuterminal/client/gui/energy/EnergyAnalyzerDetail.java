@@ -4,15 +4,14 @@ import com.gtceuterminal.client.gui.style.TerminalText;
 import com.gtceuterminal.client.gui.style.TerminalTheme;
 import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.EnergyGraphWidget;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.lowdragmc.lowdraglib.gui.texture.*;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -39,7 +38,6 @@ final class EnergyAnalyzerDetail {
     WidgetGroup energyBarFill;
     WidgetGroup recipeBarFill;
     WidgetGroup recipeBarBg;
-    ButtonWidget recipeBtn;
 
     EnergyAnalyzerDetail(int detailW, int graphW) {
         this.detailW = detailW;
@@ -92,7 +90,18 @@ final class EnergyAnalyzerDetail {
 
     private static String storedPercent(EnergySnapshot s) {
         if (s == null || !s.isFormed) return "---";
+        if (s.mode == EnergySnapshot.MachineMode.STORAGE && s.bigStored != null) {
+            return EnergyDisplayHelper.formatBigEU(s.bigStored);
+        }
         return pct(Math.round(Math.max(0f, Math.min(1f, s.chargePercent())) * 100f));
+    }
+
+    private static String fitText(String text, int maxWidth) {
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 
     private static String recipeProgressText(EnergySnapshot s) {
@@ -102,17 +111,14 @@ final class EnergyAnalyzerDetail {
 
     WidgetGroup build(
             int detailX, int detailY, int detailH, int pad,
-            Supplier<EnergySnapshot> selSnap,
-            Runnable onRecipeHistoryClick
+            Supplier<EnergySnapshot> selSnap
     ) {
         WidgetGroup g = new WidgetGroup(detailX, detailY, detailW, detailH);
         g.setBackground(TerminalUI.surface());
 
         int y = pad;
 
-        // Graphed window = history samples × seconds-per-sample (one sample per refresh interval).
-        int windowSec = Math.max(1, Math.round(
-                ItemsConfig.getEAHistorySeconds() * ItemsConfig.getEARefreshIntervalTicks() / 20f));
+        int windowSec = ItemsConfig.getEAHistorySeconds();
         LabelWidget graphHdr = new LabelWidget(pad, y,
                 Component.translatable("gui.gtceuterminal.energy_analyzer.graph_window", windowSec).getString());
         graphHdr.setColor(tokens.textFaint());
@@ -175,13 +181,7 @@ final class EnergyAnalyzerDetail {
         recipeBarFill = new WidgetGroup(pad + 1, y + 1, 0, 6);
         recipeBarFill.setBackground(TerminalUI.color(tokens.success()));
         g.addWidget(recipeBarFill);
-        y += 12;
-
-        recipeBtn = TerminalButton.text3D(pad, y, 112, 18,
-                Component.translatable("gui.gtceuterminal.energy_analyzer.recipe_button").getString(),
-                tokens.panelDisabled(), cd -> onRecipeHistoryClick.run());
-        g.addWidget(recipeBtn);
-        y += 24;
+        y += 18;
 
         if (ItemsConfig.getEAShowPerHatchDetails()) {
             LabelWidget hatchesHdr = new LabelWidget(pad, y, () -> {
@@ -227,19 +227,19 @@ final class EnergyAnalyzerDetail {
         WidgetGroup row = new WidgetGroup(x, y, w, HATCH_ROW_H - 2);
         row.setBackground(TerminalUI.outlined(tokens.panel(), tokens.borderSubtle()));
 
-        WidgetGroup slot = new WidgetGroup(4, 1, 20, 20);
+        WidgetGroup slot = new WidgetGroup(2, 1, 20, 20);
         slot.setBackground(TerminalUI.well(tokens.panelDisabled()));
         ImageWidget icon = new ImageWidget(1, 1, 18, 18, hatchIconSupplier(index, selSnap));
         icon.setClientSideWidget();
         slot.addWidget(icon);
         row.addWidget(slot);
 
-        LabelWidget nameLbl = new LabelWidget(30, 7, () -> {
+        LabelWidget nameLbl = new LabelWidget(26, 7, () -> {
             EnergySnapshot s = selSnap.get();
             if (s == null || index >= s.hatches.size()) return "";
             EnergySnapshot.HatchInfo h = s.hatches.get(index);
             String name = Component.translatable(h.blockNameKey()).getString();
-            return EnergyDisplayHelper.truncate(name, 28);
+            return fitText(name, w - 120);
         });
         nameLbl.setClientSideWidget();
         nameLbl.setColor(tokens.textStrong());

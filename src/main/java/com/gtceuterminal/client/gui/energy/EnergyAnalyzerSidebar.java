@@ -51,7 +51,7 @@ final class EnergyAnalyzerSidebar {
         for (int i = 0; i < machines.size(); i++) {
             final int idx = i;
             LinkedMachineData m = machines.get(i);
-            int rowY = pad + idx * (itemH + 2);
+            int rowY = 2 + idx * (itemH + 2);
 
             WidgetGroup sel = new WidgetGroup(1, rowY, sidebarW - 2, itemH);
             sel.setBackground(TerminalUI.outlined(tokens.accentSoft(), tokens.border()));

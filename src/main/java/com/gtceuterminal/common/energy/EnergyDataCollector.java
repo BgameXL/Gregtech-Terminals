@@ -21,37 +21,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.math.BigInteger;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = com.gtceuterminal.GTCEUTerminalMod.MOD_ID)
 public class EnergyDataCollector {
 
-    private static final Map<String, Deque<Long>> inputHistoryMap = new HashMap<>();
-    private static final Map<String, Deque<Long>> outputHistoryMap = new HashMap<>();
-
-    @SubscribeEvent
-    public static void onLevelUnload(LevelEvent.Unload event) {
-        if (!event.getLevel().isClientSide()) {
-            inputHistoryMap.clear();
-            outputHistoryMap.clear();
-            com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                    "EnergyDataCollector: cleared history maps on level unload");
-        }
-    }
-
-    // Main entry point
     public static EnergySnapshot collect(ServerLevel level, BlockPos pos,
                                          String customName, String controllerBlockKey) {
         EnergySnapshot snap = new EnergySnapshot();
+        snap.sampleTick = level.getGameTime();
         snap.machineCustomName = customName != null ? customName : "";
         snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
         snap.mode = EnergySnapshot.MachineMode.UNKNOWN;
@@ -115,19 +94,14 @@ public class EnergyDataCollector {
 
                 if (snap.isFormed && snap.mode == EnergySnapshot.MachineMode.CONSUMER) {
                     collectRecipeInfo(electric, snap);
-                    RecipeHistoryTracker.poll(pos, electric);
-                    snap.recipeHistory = new java.util.ArrayList<>(RecipeHistoryTracker.getHistory(pos));
                 }
             } else {
                 var custom = MultiblockHandlerRegistry.tryHandle(machine, level, pos);
                 if (custom.isPresent()) {
                     snap = custom.get();
+                    snap.sampleTick = level.getGameTime();
                     snap.machineCustomName = customName != null ? customName : "";
                     snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
-                    String key = historyKey(level, pos);
-                    int maxH = ItemsConfig.getEAHistorySeconds();
-                    snap.inputHistory = updateHistory(inputHistoryMap, key, snap.inputPerSec, maxH);
-                    snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
                     return snap;
                 }
 
@@ -147,11 +121,6 @@ public class EnergyDataCollector {
                     snap.outputAmperage = ec.getOutputAmperage();
                 }
             }
-
-            String key = historyKey(level, pos);
-            int maxH = ItemsConfig.getEAHistorySeconds();
-            snap.inputHistory = updateHistory(inputHistoryMap, key, snap.inputPerSec, maxH);
-            snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Error collecting energy snapshot at {}", pos, e);
@@ -295,21 +264,4 @@ public class EnergyDataCollector {
         return key != null ? key.toString() : "";
     }
 
-    private static long[] updateHistory(Map<String, Deque<Long>> map, String key,
-                                        long value, int maxSize) {
-        Deque<Long> deque = map.computeIfAbsent(key, k -> new ArrayDeque<>());
-        deque.addLast(value);
-        while (deque.size() > maxSize) deque.pollFirst();
-        return deque.stream().mapToLong(Long::longValue).toArray();
-    }
-
-    private static String historyKey(Level level, BlockPos pos) {
-        return level.dimension().location() + ":" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
-    }
-
-    public static void clearHistory(Level level, BlockPos pos) {
-        String key = historyKey(level, pos);
-        inputHistoryMap.remove(key);
-        outputHistoryMap.remove(key);
-    }
 }

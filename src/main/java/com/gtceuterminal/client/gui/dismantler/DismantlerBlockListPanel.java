@@ -26,6 +26,7 @@ final class DismantlerBlockListPanel {
     private static final int ENTRY_H = 24;
     private static final int ENTRY_GAP = 1;
     private static final int COL_H = 28;
+    private static final int PAD = 2;
 
     private DismantlerBlockListPanel() {
     }
@@ -36,9 +37,9 @@ final class DismantlerBlockListPanel {
     ) {
         TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(TerminalUI.surface());
+        panel.setBackground(TerminalUI.outlined(tokens.surface(), tokens.border()));
 
-        WidgetGroup colHeader = new WidgetGroup(0, 0, w, COL_H);
+        WidgetGroup colHeader = new WidgetGroup(PAD, PAD, w - 2 * PAD, COL_H);
         colHeader.setBackground(TerminalUI.color(tokens.panel()));
 
         if (scanResult != null) {
@@ -70,9 +71,9 @@ final class DismantlerBlockListPanel {
             return panel;
         }
 
-        int scrollH = h - COL_H;
+        int scrollH = h - COL_H - 2 * PAD;
         DraggableScrollableWidgetGroup scroll =
-                new DraggableScrollableWidgetGroup(0, COL_H, w, scrollH);
+                new DraggableScrollableWidgetGroup(PAD, PAD + COL_H, w - 2 * PAD, scrollH);
         scroll.setYScrollBarWidth(0);
 
         int yPos = 2;
@@ -81,7 +82,7 @@ final class DismantlerBlockListPanel {
             ComponentGroup group = ComponentGroupRegistry.detectFromBlock(block);
             String category = group == ComponentGroupRegistry.UNKNOWN ? "" : group.displayName;
             scroll.addWidget(buildRow(new ItemStack(block), block.getName().getString(),
-                    category, entry.getValue(), yPos, w, tokens));
+                    category, entry.getValue(), yPos, w - 2 * PAD, tokens));
             yPos += ENTRY_H + ENTRY_GAP;
         }
         String coverCategory = TerminalText.strip(
@@ -90,7 +91,7 @@ final class DismantlerBlockListPanel {
             ItemStack icon = cover.copy();
             icon.setCount(1);
             scroll.addWidget(buildRow(icon, cover.getHoverName().getString(),
-                    coverCategory, cover.getCount(), yPos, w, tokens));
+                    coverCategory, cover.getCount(), yPos, w - 2 * PAD, tokens));
             yPos += ENTRY_H + ENTRY_GAP;
         }
 

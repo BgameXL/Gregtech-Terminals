@@ -3,7 +3,6 @@ package com.gtceuterminal.common.item;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ItemsConfig;
-import com.gtceuterminal.common.energy.EnergyDataCollector;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.network.SPacketOpenEnergyAnalyzerUI;
 import net.minecraft.core.BlockPos;
@@ -129,7 +128,6 @@ public class EnergyAnalyzerItem extends Item {
         for (int i = 0; i < machines.size(); i++) {
             if (machines.get(i).matches(pos, dimId)) {
                 machines.remove(i);
-                EnergyDataCollector.clearHistory(level, pos);
                 saveMachines(stack, machines);
                 player.displayClientMessage(
                         Component.translatable("item.gtceuterminal.energy_analyzer.message.unlinked", controllerName),

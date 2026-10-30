@@ -66,6 +66,7 @@ public class SchematicInterfaceItem extends Item {
 
         tooltipComponents.add(Component.literal(""));
         tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.shift_right_click_prefix").append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.open_schematic_gui")));
+        tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.shift_right_click_copy").append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.copy_multiblock")));
         tooltipComponents.add(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.right_click_prefix").append(Component.translatable("item.gtceuterminal.schematic_interface.tooltip.paste_schematic")));
     }
 }

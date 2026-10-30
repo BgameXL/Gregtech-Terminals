@@ -87,11 +87,7 @@ public class EnergyAnalyzerUI {
         detail = new EnergyAnalyzerDetail(DETAIL_W, GRAPH_W);
         body.addWidget(detail.build(
                 DETAIL_X, CARD_INSET, INNER_H, PAD,
-                this::selSnap,
-                () -> {
-                    EnergySnapshot s = selSnap();
-                    if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H);
-                }));
+                this::selSnap));
         rootGroup.addWidget(body);
         return wrapUI(rootGroup);
     }

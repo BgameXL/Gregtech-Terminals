@@ -133,11 +133,8 @@ public class DismantlerUI {
                 CARD_INSET, CARD_INSET, LEFT_W, CONTENT_H,
                 scanResult, controllerPos, player));
 
-        body.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER, CONTENT_H,
-                TerminalUI.divider()));
-
         body.addWidget(DismantlerBlockListPanel.build(
-                RIGHT_X, CARD_INSET, RIGHT_W, CONTENT_H, scanResult));
+                RIGHT_X, CARD_INSET, RIGHT_W, CONTENT_H - 2, scanResult));
 
         body.addWidget(new ImageWidget(CARD_INSET, CARD_INSET + CONTENT_H, INNER_W, DIVIDER,
                 TerminalUI.divider()));

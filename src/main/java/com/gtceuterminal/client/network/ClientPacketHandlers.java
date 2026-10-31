@@ -104,6 +104,10 @@ public final class ClientPacketHandlers {
         MultiblockUpgradePanel.handleAvailabilityResult(requestId, result);
     }
 
+    public static void handleComponentUpgradeDone(BlockPos controllerPos) {
+        UpgradeRefresh.schedule(controllerPos);
+    }
+
     public static void handleOpenMultiStructureManager(String mode, ItemStack item) {
         try {
             Minecraft mc = Minecraft.getInstance();

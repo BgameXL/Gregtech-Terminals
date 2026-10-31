@@ -149,6 +149,12 @@ public class TerminalNetwork {
                 .consumerMainThread(SPacketHighlightPositions::handle)
                 .add();
 
+        CHANNEL.messageBuilder(SPacketComponentUpgradeDone.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketComponentUpgradeDone::encode)
+                .decoder(SPacketComponentUpgradeDone::new)
+                .consumerMainThread(SPacketComponentUpgradeDone::handle)
+                .add();
+
         GTCEUTerminalMod.LOGGER.info("TerminalNetwork: registered {} packets", id);
     }
 

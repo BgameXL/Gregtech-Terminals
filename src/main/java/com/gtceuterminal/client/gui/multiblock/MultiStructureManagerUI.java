@@ -21,6 +21,7 @@ import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -45,6 +46,10 @@ public class MultiStructureManagerUI {
     private static final int CARD_INSET = 2;
     private static final int LEFT_W = 210;
     private static final int DIVIDER_W = 1;
+
+    // Only one manager is open client-side at a time; a server upgrade confirmation refreshes it.
+    private static MultiStructureManagerUI active;
+
     private final IUIHolder uiHolder;
     private final Player player;
     private final ItemStack terminalItem;
@@ -105,6 +110,7 @@ public class MultiStructureManagerUI {
     }
 
     public ModularUI createUI() {
+        active = this;
         applyViewDimensions();
 
         WidgetGroup main = new WidgetGroup(0, 0, GUI_W, GUI_H);
@@ -343,6 +349,29 @@ public class MultiStructureManagerUI {
         player.displayClientMessage(
                 Component.translatable("gui.gtceuterminal.multiblock_manager.refreshed_found",
                         multiblocks.size()), true);
+    }
+
+    public static void onUpgradeApplied(BlockPos controllerPos) {
+        if (active != null) active.refreshMultiblock(controllerPos);
+    }
+
+    private void refreshMultiblock(BlockPos controllerPos) {
+        if (rootGroup == null || activeView != View.MULTIBLOCKS) return;
+        if (Minecraft.getInstance().screen == null) return;
+
+        for (int i = 0; i < multiblocks.size(); i++) {
+            if (!controllerPos.equals(multiblocks.get(i).getControllerPos())) continue;
+
+            MultiblockInfo fresh = MultiblockScanner.scanSingle(multiblocks.get(i), player, player.level());
+            multiblocks.set(i, fresh);
+            repopulateList();
+            if (i == selectedIndex) {
+                swapDetailPanel(MultiblockDetailPanel.build(
+                        rightX, CARD_INSET, rightW, bodyH, fresh, player, theme,
+                        this::openUpgradeDialog));
+            }
+            return;
+        }
     }
 
     private void swapDetailPanel(WidgetGroup newPanel) {

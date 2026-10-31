@@ -27,7 +27,7 @@ public class CPacketComponentUpgrade {
     private final int targetTier;
     private final String targetUpgradeId;
     private final BlockPos controllerPos;
-    private List<BlockPos> positions = new ArrayList<>();
+    private final List<BlockPos> positions;
     private ServerLevel level;
 
     public CPacketComponentUpgrade(List<BlockPos> positions, int targetTier, String targetUpgradeId, BlockPos controllerPos) {
@@ -140,6 +140,7 @@ public class CPacketComponentUpgrade {
 
             if (upgraded > 0) {
                 MultiblockMachineReflection.refreshController((ServerLevel) player.level(), controllerPos);
+                TerminalNetwork.sendToPlayer(new SPacketComponentUpgradeDone(controllerPos), player);
             }
 
             if (upgraded > 0) {

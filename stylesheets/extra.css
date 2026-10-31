@@ -1,0 +1,50 @@
+:root {
+  --gtt-red: #d32f2f;
+  --gtt-purple: #7b1fa2;
+  --gtt-blue: #1565c0;
+  --gtt-yellow: #f9a825;
+
+  --md-primary-fg-color: var(--gtt-red);
+  --md-primary-fg-color--light: var(--gtt-red);
+  --md-primary-fg-color--dark: var(--gtt-red);
+  --md-accent-fg-color: var(--gtt-blue);
+}
+
+.md-header,
+.md-tabs {
+  background-color: var(--gtt-red);
+  background-image: none;
+}
+
+.md-typeset h2 {
+  color: var(--gtt-purple);
+}
+
+.md-typeset a {
+  color: var(--gtt-blue);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--gtt-purple);
+  color: #ffffff;
+}
+
+.md-typeset mark {
+  background-color: var(--gtt-yellow);
+  color: #000000;
+}
+
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--gtt-blue);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--gtt-purple);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: var(--gtt-yellow);
+}

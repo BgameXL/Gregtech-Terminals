@@ -1,8 +1,8 @@
 # GregTech Terminals
 
-A lightweight GregTech CEu Modern addon. It adds four gadgets that inspect and manipulate GTM multiblocks, plus a public API for mods and KubeJS packs to register their own tiered components.
+A lightweight GregTech CEu Modern addon. It adds four Terminals that inspect and manipulate GTM multiblocks, plus a public API for mods and KubeJS packs to register their own tiered components.
 
-## Gadgets
+## Terminals
 
 - **[Multi-Structure Manager](multi-structure-manager.md)**: sees every multiblock within a 32-block radius and upgrades any tiered block (coils, I/O hatches, I/O buses, energy hatches, parallel hatches, mufflers, custom tiered casings) straight from your inventory or AE2. It can also auto-build a structure and request missing blocks from your ME network.
 - **[Schematic Interface](schematic-interface.md)**: shift + right-click a controller to copy a formed structure as a named schematic, then paste it later (optionally pulling blocks from AE2).

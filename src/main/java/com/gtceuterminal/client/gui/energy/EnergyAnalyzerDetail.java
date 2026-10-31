@@ -7,6 +7,7 @@ import com.gtceuterminal.client.gui.widget.EnergyGraphWidget;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.lowdragmc.lowdraglib.gui.texture.*;
+import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -26,10 +27,10 @@ import java.util.function.Supplier;
 @OnlyIn(Dist.CLIENT)
 final class EnergyAnalyzerDetail {
 
-    static final int MAX_HATCHES = 5;
     private static final int GRAPH_H_WIDGET = 80;
     private static final int STATS_CELL_H = 38;
     private static final int HATCH_ROW_H = 24;
+    private static final int HATCH_ROW_INSET = 2;
     private static final IGuiTexture EMPTY_TEX = TerminalUI.transparent();
     private final int detailW;
     private final int graphW;
@@ -38,6 +39,10 @@ final class EnergyAnalyzerDetail {
     WidgetGroup energyBarFill;
     WidgetGroup recipeBarFill;
     WidgetGroup recipeBarBg;
+    private Supplier<EnergySnapshot> selSnap;
+    private DraggableScrollableWidgetGroup hatchScroll;
+    private int hatchRowW;
+    private int lastHatchCount = -1;
 
     EnergyAnalyzerDetail(int detailW, int graphW) {
         this.detailW = detailW;
@@ -113,6 +118,7 @@ final class EnergyAnalyzerDetail {
             int detailX, int detailY, int detailH, int pad,
             Supplier<EnergySnapshot> selSnap
     ) {
+        this.selSnap = selSnap;
         WidgetGroup g = new WidgetGroup(detailX, detailY, detailW, detailH);
         g.setBackground(TerminalUI.surface());
 
@@ -195,9 +201,12 @@ final class EnergyAnalyzerDetail {
             g.addWidget(hatchesHdr);
             y += 13;
 
-            for (int i = 0; i < MAX_HATCHES; i++) {
-                g.addWidget(buildHatchRow(pad, y + i * HATCH_ROW_H, detailW - pad * 2, i, selSnap));
-            }
+            hatchRowW = detailW - pad * 2;
+            int scrollH = Math.max(0, detailH - y - pad);
+            hatchScroll = new DraggableScrollableWidgetGroup(pad, y, hatchRowW, scrollH);
+            hatchScroll.setYScrollBarWidth(0);
+            g.addWidget(hatchScroll);
+            rebuildHatchRows(selSnap.get());
         }
 
         energyBarFill = null;
@@ -259,6 +268,25 @@ final class EnergyAnalyzerDetail {
         return row;
     }
 
+    private void rebuildHatchRows(EnergySnapshot snap) {
+        if (hatchScroll == null) return;
+        int count = snap == null ? 0 : snap.hatches.size();
+        if (count == lastHatchCount) return;
+        lastHatchCount = count;
+
+        hatchScroll.clearAllWidgets();
+        for (int i = 0; i < count; i++) {
+            hatchScroll.addWidget(buildHatchRow(HATCH_ROW_INSET, HATCH_ROW_INSET + i * HATCH_ROW_H,
+                    hatchRowW - HATCH_ROW_INSET * 2, i, selSnap));
+        }
+        if (count > 0) {
+            int contentBottom = HATCH_ROW_INSET + (count - 1) * HATCH_ROW_H + (HATCH_ROW_H - 2);
+            hatchScroll.addWidget(new WidgetGroup(0, contentBottom, 1, HATCH_ROW_INSET));
+        }
+        hatchScroll.setScrollYOffset(0);
+        hatchScroll.computeMax();
+    }
+
     void updateDynamic(EnergySnapshot snap) {
         if (energyBarFill != null) {
             float pct = snap != null ? snap.chargePercent() : 0f;
@@ -285,6 +313,8 @@ final class EnergyAnalyzerDetail {
                     snap != null ? snap.inputHistory : new long[0],
                     snap != null ? snap.outputHistory : new long[0]);
         }
+
+        rebuildHatchRows(snap);
     }
 
 }

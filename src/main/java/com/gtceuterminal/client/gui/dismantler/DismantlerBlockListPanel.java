@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -39,26 +40,7 @@ final class DismantlerBlockListPanel {
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
         panel.setBackground(TerminalUI.outlined(tokens.surface(), tokens.border()));
 
-        WidgetGroup colHeader = new WidgetGroup(PAD, PAD, w - 2 * PAD, COL_H);
-        colHeader.setBackground(TerminalUI.color(tokens.panel()));
-
-        if (scanResult != null) {
-            int coverTotal = 0;
-            for (ItemStack cover : scanResult.getCoverStacks()) coverTotal += cover.getCount();
-            int types = scanResult.getBlockCounts().size() + scanResult.getCoverStacks().size();
-            int total = scanResult.getTotalBlocks() + coverTotal;
-            LabelWidget blocksLabel = new LabelWidget(8, 9,
-                    TerminalText.strip(Component.translatable(
-                            "gui.gtceuterminal.dismantler.blocks_to_collect_count", types, total).getString()));
-            blocksLabel.setColor(tokens.textMuted());
-            colHeader.addWidget(blocksLabel);
-        } else {
-            LabelWidget blocksLabel = new LabelWidget(8, 9,
-                    TerminalText.strip(Component.translatable(
-                            "gui.gtceuterminal.dismantler.blocks_to_collect").getString()));
-            blocksLabel.setColor(tokens.textMuted());
-            colHeader.addWidget(blocksLabel);
-        }
+        WidgetGroup colHeader = createColHeader(w, scanResult, tokens);
         panel.addWidget(colHeader);
 
         if (scanResult == null
@@ -97,6 +79,35 @@ final class DismantlerBlockListPanel {
 
         panel.addWidget(scroll);
         return panel;
+    }
+
+    private static @NotNull WidgetGroup createColHeader(int w, DismantleScanner.ScanResult scanResult, TerminalTheme tokens) {
+        WidgetGroup colHeader = new WidgetGroup(PAD, PAD, w - 2 * PAD, COL_H);
+        colHeader.setBackground(TerminalUI.color(tokens.panel()));
+
+        LabelWidget blocksLabel;
+        if (scanResult != null) {
+            blocksLabel = getBlocksLabel(scanResult, tokens);
+        } else {
+            blocksLabel = new LabelWidget(8, 9,
+                    TerminalText.strip(Component.translatable(
+                            "gui.gtceuterminal.dismantler.blocks_to_collect").getString()));
+            blocksLabel.setColor(tokens.textMuted());
+        }
+        colHeader.addWidget(blocksLabel);
+        return colHeader;
+    }
+
+    private static @NotNull LabelWidget getBlocksLabel(DismantleScanner.ScanResult scanResult, TerminalTheme tokens) {
+        int coverTotal = 0;
+        for (ItemStack cover : scanResult.getCoverStacks()) coverTotal += cover.getCount();
+        int types = scanResult.getBlockCounts().size() + scanResult.getCoverStacks().size();
+        int total = scanResult.getTotalBlocks() + coverTotal;
+        LabelWidget blocksLabel = new LabelWidget(8, 9,
+                TerminalText.strip(Component.translatable(
+                        "gui.gtceuterminal.dismantler.blocks_to_collect_count", types, total).getString()));
+        blocksLabel.setColor(tokens.textMuted());
+        return blocksLabel;
     }
 
     private static WidgetGroup buildRow(

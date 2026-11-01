@@ -29,7 +29,6 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private static final int CARD_INSET = 2;
 
     private final AnalysisResult result;
-    private final ItemTheme theme;
     private final TerminalTheme tokens;
     private final java.util.Set<Integer> expanded = new java.util.HashSet<>();
     private final java.util.Map<Integer, com.gtceuterminal.common.compat.RecipeReader.RecipeView> recipeCache = new java.util.HashMap<>();
@@ -42,7 +41,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
     public AutocraftConfirmDialog(WidgetGroup parent, AnalysisResult result, Player player) {
         super(parent, true);
         this.result = result;
-        this.theme = ItemTheme.loadFromPlayer(player);
+        ItemTheme theme = ItemTheme.loadFromPlayer(player);
         TerminalUI.use(theme);
         this.tokens = TerminalUI.tokens();
 
@@ -139,7 +138,7 @@ public class AutocraftConfirmDialog extends DialogWidget {
         right.addWidget(buildAvailabilityList(colR, contentH));
         body.addWidget(right);
 
-        body.addWidget(buildFooter(CARD_INSET, contentH + CARD_INSET, innerW));
+        body.addWidget(buildFooter(contentH + CARD_INSET, innerW));
 
         return body;
     }
@@ -365,8 +364,8 @@ public class AutocraftConfirmDialog extends DialogWidget {
         return row;
     }
 
-    private WidgetGroup buildFooter(int x, int y, int innerW) {
-        WidgetGroup footer = new WidgetGroup(x, y, innerW, FOOTER_H);
+    private WidgetGroup buildFooter(int y, int innerW) {
+        WidgetGroup footer = new WidgetGroup(AutocraftConfirmDialog.CARD_INSET, y, innerW, FOOTER_H);
         footer.addWidget(new ImageWidget(0, 0, innerW, 1,
                 TerminalUI.divider()));
 

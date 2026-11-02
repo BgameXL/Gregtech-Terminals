@@ -81,10 +81,6 @@ public record AnalysisResult(Kind kind, List<Entry> entries, BlockPos controller
         for (var pos : intruderPositions) buf.writeBlockPos(pos);
     }
 
-    public boolean allAvailable() {
-        return entries.stream().filter(e -> !e.informational).allMatch(Entry::hasAll);
-    }
-
     public boolean anyMissing() {
         return entries.stream().filter(e -> !e.informational).anyMatch(e -> !e.hasAll() && !e.craftable);
     }

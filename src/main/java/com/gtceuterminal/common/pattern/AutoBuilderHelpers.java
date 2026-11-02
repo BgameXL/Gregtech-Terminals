@@ -4,16 +4,13 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.common.block.CoilBlock;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -252,51 +249,6 @@ public final class AutoBuilderHelpers {
         }
         if (found == null) found = Direction.NORTH;
         consumer.accept(blockState.setValue(property, found));
-    }
-
-    static ItemStack computeFallbackCasing(TraceabilityPredicate[][][] blockMatches,
-                                           Set<net.minecraft.world.level.block.Block> hatchBlocks,
-                                           net.minecraft.world.level.block.Block controllerBlock) {
-        Object2IntOpenHashMap<net.minecraft.world.level.block.Block> freq = new Object2IntOpenHashMap<>();
-        for (TraceabilityPredicate[][] slice : blockMatches)
-            for (TraceabilityPredicate[] row : slice)
-                for (TraceabilityPredicate p : row) {
-                    if (p == null) continue;
-                    addCasingCandidates(freq, p.limited, hatchBlocks, controllerBlock);
-                    addCasingCandidates(freq, p.common, hatchBlocks, controllerBlock);
-                }
-
-        net.minecraft.world.level.block.Block best = null;
-        int bestCount = 0;
-        for (var e : freq.object2IntEntrySet()) {
-            if (e.getIntValue() > bestCount) {
-                bestCount = e.getIntValue();
-                best = e.getKey();
-            }
-        }
-        if (best == null) return ItemStack.EMPTY;
-        ItemStack st = new ItemStack(best.asItem());
-        return st.isEmpty() ? ItemStack.EMPTY : st;
-    }
-
-    private static void addCasingCandidates(Object2IntOpenHashMap<net.minecraft.world.level.block.Block> freq,
-                                            List<SimplePredicate> list,
-                                            Set<net.minecraft.world.level.block.Block> hatchBlocks,
-                                            net.minecraft.world.level.block.Block controllerBlock) {
-        if (list == null) return;
-        for (SimplePredicate sp : list) {
-            if (sp == null || sp.candidates == null) continue;
-            BlockInfo[] infos = sp.candidates.get();
-            if (infos == null) continue;
-            for (BlockInfo info : infos) {
-                BlockState state = info.getBlockState();
-                if (state == null) continue;
-                var b = state.getBlock();
-                if (b == Blocks.AIR || b == controllerBlock || b instanceof CoilBlock) continue;
-                if (!hatchBlocks.isEmpty() && hatchBlocks.contains(b)) continue;
-                freq.addTo(b, 1);
-            }
-        }
     }
 
 }

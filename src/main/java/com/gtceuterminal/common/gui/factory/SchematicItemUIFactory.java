@@ -1,60 +1,12 @@
 package com.gtceuterminal.common.gui.factory;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-
 import com.lowdragmc.lowdraglib.Platform;
-import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Holder> {
-
-    public static final ResourceLocation UI_ID = ResourceLocation.fromNamespaceAndPath(
-            GTCEUTerminalMod.MOD_ID, "schematic_interface_ui"
-    );
-
-    public static final SchematicItemUIFactory INSTANCE = new SchematicItemUIFactory();
-
-    private SchematicItemUIFactory() {
-        super(UI_ID);
-    }
-
-    public void openUI(ServerPlayer player, ItemStack item) {
-        super.openUI(new Holder(false, item), player);
-    }
-
-    @Override
-    protected ModularUI createUITemplate(Holder holder, Player entityPlayer) {
-        holder.attach(entityPlayer);
-        GTCEUTerminalMod.LOGGER.debug("SchematicItem createUITemplate isClient={} player={}", Platform.isClient(), entityPlayer);
-        if (Platform.isClient()) {
-            try {
-                ModularUI ui = com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI.create(holder, entityPlayer);
-                GTCEUTerminalMod.LOGGER.debug("SchematicItem UI created: {}", ui);
-                return ui;
-            } catch (Throwable t) {
-                GTCEUTerminalMod.LOGGER.error("SchematicItem UI creation FAILED", t);
-                return null;
-            }
-        }
-        return new ModularUI(600, 480, holder, entityPlayer);
-    }
-
-    @Override
-    protected Holder readHolderFromSyncData(FriendlyByteBuf buf) {
-        return new Holder(true, buf.readItem());
-    }
-
-    @Override
-    protected void writeHolderToSyncData(FriendlyByteBuf buf, Holder holder) {
-        buf.writeItem(holder.item);
-    }
+public class SchematicItemUIFactory {
 
     public static class Holder implements IUIHolder {
         public final boolean remote;
@@ -81,7 +33,10 @@ public class SchematicItemUIFactory extends UIFactory<SchematicItemUIFactory.Hol
         @Override
         public ModularUI createUI(Player p) {
             attach(p);
-            return INSTANCE.createUITemplate(this, p);
+            if (Platform.isClient()) {
+                return com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI.create(this, p);
+            }
+            return new ModularUI(600, 480, this, p);
         }
 
         @Override

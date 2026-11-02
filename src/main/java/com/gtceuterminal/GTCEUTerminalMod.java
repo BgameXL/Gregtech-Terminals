@@ -10,16 +10,11 @@ import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.config.ServerConfig;
 import com.gtceuterminal.common.data.GTCEUTerminalItems;
 import com.gtceuterminal.common.data.GTCEUTerminalTabs;
-import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
-import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
-import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.DefaultThemeConfig;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 import com.gtceuterminal.common.util.MiscUtil;
 
-import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 
 import com.mojang.logging.LogUtils;
 
@@ -51,11 +46,6 @@ public class GTCEUTerminalMod {
 
         GTCEUTerminalItems.ITEMS.register(modEventBus);
         GTCEUTerminalTabs.register(modEventBus);
-
-        UIFactory.register(EnergyAnalyzerUIFactory.INSTANCE);
-        UIFactory.register(MultiStructureManagerUIFactory.INSTANCE);
-        UIFactory.register(SchematicItemUIFactory.INSTANCE);
-        UIFactory.register(DismantlerItemUIFactory.INSTANCE);
 
         modEventBus.addListener(this::commonSetup);
 

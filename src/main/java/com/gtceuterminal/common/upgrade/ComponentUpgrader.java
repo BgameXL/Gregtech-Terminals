@@ -6,14 +6,12 @@ import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.material.MaterialAvailability;
 import com.gtceuterminal.common.material.MaterialCalculator;
-import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -119,81 +117,6 @@ public class ComponentUpgrader {
         return upgradeComponent(component, targetTier, player, level, consumeMaterials, ItemStack.EMPTY);
     }
 
-    public static BulkUpgradeResult upgradeMultipleComponents(
-            List<ComponentInfo> components, int targetTier, Player player, Level level, ItemStack linkedManager) {
-
-        BulkUpgradeResult result = new BulkUpgradeResult();
-        boolean upgradingCoils = false;
-
-        Map<Item, Integer> totalRequired = new java.util.HashMap<>();
-        for (ComponentInfo c : components) {
-            if (!ComponentUpgradeHelper.canUpgrade(c, targetTier)) continue;
-            if (c.getGroup() == ComponentGroupRegistry.COIL) upgradingCoils = true;
-            ComponentUpgradeHelper.getUpgradeItems(c, targetTier)
-                    .forEach((item, count) -> totalRequired.merge(item, count, Integer::sum));
-        }
-
-        String extractionSource = "";
-        if (!player.isCreative()) {
-            ExtractionResult er = extractMaterials(totalRequired, player, level, linkedManager);
-            if (!er.success) {
-                result.success = false;
-                result.message = er.message;
-                return result;
-            }
-            extractionSource = er.source;
-        }
-
-        for (ComponentInfo c : components) {
-            if (!ComponentUpgradeHelper.canUpgrade(c, targetTier)) {
-                result.skipped++;
-                continue;
-            }
-            UpgradeResult r = upgradeComponent(c, targetTier, player, level, false, ItemStack.EMPTY);
-            if (r.success) result.successful++;
-            else {
-                result.failed++;
-                result.errors.add(r.message);
-            }
-        }
-
-        result.success = result.successful > 0;
-        result.message = String.format("Upgraded %d/%d components%s", result.successful, components.size(), extractionSource);
-
-        if (upgradingCoils && result.successful > 0) {
-            String coilName = net.minecraft.network.chat.Component
-                    .translatable("item.gtceuterminal.component_upgrade.unknown_coil").getString();
-            try {
-                ComponentInfo firstCoil = components.stream()
-                        .filter(c -> c.getGroup() == ComponentGroupRegistry.COIL).findFirst().orElse(null);
-                if (firstCoil != null) {
-                    String name = ComponentUpgradeHelper.getUpgradeName(firstCoil, targetTier);
-                    if (name != null && !name.isEmpty()) coilName = name;
-                }
-            } catch (Exception e) {
-                GTCEUTerminalMod.LOGGER.error("Error getting coil name for upgrade message", e);
-            }
-
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "item.gtceuterminal.component_upgrade.message.upgraded_coils",
-                    result.successful, coilName, extractionSource), false);
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "item.gtceuterminal.component_upgrade.message.reset_multiblock"), true);
-            player.level().playSound(null, player.blockPosition(),
-                    SoundEvents.ANVIL_LAND, net.minecraft.sounds.SoundSource.PLAYERS, 0.5F, 1.2F);
-            GTCEUTerminalMod.LOGGER.info("Player {} upgraded {} coils to {} (tier {}){}",
-                    player.getName().getString(), result.successful, coilName, targetTier,
-                    extractionSource.replace("§a", "").replace("§7", ""));
-        }
-
-        return result;
-    }
-
-    public static BulkUpgradeResult upgradeMultipleComponents(
-            List<ComponentInfo> components, int targetTier, Player player, Level level) {
-        return upgradeMultipleComponents(components, targetTier, player, level, ItemStack.EMPTY);
-    }
-
     private static ExtractionResult extractMaterials(
             Map<Item, Integer> required, Player player, Level level, ItemStack linkedManager) {
 
@@ -287,14 +210,5 @@ public class ComponentUpgrader {
     }
 
     public record UpgradeResult(boolean success, String message) {
-    }
-
-    public static class BulkUpgradeResult {
-        public boolean success;
-        public String message;
-        public int successful = 0;
-        public int failed = 0;
-        public int skipped = 0;
-        public List<String> errors = new java.util.ArrayList<>();
     }
 }

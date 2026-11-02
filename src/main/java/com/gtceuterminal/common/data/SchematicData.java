@@ -2,14 +2,12 @@ package com.gtceuterminal.common.data;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -128,81 +126,5 @@ public record SchematicData(String name, String multiblockType, Map<BlockPos, Bl
         }
 
         return tag;
-    }
-
-    public SchematicData rotate(Direction.Axis axis) {
-        Map<BlockPos, BlockState> rotatedBlocks = new HashMap<>();
-        Map<BlockPos, CompoundTag> rotatedBEs = new HashMap<>();
-
-        for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
-            BlockPos pos = entry.getKey();
-            BlockState state = entry.getValue();
-
-            BlockPos newPos = rotatePosition(pos, axis);
-            BlockState newState = rotateBlockState(state, axis);
-
-            rotatedBlocks.put(newPos, newState);
-        }
-
-        for (Map.Entry<BlockPos, CompoundTag> entry : blockEntities.entrySet()) {
-            BlockPos newPos = rotatePosition(entry.getKey(), axis);
-            rotatedBEs.put(newPos, entry.getValue().copy());
-        }
-
-        return new SchematicData(name, multiblockType, rotatedBlocks, rotatedBEs, originalFacing);
-    }
-
-    private BlockPos rotatePosition(BlockPos pos, Direction.Axis axis) {
-        return switch (axis) {
-            case X -> new BlockPos(pos.getX(), -pos.getZ(), pos.getY());
-            case Y -> new BlockPos(-pos.getZ(), pos.getY(), pos.getX());
-            case Z -> new BlockPos(pos.getY(), -pos.getX(), pos.getZ());
-        };
-    }
-
-    private BlockState rotateBlockState(BlockState state, Direction.Axis axis) {
-        try {
-            if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-                var facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-                var rotated = switch (axis) {
-                    case Y -> facing.getClockWise();
-                    case X, Z -> facing;
-                };
-                return state.setValue(BlockStateProperties.HORIZONTAL_FACING, rotated);
-            }
-
-            if (state.hasProperty(BlockStateProperties.FACING)) {
-                var facing = state.getValue(BlockStateProperties.FACING);
-                var rotated = switch (axis) {
-                    case Y -> facing.getClockWise();
-                    case X -> rotateFacingX(facing);
-                    case Z -> rotateFacingZ(facing);
-                };
-                return state.setValue(BlockStateProperties.FACING, rotated);
-            }
-        } catch (Exception e) {
-        }
-
-        return state;
-    }
-
-    private Direction rotateFacingX(Direction facing) {
-        return switch (facing) {
-            case UP -> Direction.NORTH;
-            case NORTH -> Direction.DOWN;
-            case DOWN -> Direction.SOUTH;
-            case SOUTH -> Direction.UP;
-            default -> facing;
-        };
-    }
-
-    private Direction rotateFacingZ(Direction facing) {
-        return switch (facing) {
-            case UP -> Direction.EAST;
-            case EAST -> Direction.DOWN;
-            case DOWN -> Direction.WEST;
-            case WEST -> Direction.UP;
-            default -> facing;
-        };
     }
 }

@@ -39,11 +39,6 @@ public class ComponentPatternRegistry {
         }
     }
 
-    public static void reload() {
-        GTCEUTerminalMod.LOGGER.info("Reloading component patterns");
-        loadPatterns();
-    }
-
     public static java.util.Optional<ComponentPattern> findMatch(String blockId) {
         if (blockId == null) return java.util.Optional.empty();
 
@@ -54,36 +49,5 @@ public class ComponentPatternRegistry {
         }
 
         return java.util.Optional.empty();
-    }
-
-    public static List<ComponentPattern> findAllMatches(String blockId) {
-        List<ComponentPattern> matches = new ArrayList<>();
-
-        if (blockId == null) return matches;
-
-        for (ComponentPattern pattern : patterns) {
-            if (pattern.matches(blockId)) {
-                matches.add(pattern);
-            }
-        }
-
-        return matches;
-    }
-
-    public static void registerPattern(ComponentPattern pattern) {
-        patterns.add(pattern);
-        patterns.sort(Comparator.comparingInt(ComponentPattern::getPriority).reversed());
-    }
-
-    public static List<ComponentPattern> getAllPatterns() {
-        return new ArrayList<>(patterns);
-    }
-
-    public static int getPatternCount() {
-        return patterns.size();
-    }
-
-    public static void clear() {
-        patterns.clear();
     }
 }

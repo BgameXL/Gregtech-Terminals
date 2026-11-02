@@ -96,15 +96,6 @@ public class EnergyDataCollector {
                     collectRecipeInfo(electric, snap);
                 }
             } else {
-                var custom = MultiblockHandlerRegistry.tryHandle(machine, level, pos);
-                if (custom.isPresent()) {
-                    snap = custom.get();
-                    snap.sampleTick = level.getGameTime();
-                    snap.machineCustomName = customName != null ? customName : "";
-                    snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
-                    return snap;
-                }
-
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
                     snap.isFormed = true;

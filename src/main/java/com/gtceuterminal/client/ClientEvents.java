@@ -44,7 +44,7 @@ public class ClientEvents {
         }
 
         CompoundTag tag = heldItem.getTag();
-        if (SchematicStorage.hasClipboard(tag)) {
+        if (!SchematicStorage.hasClipboard(tag)) {
             cachedClipboard = null;
             return;
         }

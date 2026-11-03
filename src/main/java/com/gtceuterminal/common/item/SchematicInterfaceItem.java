@@ -1,7 +1,5 @@
 package com.gtceuterminal.common.item;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-
 import com.gtceuterminal.client.item.ClientTooltipHelper;
 import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.item.behavior.SchematicInterfaceBehavior;
@@ -28,7 +26,6 @@ public class SchematicInterfaceItem extends Item {
     public SchematicInterfaceItem() {
         super(new Item.Properties().stacksTo(1).setNoRepair());
         this.behavior = new SchematicInterfaceBehavior();
-        GTCEUTerminalMod.LOGGER.info("SchematicInterfaceItem constructor called - behavior created");
     }
 
     @NotNull

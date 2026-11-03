@@ -44,8 +44,8 @@ public final class SchematicStorage {
     }
 
     public static boolean hasClipboard(@Nullable CompoundTag itemTag) {
-        return itemTag == null
-                || (!itemTag.contains(CLIPBOARD, Tag.TAG_BYTE_ARRAY) && !itemTag.contains(CLIPBOARD, Tag.TAG_COMPOUND));
+        return itemTag != null
+                && (itemTag.contains(CLIPBOARD, Tag.TAG_BYTE_ARRAY) || itemTag.contains(CLIPBOARD, Tag.TAG_COMPOUND));
     }
 
     public static int clipboardHash(@Nullable CompoundTag itemTag) {

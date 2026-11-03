@@ -8,16 +8,12 @@ import appeng.api.networking.storage.IStorageService;
 import appeng.api.storage.MEStorage;
 import appeng.me.helpers.PlayerSource;
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
@@ -40,10 +36,10 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
     @Nullable
     public static MENetworkFluidHandlerWrapper fromTerminal(ItemStack terminalStack, Player player) {
         if (!MENetworkScanner.isAE2Available()) return null;
-        if (!AccessPointLink.isOurLinkedItem(terminalStack)) return null;
 
         try {
             IGrid grid = AccessPointLink.getLinkedGrid(terminalStack, player.level(), player);
+            if (grid == null) grid = AccessPointLink.getGridFromCarriedTerminal(player, player.level());
             if (grid == null) return null;
             return fromGrid(grid, new PlayerSource(player, null));
         } catch (Exception e) {
@@ -57,26 +53,9 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
         if (!MENetworkScanner.isAE2Available()) return null;
 
         try {
-            List<ItemStack> toCheck = new ArrayList<>();
-            toCheck.add(player.getMainHandItem());
-            toCheck.add(player.getOffhandItem());
-            toCheck.addAll(player.getInventory().items);
-            if (MiscUtil.isCuriosLoaded) toCheck.addAll(CuriosCompat.getEquippedItems(player));
-
-            for (ItemStack stack : toCheck) {
-                if (stack.isEmpty()) continue;
-                if (!AccessPointLink.isOurLinkedManager(stack)) continue;
-
-                IGrid grid = AccessPointLink.getLinkedGrid(stack, player.level(), player);
-                if (grid == null) continue;
-
-                IActionSource actionSource = new PlayerSource(player, null);
-                MENetworkFluidHandlerWrapper wrapper = fromGrid(grid, actionSource);
-                if (wrapper != null) {
-                    GTCEUTerminalMod.LOGGER.debug("Connected to ME Network fluid storage via terminal");
-                    return wrapper;
-                }
-            }
+            IGrid grid = AccessPointLink.getGridFromCarriedTerminal(player, player.level());
+            if (grid == null) return null;
+            return fromGrid(grid, new PlayerSource(player, null));
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MENetworkFluidHandlerWrapper.getFromPlayer failed", e);
         }

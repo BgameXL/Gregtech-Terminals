@@ -91,8 +91,9 @@ public class MENetworkItemExtractor {
     }
 
     private static IGrid resolveGrid(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player) {
-        if (terminalStack == null || terminalStack.isEmpty()) return null;
-        return AccessPointLink.getLinkedGrid(terminalStack, level, player);
+        IGrid grid = (terminalStack != null && !terminalStack.isEmpty())
+                ? AccessPointLink.getLinkedGrid(terminalStack, level, player) : null;
+        return grid != null ? grid : AccessPointLink.getGridFromCarriedTerminal(player, level);
     }
 
     private static void rollback(IStorageService storage, Map<Item, Long> extracted, IActionSource src) {

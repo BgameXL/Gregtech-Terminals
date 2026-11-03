@@ -6,8 +6,8 @@ A lightweight GregTech CEu Modern addon. It adds four Terminals that inspect and
 
 - **[Multi-Structure Manager](multi-structure-manager.md)**: sees every multiblock within a 32-block radius and upgrades any tiered block (coils, I/O hatches, I/O buses, energy hatches, parallel hatches, mufflers, custom tiered casings) straight from your inventory or AE2. It can also auto-build a structure and request missing blocks from your ME network.
 - **[Schematic Interface](schematic-interface.md)**: shift + right-click a controller to copy a formed structure as a named schematic, then paste it later (optionally pulling blocks from AE2).
-- **[Dismantler](dismantler.md)**: shift + right-click a controller to pick up every block of the structure into your inventory.
-- **[Energy Analyzer](energy-analyzer.md)**: Monitor the energy usage of machines, multiblocks, energy hatches, singleblocks and battery boxes.
+- **[Dismantler](dismantler.md)**: shift + right-click a controller to dismantle every block of the structure.
+- **[Energy Analyzer](energy-analyzer.md)**: Monitor the energy usage of multiblocks, energy hatches, singleblocks and battery boxes.
 
 ## For pack and mod developers
 
@@ -19,22 +19,21 @@ Terminals can recognize and upgrade blocks from other mods. Register them throug
 
 ## Supported mods and packs
 
-Specially tailored integrations for unique hatches and tiered casings:
+Specially integrations for unique hatches and tiered casings:
 
-- AstroGreg: Exsilium
+- AstroGreg:Exsilium
 - TerraFirmaGreg
 - Phoenix Forge Technologies
-- GTM Things
-- Star Technology: Beyond
+- GTMThings
 
-Report pack-specific bugs on the [issue tracker](https://github.com/BgameXL/GTCEu-Terminals/issues) or on [Discord](https://discord.gg/kAKk3wRAVh). To request an integration, leave a suggestion.
+Report pack-specific bugs or to request an integration on the [issue tracker](https://github.com/BgameXL/GTCEu-Terminals/issues) or on [Discord](https://discord.gg/kAKk3wRAVh).
 
 ## Credits
 
 - Haze Vista, for textures and ideas.
-- yan (yan072600), for the simplified Chinese translation and making the mod translatable.
-- GTM Things, for inspiring the Multi-Structure Manager.
-- GregTech CEu Modern.
+- yan (yan072600), for the simplified Chinese translation and making the mod translatable to other languages.
+- GTMThings, for inspiring the Multi-Structure Manager.
+- GregTech CEu Modern for providing the behavior for Multi-Structure Manager.
 - WhitePhant0m, for AE2 Wireless terminal support in Curios slots.
 
 Contributors are welcome and encouraged.

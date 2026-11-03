@@ -1,8 +1,11 @@
 package com.gtceuterminal.common.ae2;
 
+import appeng.api.features.GridLinkables;
 import appeng.api.implementations.blockentities.IWirelessAccessPoint;
 import appeng.api.networking.IGrid;
 import appeng.api.util.DimensionalBlockPos;
+
+import com.gtceuterminal.common.util.MiscUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -16,20 +19,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AccessPointLink {
 
     private static final String TAG_ACCESS_POINT_POS = "accessPoint";
 
     public static boolean isLinked(ItemStack stack) {
         return stack.hasTag() && stack.getTag().contains(TAG_ACCESS_POINT_POS);
-    }
-
-    public static boolean isOurLinkedItem(ItemStack stack) {
-        return !stack.isEmpty()
-                && (stack.getItem() instanceof com.gtceuterminal.common.item.MultiStructureManagerItem
-                || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem
-                || stack.getItem() instanceof com.gtceuterminal.common.item.DismantlerItem)
-                && isLinked(stack);
     }
 
     public static boolean isOurLinkedManager(ItemStack stack) {
@@ -65,6 +63,30 @@ public class AccessPointLink {
         }
 
         return anyAccessPointInRange(grid, player) ? grid : null;
+    }
+
+    @Nullable
+    public static IGrid getGridFromCarriedTerminal(Player player, Level level) {
+        List<ItemStack> carried = new ArrayList<>();
+        carried.add(player.getMainHandItem());
+        carried.add(player.getOffhandItem());
+        carried.addAll(player.getInventory().items);
+        if (MiscUtil.isCuriosLoaded) carried.addAll(CuriosCompat.getEquippedItems(player));
+
+        for (ItemStack stack : carried) {
+            if (stack.isEmpty() || !isLinked(stack)) continue;
+            if (isMyGadget(stack)) continue;
+            if (GridLinkables.get(stack.getItem()) == null) continue;
+            IGrid grid = getLinkedGrid(stack, level, player);
+            if (grid != null) return grid;
+        }
+        return null;
+    }
+
+    private static boolean isMyGadget(ItemStack stack) {
+        return stack.getItem() instanceof com.gtceuterminal.common.item.MultiStructureManagerItem
+                || stack.getItem() instanceof com.gtceuterminal.common.item.SchematicInterfaceItem
+                || stack.getItem() instanceof com.gtceuterminal.common.item.DismantlerItem;
     }
 
     @Nullable

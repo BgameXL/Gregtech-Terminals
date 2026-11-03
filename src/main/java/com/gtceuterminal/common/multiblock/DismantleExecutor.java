@@ -88,11 +88,11 @@ public class DismantleExecutor {
 
         ItemStack dismantler = player.getMainHandItem();
         for (ItemStack stack : items) {
+            if (player.getInventory().add(stack)) continue;
+
             long leftover = MENetworkItemExtractor.insertItem(dismantler, level, player, stack);
             if (leftover <= 0) continue;
             stack.setCount((int) leftover);
-
-            if (player.getInventory().add(stack)) continue;
 
             level.addFreshEntity(new ItemEntity(
                     level, player.getX(), player.getY(), player.getZ(), stack.copy()));

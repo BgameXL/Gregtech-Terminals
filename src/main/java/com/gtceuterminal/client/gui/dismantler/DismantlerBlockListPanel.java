@@ -15,6 +15,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,8 @@ final class DismantlerBlockListPanel {
         panel.addWidget(colHeader);
 
         if (scanResult == null
-                || (scanResult.getBlockCounts().isEmpty() && scanResult.getCoverStacks().isEmpty())) {
+                || (scanResult.getBlockCounts().isEmpty() && scanResult.getCoverStacks().isEmpty()
+                && scanResult.getFluidCounts().isEmpty())) {
             LabelWidget none = new LabelWidget(10, COL_H + 12,
                     TerminalText.strip(Component.translatable(
                             "gui.gtceuterminal.dismantler.no_data").getString()));
@@ -74,6 +77,13 @@ final class DismantlerBlockListPanel {
             icon.setCount(1);
             scroll.addWidget(buildRow(icon, cover.getHoverName().getString(),
                     coverCategory, cover.getCount(), yPos, w - 2 * PAD, tokens));
+            yPos += ENTRY_H + ENTRY_GAP;
+        }
+        for (Map.Entry<Fluid, Integer> entry : scanResult.getFluidCounts().entrySet()) {
+            Fluid fluid = entry.getKey();
+            String fluidName = new FluidStack(fluid, 1).getDisplayName().getString();
+            scroll.addWidget(buildRow(new ItemStack(fluid.getBucket()), fluidName,
+                    "", entry.getValue(), yPos, w - 2 * PAD, tokens));
             yPos += ENTRY_H + ENTRY_GAP;
         }
 

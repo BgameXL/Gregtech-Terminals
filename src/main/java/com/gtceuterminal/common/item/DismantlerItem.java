@@ -2,6 +2,8 @@ package com.gtceuterminal.common.item;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gtceuterminal.client.item.ClientTooltipHelper;
+import com.gtceuterminal.common.ae2.MENetworkScanner;
 import com.gtceuterminal.common.network.SPacketOpenDismantlerUI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -33,15 +35,6 @@ public class DismantlerItem extends Item {
         BlockPos clickedPos = context.getClickedPos();
 
         BlockEntity be = level.getBlockEntity(clickedPos);
-
-        if (be != null && com.gtceuterminal.common.ae2.AccessPointLink.isAccessPoint(be)) {
-            if (!level.isClientSide) {
-                com.gtceuterminal.common.ae2.AccessPointLink.linkTo(context.getItemInHand(), level, clickedPos);
-                player.displayClientMessage(
-                        Component.translatable("item.gtceuterminal.dismantler.message.linked_to_me_network"), true);
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide);
-        }
 
         if (be instanceof IMachineBlockEntity mbe) {
             var metaMachine = mbe.getMetaMachine();
@@ -75,6 +68,24 @@ public class DismantlerItem extends Item {
                 "item.gtceuterminal.dismantler.tooltip.tool"
         ));
         tooltipComponents.add(Component.literal(""));
+        if (MENetworkScanner.isAE2Available()) {
+            if (MENetworkScanner.isItemLinked(stack)) {
+                tooltipComponents.add(Component.translatable(
+                        "item.gtceuterminal.dismantler.tooltip.linked"
+                ));
+                if (level != null && level.isClientSide) {
+                    ClientTooltipHelper.appendAE2RangeTooltip(stack, level, tooltipComponents);
+                }
+            } else {
+                tooltipComponents.add(Component.translatable(
+                        "item.gtceuterminal.dismantler.tooltip.not_linked"
+                ));
+                tooltipComponents.add(Component.translatable(
+                        "item.gtceuterminal.dismantler.tooltip.place_in_me_wireless_access_point"
+                ));
+            }
+            tooltipComponents.add(Component.literal(""));
+        }
         tooltipComponents.add(Component.translatable(
                 "item.gtceuterminal.dismantler.tooltip.open_dismantler_gui"
         ));

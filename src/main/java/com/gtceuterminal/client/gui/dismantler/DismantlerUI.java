@@ -84,10 +84,12 @@ public class DismantlerUI {
                 var state = level.getBlockState(pos);
                 if (state.isAir()) continue;
                 var block = state.getBlock();
+                if (block instanceof net.minecraft.world.level.block.LiquidBlock) continue;
                 counts.merge(block, 1, Integer::sum);
             }
             return new DismantleScanner.ScanResult(controllerPos, preScanned, counts,
-                    DismantleScanner.collectCoverStacks(level, preScanned));
+                    DismantleScanner.collectCoverStacks(level, preScanned),
+                    DismantleScanner.collectFluids(level, preScanned));
         }
         return computeScanResult(player, controllerPos);
     }

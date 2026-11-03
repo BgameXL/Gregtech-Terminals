@@ -28,6 +28,9 @@ public class AE2Integration {
             GridLinkables.register(GTCEUTerminalItems.SCHEMATIC_INTERFACE.get(), handler);
             GTCEUTerminalMod.LOGGER.info("Registered Schematic Interface with AE2 GridLinkables");
 
+            GridLinkables.register(GTCEUTerminalItems.DISMANTLER.get(), handler);
+            GTCEUTerminalMod.LOGGER.info("Registered Dismantler with AE2 GridLinkables");
+
             initialized = true;
             GTCEUTerminalMod.LOGGER.info("AE2 Integration initialized successfully");
 

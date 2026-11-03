@@ -10,7 +10,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 
 import java.util.*;
 
@@ -41,11 +44,13 @@ public class DismantleScanner {
                 if (blockState.isAir()) continue;
 
                 Block block = blockState.getBlock();
+                if (block instanceof LiquidBlock) continue;
                 blockCounts.put(block, blockCounts.getOrDefault(block, 0) + 1);
             }
         }
 
-        return new ScanResult(controllerPos, allBlocks, blockCounts, collectCoverStacks(level, allBlocks));
+        return new ScanResult(controllerPos, allBlocks, blockCounts,
+                collectCoverStacks(level, allBlocks), collectFluids(level, allBlocks));
     }
 
     public static List<ItemStack> collectCoverStacks(Level level, Collection<BlockPos> positions) {
@@ -59,6 +64,15 @@ public class DismantleScanner {
             }
         }
         return covers;
+    }
+
+    public static Map<Fluid, Integer> collectFluids(Level level, Collection<BlockPos> positions) {
+        Map<Fluid, Integer> fluids = new HashMap<>();
+        for (BlockPos pos : positions) {
+            FluidState fs = level.getBlockState(pos).getFluidState();
+            if (fs.isSource()) fluids.merge(fs.getType(), 1, Integer::sum);
+        }
+        return fluids;
     }
 
     private static void addMerged(List<ItemStack> list, ItemStack stack) {
@@ -77,24 +91,31 @@ public class DismantleScanner {
         private final Set<BlockPos> allBlocks;
         private final Map<Block, Integer> blockCounts;
         private final List<ItemStack> coverStacks;
+        private final Map<Fluid, Integer> fluids;
         private final int totalBlocks;
 
         public ScanResult(BlockPos controllerPos, Set<BlockPos> allBlocks,
-                          Map<Block, Integer> blockCounts, List<ItemStack> coverStacks) {
+                          Map<Block, Integer> blockCounts, List<ItemStack> coverStacks,
+                          Map<Fluid, Integer> fluids) {
             this.controllerPos = controllerPos;
             this.allBlocks = allBlocks;
             this.blockCounts = blockCounts;
             this.coverStacks = coverStacks;
+            this.fluids = fluids;
             this.totalBlocks = allBlocks.size();
         }
 
         public static ScanResult empty() {
             return new ScanResult(BlockPos.ZERO, Collections.emptySet(),
-                    Collections.emptyMap(), Collections.emptyList());
+                    Collections.emptyMap(), Collections.emptyList(), Collections.emptyMap());
         }
 
         public List<ItemStack> getCoverStacks() {
             return coverStacks;
+        }
+
+        public Map<Fluid, Integer> getFluidCounts() {
+            return fluids;
         }
 
         public BlockPos getControllerPos() {

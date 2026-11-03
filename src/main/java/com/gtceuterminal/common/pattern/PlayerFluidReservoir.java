@@ -49,12 +49,6 @@ public final class PlayerFluidReservoir {
         if (stack == null || stack.isEmpty()) return 0;
         FluidStack remaining = stack.copy();
 
-        if (me != null) {
-            int accepted = me.fill(remaining, IFluidHandler.FluidAction.EXECUTE);
-            remaining.shrink(accepted);
-            if (remaining.isEmpty()) return 0;
-        }
-
         var inv = player.getInventory();
         for (int i = 0; i < inv.getContainerSize() && !remaining.isEmpty(); i++) {
             ItemStack s = inv.getItem(i);
@@ -68,6 +62,12 @@ public final class PlayerFluidReservoir {
             replaceOne(i, s, h.getContainer());
             remaining.shrink(filled);
         }
+
+        if (me != null && !remaining.isEmpty()) {
+            int accepted = me.fill(remaining, IFluidHandler.FluidAction.EXECUTE);
+            remaining.shrink(accepted);
+        }
+
         return remaining.getAmount();
     }
 

@@ -2,6 +2,7 @@ package com.gtceuterminal.common.ae2;
 
 import appeng.api.features.IGridLinkableHandler;
 
+import com.gtceuterminal.common.item.DismantlerItem;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
 import com.gtceuterminal.common.item.SchematicInterfaceItem;
 
@@ -16,7 +17,8 @@ public class TerminalGridLinkableHandler implements IGridLinkableHandler {
     @Override
     public boolean canLink(ItemStack stack) {
         return stack.getItem() instanceof MultiStructureManagerItem
-                || stack.getItem() instanceof SchematicInterfaceItem;
+                || stack.getItem() instanceof SchematicInterfaceItem
+                || stack.getItem() instanceof DismantlerItem;
     }
 
     @Override

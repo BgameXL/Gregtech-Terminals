@@ -1,6 +1,5 @@
 package com.gtceuterminal.common.data;
 
-import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -91,8 +90,6 @@ public record SchematicData(String name, String multiblockType, Map<BlockPos, Bl
         tag.putString("Name", name);
         tag.putString("Type", multiblockType);
         tag.putString("OriginalFacing", originalFacing);
-
-        GTCEUTerminalMod.LOGGER.info("Saving schematic '{}' - originalFacing: {}", name, originalFacing);
 
         // Able to copy and paste blocks from different mods, include liquids like water and lava.
         ListTag blocksList = new ListTag();

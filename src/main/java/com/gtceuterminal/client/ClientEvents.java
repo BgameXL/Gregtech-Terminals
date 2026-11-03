@@ -3,6 +3,7 @@ package com.gtceuterminal.client;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.client.renderer.SchematicPreviewRenderer;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -43,16 +44,16 @@ public class ClientEvents {
         }
 
         CompoundTag tag = heldItem.getTag();
-        if (tag == null || !tag.contains("Clipboard")) {
+        if (SchematicStorage.hasClipboard(tag)) {
             cachedClipboard = null;
             return;
         }
 
         try {
-            CompoundTag clipboardTag = tag.getCompound("Clipboard");
-            int currentHash = clipboardTag.hashCode();
+            int currentHash = SchematicStorage.clipboardHash(tag);
             if (cachedClipboard == null || currentHash != cachedClipboardHash) {
-                cachedClipboard = SchematicData.fromNBT(clipboardTag, minecraft.level.registryAccess());
+                cachedClipboard = SchematicData.fromNBT(
+                        SchematicStorage.getClipboard(tag), minecraft.level.registryAccess());
                 cachedClipboardHash = currentHash;
             }
             if (cachedClipboard == null || cachedClipboard.blocks().isEmpty()) return;

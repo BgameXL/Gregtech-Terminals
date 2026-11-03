@@ -4,6 +4,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
 import com.gtceuterminal.common.material.MaterialCalculator;
 import com.gtceuterminal.common.pattern.FluidPlacementHelper;
 import com.gtceuterminal.common.util.SchematicUtils;
@@ -35,23 +36,21 @@ public final class SchematicPaster {
 
     public static void pasteSchematic(ItemStack itemStack, Player player,
                                       Level level, BlockPos targetPos) {
-        CompoundTag itemTag = itemStack.getTag();
-        if (itemTag == null || !itemTag.contains("Clipboard")) {
+        CompoundTag clipTag = SchematicStorage.getClipboard(itemStack.getTag());
+        if (clipTag == null) {
             player.displayClientMessage(
                     Component.translatable("item.gtceuterminal.schematic_paster.no_schematic_in_clipboard"),
                     true);
             return;
         }
 
-        SchematicData clipboard = SchematicData.fromNBT(
-                itemTag.getCompound("Clipboard"), level.registryAccess());
+        SchematicData clipboard = SchematicData.fromNBT(clipTag, level.registryAccess());
         Direction originalFacing = SchematicUtils.resolveOriginalFacing(clipboard);
 
         Direction targetFacing = player.getDirection().getOpposite();
         int rotationSteps = SchematicUtils.getRotationSteps(originalFacing, targetFacing);
 
         try {
-            CompoundTag clipTag = itemTag.getCompound("Clipboard");
             if (clipTag.contains("UserRot"))
                 rotationSteps = (rotationSteps + (clipTag.getInt("UserRot") & 3)) & 3;
         } catch (ClassCastException e) {

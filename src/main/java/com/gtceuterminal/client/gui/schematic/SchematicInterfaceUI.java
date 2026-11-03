@@ -10,6 +10,7 @@ import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
 import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.network.CPacketSchematicAction;
 import com.gtceuterminal.common.network.TerminalNetwork;
@@ -97,18 +98,17 @@ public class SchematicInterfaceUI {
     private void loadSchematics() {
         schematics = new ArrayList<>();
         CompoundTag tag = terminalItem.getTag();
-        if (tag != null && tag.contains("SavedSchematics")) {
-            ListTag list = tag.getList("SavedSchematics", 10);
-            for (int i = 0; i < list.size(); i++) {
-                SchematicData data = SchematicData.fromNBT(list.getCompound(i), player.level().registryAccess());
-                if (!"Clipboard".equals(data.name())) schematics.add(data);
-            }
+        ListTag list = SchematicStorage.getSaved(tag);
+        for (int i = 0; i < list.size(); i++) {
+            SchematicData data = SchematicData.fromNBT(list.getCompound(i), player.level().registryAccess());
+            if (!"Clipboard".equals(data.name())) schematics.add(data);
         }
 
         this.clipboard = null;
-        if (tag != null && tag.contains("Clipboard")) {
+        CompoundTag clipTag = SchematicStorage.getClipboard(tag);
+        if (clipTag != null) {
             try {
-                SchematicData clip = SchematicData.fromNBT(tag.getCompound("Clipboard"), player.level().registryAccess());
+                SchematicData clip = SchematicData.fromNBT(clipTag, player.level().registryAccess());
                 if (!clip.blocks().isEmpty()) this.clipboard = clip;
             } catch (Exception e) {
                 GTCEUTerminalMod.LOGGER.debug("Failed to read clipboard schematic: {}", e.getMessage());

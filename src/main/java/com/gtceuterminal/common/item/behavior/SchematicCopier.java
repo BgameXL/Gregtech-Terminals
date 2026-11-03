@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -77,8 +78,17 @@ public final class SchematicCopier {
                 "Clipboard", multiblockType, blocks, blockEntities, facing.getName());
 
         CompoundTag itemTag = itemStack.getOrCreateTag();
-        itemTag.put("Clipboard", clipboard.toNBT());
+        SchematicStorage.putClipboard(itemTag, clipboard.toNBT());
         itemStack.setTag(itemTag);
+
+        if (SchematicStorage.itemTagSize(itemTag) > SchematicStorage.MAX_ITEM_NBT_BYTES) {
+            itemTag.remove(SchematicStorage.CLIPBOARD);
+            itemStack.setTag(itemTag);
+            player.displayClientMessage(
+                    Component.translatable("item.gtceuterminal.schematic_copier.too_large"),
+                    true);
+            return;
+        }
 
         player.displayClientMessage(
                 Component.translatable("item.gtceuterminal.schematic_copier.multiblock_copied", blocks.size()),

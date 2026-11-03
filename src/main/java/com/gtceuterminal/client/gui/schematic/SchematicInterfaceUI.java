@@ -66,6 +66,7 @@ public class SchematicInterfaceUI {
     private SchematicData clipboard;
     private ButtonWidget saveEnabledBtn;
     private ButtonWidget saveDisabledBtn;
+    private ButtonWidget clearBtn;
     private LabelWidget clipboardIndicator;
     public SchematicInterfaceUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
         this.uiHolder = heldHolder;
@@ -297,6 +298,13 @@ public class SchematicInterfaceUI {
                 tokens.successSurface(), cd -> saveSchematic());
         bar.addWidget(saveEnabledBtn);
 
+        int clearW = 62;
+        int clearX = fieldX - gap - clearW;
+        this.clearBtn = TerminalButton.text3D(clearX, saveY, clearW, saveH,
+                Component.translatable("gui.gtceuterminal.schematic_interface.button.clear").getString(),
+                tokens.errorSurface(), cd -> clearClipboard());
+        bar.addWidget(clearBtn);
+
         updateSaveState();
         return bar;
     }
@@ -316,6 +324,7 @@ public class SchematicInterfaceUI {
 
         saveEnabledBtn.setVisible(valid);
         saveDisabledBtn.setVisible(!valid);
+        if (clearBtn != null) clearBtn.setVisible(hasClipboard());
 
         int border = dup ? tokens.error() : tokens.border();
         nameInput.setBackground(TerminalUI.field(border));
@@ -423,6 +432,21 @@ public class SchematicInterfaceUI {
         updateSaveState();
         player.displayClientMessage(
                 Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.saved", name), true);
+    }
+
+    private void clearClipboard() {
+        if (!hasClipboard()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_clipboard");
+            return;
+        }
+        TerminalNetwork.CHANNEL.sendToServer(
+                new CPacketSchematicAction(CPacketSchematicAction.ActionType.CLEAR_CLIPBOARD, "", -1));
+        this.clipboard = null;
+        refreshClipboardIndicator();
+        refreshPreview();
+        updateSaveState();
+        player.displayClientMessage(
+                Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.cleared_clipboard"), true);
     }
 
     private void deleteSchematic() {

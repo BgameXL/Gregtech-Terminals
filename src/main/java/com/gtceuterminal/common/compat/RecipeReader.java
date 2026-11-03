@@ -2,16 +2,14 @@ package com.gtceuterminal.common.compat;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class RecipeReader {
 
@@ -28,6 +26,10 @@ public final class RecipeReader {
     private static Class<?> cFluidIng;
     private static Method mFluidStacks;
     private static Method mFluidAmount;
+
+    private static RecipeManager indexedManager;
+    private static Map<Item, List<Recipe<?>>> outputIndex;
+
     private RecipeReader() {
     }
 
@@ -76,24 +78,92 @@ public final class RecipeReader {
     public static RecipeView findIngredients(RecipeManager rm, RegistryAccess reg, ItemStack output) {
         if (rm == null || output == null || output.isEmpty()) return RecipeView.EMPTY;
 
-        List<ItemStack> vanilla = findVanilla(rm, reg, output);
-        if (!vanilla.isEmpty()) return new RecipeView(vanilla, List.of());
+        List<Recipe<?>> candidates = index(rm, reg).get(output.getItem());
+        if (candidates == null || candidates.isEmpty()) return RecipeView.EMPTY;
 
-        return findGT(rm, output);
+        for (Recipe<?> recipe : candidates) {
+            if (recipe instanceof CraftingRecipe crafting) {
+                List<ItemStack> items = collectVanilla(crafting);
+                if (!items.isEmpty()) return new RecipeView(items, List.of());
+            }
+        }
+        for (Recipe<?> recipe : candidates) {
+            if (cGTRecipe != null && cGTRecipe.isInstance(recipe)) {
+                RecipeView view = collectGT(recipe);
+                if (!view.isEmpty()) return view;
+            }
+        }
+        return RecipeView.EMPTY;
     }
 
-    private static List<ItemStack> findVanilla(RecipeManager rm, RegistryAccess reg, ItemStack output) {
+    private static Map<Item, List<Recipe<?>>> index(RecipeManager rm, RegistryAccess reg) {
+        if (rm == indexedManager && outputIndex != null) return outputIndex;
+
+        Map<Item, List<Recipe<?>>> index = new HashMap<>();
         try {
             for (CraftingRecipe recipe : rm.getAllRecipesFor(RecipeType.CRAFTING)) {
                 ItemStack result = recipe.getResultItem(reg);
                 if (result == null || result.isEmpty()) continue;
-                if (!ItemStack.isSameItem(result, output)) continue;
-                return collectVanilla(recipe);
+                index.computeIfAbsent(result.getItem(), k -> new ArrayList<>()).add(recipe);
             }
         } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.debug("RecipeReader: vanilla recipe lookup failed", t);
+            GTCEUTerminalMod.LOGGER.debug("RecipeReader: vanilla recipe index failed", t);
         }
-        return List.of();
+
+        ensureGT();
+        if (gtReady) {
+            try {
+                for (Recipe<?> recipe : rm.getRecipes()) {
+                    if (!cGTRecipe.isInstance(recipe)) continue;
+                    for (Item item : gtOutputItems(recipe)) {
+                        index.computeIfAbsent(item, k -> new ArrayList<>()).add(recipe);
+                    }
+                }
+            } catch (Throwable t) {
+                GTCEUTerminalMod.LOGGER.debug("RecipeReader: GT recipe index failed", t);
+            }
+        }
+
+        outputIndex = index;
+        indexedManager = rm;
+        return index;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Item> gtOutputItems(Recipe<?> recipe) {
+        try {
+            Map<Object, List<?>> outputs = (Map<Object, List<?>>) fOutputs.get(recipe);
+            if (outputs == null) return List.of();
+            List<?> contents = outputs.get(itemCap);
+            if (contents == null || contents.isEmpty()) return List.of();
+
+            List<Item> items = new ArrayList<>();
+            for (Object content : contents) {
+                Object obj = fContent.get(content);
+                if (obj instanceof Ingredient ing) {
+                    for (ItemStack s : ing.getItems()) {
+                        if (!s.isEmpty()) items.add(s.getItem());
+                    }
+                }
+            }
+            return items;
+        } catch (Throwable t) {
+            return List.of();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static RecipeView collectGT(Recipe<?> recipe) {
+        try {
+            Map<Object, List<?>> inputs = (Map<Object, List<?>>) fInputs.get(recipe);
+            if (inputs == null) return RecipeView.EMPTY;
+            List<ItemStack> items = collectGTItems(inputs.get(itemCap));
+            List<FluidLine> fluids = collectGTFluids(fluidCap == null ? null : (List<?>) inputs.get(fluidCap));
+            return new RecipeView(items, fluids);
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.debug("RecipeReader: GT recipe read failed", t);
+            return RecipeView.EMPTY;
+        }
     }
 
     private static List<ItemStack> collectVanilla(CraftingRecipe recipe) {
@@ -110,47 +180,6 @@ public final class RecipeReader {
             else acc.grow(1);
         }
         return new ArrayList<>(merged.values());
-    }
-
-    @SuppressWarnings("unchecked")
-    private static RecipeView findGT(RecipeManager rm, ItemStack output) {
-        ensureGT();
-        if (!gtReady) return RecipeView.EMPTY;
-
-        try {
-            for (Recipe<?> recipe : rm.getRecipes()) {
-                if (!cGTRecipe.isInstance(recipe)) continue;
-
-                Map<Object, List<?>> outputs = (Map<Object, List<?>>) fOutputs.get(recipe);
-                if (outputs == null) continue;
-                List<?> outContents = outputs.get(itemCap);
-                if (outContents == null || outContents.isEmpty()) continue;
-                if (!contentsProduce(outContents, output)) continue;
-
-                Map<Object, List<?>> inputs = (Map<Object, List<?>>) fInputs.get(recipe);
-                if (inputs == null) continue;
-
-                List<ItemStack> items = collectGTItems(inputs.get(itemCap));
-                List<FluidLine> fluids = collectGTFluids(fluidCap == null ? null : (List<?>) inputs.get(fluidCap));
-                RecipeView view = new RecipeView(items, fluids);
-                if (!view.isEmpty()) return view;
-            }
-        } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.debug("RecipeReader: GT recipe lookup failed", t);
-        }
-        return RecipeView.EMPTY;
-    }
-
-    private static boolean contentsProduce(List<?> contents, ItemStack output) throws ReflectiveOperationException {
-        for (Object content : contents) {
-            Object obj = fContent.get(content);
-            if (obj instanceof Ingredient ing) {
-                for (ItemStack s : ing.getItems()) {
-                    if (ItemStack.isSameItem(s, output)) return true;
-                }
-            }
-        }
-        return false;
     }
 
     private static List<ItemStack> collectGTItems(List<?> contents) throws ReflectiveOperationException {
@@ -230,10 +259,10 @@ public final class RecipeReader {
     }
 
     public record RecipeView(List<ItemStack> items, List<FluidLine> fluids) {
-            public static final RecipeView EMPTY = new RecipeView(List.of(), List.of());
+        public static final RecipeView EMPTY = new RecipeView(List.of(), List.of());
 
         public boolean isEmpty() {
-                return items.isEmpty() && fluids.isEmpty();
-            }
+            return items.isEmpty() && fluids.isEmpty();
         }
+    }
 }

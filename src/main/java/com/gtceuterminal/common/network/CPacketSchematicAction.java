@@ -56,7 +56,7 @@ public class CPacketSchematicAction {
 
             switch (this.actionType) {
                 case SAVE:
-                    if (SchematicStorage.hasClipboard(stackTag)) {
+                    if (!SchematicStorage.hasClipboard(stackTag)) {
                         player.displayClientMessage(
                                 Component.translatable("item.gtceuterminal.schematic_action.message.no_clipboard_to_save"),
                                 true
@@ -185,6 +185,15 @@ public class CPacketSchematicAction {
                     }
                     break;
                 }
+
+                case CLEAR_CLIPBOARD:
+                    if (SchematicStorage.hasClipboard(stackTag)) {
+                        stackTag.remove(SchematicStorage.CLIPBOARD);
+                        player.displayClientMessage(
+                                Component.translatable("item.gtceuterminal.schematic_action.message.cleared_clipboard"),
+                                true);
+                    }
+                    break;
             }
         });
         ctx.get().setPacketHandled(true);
@@ -231,6 +240,7 @@ public class CPacketSchematicAction {
         SAVE,
         LOAD,
         DELETE,
-        RENAME
+        RENAME,
+        CLEAR_CLIPBOARD
     }
 }

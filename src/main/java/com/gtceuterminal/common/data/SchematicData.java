@@ -16,14 +16,6 @@ import java.util.Map;
 public record SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks,
                             Map<BlockPos, CompoundTag> blockEntities, BlockPos size, String originalFacing) {
 
-    public SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks) {
-        this(name, multiblockType, blocks, Collections.emptyMap(), "south");
-    }
-
-    public SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks, String originalFacing) {
-        this(name, multiblockType, blocks, Collections.emptyMap(), originalFacing);
-    }
-
     public SchematicData(String name, String multiblockType, Map<BlockPos, BlockState> blocks,
                          Map<BlockPos, CompoundTag> blockEntities, String originalFacing) {
         this(name, multiblockType, new HashMap<>(blocks), new HashMap<>(blockEntities), calculateSize(blocks), originalFacing);

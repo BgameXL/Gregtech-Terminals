@@ -14,19 +14,12 @@ public class ManagerSettings {
 
         public Settings(ItemStack itemStack) {
             CompoundTag tag = itemStack.getTag();
-            if (tag != null) {
-                this.noHatchMode = tag.contains("NoHatchMode") ? tag.getInt("NoHatchMode") : 0;
-                this.tierMode = tag.contains("TierMode") ? tag.getInt("TierMode") : 0;
-                this.repeatCount = tag.contains("RepeatCount") ? tag.getInt("RepeatCount") : 0;
-                this.isUseAE = tag.contains("IsUseAE") ? tag.getInt("IsUseAE") : 0;
-                this.mirrorMode = tag.contains("MirrorMode") ? tag.getInt("MirrorMode") : 0;
-            } else {
-                this.noHatchMode = 0;
-                this.tierMode = 0;
-                this.repeatCount = 0;
-                this.isUseAE = 0;
-                this.mirrorMode = 0;
-            }
+            if (tag == null) tag = new CompoundTag();
+            this.noHatchMode = tag.getInt("NoHatchMode");
+            this.tierMode = tag.getInt("TierMode");
+            this.repeatCount = tag.getInt("RepeatCount");
+            this.isUseAE = tag.getInt("IsUseAE");
+            this.mirrorMode = tag.getInt("MirrorMode");
         }
 
         public AutoBuildSettings toAutoBuildSettings() {

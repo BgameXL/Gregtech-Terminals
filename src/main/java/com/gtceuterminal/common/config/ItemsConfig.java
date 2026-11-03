@@ -18,6 +18,7 @@ public class ItemsConfig {
     private static int ea_refreshIntervalTicks = 20;
     private static boolean ea_showPerHatchDetails = true;
     private static int ea_historySeconds = 30;
+    private static Set<String> ea_dimensionBlacklist = new HashSet<>();
 
     private static int mgr_maxDetectedMultiblocks = 32;
     private static boolean mgr_allowMENetworkUpgrade = true;
@@ -43,6 +44,12 @@ public class ItemsConfig {
                         " Show per-hatch energy breakdown in the UI"),
                 YamlConfigLoader.ConfigEntry.of("energy_analyzer.history_seconds", 30,
                         " Seconds of energy history to graph (5-120)"),
+                YamlConfigLoader.ConfigEntry.of("energy_analyzer.dimension_blacklist", List.of(),
+                        """
+                                 Dimension IDs where the Energy Analyzer will NOT link machines.
+                                 Leave empty to allow all dimensions.
+                                 Example: - minecraft:the_nether, - custom:custom_dimension
+                                """),
 
                 // Multi Structure Manager
                 YamlConfigLoader.ConfigEntry.section("Multi Structure Manager"),
@@ -60,21 +67,30 @@ public class ItemsConfig {
                 YamlConfigLoader.ConfigEntry.of("schematic.allow_ae2_config_copy", true,
                         " Preserve AE2/ME bus slot configurations when copying and pasting multiblocks (requires AE2)"),
                 YamlConfigLoader.ConfigEntry.of("schematic.block_blacklist", List.of(),
-                        " Registry IDs of blocks the Schematic Interface will NEVER copy or paste.\n" +
-                                " Use this to block unobtainable or modpack-internal blocks (e.g. barriers, custom casings).\n" +
-                                " Example: - minecraft:bedrock, - kubejs:custom_block\n"),
+                        """
+                                 Registry IDs of blocks the Schematic Interface will NEVER copy or paste.
+                                 Use this to block unobtainable or modpack-internal blocks (e.g. barriers, custom casings).
+                                 Example: - minecraft:bedrock, - kubejs:custom_block
+                                """),
 
                 YamlConfigLoader.ConfigEntry.section("Dismantler"),
                 YamlConfigLoader.ConfigEntry.of("dismantler.block_blacklist", List.of(),
-                        " Registry IDs of blocks the Dismantler will NEVER refund or remove.\n" +
-                                " Use this to protect blocks that cannot normally be obtained (e.g. bedrock, barriers, etc.)\n" +
-                                "- minecraft:bedrock, - minecraft; barriers, -kubejs:custom_block. \n")
+                        """
+                                 Registry IDs of blocks the Dismantler will NEVER refund or remove.
+                                 Use this to protect blocks that cannot normally be obtained (e.g. bedrock, barriers, etc.).
+                                 Example: - minecraft:bedrock, - kubejs:custom_block
+                                """)
         ));
 
         ea_maxLinkedMachines = clamp(LOADER.getInt("energy_analyzer.max_linked_machines", 16), 1, 64);
         ea_refreshIntervalTicks = clamp(LOADER.getInt("energy_analyzer.refresh_interval_ticks", 20), 5, 200);
         ea_showPerHatchDetails = LOADER.getBoolean("energy_analyzer.show_per_hatch_details", true);
         ea_historySeconds = clamp(LOADER.getInt("energy_analyzer.history_seconds", 30), 5, 120);
+        ea_dimensionBlacklist = new HashSet<>();
+        for (String entry : LOADER.getStringList("energy_analyzer.dimension_blacklist")) {
+            String trimmed = entry.trim();
+            if (!trimmed.isEmpty()) ea_dimensionBlacklist.add(trimmed);
+        }
 
         mgr_maxDetectedMultiblocks = clamp(LOADER.getInt("manager.max_detected_multiblocks", 32), 1, 128);
         mgr_allowMENetworkUpgrade = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
@@ -135,7 +151,7 @@ public class ItemsConfig {
     }
 
     public static boolean isEADimensionAllowed(String dimensionId) {
-        return true;
+        return !ea_dimensionBlacklist.contains(dimensionId);
     }
 
     // Multi Structure Manager Getters

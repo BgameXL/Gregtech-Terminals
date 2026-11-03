@@ -25,6 +25,7 @@ public class EnergyUpdateWidget extends Widget {
     private final EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder;
 
     private Runnable rebuildCallback;
+    private int ticksSinceRequest = 0;
 
     public EnergyUpdateWidget(EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder) {
         super(0, 0, 0, 0);
@@ -42,7 +43,8 @@ public class EnergyUpdateWidget extends Widget {
     }
 
     private void applyUpdate(List<EnergySnapshot> fresh) {
-        int cap = Math.max(2, ItemsConfig.getEAHistorySeconds() * 20);
+        int interval = Math.max(1, ItemsConfig.getEARefreshIntervalTicks());
+        int cap = Math.max(2, ItemsConfig.getEAHistorySeconds() * 20 / interval);
         List<EnergySnapshot> prev = holder.snapshots;
         for (int i = 0; i < fresh.size(); i++) {
             EnergySnapshot s = fresh.get(i);
@@ -77,7 +79,10 @@ public class EnergyUpdateWidget extends Widget {
     @Override
     public void updateScreen() {
         super.updateScreen();
-        TerminalNetwork.sendToServer(new CPacketRequestEnergyUpdate());
+        if (++ticksSinceRequest >= ItemsConfig.getEARefreshIntervalTicks()) {
+            ticksSinceRequest = 0;
+            TerminalNetwork.sendToServer(new CPacketRequestEnergyUpdate());
+        }
     }
 
     @Override

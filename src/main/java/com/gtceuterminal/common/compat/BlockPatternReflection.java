@@ -1,7 +1,6 @@
 package com.gtceuterminal.common.compat;
 
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gtceuterminal.GTCEUTerminalMod;
 
 import java.lang.reflect.Field;
@@ -31,27 +30,5 @@ public final class BlockPatternReflection {
         Field f = BlockPattern.class.getDeclaredField(name);
         f.setAccessible(true);
         return f;
-    }
-
-    public static TraceabilityPredicate[][][] getBlockMatches(BlockPattern pattern) {
-        ensure();
-        if (!READY) return null;
-        try {
-            return (TraceabilityPredicate[][][]) F_BLOCK_MATCHES.get(pattern);
-        } catch (IllegalAccessException e) {
-            GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getBlockMatches", e);
-            return null;
-        }
-    }
-
-    public static int[] getCenterOffset(BlockPattern pattern) {
-        ensure();
-        if (!READY) return null;
-        try {
-            return (int[]) F_CENTER_OFFSET.get(pattern);
-        } catch (IllegalAccessException e) {
-            GTCEUTerminalMod.LOGGER.error("BlockPatternReflection: getCenterOffset", e);
-            return null;
-        }
     }
 }

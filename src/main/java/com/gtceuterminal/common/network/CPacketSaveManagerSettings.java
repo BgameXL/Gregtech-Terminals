@@ -55,6 +55,8 @@ public class CPacketSaveManagerSettings {
             existing.putInt("RepeatCount", Mth.clamp(tag.getInt("RepeatCount"), 0, 99));
             existing.putInt("IsUseAE", tag.getInt("IsUseAE") != 0 ? 1 : 0);
             existing.putInt("MirrorMode", tag.getInt("MirrorMode") != 0 ? 1 : 0);
+            existing.putInt("ExpandRadius", Mth.clamp(tag.getInt("ExpandRadius"), 0, 7));
+            existing.putInt("ExpandHeight", Mth.clamp(tag.getInt("ExpandHeight"), 0, 14));
             player.getInventory().setChanged();
         });
         ctx.get().setPacketHandled(true);

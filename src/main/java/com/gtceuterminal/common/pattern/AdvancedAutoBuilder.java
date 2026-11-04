@@ -12,6 +12,7 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MENetworkExtractor;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
 import com.gtceuterminal.common.compat.BlockPatternReflection;
+import com.gtceuterminal.common.compat.ExpandableMultiblock;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
 import com.gtceuterminal.common.config.ManagerSettings;
@@ -38,12 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * Advanced Auto-Builder for GTCEu Multiblocks (rebased on GTCEu BlockPattern.autoBuild)
- * - noHatchMode: avoids placing MultiblockPartMachine blocks (hatches/buses/etc.)
- * - repeatCount: overrides repetitions per slice (clamped to [min,max] when max exists)
- * - tierMode: coil tier selector (tierMode-1). Falls back to default candidates if no match.
- */
+
 public class AdvancedAutoBuilder {
 
     public static boolean autoBuild(
@@ -55,7 +51,14 @@ public class AdvancedAutoBuilder {
             BlockPatternReflection.ensure();
             if (!BlockPatternReflection.READY) return false;
 
-            BlockPattern pattern = controller.getPattern();
+            ExpandableMultiblock.Restore sizeRestore =
+                    ExpandableMultiblock.applySize(controller.self(), settings.expandRadius, settings.expandHeight);
+            BlockPattern pattern;
+            try {
+                pattern = controller.getPattern();
+            } finally {
+                if (sizeRestore != null) sizeRestore.close();
+            }
             MultiblockState worldState = controller.getMultiblockState();
             Level world = player.level();
 

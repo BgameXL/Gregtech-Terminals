@@ -29,6 +29,11 @@ public class MultiStructureManagerItem extends Item {
     }
 
     @Override
+    public @NotNull InteractionResult onItemUseFirst(@NotNull ItemStack stack, @NotNull UseOnContext context) {
+        return behavior.onItemUseFirst(stack, context);
+    }
+
+    @Override
     public @NotNull InteractionResult useOn(@NotNull UseOnContext context) {
         return behavior.useOn(context);
     }

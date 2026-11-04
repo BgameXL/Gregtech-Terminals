@@ -1,48 +1,61 @@
 package com.gtceuterminal.common.scanner;
 
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ServerConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class UniversalMultiblockScanner {
 
     public static List<DetectedMultiblock> scanForAllMultiblocks(Level level, BlockPos center, int radius) {
         List<DetectedMultiblock> found = new ArrayList<>();
-        Set<BlockPos> scannedControllers = new HashSet<>();
 
         int minX = center.getX() - radius, maxX = center.getX() + radius;
         int minY = Math.max(level.getMinBuildHeight(), center.getY() - radius);
         int maxY = Math.min(level.getMaxBuildHeight(), center.getY() + radius);
         int minZ = center.getZ() - radius, maxZ = center.getZ() + radius;
 
-        for (BlockPos pos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
-            if (scannedControllers.contains(pos)) continue;
-            BlockEntity be = level.getBlockEntity(pos);
-            if (!(be instanceof IMachineBlockEntity mbe)) continue;
-            MetaMachine meta = mbe.getMetaMachine();
-            if (!(meta instanceof MultiblockControllerMachine controller)) continue;
-
-            BlockPos immutable = pos.immutable();
-            scannedControllers.add(immutable);
-
+        forEachMachineEntity(level, minX, minY, minZ, maxX, maxY, maxZ, (pos, mbe) -> {
+            if (!(mbe.getMetaMachine() instanceof MultiblockControllerMachine controller)) return;
             if (isFormed(controller)) {
-                DetectedMultiblock detected = MultiblockAnalysisHelper.analyzeMultiblock(controller, immutable, level);
+                DetectedMultiblock detected = MultiblockAnalysisHelper.analyzeMultiblock(controller, pos, level);
                 if (detected != null) found.add(detected);
             } else {
-                found.add(DetectedMultiblock.unformed(controller, immutable));
+                found.add(DetectedMultiblock.unformed(controller, pos));
             }
-        }
+        });
 
         if (ServerConfig.isDebugLoggingEnabled())
             GTCEUTerminalMod.LOGGER.info("UniversalMultiblockScanner: found {} multiblocks in radius {} from {}", found.size(), radius, center);
         return found;
+    }
+
+    static void forEachMachineEntity(Level level, int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+                                     BiConsumer<BlockPos, IMachineBlockEntity> action) {
+        int minCX = minX >> 4, maxCX = maxX >> 4;
+        int minCZ = minZ >> 4, maxCZ = maxZ >> 4;
+        for (int cx = minCX; cx <= maxCX; cx++) {
+            for (int cz = minCZ; cz <= maxCZ; cz++) {
+                LevelChunk chunk = level.getChunkSource().getChunk(cx, cz, false);
+                if (chunk == null) continue;
+                for (Map.Entry<BlockPos, BlockEntity> entry : chunk.getBlockEntities().entrySet()) {
+                    BlockPos pos = entry.getKey();
+                    if (pos.getX() < minX || pos.getX() > maxX
+                            || pos.getY() < minY || pos.getY() > maxY
+                            || pos.getZ() < minZ || pos.getZ() > maxZ) continue;
+                    if (entry.getValue() instanceof IMachineBlockEntity mbe) {
+                        action.accept(pos, mbe);
+                    }
+                }
+            }
+        }
     }
 
     private static boolean isFormed(MultiblockControllerMachine controller) {

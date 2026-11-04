@@ -40,7 +40,7 @@ public class MultiStructureManagerUI {
     private static final int BODY_H = 456;
     private static final int WIDE_W = 640;
     private static final int SETTINGS_W = 280;
-    private static final int SETTINGS_BODY_H = 184;
+    private static final int SETTINGS_BODY_H = 248;
     private static final int HEADER_GAP = 4;
     private static final int SETTINGS_CARD_W = 142;
     private static final int CARD_INSET = 2;

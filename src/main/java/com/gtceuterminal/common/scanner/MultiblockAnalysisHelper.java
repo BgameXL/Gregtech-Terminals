@@ -115,26 +115,27 @@ public final class MultiblockAnalysisHelper {
         try {
             BlockPos cp = controller.getPos();
             int r = 5;
-            for (BlockPos pos : BlockPos.betweenClosed(cp.offset(-r, -r, -r), cp.offset(r, r, r))) {
-                if (scanned.contains(pos)) continue;
-                BlockEntity be = level.getBlockEntity(pos);
-                if (!(be instanceof IMachineBlockEntity mbe)) continue;
-                MetaMachine machine = mbe.getMetaMachine();
-                if (machine == null || machine.getDefinition() == null) continue;
-                if (!(machine instanceof MultiblockPartMachine part)) continue;
-                if (!isLinkedToController(part, controller.getPos())) continue;
+            UniversalMultiblockScanner.forEachMachineEntity(level,
+                    cp.getX() - r, cp.getY() - r, cp.getZ() - r,
+                    cp.getX() + r, cp.getY() + r, cp.getZ() + r,
+                    (pos, mbe) -> {
+                        if (scanned.contains(pos)) return;
+                        MetaMachine machine = mbe.getMetaMachine();
+                        if (machine == null || machine.getDefinition() == null) return;
+                        if (!(machine instanceof MultiblockPartMachine part)) return;
+                        if (!isLinkedToController(part, controller.getPos())) return;
 
-                // Filter: only non-standard parts not covered by getParts() are relevant here
-                ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
-                if (group == ComponentGroupRegistry.UNKNOWN) continue;
-                if (!group.isEnergyHandler && !group.isDataHandler) continue;
+                        // Filter: only non-standard parts not covered by getParts() are relevant here
+                        ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
+                        if (group == ComponentGroupRegistry.UNKNOWN) return;
+                        if (!group.isEnergyHandler && !group.isDataHandler) return;
 
-                UniversalMultiblockScanner.ComponentData data = analyzeComponent(machine, level);
-                if (data != null) {
-                    components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
-                    scanned.add(pos.immutable());
-                }
-            }
+                        UniversalMultiblockScanner.ComponentData data = analyzeComponent(machine, level);
+                        if (data != null) {
+                            components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
+                            scanned.add(pos);
+                        }
+                    });
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Error detecting wireless/addon components: {}", e.getMessage());
         }

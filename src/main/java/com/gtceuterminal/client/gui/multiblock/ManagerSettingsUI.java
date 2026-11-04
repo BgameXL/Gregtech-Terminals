@@ -22,7 +22,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 public class ManagerSettingsUI {
 
     private static final int GUI_W = 280;
-    private static final int GUI_H = 247;
+    private static final int GUI_H = 311;
     private static final int HEADER_H = 28;
     private static final int PAD = 8;
     private static final int ROW_H = 32;
@@ -37,6 +37,8 @@ public class ManagerSettingsUI {
     private int repeatCount;
     private int isUseAE;
     private int mirrorMode;
+    private int expandRadius;
+    private int expandHeight;
 
     public ManagerSettingsUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
         this.uiHolder = heldHolder;
@@ -74,6 +76,8 @@ public class ManagerSettingsUI {
         this.repeatCount = tag != null && tag.contains("RepeatCount") ? tag.getInt("RepeatCount") : 0;
         this.isUseAE = tag != null && tag.contains("IsUseAE") ? tag.getInt("IsUseAE") : 0;
         this.mirrorMode = tag != null && tag.contains("MirrorMode") ? tag.getInt("MirrorMode") : 0;
+        this.expandRadius = tag != null && tag.contains("ExpandRadius") ? tag.getInt("ExpandRadius") : 0;
+        this.expandHeight = tag != null && tag.contains("ExpandHeight") ? tag.getInt("ExpandHeight") : 0;
     }
 
     private void applyTheme() {
@@ -212,6 +216,32 @@ public class ManagerSettingsUI {
                 },
                 0, 99);
 
+        rowY = addInputRow(panel, rowY, innerW,
+                Component.translatable("gui.gtceuterminal.manager_settings.expand_radius.label").getString(),
+                Component.translatable("gui.gtceuterminal.manager_settings.expand_radius.hint_size").getString(),
+                Component.translatable("gui.gtceuterminal.manager_settings.expand_radius.tooltip").getString(),
+                () -> String.valueOf(getExpandRadius()),
+                val -> {
+                    try {
+                        setExpandRadius(Integer.parseInt(val));
+                    } catch (NumberFormatException ignored) {
+                    }
+                },
+                0, 7);
+
+        rowY = addInputRow(panel, rowY, innerW,
+                Component.translatable("gui.gtceuterminal.manager_settings.expand_height.label").getString(),
+                Component.translatable("gui.gtceuterminal.manager_settings.expand_height.hint_size").getString(),
+                Component.translatable("gui.gtceuterminal.manager_settings.expand_height.tooltip").getString(),
+                () -> String.valueOf(getExpandHeight()),
+                val -> {
+                    try {
+                        setExpandHeight(Integer.parseInt(val));
+                    } catch (NumberFormatException ignored) {
+                    }
+                },
+                0, 14);
+
         rowY = addToggleRow(panel, rowY, innerW,
                 Component.translatable("gui.gtceuterminal.manager_settings.mirror_mode.label").getString(),
                 Component.translatable("gui.gtceuterminal.manager_settings.mirror_mode.hint_toggle").getString(),
@@ -347,6 +377,24 @@ public class ManagerSettingsUI {
         syncToServer();
     }
 
+    private int getExpandRadius() {
+        return expandRadius;
+    }
+
+    private void setExpandRadius(int radius) {
+        expandRadius = Math.max(0, Math.min(7, radius));
+        syncToServer();
+    }
+
+    private int getExpandHeight() {
+        return expandHeight;
+    }
+
+    private void setExpandHeight(int height) {
+        expandHeight = Math.max(0, Math.min(14, height));
+        syncToServer();
+    }
+
     private int getIsUseAE() {
         return isUseAE;
     }
@@ -372,6 +420,8 @@ public class ManagerSettingsUI {
         snapshot.putInt("RepeatCount", repeatCount);
         snapshot.putInt("IsUseAE", isUseAE);
         snapshot.putInt("MirrorMode", mirrorMode);
+        snapshot.putInt("ExpandRadius", expandRadius);
+        snapshot.putInt("ExpandHeight", expandHeight);
         com.gtceuterminal.common.network.TerminalNetwork.sendToServer(
                 new com.gtceuterminal.common.network.CPacketSaveManagerSettings(snapshot));
     }

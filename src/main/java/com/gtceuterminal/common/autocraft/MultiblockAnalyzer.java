@@ -46,7 +46,15 @@ public final class MultiblockAnalyzer {
         if (!BlockPatternReflection.READY) return null;
 
         try {
-            BlockPattern pattern = controller.getPattern();
+            com.gtceuterminal.common.compat.ExpandableMultiblock.Restore sizeRestore =
+                    com.gtceuterminal.common.compat.ExpandableMultiblock.applySize(
+                            controller.self(), settings.expandRadius, settings.expandHeight);
+            BlockPattern pattern;
+            try {
+                pattern = controller.getPattern();
+            } finally {
+                if (sizeRestore != null) sizeRestore.close();
+            }
             MultiblockState worldState = controller.getMultiblockState();
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
@@ -62,9 +70,9 @@ public final class MultiblockAnalyzer {
             boolean isFlipped = AutoBuilderHelpers.resolveFlip(controller, settings);
             int minZ = -centerOff[4];
 
+            GTCEuCompat.clean(worldState);
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
             PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
-            GTCEuCompat.clean(worldState);
 
             Map<Item, Integer> needed = new LinkedHashMap<>();
             Map<Fluid, Integer> neededFluids = new LinkedHashMap<>();

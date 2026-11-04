@@ -26,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiStructureManagerBehavior {
@@ -156,53 +158,28 @@ public class MultiStructureManagerBehavior {
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        {
-            MetaMachine machine = MetaMachine.getMachine(level, blockPos);
-            if (machine instanceof IMultiController controller && !controller.isFormed()) {
-                if (!level.isClientSide) {
-                    if (cooldownTicks > 0 && player.getCooldowns().isOnCooldown(itemStack.getItem())) {
-                        sendMessage(player,
-                                Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.cooldown_active"),
-                                false);
-                        return InteractionResult.FAIL;
-                    }
-                    try {
-                        ManagerSettings.Settings raw = new ManagerSettings.Settings(itemStack);
-                        ManagerSettings.AutoBuildSettings buildSettings = raw.toAutoBuildSettings();
-
-                        com.gtceuterminal.common.autocraft.AnalysisResult analysis =
-                                com.gtceuterminal.common.autocraft.MultiblockAnalyzer.analyzeForBuild(
-                                        player, controller, buildSettings);
-
-                        if (analysis == null
-                                || (analysis.entries().isEmpty() && analysis.intruderPositions().isEmpty())) {
-                            sendMessage(player,
-                                    Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.nothing_to_build"),
-                                    true);
-                            return InteractionResult.sidedSuccess(false);
-                        }
-
-                        com.gtceuterminal.common.network.TerminalNetwork.sendToPlayer(
-                                new com.gtceuterminal.common.network.SPacketAnalysisResult(analysis),
-                                (ServerPlayer) player);
-
-                    } catch (Exception e) {
-                        GTCEUTerminalMod.LOGGER.error("Error during autocraft analysis", e);
-                        sendMessage(player,
-                                Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.analysis_failed"),
-                                false);
-                        return InteractionResult.FAIL;
-                    }
-                }
-                return InteractionResult.sidedSuccess(level.isClientSide);
-            }
-        }
-
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
             GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
             TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    public @NotNull InteractionResult onItemUseFirst(@NotNull ItemStack stack, @NotNull UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player == null || player.isShiftKeyDown()) return InteractionResult.PASS;
+
+        Level level = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
+        MetaMachine machine = MetaMachine.getMachine(level, blockPos);
+        if (machine instanceof IMultiController controller && !controller.isFormed()) {
+            if (level.isClientSide) {
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                        com.gtceuterminal.client.ClientMultiblockPreview.show(blockPos));
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return InteractionResult.PASS;
     }
 
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Item item, @NotNull Level level,

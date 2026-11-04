@@ -165,6 +165,7 @@ public class GTCEuCompat {
         }
 
         public int getInt(SimplePredicate key) {
+            if (inner == null) return 0;
             try {
                 if (IS_LEGACY) {
                     Object v = mapGet.invoke(inner, key);
@@ -178,6 +179,7 @@ public class GTCEuCompat {
         }
 
         public int getOrDefault(SimplePredicate key, int defaultValue) {
+            if (inner == null) return defaultValue;
             try {
                 if (IS_LEGACY) {
                     return (int) mapGetOrDefault.invoke(inner, key, defaultValue);
@@ -190,6 +192,7 @@ public class GTCEuCompat {
         }
 
         public void addTo(SimplePredicate key, int delta) {
+            if (inner == null) return;
             try {
                 if (IS_LEGACY) {
                     Object cur = mapGet.invoke(inner, key);
@@ -204,6 +207,7 @@ public class GTCEuCompat {
         }
 
         public void clear() {
+            if (inner == null) return;
             try {
                 if (IS_LEGACY) mapClear.invoke(inner);
                 else o2iClear.invoke(inner);

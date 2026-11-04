@@ -11,6 +11,8 @@ public class ManagerSettings {
         public final int repeatCount;
         public final int isUseAE;
         public final int mirrorMode;
+        public final int expandRadius;
+        public final int expandHeight;
 
         public Settings(ItemStack itemStack) {
             CompoundTag tag = itemStack.getTag();
@@ -20,6 +22,8 @@ public class ManagerSettings {
             this.repeatCount = tag.getInt("RepeatCount");
             this.isUseAE = tag.getInt("IsUseAE");
             this.mirrorMode = tag.getInt("MirrorMode");
+            this.expandRadius = tag.getInt("ExpandRadius");
+            this.expandHeight = tag.getInt("ExpandHeight");
         }
 
         public AutoBuildSettings toAutoBuildSettings() {
@@ -29,6 +33,8 @@ public class ManagerSettings {
             s.repeatCount = this.repeatCount;
             s.isUseAE = this.isUseAE;
             s.mirrorMode = this.mirrorMode;
+            s.expandRadius = this.expandRadius;
+            s.expandHeight = this.expandHeight;
             return s;
         }
     }
@@ -39,5 +45,7 @@ public class ManagerSettings {
         public int tierMode = 0;
         public int isUseAE = 0;
         public int mirrorMode = 0;
+        public int expandRadius = 0;
+        public int expandHeight = 0;
     }
 }

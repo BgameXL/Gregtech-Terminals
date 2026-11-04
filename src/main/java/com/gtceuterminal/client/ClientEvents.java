@@ -34,6 +34,8 @@ public class ClientEvents {
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
 
+        MultiblockPreview.render(poseStack, bufferSource, minecraft);
+
         ItemStack heldItem = minecraft.player.getMainHandItem();
         if (!heldItem.getItem().toString().contains("schematic_interface")) {
             heldItem = minecraft.player.getOffhandItem();

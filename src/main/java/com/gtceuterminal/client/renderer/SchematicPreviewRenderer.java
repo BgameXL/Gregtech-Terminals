@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -45,7 +46,8 @@ public class SchematicPreviewRenderer {
                 minecraft.getBlockRenderer(),
                 adjustedTarget.getX() - cameraPos.x,
                 adjustedTarget.getY() - cameraPos.y,
-                adjustedTarget.getZ() - cameraPos.z);
+                adjustedTarget.getZ() - cameraPos.z,
+                1f, false);
     }
 
     public static void renderGhostBlocksAtOrigin(PoseStack poseStack,
@@ -56,7 +58,25 @@ public class SchematicPreviewRenderer {
         if (schematic == null || schematic.blocks().isEmpty()) return;
 
         renderRotatedBlocks(poseStack, bufferSource, schematic, rotSteps,
-                minecraft.getBlockRenderer(), 0, 0, 0);
+                minecraft.getBlockRenderer(), 0, 0, 0, 1f, false);
+    }
+
+    public static void renderGhostBlocksAt(PoseStack poseStack,
+                                           MultiBufferSource bufferSource,
+                                           SchematicData schematic,
+                                           Minecraft minecraft,
+                                           BlockPos origin,
+                                           int rotSteps,
+                                           float scale, boolean translucent) {
+        if (schematic == null || schematic.blocks().isEmpty()) return;
+
+        Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
+        renderRotatedBlocks(poseStack, bufferSource, schematic, rotSteps,
+                minecraft.getBlockRenderer(),
+                origin.getX() - cameraPos.x,
+                origin.getY() - cameraPos.y,
+                origin.getZ() - cameraPos.z,
+                scale, translucent);
     }
 
     private static void renderRotatedBlocks(PoseStack poseStack,
@@ -64,7 +84,11 @@ public class SchematicPreviewRenderer {
                                             SchematicData schematic,
                                             int rotSteps,
                                             BlockRenderDispatcher blockRenderer,
-                                            double baseX, double baseY, double baseZ) {
+                                            double baseX, double baseY, double baseZ,
+                                            float scale, boolean translucent) {
+        MultiBufferSource source = translucent
+                ? type -> bufferSource.getBuffer(RenderType.translucent())
+                : bufferSource;
         for (var entry : schematic.blocks().entrySet()) {
             BlockState state = entry.getValue();
             if (state.isAir()) continue;
@@ -74,8 +98,13 @@ public class SchematicPreviewRenderer {
 
             poseStack.pushPose();
             poseStack.translate(baseX + rotated.getX(), baseY + rotated.getY(), baseZ + rotated.getZ());
+            if (scale != 1f) {
+                poseStack.translate(0.5, 0.5, 0.5);
+                poseStack.scale(scale, scale, scale);
+                poseStack.translate(-0.5, -0.5, -0.5);
+            }
             try {
-                blockRenderer.renderSingleBlock(rotatedState, poseStack, bufferSource,
+                blockRenderer.renderSingleBlock(rotatedState, poseStack, source,
                         15728880, OverlayTexture.NO_OVERLAY);
             } catch (RuntimeException e) {
                 GTCEUTerminalMod.LOGGER.debug("SchematicPreviewRenderer: skipped block render for {}: {}",

@@ -18,6 +18,9 @@ import net.minecraft.world.phys.Vec3;
 
 public class SchematicPreviewRenderer {
 
+    public static final float GHOST_ALPHA = 0.7f;
+    public static final float GHOST_SCALE = 0.875f;
+
     public static void renderGhostBlocks(PoseStack poseStack,
                                          MultiBufferSource bufferSource,
                                          SchematicData schematic,
@@ -47,18 +50,7 @@ public class SchematicPreviewRenderer {
                 adjustedTarget.getX() - cameraPos.x,
                 adjustedTarget.getY() - cameraPos.y,
                 adjustedTarget.getZ() - cameraPos.z,
-                1f, false);
-    }
-
-    public static void renderGhostBlocksAtOrigin(PoseStack poseStack,
-                                                 MultiBufferSource bufferSource,
-                                                 SchematicData schematic,
-                                                 Minecraft minecraft,
-                                                 int rotSteps) {
-        if (schematic == null || schematic.blocks().isEmpty()) return;
-
-        renderRotatedBlocks(poseStack, bufferSource, schematic, rotSteps,
-                minecraft.getBlockRenderer(), 0, 0, 0, 1f, false);
+                GHOST_SCALE, true);
     }
 
     public static void renderGhostBlocksAt(PoseStack poseStack,

@@ -13,8 +13,6 @@ import net.minecraft.world.level.Level;
 
 public final class MultiblockPreview {
 
-    private static final float ALPHA = 0.7f;
-    private static final float BLOCK_SCALE = 0.875f;
     private static SchematicData active;
     private static BlockPos origin;
     private static long expiryGameTime;
@@ -47,8 +45,9 @@ public final class MultiblockPreview {
         poseStack.pushPose();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderColor(1f, 1f, 1f, ALPHA);
-        SchematicPreviewRenderer.renderGhostBlocksAt(poseStack, bufferSource, active, minecraft, origin, 0, BLOCK_SCALE, true);
+        RenderSystem.setShaderColor(1f, 1f, 1f, SchematicPreviewRenderer.GHOST_ALPHA);
+        SchematicPreviewRenderer.renderGhostBlocksAt(poseStack, bufferSource, active, minecraft, origin, 0,
+                SchematicPreviewRenderer.GHOST_SCALE, true);
         if (bufferSource instanceof MultiBufferSource.BufferSource batched) batched.endBatch();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.disableBlend();

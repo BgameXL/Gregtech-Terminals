@@ -2,17 +2,16 @@ package com.gtceuterminal.common.upgrade;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.material.ComponentUpgradeHelper;
 import com.gtceuterminal.common.material.MaterialAvailability;
 import com.gtceuterminal.common.material.MaterialCalculator;
-import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
 import com.gtceuterminal.common.multiblock.ComponentInfo;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -35,13 +34,13 @@ public class ComponentUpgrader {
             Player player,
             Level level,
             boolean consumeMaterials,
-            ItemStack wirelessTerminal
+            ItemStack linkedManager
     ) {
         boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
 
         if (hasId) {
             ResourceLocation rl = ResourceLocation.tryParse(targetUpgradeId);
-            if (rl == null)                              return fail("Invalid upgrade id: " + targetUpgradeId);
+            if (rl == null) return fail("Invalid upgrade id: " + targetUpgradeId);
             if (BuiltInRegistries.BLOCK.get(rl) == Blocks.AIR) return fail("Unknown upgrade block: " + targetUpgradeId);
         } else {
             if (!player.isCreative() && !ComponentUpgradeHelper.canUpgrade(component, targetTier))
@@ -55,7 +54,7 @@ public class ComponentUpgrader {
 
         String extractionSource = "";
         if (!player.isCreative() && consumeMaterials) {
-            ExtractionResult er = extractMaterials(required, player, level, wirelessTerminal);
+            ExtractionResult er = extractMaterials(required, player, level, linkedManager);
             if (!er.success) return fail(er.message);
             extractionSource = er.source;
         }
@@ -73,11 +72,11 @@ public class ComponentUpgrader {
             return fail("Invalid upgrade block");
         }
 
-        BlockPos     pos      = component.getPosition();
-        BlockState   oldState = component.getState();
-        Block        oldBlock = oldState.getBlock();
-        ItemStack    oldStack = itemStackFor(oldBlock, player);
-        BlockState   newState = copyFacing(oldState, newBlock.defaultBlockState());
+        BlockPos pos = component.getPosition();
+        BlockState oldState = component.getState();
+        Block oldBlock = oldState.getBlock();
+        ItemStack oldStack = itemStackFor(oldBlock, player);
+        BlockState newState = copyFacing(oldState, newBlock.defaultBlockState());
 
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
 
@@ -98,19 +97,14 @@ public class ComponentUpgrader {
         }
 
         String targetLabel = hasId ? targetUpgradeId : com.gregtechceu.gtceu.api.GTValues.VN[targetTier];
-        String groupLabel = component.getGroup() != null ? component.getGroup().id : "unknown";
-        GTCEUTerminalMod.LOGGER.info("Upgraded {} at {} from {} to {} (Block: {} -> {}){}",
-                groupLabel, pos, component.getTierName(), targetLabel,
-                oldBlock.getDescriptionId(), newBlock.getDescriptionId(),
-                extractionSource.replace("§a", "").replace("§7", ""));
 
         return new UpgradeResult(true, "Successfully upgraded to " + targetLabel + extractionSource);
     }
 
     public static UpgradeResult upgradeComponent(
             ComponentInfo component, int targetTier, Player player, Level level,
-            boolean consumeMaterials, ItemStack wirelessTerminal) {
-        return upgradeComponent(component, targetTier, null, player, level, consumeMaterials, wirelessTerminal);
+            boolean consumeMaterials, ItemStack linkedManager) {
+        return upgradeComponent(component, targetTier, null, player, level, consumeMaterials, linkedManager);
     }
 
     public static UpgradeResult upgradeComponent(
@@ -118,84 +112,14 @@ public class ComponentUpgrader {
         return upgradeComponent(component, targetTier, player, level, consumeMaterials, ItemStack.EMPTY);
     }
 
-    public static BulkUpgradeResult upgradeMultipleComponents(
-            List<ComponentInfo> components, int targetTier, Player player, Level level, ItemStack wirelessTerminal) {
-
-        BulkUpgradeResult result = new BulkUpgradeResult();
-        boolean upgradingCoils = false;
-
-        Map<Item, Integer> totalRequired = new java.util.HashMap<>();
-        for (ComponentInfo c : components) {
-            if (!ComponentUpgradeHelper.canUpgrade(c, targetTier)) continue;
-            if (c.getGroup() == ComponentGroupRegistry.COIL) upgradingCoils = true;
-            ComponentUpgradeHelper.getUpgradeItems(c, targetTier)
-                    .forEach((item, count) -> totalRequired.merge(item, count, Integer::sum));
-        }
-
-        String extractionSource = "";
-        if (!player.isCreative()) {
-            ExtractionResult er = extractMaterials(totalRequired, player, level, wirelessTerminal);
-            if (!er.success) {
-                result.success = false;
-                result.message = er.message;
-                return result;
-            }
-            extractionSource = er.source;
-        }
-
-        for (ComponentInfo c : components) {
-            if (!ComponentUpgradeHelper.canUpgrade(c, targetTier)) { result.skipped++; continue; }
-            UpgradeResult r = upgradeComponent(c, targetTier, player, level, false, ItemStack.EMPTY);
-            if (r.success) result.successful++; else { result.failed++; result.errors.add(r.message); }
-        }
-
-        result.success  = result.successful > 0;
-        result.message  = String.format("Upgraded %d/%d components%s", result.successful, components.size(), extractionSource);
-
-        if (upgradingCoils && result.successful > 0) {
-            String coilName = net.minecraft.network.chat.Component
-                    .translatable("item.gtceuterminal.component_upgrade.unknown_coil").getString();
-            try {
-                ComponentInfo firstCoil = components.stream()
-                        .filter(c -> c.getGroup() == ComponentGroupRegistry.COIL).findFirst().orElse(null);
-                if (firstCoil != null) {
-                    String name = ComponentUpgradeHelper.getUpgradeName(firstCoil, targetTier);
-                    if (name != null && !name.isEmpty()) coilName = name;
-                }
-            } catch (Exception e) {
-                GTCEUTerminalMod.LOGGER.error("Error getting coil name for upgrade message", e);
-            }
-
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "item.gtceuterminal.component_upgrade.message.upgraded_coils",
-                    result.successful, coilName, extractionSource), false);
-            player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
-                    "item.gtceuterminal.component_upgrade.message.reset_multiblock"), true);
-            player.level().playSound(null, player.blockPosition(),
-                    SoundEvents.ANVIL_LAND, net.minecraft.sounds.SoundSource.PLAYERS, 0.5F, 1.2F);
-            GTCEUTerminalMod.LOGGER.info("Player {} upgraded {} coils to {} (tier {}){}",
-                    player.getName().getString(), result.successful, coilName, targetTier,
-                    extractionSource.replace("§a", "").replace("§7", ""));
-        }
-
-        return result;
-    }
-
-    public static BulkUpgradeResult upgradeMultipleComponents(
-            List<ComponentInfo> components, int targetTier, Player player, Level level) {
-        return upgradeMultipleComponents(components, targetTier, player, level, ItemStack.EMPTY);
-    }
-
-    private record ExtractionResult(boolean success, String source, String message) {}
-
     private static ExtractionResult extractMaterials(
-            Map<Item, Integer> required, Player player, Level level, ItemStack wirelessTerminal) {
+            Map<Item, Integer> required, Player player, Level level, ItemStack linkedManager) {
 
-        if (wirelessTerminal != null && !wirelessTerminal.isEmpty()) {
+        if (linkedManager != null && !linkedManager.isEmpty() && ItemsConfig.isMgrAllowMENetworkUpgrade()) {
             MENetworkItemExtractor.ExtractResult me =
-                    MENetworkItemExtractor.tryExtractFromMEOrInventory(wirelessTerminal, level, player, required);
-            if (me.success) {
-                String src = me.source == MENetworkItemExtractor.ExtractionSource.ME_NETWORK
+                    MENetworkItemExtractor.tryExtractFromMEOrInventory(linkedManager, level, player, required);
+            if (me.success()) {
+                String src = me.source() == MENetworkItemExtractor.ExtractionSource.ME_NETWORK
                         ? " §a(ME Network)" : " §7(Inventory)";
                 return new ExtractionResult(true, src, null);
             }
@@ -210,7 +134,9 @@ public class ComponentUpgrader {
         return new ExtractionResult(true, " §7(Inventory)", null);
     }
 
-    private static UpgradeResult fail(String msg) { return new UpgradeResult(false, msg); }
+    private static UpgradeResult fail(String msg) {
+        return new UpgradeResult(false, msg);
+    }
 
     private static void refund(Map<Item, Integer> required, Player player, boolean consumeMaterials) {
         if (!consumeMaterials) return;
@@ -254,7 +180,7 @@ public class ComponentUpgrader {
     }
 
     private static void updateNeighborBlocks(Level level, BlockPos pos, Block newBlock) {
-        BlockPos[] neighbors = { pos, pos.above(), pos.below(), pos.north(), pos.south(), pos.east(), pos.west() };
+        BlockPos[] neighbors = {pos, pos.above(), pos.below(), pos.north(), pos.south(), pos.east(), pos.west()};
         for (BlockPos n : neighbors) {
             BlockState ns = level.getBlockState(n);
             level.neighborChanged(n, newBlock, pos);
@@ -275,18 +201,9 @@ public class ComponentUpgrader {
         return sb.toString();
     }
 
-    public static class UpgradeResult {
-        public final boolean success;
-        public final String  message;
-        public UpgradeResult(boolean success, String message) { this.success = success; this.message = message; }
+    private record ExtractionResult(boolean success, String source, String message) {
     }
 
-    public static class BulkUpgradeResult {
-        public boolean      success;
-        public String       message;
-        public int          successful = 0;
-        public int          failed     = 0;
-        public int          skipped    = 0;
-        public List<String> errors     = new java.util.ArrayList<>();
+    public record UpgradeResult(boolean success, String message) {
     }
 }

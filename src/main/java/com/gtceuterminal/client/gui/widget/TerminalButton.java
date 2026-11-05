@@ -1,14 +1,11 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.gtceuterminal.client.gui.style.TerminalText;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.lowdragmc.lowdraglib.gui.texture.*;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
-
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -17,128 +14,73 @@ import java.util.function.Consumer;
 @OnlyIn(Dist.CLIENT)
 public final class TerminalButton {
 
-    private static final int HOVER_OVERLAY  = 0x30FFFFFF;
-    private static final int HOVER_GHOST    = 0x22FFFFFF;
-    private static final int HOVER_ICON     = 0x33FFFFFF;
-    private static final int HOVER_DANGER   = 0x33FF3333;
+    private static final String BTN_TEX = "gtceuterminal:textures/gui/buttons/";
+    public static final ResourceTexture ICON_CLOSE = TerminalUI.resource(BTN_TEX + "close.png");
+    public static final ResourceTexture ICON_THEME = TerminalUI.resource(BTN_TEX + "theme.png");
+    public static final ResourceTexture ICON_CONFIG = TerminalUI.resource(BTN_TEX + "config.png");
+    public static final ResourceTexture ICON_ARROW_LEFT = TerminalUI.resource(BTN_TEX + "arrow_left.png");
+    public static final ResourceTexture ICON_ARROW_RIGHT = TerminalUI.resource(BTN_TEX + "arrow_right.png");
+    public static final ResourceTexture ICON_RENAME = TerminalUI.resource(BTN_TEX + "rename.png");
+    private static final int ICON_MARGIN = 1;
 
-    private static final int C_WHITE = 0xFFFFFFFF;
-
-    private static final String ICON_ROOT = "gtceuterminal:textures/gui/buttons/";
-
-    private TerminalButton() {}
-
-    public static IGuiTexture iconTex(String iconName) {
-        return new ResourceTexture(ICON_ROOT + iconName + ".png");
+    private TerminalButton() {
     }
 
-    public static ButtonWidget icon(int x, int y, int size,
-                                    String iconName,
-                                    int bgColor, int borderColor,
-                                    Consumer<ClickData> action) {
-        IGuiTexture normal = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, borderColor),
-                iconTex(iconName));
-
-        IGuiTexture hover = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, C_WHITE),
-                new ColorRectTexture(HOVER_OVERLAY),
-                iconTex(iconName));
-
-        ButtonWidget btn = new ButtonWidget(x, y, size, size, normal, action);
-        btn.setHoverTexture(hover);
-        return btn;
-    }
-
-    public static ButtonWidget icon(int x, int y,
-                                    String iconName,
-                                    int bgColor, int borderColor,
-                                    Consumer<ClickData> action) {
-        return icon(x, y, 20, iconName, bgColor, borderColor, action);
-    }
-
-    public static ButtonWidget ghostIcon(int x, int y, int size,
-                                         String iconName,
-                                         Consumer<ClickData> action) {
+    public static ButtonWidget icon3D(int x, int y, int size, IGuiTexture icon,
+                                      Consumer<ClickData> action) {
+        int fill = TerminalUI.tokens().panel();
+        IGuiTexture centered = new IconTexture(icon, Math.max(1, size - ICON_MARGIN * 2));
         ButtonWidget btn = new ButtonWidget(x, y, size, size,
-                new ColorRectTexture(0x00000000), action);
-        btn.setButtonTexture(iconTex(iconName));
-        btn.setHoverTexture(new GuiTextureGroup(new ColorRectTexture(HOVER_ICON), iconTex(iconName)));
+                TerminalUI.buttonContent(fill, centered), action);
+        btn.setHoverTexture(TerminalUI.buttonContentHover(fill, centered));
         return btn;
     }
 
-    public static ButtonWidget action(int x, int y, int w, int h,
-                                      String label,
-                                      int bgColor, int borderColor,
+    private static IGuiTexture glyph(String s, int w) {
+        return glyph(s, w, TerminalUI.tokens().textStrong());
+    }
+
+    private static IGuiTexture glyph(String s, int w, int color) {
+        return TerminalUI.text(TerminalText.strip(s), color, w);
+    }
+
+    public static ButtonWidget icon3D(int x, int y, int size, String glyph,
                                       Consumer<ClickData> action) {
-        TextTexture txt = new TextTexture(label).setWidth(w)
-                .setType(TextTexture.TextType.NORMAL);
-
-        IGuiTexture normal = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, borderColor),
-                txt);
-
-        IGuiTexture hover = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, C_WHITE),
-                new ColorRectTexture(HOVER_OVERLAY),
-                txt);
-
-        ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, action);
-        btn.setHoverTexture(hover);
+        int fill = TerminalUI.tokens().panel();
+        IGuiTexture g = glyph(glyph, size);
+        ButtonWidget btn = new ButtonWidget(x, y, size, size,
+                TerminalUI.buttonContent(fill, g), action);
+        btn.setHoverTexture(TerminalUI.buttonContentHover(fill, g));
         return btn;
     }
 
-    public static ButtonWidget danger(int x, int y, int w, int h,
-                                      String label,
-                                      int bgColor, int borderColor,
+    public static ButtonWidget text3D(int x, int y, int w, int h, String label,
                                       Consumer<ClickData> action) {
-        TextTexture txt = new TextTexture(label).setWidth(w)
-                .setType(TextTexture.TextType.NORMAL);
+        return text3D(x, y, w, h, label, TerminalUI.tokens().panel(), action);
+    }
 
-        IGuiTexture normal = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, borderColor),
-                txt);
+    public static ButtonWidget text3D(int x, int y, int w, int h, String label, int fill,
+                                      Consumer<ClickData> action) {
+        return text3D(x, y, w, h, label, fill, TerminalUI.tokens().textStrong(), action);
+    }
 
-        IGuiTexture hover = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, 0xFFFF4444),
-                new ColorRectTexture(HOVER_DANGER),
-                txt);
-
-        ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, action);
-        btn.setHoverTexture(hover);
+    public static ButtonWidget text3D(int x, int y, int w, int h, String label, int fill,
+                                      int textColor, Consumer<ClickData> action) {
+        IGuiTexture txt = glyph(label, w, textColor);
+        ButtonWidget btn = new ButtonWidget(x, y, w, h,
+                TerminalUI.buttonContent(fill, txt), action);
+        btn.setHoverTexture(TerminalUI.buttonContentHover(fill, txt));
         return btn;
     }
 
     public static ButtonWidget disabled(int x, int y, int w, int h, String label) {
-        TextTexture txt = new TextTexture("§8" + stripFormatting(label))
-                .setWidth(w).setType(TextTexture.TextType.NORMAL);
-        IGuiTexture normal = new GuiTextureGroup(
-                new ColorRectTexture(0xFF2A2A2A),
-                new ColorBorderTexture(1, 0xFF333333),
-                txt);
-        ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {});
+        var tokens = TerminalUI.tokens();
+        IGuiTexture normal = TerminalUI.button(
+                TerminalText.strip(label), w, tokens.panelDisabled(), tokens.textFaint());
+        ButtonWidget btn = new ButtonWidget(x, y, w, h, normal, cd -> {
+        });
         btn.setHoverTexture(normal);
         btn.setActive(false);
-        return btn;
-    }
-
-    public static ButtonWidget ghost(int x, int y, int w, int h,
-                                     String label,
-                                     Consumer<ClickData> action) {
-        TextTexture txt = new TextTexture(label).setWidth(w)
-                .setType(TextTexture.TextType.NORMAL);
-
-        ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new ColorRectTexture(0x00000000), action);
-        btn.setButtonTexture(txt);
-        btn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(HOVER_GHOST), txt));
         return btn;
     }
 
@@ -146,30 +88,27 @@ public final class TerminalButton {
                                      int hoverColor,
                                      Consumer<ClickData> action) {
         ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new ColorRectTexture(0x00000000), action);
-        btn.setHoverTexture(new ColorRectTexture(hoverColor));
+                TerminalUI.transparent(), action);
+        btn.setHoverTexture(TerminalUI.color(hoverColor));
         return btn;
     }
 
-    public static ButtonWidget close(int x, int y, int size,
-                                     int bgColor, int borderColor,
-                                     Consumer<ClickData> action) {
-        IGuiTexture normal = new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, borderColor),
-                iconTex("close"));
+    private static final class IconTexture extends TransformTexture {
+        private final IGuiTexture icon;
+        private final int iconSize;
 
-        IGuiTexture hover = new GuiTextureGroup(
-                new ColorRectTexture(0x668B0000),
-                new ColorBorderTexture(1, 0xFFFF4444),
-                iconTex("close"));
+        private IconTexture(IGuiTexture icon, int iconSize) {
+            this.icon = icon;
+            this.iconSize = iconSize;
+        }
 
-        ButtonWidget btn = new ButtonWidget(x, y, size, size, normal, action);
-        btn.setHoverTexture(hover);
-        return btn;
+        @Override
+        protected void drawInternal(GuiGraphics graphics, int mouseX, int mouseY,
+                                    float x, float y, int width, int height) {
+            float ix = x + (width - iconSize) / 2f;
+            float iy = y + (height - iconSize) / 2f;
+            icon.draw(graphics, mouseX, mouseY, ix, iy, iconSize, iconSize);
+        }
     }
 
-    private static String stripFormatting(String s) {
-        return s.replaceAll("§.", "");
-    }
 }

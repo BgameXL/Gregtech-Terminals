@@ -11,31 +11,25 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class TerminalNetwork {
 
-    private static final String PROTOCOL = "9";
+    private static final String PROTOCOL = "12";
+
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             ResourceLocation.fromNamespaceAndPath(GTCEUTerminalMod.MOD_ID, "network"),
             () -> PROTOCOL,
             PROTOCOL::equals,
             PROTOCOL::equals
     );
-
     private static int id = 0;
 
     public static void registerPackets() {
 
-        CHANNEL.messageBuilder(CPacketBlockReplacement.class,        id++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(CPacketBlockReplacement::encode)
-                .decoder(CPacketBlockReplacement::new)
-                .consumerMainThread(CPacketBlockReplacement::handle)
-                .add();
-
-        CHANNEL.messageBuilder(CPacketSchematicAction.class,         id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketSchematicAction.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketSchematicAction::encode)
                 .decoder(CPacketSchematicAction::new)
                 .consumerMainThread(CPacketSchematicAction::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketComponentUpgrade.class,        id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketComponentUpgrade.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketComponentUpgrade::encode)
                 .decoder(CPacketComponentUpgrade::decode)
                 .consumerMainThread(CPacketComponentUpgrade::handle)
@@ -47,43 +41,37 @@ public class TerminalNetwork {
                 .consumerMainThread(CPacketSetCustomMultiblockName::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketDismantle.class,               id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketDismantle.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketDismantle::encode)
                 .decoder(CPacketDismantle::decode)
                 .consumerMainThread(CPacketDismantle::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketOpenEnergyAnalyzerUI.class,    id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketOpenEnergyAnalyzerUI.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketOpenEnergyAnalyzerUI::encode)
                 .decoder(CPacketOpenEnergyAnalyzerUI::decode)
                 .consumerMainThread(CPacketOpenEnergyAnalyzerUI::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketEnergyAnalyzerAction.class,    id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketEnergyAnalyzerAction.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketEnergyAnalyzerAction::encode)
                 .decoder(CPacketEnergyAnalyzerAction::decode)
                 .consumerMainThread(CPacketEnergyAnalyzerAction::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketSaveTheme.class,               id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketSaveTheme.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketSaveTheme::encode)
                 .decoder(CPacketSaveTheme::new)
                 .consumerMainThread(CPacketSaveTheme::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketPlacePlannerGhosts.class,      id++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(CPacketPlacePlannerGhosts::encode)
-                .decoder(CPacketPlacePlannerGhosts::new)
-                .consumerMainThread(CPacketPlacePlannerGhosts::handle)
-                .add();
-
-        CHANNEL.messageBuilder(CPacketConfirmAutobuild.class,         id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketConfirmAutobuild.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketConfirmAutobuild::encode)
                 .decoder(CPacketConfirmAutobuild::new)
                 .consumerMainThread(CPacketConfirmAutobuild::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketRequestUpgradeAnalysis.class,   id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketRequestUpgradeAnalysis.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketRequestUpgradeAnalysis::encode)
                 .decoder(CPacketRequestUpgradeAnalysis::new)
                 .consumerMainThread(CPacketRequestUpgradeAnalysis::handle)
@@ -119,40 +107,52 @@ public class TerminalNetwork {
                 .consumerMainThread(SPacketOpenEnergyAnalyzerUI::handle)
                 .add();
 
-        CHANNEL.messageBuilder(SPacketDefaultTheme.class,            id++, NetworkDirection.PLAY_TO_CLIENT)
+        CHANNEL.messageBuilder(SPacketDefaultTheme.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketDefaultTheme::encode)
                 .decoder(SPacketDefaultTheme::new)
                 .consumerMainThread(SPacketDefaultTheme::handle)
                 .add();
 
-        CHANNEL.messageBuilder(SPacketAnalysisResult.class,          id++, NetworkDirection.PLAY_TO_CLIENT)
+        CHANNEL.messageBuilder(SPacketAnalysisResult.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketAnalysisResult::encode)
                 .decoder(SPacketAnalysisResult::new)
                 .consumerMainThread(SPacketAnalysisResult::handle)
                 .add();
 
-        CHANNEL.messageBuilder(SPacketUpgradeAvailability.class,     id++, NetworkDirection.PLAY_TO_CLIENT)
+        CHANNEL.messageBuilder(SPacketUpgradeAvailability.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketUpgradeAvailability::encode)
                 .decoder(SPacketUpgradeAvailability::new)
                 .consumerMainThread(SPacketUpgradeAvailability::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketSaveManagerSettings.class,     id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketSaveManagerSettings.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketSaveManagerSettings::encode)
                 .decoder(CPacketSaveManagerSettings::new)
                 .consumerMainThread(CPacketSaveManagerSettings::handle)
                 .add();
 
-        CHANNEL.messageBuilder(CPacketRequestEnergyUpdate.class,     id++, NetworkDirection.PLAY_TO_SERVER)
+        CHANNEL.messageBuilder(CPacketRequestEnergyUpdate.class, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(CPacketRequestEnergyUpdate::encode)
                 .decoder(CPacketRequestEnergyUpdate::new)
                 .consumerMainThread(CPacketRequestEnergyUpdate::handle)
                 .add();
 
-        CHANNEL.messageBuilder(SPacketEnergyUpdate.class,            id++, NetworkDirection.PLAY_TO_CLIENT)
+        CHANNEL.messageBuilder(SPacketEnergyUpdate.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(SPacketEnergyUpdate::encode)
                 .decoder(SPacketEnergyUpdate::new)
                 .consumerMainThread(SPacketEnergyUpdate::handle)
+                .add();
+
+        CHANNEL.messageBuilder(SPacketHighlightPositions.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketHighlightPositions::encode)
+                .decoder(SPacketHighlightPositions::new)
+                .consumerMainThread(SPacketHighlightPositions::handle)
+                .add();
+
+        CHANNEL.messageBuilder(SPacketComponentUpgradeDone.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SPacketComponentUpgradeDone::encode)
+                .decoder(SPacketComponentUpgradeDone::new)
+                .consumerMainThread(SPacketComponentUpgradeDone::handle)
                 .add();
 
         GTCEUTerminalMod.LOGGER.info("TerminalNetwork: registered {} packets", id);

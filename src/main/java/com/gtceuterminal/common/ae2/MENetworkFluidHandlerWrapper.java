@@ -3,39 +3,26 @@ package com.gtceuterminal.common.ae2;
 import appeng.api.config.Actionable;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
-import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.KeyCounter;
+import appeng.api.networking.storage.IStorageService;
 import appeng.api.storage.MEStorage;
 import appeng.me.helpers.PlayerSource;
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.util.MiscUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
     private final MEStorage inventory;
     private final IActionSource actionSource;
-    private List<FluidStack> cachedFluids;
-    private long lastCacheUpdate = 0;
-    private static final long CACHE_DURATION = 1000; // 1 second cache
 
     public MENetworkFluidHandlerWrapper(MEStorage inventory, IActionSource actionSource) {
         this.inventory = inventory;
         this.actionSource = actionSource;
-        this.cachedFluids = new ArrayList<>();
-        updateCache();
     }
 
     public static MENetworkFluidHandlerWrapper fromGrid(IGrid grid, IActionSource actionSource) {
@@ -49,10 +36,10 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
     @Nullable
     public static MENetworkFluidHandlerWrapper fromTerminal(ItemStack terminalStack, Player player) {
         if (!MENetworkScanner.isAE2Available()) return null;
-        if (!WirelessTerminalHandler.isOurLinkedTerminal(terminalStack)) return null;
 
         try {
-            IGrid grid = WirelessTerminalHandler.getLinkedGrid(terminalStack, player.level(), player);
+            IGrid grid = AccessPointLink.getLinkedGrid(terminalStack, player.level(), player);
+            if (grid == null) grid = AccessPointLink.getGridFromCarriedTerminal(player, player.level());
             if (grid == null) return null;
             return fromGrid(grid, new PlayerSource(player, null));
         } catch (Exception e) {
@@ -66,78 +53,23 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
         if (!MENetworkScanner.isAE2Available()) return null;
 
         try {
-            List<ItemStack> toCheck = new ArrayList<>();
-            toCheck.add(player.getMainHandItem());
-            toCheck.add(player.getOffhandItem());
-            toCheck.addAll(player.getInventory().items);
-            if (MiscUtil.isCuriosLoaded) toCheck.addAll(CuriosCompat.getEquippedItems(player));
-
-            for (ItemStack stack : toCheck) {
-                if (stack.isEmpty()) continue;
-                if (!WirelessTerminalHandler.isOurLinkedManager(stack)) continue;
-
-                IGrid grid = WirelessTerminalHandler.getLinkedGrid(stack, player.level(), player);
-                if (grid == null) continue;
-
-                IActionSource actionSource = new PlayerSource(player, null);
-                MENetworkFluidHandlerWrapper wrapper = fromGrid(grid, actionSource);
-                if (wrapper != null) {
-                    GTCEUTerminalMod.LOGGER.debug("Connected to ME Network fluid storage via terminal");
-                    return wrapper;
-                }
-            }
+            IGrid grid = AccessPointLink.getGridFromCarriedTerminal(player, player.level());
+            if (grid == null) return null;
+            return fromGrid(grid, new PlayerSource(player, null));
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MENetworkFluidHandlerWrapper.getFromPlayer failed", e);
         }
         return null;
     }
 
-    private void updateCache() {
-        long now = System.currentTimeMillis();
-        if (now - lastCacheUpdate < CACHE_DURATION) {
-            return;
-        }
-
-        cachedFluids.clear();
-
-        try {
-            KeyCounter availableStacks = new KeyCounter();
-            inventory.getAvailableStacks(availableStacks);
-
-            for (var entry : availableStacks) {
-                AEKey key = entry.getKey();
-                long amount = entry.getLongValue();
-
-                if (key instanceof AEFluidKey fluidKey && amount > 0) {
-                    int amountMB = (int) (amount / 81);
-
-                    if (amountMB > 0) {
-                        FluidStack stack = new FluidStack(fluidKey.getFluid(), amountMB);
-                        cachedFluids.add(stack);
-                    }
-                }
-            }
-
-            lastCacheUpdate = now;
-
-        } catch (Exception e) {
-            GTCEUTerminalMod.LOGGER.error("Error updating ME Network fluid cache", e);
-        }
-    }
-
     @Override
     public int getTanks() {
-        updateCache();
-        return cachedFluids.size();
+        return 0;
     }
 
     @Override
     public @NotNull FluidStack getFluidInTank(int tank) {
-        updateCache();
-        if (tank < 0 || tank >= cachedFluids.size()) {
-            return FluidStack.EMPTY;
-        }
-        return cachedFluids.get(tank).copy();
+        return FluidStack.EMPTY;
     }
 
     @Override
@@ -152,6 +84,27 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
+        if (resource == null || resource.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            long dropletsOffered = resource.getAmount() * 81L;
+            AEFluidKey fluidKey = AEFluidKey.of(resource.getFluid());
+
+            long inserted;
+            if (action == FluidAction.SIMULATE) {
+                inserted = inventory.insert(fluidKey, dropletsOffered, Actionable.SIMULATE, actionSource);
+            } else {
+                inserted = inventory.insert(fluidKey, dropletsOffered, Actionable.MODULATE, actionSource);
+            }
+
+            return (int) (inserted / 81);
+
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.error("Error inserting fluid into ME Network", e);
+        }
+
         return 0;
     }
 
@@ -181,7 +134,6 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
                         Actionable.MODULATE,
                         actionSource
                 );
-                lastCacheUpdate = 0;
             }
 
             int extractedMB = (int) (extracted / 81);
@@ -199,42 +151,6 @@ public class MENetworkFluidHandlerWrapper implements IFluidHandler {
 
     @Override
     public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
-        updateCache();
-        if (cachedFluids.isEmpty()) {
-            return FluidStack.EMPTY;
-        }
-
-        FluidStack first = cachedFluids.get(0);
-        FluidStack toDrain = new FluidStack(first.getFluid(), Math.min(maxDrain, first.getAmount()));
-
-        return drain(toDrain, action);
-    }
-
-    public boolean hasFluid(FluidStack fluid) {
-        if (fluid == null || fluid.isEmpty()) {
-            return false;
-        }
-
-        updateCache();
-
-        for (FluidStack stored : cachedFluids) {
-            if (stored.getFluid() == fluid.getFluid() && stored.getAmount() >= fluid.getAmount()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public int getFluidAmount(Fluid fluid) {
-        updateCache();
-
-        for (FluidStack stored : cachedFluids) {
-            if (stored.getFluid() == fluid) {
-                return stored.getAmount();
-            }
-        }
-
-        return 0;
+        return FluidStack.EMPTY;
     }
 }

@@ -1,27 +1,26 @@
 package com.gtceuterminal.client.gui.dismantler;
 
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.common.theme.ItemTheme;
-
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 final class DismantlerHeader {
 
-    private DismantlerHeader() {}
+    private DismantlerHeader() {
+    }
 
     static WidgetGroup build(
             int guiW,
@@ -30,61 +29,56 @@ final class DismantlerHeader {
             ItemStack itemStack,
             ItemTheme theme,
             WidgetGroup mainGroup,
-            Player player,
             Runnable onClose
     ) {
-        WidgetGroup header = new WidgetGroup(2, 2, guiW - 4, headerH);
-        header.setBackground(theme.headerTexture());
+        TerminalTheme tokens = TerminalUI.tokens();
+        var font = Minecraft.getInstance().font;
+        WidgetGroup g = new WidgetGroup(2, 2, guiW - 4, headerH);
 
-        int titleX = 10;
-        int iconSize = 20, iconY = (headerH - iconSize) / 2;
-        if (theme.isBundleStyle()) {
-            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null) {
-                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
-                if (bundleIcon != null) {
-                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
-                    titleX += iconSize + 4;
-                }
-            }
+        int iconSize = 20, padL = 6, padR = 6;
+        int itemX = padL + iconSize + 6;
+        int iconY = (headerH - iconSize) / 2;
+
+        String name = itemStack.getHoverName().getString();
+        String info = String.format("(%d, %d, %d)",
+                controllerPos.getX(), controllerPos.getY(), controllerPos.getZ());
+
+        int maxTitleW = g.getSizeWidth() - TerminalTabs.ACTION_CARD_W - 4;
+        int titleW = Math.min(maxTitleW, itemX + Math.max(font.width(name), font.width(info)) + padR);
+        int textMaxW = Math.max(0, titleW - padR - itemX);
+
+        WidgetGroup titleCard = new WidgetGroup(0, 0, titleW, headerH);
+        titleCard.setBackground(TerminalUI.bevel(tokens.surface()));
+
+        var bundleIcon = TerminalUI.bundleIcon();
+        if (bundleIcon != null) {
+            titleCard.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundleIcon));
         } else {
-            header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
-                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
-                    theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF)));
-            titleX += iconSize + 6;
+            titleCard.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, itemStack,
+                    tokens.panelDisabled(), tokens.border()));
         }
 
-        String coords = String.format("(%d, %d, %d)",
-                controllerPos.getX(), controllerPos.getY(), controllerPos.getZ());
-        String baseTitle = stripFormatting(Component.translatable("gui.gtceuterminal.dismantler.title").getString());
-        LabelWidget title = new LabelWidget(titleX, 10, "§f" + baseTitle + " §7— @ " + coords);
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : 0xFFFFFFFF);
-        header.addWidget(title);
+        LabelWidget nameLbl = new LabelWidget(itemX, 6, fitText(name, textMaxW));
+        nameLbl.setColor(TerminalUI.itemLabelColor());
+        titleCard.addWidget(nameLbl);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 42, 6, 14, "config",
-                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)));
-        gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        header.addWidget(gearBtn);
+        LabelWidget infoLbl = new LabelWidget(itemX, 17, fitText(info, textMaxW));
+        infoLbl.setColor(tokens.textMuted());
+        titleCard.addWidget(infoLbl);
 
-        int accentColor = theme.accentColor;
-        ButtonWidget closeBtn = new ButtonWidget(guiW - 24, 6, 14, 14,
-                new GuiTextureGroup(
-                        new ColorRectTexture(theme.panelColor),
-                        new ColorBorderTexture(1, (accentColor & 0x00FFFFFF) | 0x80000000)),
-                cd -> onClose.run());
-        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
-        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0x66AA0000),
-                new ColorBorderTexture(1, 0xFFFFFFFF),
-                TerminalButton.iconTex("close")));
-        header.addWidget(closeBtn);
+        g.addWidget(titleCard);
 
-        return header;
+        g.addWidget(TerminalTabs.actionCard(g.getSizeWidth() - TerminalTabs.ACTION_CARD_W, 0, headerH,
+                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(itemStack)),
+                cd -> onClose.run()));
+        return g;
     }
 
-    private static String stripFormatting(String s) {
-        return s == null ? "" : s.replaceAll("§.", "");
+    private static String fitText(String text, int maxWidth) {
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 }

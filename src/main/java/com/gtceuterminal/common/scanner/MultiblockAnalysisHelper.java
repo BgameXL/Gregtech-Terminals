@@ -1,38 +1,31 @@
 package com.gtceuterminal.common.scanner;
 
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.config.ComponentPattern;
 import com.gtceuterminal.common.config.ComponentPatternRegistry;
 import com.gtceuterminal.common.multiblock.ComponentGroup;
 import com.gtceuterminal.common.multiblock.ComponentGroupRegistry;
-
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public final class MultiblockAnalysisHelper {
 
-    private MultiblockAnalysisHelper() {}
+    private MultiblockAnalysisHelper() {
+    }
 
     public static UniversalMultiblockScanner.DetectedMultiblock analyzeMultiblock(
             MultiblockControllerMachine controller, BlockPos pos, Level level) {
         try {
-            String name  = getMultiblockName(controller);
+            String name = getMultiblockName(controller);
             String modId = getMultiblockModId(controller);
-            int tier     = getMultiblockTier(controller);
+            int tier = getMultiblockTier(controller);
             Map<String, List<UniversalMultiblockScanner.ComponentData>> components =
                     extractAllComponents(controller, level);
             return new UniversalMultiblockScanner.DetectedMultiblock(name, modId, pos, tier, components, controller);
@@ -57,7 +50,8 @@ public final class MultiblockAnalysisHelper {
         try {
             var def = controller.getDefinition();
             if (def != null && def.getId() != null) return def.getId().getNamespace();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return "unknown";
     }
 
@@ -71,11 +65,13 @@ public final class MultiblockAnalysisHelper {
                         .max().orElse(-1);
                 if (maxTier >= 0) return maxTier;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             var def = controller.getDefinition();
             if (def != null && def.getTier() > 0) return def.getTier();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return 0;
     }
 
@@ -95,7 +91,7 @@ public final class MultiblockAnalysisHelper {
                 if (part == null || part.self() == null) continue;
                 UniversalMultiblockScanner.ComponentData data = analyzeComponent(part.self(), level);
                 if (data != null) {
-                    components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
+                    components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
                     scanned.add(part.self().getPos());
                 }
             }
@@ -119,26 +115,27 @@ public final class MultiblockAnalysisHelper {
         try {
             BlockPos cp = controller.getPos();
             int r = 5;
-            for (BlockPos pos : BlockPos.betweenClosed(cp.offset(-r, -r, -r), cp.offset(r, r, r))) {
-                if (scanned.contains(pos)) continue;
-                BlockEntity be = level.getBlockEntity(pos);
-                if (!(be instanceof IMachineBlockEntity mbe)) continue;
-                MetaMachine machine = mbe.getMetaMachine();
-                if (machine == null || machine.getDefinition() == null) continue;
-                if (!(machine instanceof MultiblockPartMachine part)) continue;
-                if (!isLinkedToController(part, controller.getPos())) continue;
+            UniversalMultiblockScanner.forEachMachineEntity(level,
+                    cp.getX() - r, cp.getY() - r, cp.getZ() - r,
+                    cp.getX() + r, cp.getY() + r, cp.getZ() + r,
+                    (pos, mbe) -> {
+                        if (scanned.contains(pos)) return;
+                        MetaMachine machine = mbe.getMetaMachine();
+                        if (machine == null || machine.getDefinition() == null) return;
+                        if (!(machine instanceof MultiblockPartMachine part)) return;
+                        if (!isLinkedToController(part, controller.getPos())) return;
 
-                // Filter: only non-standard parts not covered by getParts() are relevant here
-                ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
-                if (group == ComponentGroupRegistry.UNKNOWN) continue;
-                if (!group.isEnergyHandler && !group.isDataHandler) continue;
+                        // Filter: only non-standard parts not covered by getParts() are relevant here
+                        ComponentGroup group = ComponentGroupRegistry.detectFromBlock(machine.getBlockState().getBlock());
+                        if (group == ComponentGroupRegistry.UNKNOWN) return;
+                        if (!group.isEnergyHandler && !group.isDataHandler) return;
 
-                UniversalMultiblockScanner.ComponentData data = analyzeComponent(machine, level);
-                if (data != null) {
-                    components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
-                    scanned.add(pos.immutable());
-                }
-            }
+                        UniversalMultiblockScanner.ComponentData data = analyzeComponent(machine, level);
+                        if (data != null) {
+                            components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
+                            scanned.add(pos);
+                        }
+                    });
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Error detecting wireless/addon components: {}", e.getMessage());
         }
@@ -155,7 +152,7 @@ public final class MultiblockAnalysisHelper {
             MetaMachine live = liveMachineAt(level, pos, machine);
             String type = detectComponentType(live);
             var def = live.getDefinition();
-            int tier    = def != null ? def.getTier() : 0;
+            int tier = def != null ? def.getTier() : 0;
             String name = def != null
                     ? net.minecraft.network.chat.Component.translatable(def.getDescriptionId()).getString()
                     : "Unknown";
@@ -174,7 +171,8 @@ public final class MultiblockAnalysisHelper {
                     if (m != null) return m;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return fallback;
     }
 
@@ -203,7 +201,8 @@ public final class MultiblockAnalysisHelper {
             String detected = BlockIdClassifier.detectByImprovedAnalysis(id);
             if (detected != null) return detected;
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return ComponentGroupRegistry.UNKNOWN.id;
     }
 
@@ -216,7 +215,7 @@ public final class MultiblockAnalysisHelper {
                 UniversalMultiblockScanner.ComponentData data =
                         BlockIdClassifier.identifyStructureBlock(level.getBlockState(pos), pos, level);
                 if (data != null) {
-                    components.computeIfAbsent(data.getCategory(), k -> new ArrayList<>()).add(data);
+                    components.computeIfAbsent(data.category(), k -> new ArrayList<>()).add(data);
                 }
             }
         } catch (Exception e) {

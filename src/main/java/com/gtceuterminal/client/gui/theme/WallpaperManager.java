@@ -1,20 +1,16 @@
 package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
-import com.mojang.blaze3d.platform.NativeImage;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,8 +21,8 @@ import java.util.Map;
 public class WallpaperManager {
 
     public static final String WALLPAPER_DIR_NAME = "config/gtceuterminal/wallpapers";
-    private static final String RL_NAMESPACE      = "gtceuterminal";
-    private static final String RL_PATH_PREFIX    = "dynamic/wallpaper/";
+    private static final String RL_NAMESPACE = "gtceuterminal";
+    private static final String RL_PATH_PREFIX = "dynamic/wallpaper/";
 
     private static final Map<String, ResourceLocation> cache = new HashMap<>();
 
@@ -46,8 +42,8 @@ public class WallpaperManager {
         File[] files = dir.listFiles(f ->
                 f.isFile() && (
                         f.getName().toLowerCase().endsWith(".png") ||
-                        f.getName().toLowerCase().endsWith(".jpg") ||
-                        f.getName().toLowerCase().endsWith(".jpeg")
+                                f.getName().toLowerCase().endsWith(".jpg") ||
+                                f.getName().toLowerCase().endsWith(".jpeg")
                 )
         );
         if (files == null) return result;
@@ -70,7 +66,7 @@ public class WallpaperManager {
 
         try {
             Path wallpaperDir = getWallpaperDir().toPath().toRealPath();
-            Path filePath     = file.toPath().toRealPath();
+            Path filePath = file.toPath().toRealPath();
             if (!filePath.startsWith(wallpaperDir)) {
                 GTCEUTerminalMod.LOGGER.warn("WallpaperManager: rejected suspicious path: {}", filename);
                 return java.util.Optional.empty();
@@ -102,6 +98,7 @@ public class WallpaperManager {
     public static void evict(String filename) {
         cache.remove(filename);
     }
+
     public static void clearCache() {
         cache.clear();
     }

@@ -13,7 +13,7 @@ This gadget sees all multiblocks within a 32-block radius and allows you to upgr
 
 **Schematic Interface**:
 
-This gadget allows you to shift + right-click a multiblock controller in order to copy all blocks that are part of a structure to save it as a named blueprint for easy pasting later. It also allows you to connect it to your ME Network to paste blocks from it and request blocks for you that aren't available in your inventory or network. (requesting is currently a planned feature and not complete)
+This gadget allows you to shift + right-click a multiblock controller in order to copy all blocks that are part of a structure to save it as a named schematic for easy pasting later. It also allows you to connect it to your ME Network to paste blocks from it and request blocks for you that aren't available in your inventory or network. (requesting is currently a planned feature and not complete)
 
 **Dismantler**:
 
@@ -33,7 +33,7 @@ Any mods or modpacks listed below will have specially-tailored integrations for 
 *   **GTM Things**
 *   **Star Technology: Beyond**
 
-Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion here on [GitHub](https://github.com/BgameXL/GTCEu-Terminals/issues) or contact us on [Discord](https://discord.gg/r7PeUvMytZ).
+Please report any bugs specific to these projects here so we can continue to support them. If you would like your project to be integrated feel free to leave a suggestion here on [GitHub](https://github.com/BgameXL/GTCEu-Terminals/issues) or contact us on [Discord](https://discord.gg/kAKk3wRAVh).
 
 ### Credits
 
@@ -48,4 +48,3 @@ Please report any bugs specific to these projects here so we can continue to sup
 - WhitePhant0m for adding support for AE2 Wireless terminals in Curio slots.
 
 Contributors are welcomed and encouraged!
-

@@ -1,70 +1,64 @@
 package com.gtceuterminal.client.gui.autocraft;
 
+import com.gtceuterminal.client.gui.style.TerminalText;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
 import com.gtceuterminal.common.network.CPacketConfirmAutobuild;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
 
 @OnlyIn(Dist.CLIENT)
 public class AutocraftConfirmDialog extends DialogWidget {
 
     private static final int DESIGN_W = 480;
     private static final int DESIGN_H = 380;
-    private static final int PAD     = 10;
-    private static final int HEADER_H = 28;
-    private static final int FOOTER_H = 36;
-
-    private static final int C_GREEN  = 0xFF2D6B2D;
-    private static final int C_GREEN_T= 0x441a3a1a;
-    private static final int C_ORANGE = 0xFF8a5a10;
-    private static final int C_ORANGE_T=0x443a2a0a;
-    private static final int C_RED    = 0xFF8a2020;
-    private static final int C_RED_T  = 0x443a1010;
-    private static final int C_WHITE  = 0xFFFFFFFF;
-    private static final int C_GRAY   = 0xFFAAAAAA;
-    private static final int C_DARK   = 0xFF0A0A0A;
+    private static final int HEADER_H = 30;
+    private static final int FOOTER_H = 38;
+    private static final int CARD_INSET = 2;
 
     private final AnalysisResult result;
-    private final ItemTheme      theme;
-    private final int colorBg, colorPanel, colorBorder;
-    
-    private int w = DESIGN_W;
-    private int h = DESIGN_H;
-
-    private DraggableScrollableWidgetGroup ingredientScroll;
-    private int ingredientRowW;
+    private final TerminalTheme tokens;
     private final java.util.Set<Integer> expanded = new java.util.HashSet<>();
     private final java.util.Map<Integer, com.gtceuterminal.common.compat.RecipeReader.RecipeView> recipeCache = new java.util.HashMap<>();
+    private Runnable onClose;
+    private int w = DESIGN_W;
+    private int h = DESIGN_H;
+    private DraggableScrollableWidgetGroup ingredientScroll;
+    private int ingredientRowW;
 
     public AutocraftConfirmDialog(WidgetGroup parent, AnalysisResult result, Player player) {
         super(parent, true);
         this.result = result;
-        this.theme  = ItemTheme.loadFromPlayer(player);
-
-        colorBg     = theme.bgColor;
-        colorPanel  = theme.panelColor;
-        colorBorder = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        ItemTheme theme = ItemTheme.loadFromPlayer(player);
+        TerminalUI.use(theme);
+        this.tokens = TerminalUI.tokens();
 
         initDialog();
+    }
+
+    private static String fitText(String text, int maxWidth) {
+        if (text == null || maxWidth <= 0) return "";
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
+    }
+
+    public void setOnClose(Runnable onClose) {
+        this.onClose = onClose;
     }
 
     @Override
@@ -76,12 +70,13 @@ public class AutocraftConfirmDialog extends DialogWidget {
         } else {
             mc.setScreen(null);
         }
+        if (onClose != null) onClose.run();
     }
 
     private void initDialog() {
-        var mc  = Minecraft.getInstance();
-        int sw  = mc.screen != null ? mc.screen.width  : mc.getWindow().getGuiScaledWidth();
-        int sh  = mc.screen != null ? mc.screen.height : mc.getWindow().getGuiScaledHeight();
+        var mc = Minecraft.getInstance();
+        int sw = mc.screen != null ? mc.screen.width : mc.getWindow().getGuiScaledWidth();
+        int sh = mc.screen != null ? mc.screen.height : mc.getWindow().getGuiScaledHeight();
 
         w = Math.min(DESIGN_W, sw - 20);
         h = Math.min(DESIGN_H, sh - 20);
@@ -91,56 +86,59 @@ public class AutocraftConfirmDialog extends DialogWidget {
                 Math.max(0, (sw - w) / 2) - abs.x,
                 Math.max(0, (sh - h) / 2) - abs.y));
         setSize(new Size(w, h));
-        setBackground(theme.backgroundTexture());
+        setBackground(TerminalUI.background());
 
         addWidget(buildHeader());
         addWidget(buildBody());
-        addWidget(buildFooter());
     }
 
     private WidgetGroup buildHeader() {
         WidgetGroup header = new WidgetGroup(2, 2, w - 4, HEADER_H);
-        header.setBackground(theme.headerTexture());
+        header.setBackground(TerminalUI.bevel(tokens.surface()));
 
-        String title = result.kind == AnalysisResult.Kind.UPGRADE
+        String title = result.kind() == AnalysisResult.Kind.UPGRADE
                 ? Component.translatable("gui.gtceuterminal.autocraft.title.upgrade").getString()
                 : Component.translatable("gui.gtceuterminal.autocraft.title.build").getString();
 
-        LabelWidget lbl = new LabelWidget(10, 9, "§f" + title);
-        lbl.setTextColor(C_WHITE);
+        LabelWidget lbl = new LabelWidget(10, 10, title);
+        lbl.setColor(tokens.textStrong());
         header.addWidget(lbl);
 
-        ButtonWidget close = TerminalButton.close(w - 28, 4, 20, colorPanel, colorBorder, cd -> close());
+        int closeSize = 20;
+        ButtonWidget close = TerminalButton.icon3D(
+                header.getSizeWidth() - closeSize - 6, (HEADER_H - closeSize) / 2,
+                closeSize, TerminalButton.ICON_CLOSE, cd -> close());
         close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
         header.addWidget(close);
         return header;
     }
 
     private WidgetGroup buildBody() {
-        int bodyY = 2 + HEADER_H + 3;
-        int bodyH = h - bodyY - FOOTER_H - 6;
-        WidgetGroup body = new WidgetGroup(PAD, bodyY, w - PAD * 2, bodyH);
-        body.setBackground(new ColorRectTexture(colorBg));
+        int bodyY = HEADER_H + 1;
+        int bodyH = h - bodyY - 2;
+        WidgetGroup body = new WidgetGroup(2, bodyY, w - 4, bodyH);
+        body.setBackground(TerminalUI.cardBG());
 
-        int colL = (w - PAD * 2) * 6 / 10;
-        int colR = (w - PAD * 2) - colL - 1;
+        int innerW = body.getSizeWidth() - CARD_INSET * 2;
+        int contentH = bodyH - FOOTER_H - CARD_INSET;
+        int colL = innerW * 6 / 10;
+        int colR = innerW - colL - 1;
 
-        WidgetGroup left = new WidgetGroup(0, 0, colL, bodyH);
-        left.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(colorPanel),
-                new ColorBorderTexture(1, colorBorder)));
+        WidgetGroup left = new WidgetGroup(CARD_INSET, CARD_INSET, colL, contentH);
+        left.setBackground(TerminalUI.surface());
         left.addWidget(buildTargetHatch(colL));
-        left.addWidget(buildIngredientList(colL, bodyH));
+        left.addWidget(buildIngredientList(colL, contentH));
         body.addWidget(left);
 
-        body.addWidget(new ImageWidget(colL, 0, 1, bodyH, new ColorRectTexture(colorBorder)));
+        body.addWidget(new ImageWidget(CARD_INSET + colL, CARD_INSET, 1, contentH,
+                TerminalUI.divider()));
 
-        WidgetGroup right = new WidgetGroup(colL + 1, 0, colR, bodyH);
-        right.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(colorPanel),
-                new ColorBorderTexture(1, colorBorder)));
-        right.addWidget(buildAvailabilityList(colR, bodyH));
+        WidgetGroup right = new WidgetGroup(CARD_INSET + colL + 1, CARD_INSET, colR, contentH);
+        right.setBackground(TerminalUI.surface());
+        right.addWidget(buildAvailabilityList(colR, contentH));
         body.addWidget(right);
+
+        body.addWidget(buildFooter(contentH + CARD_INSET, innerW));
 
         return body;
     }
@@ -148,48 +146,48 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private WidgetGroup buildTargetHatch(int panelW) {
         int hatchH = 48;
         WidgetGroup group = new WidgetGroup(0, 0, panelW, hatchH);
-        group.setBackground(new ColorRectTexture(colorBg));
+        group.setBackground(TerminalUI.panel());
 
-        ItemStack target = result.targetItemStack;
+        ItemStack target = result.targetItemStack();
         if (!target.isEmpty()) {
             ItemStackTransfer transfer = new ItemStackTransfer(target.copy());
-            SlotWidget slot = new SlotWidget(transfer, 0, 8, 8, false, false);
-            slot.setBackgroundTexture(new ColorBorderTexture(1, colorBorder));
+            SlotWidget slot = new SlotWidget(transfer, 0, 8, 10, false, false);
+            slot.setBackgroundTexture(TerminalUI.border(tokens.border()));
             group.addWidget(slot);
         }
 
         String name = target.isEmpty()
                 ? Component.translatable("gui.gtceuterminal.autocraft.unknown_component").getString()
                 : target.getHoverName().getString();
-        LabelWidget nameLbl = new LabelWidget(34, 10, "§f" + name);
-        nameLbl.setTextColor(C_WHITE);
+        LabelWidget nameLbl = new LabelWidget(34, 12, fitText(name, panelW - 42));
+        nameLbl.setColor(tokens.textStrong());
         group.addWidget(nameLbl);
 
-        if (result.componentCount > 1) {
+        if (result.componentCount() > 1) {
             String countStr = Component.translatable("gui.gtceuterminal.autocraft.replace_count",
-                    result.componentCount).getString();
-            LabelWidget countLbl = new LabelWidget(34, 22, "§7" + countStr);
-            countLbl.setTextColor(C_GRAY);
+                    result.componentCount()).getString();
+            LabelWidget countLbl = new LabelWidget(34, 24, fitText(countStr, panelW - 42));
+            countLbl.setColor(tokens.textMuted());
             group.addWidget(countLbl);
         }
 
-        group.addWidget(new ImageWidget(0, hatchH - 1, panelW, 1, new ColorRectTexture(colorBorder)));
+        group.addWidget(new ImageWidget(0, hatchH - 1, panelW, 1,
+                TerminalUI.divider()));
         return group;
     }
 
     private WidgetGroup buildIngredientList(int panelW, int panelH) {
         int offsetY = 48;
-        int listH   = panelH - offsetY;
+        int listH = panelH - offsetY;
 
-        LabelWidget header = new LabelWidget(8, offsetY + 4, "§7" +
+        LabelWidget header = new LabelWidget(8, offsetY + 4,
                 Component.translatable("gui.gtceuterminal.autocraft.ingredients_total").getString());
-        header.setTextColor(C_GRAY);
+        header.setColor(tokens.textMuted());
 
-        ingredientRowW   = panelW - 10;
+        ingredientRowW = panelW - 10;
         ingredientScroll = new DraggableScrollableWidgetGroup(
                 0, offsetY + 16, panelW, listH - 16);
-        ingredientScroll.setYScrollBarWidth(6);
-        ingredientScroll.setYBarStyle(new ColorRectTexture(C_DARK), new ColorRectTexture(colorBorder));
+        ingredientScroll.setYScrollBarWidth(0);
         populateIngredients();
 
         WidgetGroup wrapper = new WidgetGroup(0, 0, panelW, panelH);
@@ -201,24 +199,25 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private void populateIngredients() {
         ingredientScroll.clearAllWidgets();
         int y = 0;
-        for (int i = 0; i < result.entries.size(); i++) {
-            AnalysisResult.Entry entry = result.entries.get(i);
+        for (int i = 0; i < result.entries().size(); i++) {
+            AnalysisResult.Entry entry = result.entries().get(i);
             ingredientScroll.addWidget(buildIngredientRow(i, entry, ingredientRowW, y));
             y += 22;
 
             if (expanded.contains(i)) {
-                com.gtceuterminal.common.compat.RecipeReader.RecipeView recipe = recipeFor(i, entry.stack);
+                com.gtceuterminal.common.compat.RecipeReader.RecipeView recipe = recipeFor(i, entry.stack());
                 if (recipe.isEmpty()) {
-                    LabelWidget none = new LabelWidget(28, y + 3, "§8" +
+                    LabelWidget none = new LabelWidget(28, y + 3,
                             Component.translatable("gui.gtceuterminal.autocraft.no_recipe").getString());
+                    none.setColor(tokens.textFaint());
                     ingredientScroll.addWidget(none);
                     y += 16;
                 } else {
-                    for (ItemStack ing : recipe.items) {
+                    for (ItemStack ing : recipe.items()) {
                         ingredientScroll.addWidget(buildRecipeSubRow(ing, ingredientRowW, y));
                         y += 18;
                     }
-                    for (var fluid : recipe.fluids) {
+                    for (var fluid : recipe.fluids()) {
                         ingredientScroll.addWidget(buildFluidSubRow(fluid, ingredientRowW, y));
                         y += 18;
                     }
@@ -232,27 +231,29 @@ public class AutocraftConfirmDialog extends DialogWidget {
         WidgetGroup row = new WidgetGroup(4, y, rowW, 20);
 
         boolean isOpen = expanded.contains(index);
-        ButtonWidget toggle = TerminalButton.ghost(0, 2, 16, 16,
-                isOpen ? "§e[-]" : "§7[+]", cd -> {
+        ButtonWidget toggle = TerminalButton.icon3D(0, 2, 16,
+                isOpen ? "-" : "+", cd -> {
                     if (!expanded.add(index)) expanded.remove(index);
                     populateIngredients();
                 });
         toggle.setHoverTooltips(Component.translatable("gui.gtceuterminal.autocraft.show_recipe").getString());
         row.addWidget(toggle);
 
-        ItemStackTransfer transfer = new ItemStackTransfer(entry.stack.copy());
+        ItemStackTransfer transfer = new ItemStackTransfer(entry.stack().copy());
         SlotWidget slot = new SlotWidget(transfer, 0, 16, 1, false, false);
-        slot.setBackgroundTexture(new ColorBorderTexture(1, 0xFF333333));
+        slot.setBackgroundTexture(TerminalUI.border(tokens.borderSubtle()));
         row.addWidget(slot);
 
-        String name = entry.stack.getHoverName().getString();
-        LabelWidget nameLbl = new LabelWidget(38, 5, "§f" + name);
-        nameLbl.setTextColor(C_WHITE);
+        String name = entry.stack().getHoverName().getString();
+        int quantityWidth = 40;
+        LabelWidget nameLbl = new LabelWidget(38, 5,
+                fitText(name, Math.max(0, rowW - 38 - quantityWidth - 4)));
+        nameLbl.setColor(tokens.textStrong());
         row.addWidget(nameLbl);
 
         String qty = "× " + entry.needed();
-        LabelWidget qtyLbl = new LabelWidget(rowW - 36, 5, "§7" + qty);
-        qtyLbl.setTextColor(C_GRAY);
+        LabelWidget qtyLbl = new LabelWidget(rowW - quantityWidth, 5, qty);
+        qtyLbl.setColor(tokens.textMuted());
         row.addWidget(qtyLbl);
 
         return row;
@@ -263,14 +264,16 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         ItemStackTransfer transfer = new ItemStackTransfer(ing.copy());
         SlotWidget slot = new SlotWidget(transfer, 0, 0, 0, false, false);
-        slot.setBackgroundTexture(new ColorBorderTexture(1, 0xFF2A2A2A));
+        slot.setBackgroundTexture(TerminalUI.border(tokens.borderSubtle()));
         row.addWidget(slot);
 
-        LabelWidget nameLbl = new LabelWidget(20, 4, "§7" + ing.getHoverName().getString());
-        nameLbl.setTextColor(C_GRAY);
+        LabelWidget nameLbl = new LabelWidget(20, 4,
+                fitText(ing.getHoverName().getString(), Math.max(0, rowW - 78)));
+        nameLbl.setColor(tokens.textMuted());
         row.addWidget(nameLbl);
 
-        LabelWidget qtyLbl = new LabelWidget(rowW - 24 - 30, 4, "§8× " + ing.getCount());
+        LabelWidget qtyLbl = new LabelWidget(rowW - 54, 4, "× " + ing.getCount());
+        qtyLbl.setColor(tokens.textFaint());
         row.addWidget(qtyLbl);
 
         return row;
@@ -279,15 +282,17 @@ public class AutocraftConfirmDialog extends DialogWidget {
     private WidgetGroup buildFluidSubRow(com.gtceuterminal.common.compat.RecipeReader.FluidLine fluid, int rowW, int y) {
         WidgetGroup row = new WidgetGroup(24, y, rowW - 24, 16);
 
-        ImageWidget marker = new ImageWidget(2, 3, 10, 10, new GuiTextureGroup(
-                new ColorRectTexture(0xFF1a4a8a), new ColorBorderTexture(1, 0xFF2a5acc)));
+        ImageWidget marker = new ImageWidget(2, 3, 10, 10,
+                TerminalUI.outlined(tokens.accentSoft(), tokens.border()));
         row.addWidget(marker);
 
-        LabelWidget nameLbl = new LabelWidget(20, 4, "§b" + fluid.name());
-        nameLbl.setTextColor(0xFF66CCFF);
+        LabelWidget nameLbl = new LabelWidget(20, 4,
+                fitText(fluid.name(), Math.max(0, rowW - 100)));
+        nameLbl.setColor(tokens.border());
         row.addWidget(nameLbl);
 
-        LabelWidget qtyLbl = new LabelWidget(rowW - 24 - 52, 4, "§8× " + fluid.amount() + " mB");
+        LabelWidget qtyLbl = new LabelWidget(rowW - 76, 4, "× " + fluid.amount() + " mB");
+        qtyLbl.setColor(tokens.textFaint());
         row.addWidget(qtyLbl);
 
         return row;
@@ -306,20 +311,19 @@ public class AutocraftConfirmDialog extends DialogWidget {
         int headerH = 18;
         DraggableScrollableWidgetGroup scroll = new DraggableScrollableWidgetGroup(
                 0, headerH, panelW, panelH - headerH);
-        scroll.setYScrollBarWidth(6);
-        scroll.setYBarStyle(new ColorRectTexture(C_DARK), new ColorRectTexture(colorBorder));
+        scroll.setYScrollBarWidth(0);
 
-        int y = 0;
-        for (AnalysisResult.Entry entry : result.entries) {
+        int y = 1;
+        for (AnalysisResult.Entry entry : result.entries()) {
             scroll.addWidget(buildAvailRow(entry, panelW, y));
             y += 22;
         }
 
         WidgetGroup wrapper = new WidgetGroup(0, 0, panelW, panelH);
 
-        LabelWidget hdr = new LabelWidget(6, 4, "§7" +
+        LabelWidget hdr = new LabelWidget(6, 4,
                 Component.translatable("gui.gtceuterminal.autocraft.available").getString());
-        hdr.setTextColor(C_GRAY);
+        hdr.setColor(tokens.textMuted());
         wrapper.addWidget(hdr);
         wrapper.addWidget(scroll);
         return wrapper;
@@ -333,62 +337,63 @@ public class AutocraftConfirmDialog extends DialogWidget {
 
         long have = entry.totalAvailable();
         if (entry.hasAll()) {
-            bgColor     = C_GREEN_T;
-            borderColor = C_GREEN;
-            label       = "§a" + have + " / " + entry.needed();
-        } else if (entry.craftable) {
-            bgColor     = C_ORANGE_T;
-            borderColor = C_ORANGE;
-            label       = "§6" + have + " / " + entry.needed();
+            bgColor = tokens.successSurface();
+            borderColor = tokens.success();
+            label = have + " / " + entry.needed();
+        } else if (entry.craftable()) {
+            bgColor = tokens.warningSurface();
+            borderColor = tokens.warning();
+            label = have + " / " + entry.needed();
         } else {
-            bgColor     = C_RED_T;
-            borderColor = C_RED;
-            label       = "§c" + have + " / " + entry.needed();
+            bgColor = tokens.errorSurface();
+            borderColor = tokens.error();
+            label = have + " / " + entry.needed();
         }
 
-        row.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(bgColor),
-                new ColorBorderTexture(1, borderColor)));
+        row.setBackground(TerminalUI.outlined(bgColor, borderColor));
 
         LabelWidget qty = new LabelWidget(5, 5, label);
+        qty.setColor(borderColor);
         row.addWidget(qty);
 
-        String tag = entry.hasAll() ? "have" : (entry.craftable ? "craft" : "missing");
-        String tagColor = entry.hasAll() ? "§a" : (entry.craftable ? "§6" : "§c");
-        LabelWidget tagLbl = new LabelWidget(rowW - 60, 5, tagColor + tag);
+        String tag = entry.hasAll() ? "have" : (entry.craftable() ? "craft" : "missing");
+        LabelWidget tagLbl = new LabelWidget(rowW - 60, 5, tag);
+        tagLbl.setColor(borderColor);
         row.addWidget(tagLbl);
 
         return row;
     }
 
-    private WidgetGroup buildFooter() {
-        int footerY = h - FOOTER_H - 2;
-        int innerW  = w - PAD * 2;
-        WidgetGroup footer = new WidgetGroup(PAD, footerY, innerW, FOOTER_H);
+    private WidgetGroup buildFooter(int y, int innerW) {
+        WidgetGroup footer = new WidgetGroup(AutocraftConfirmDialog.CARD_INSET, y, innerW, FOOTER_H);
+        footer.addWidget(new ImageWidget(0, 0, innerW, 1,
+                TerminalUI.divider()));
 
         int btnH = 24;
+        int btnY = (FOOTER_H - btnH) / 2;
 
         boolean hasMissing = result.anyMissing();
         int requestW = 160;
         ButtonWidget request = hasMissing
-                ? TerminalButton.disabled(0, 4, requestW, btnH,
+                ? TerminalButton.disabled(0, btnY, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString())
-                : TerminalButton.action(0, 4, requestW, btnH,
+                : TerminalButton.text3D(0, btnY, requestW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.request").getString(),
-                0xFF1a3a8a, 0xFF2a5acc, cd -> onRequest());
+                tokens.action(), cd -> onRequest());
         footer.addWidget(request);
 
         int cancelW = 110;
-        ButtonWidget cancel = TerminalButton.action(innerW - cancelW, 4, cancelW, btnH,
+        ButtonWidget cancel = TerminalButton.text3D(innerW - cancelW, btnY, cancelW, btnH,
                 Component.translatable("gui.gtceuterminal.autocraft.cancel").getString(),
-                0xFF6b3fa0, 0xFF8a55c0, cd -> close());
+                tokens.errorSurface(), cd -> close());
         footer.addWidget(cancel);
 
         if (hasMissing) {
             String missing = Component.translatable("gui.gtceuterminal.autocraft.missing_items",
                     result.missingCount()).getString();
-            LabelWidget warn = new LabelWidget(requestW + 8, 10, "§c" + missing);
-            warn.setTextColor(0xFFFF4444);
+            LabelWidget warn = new LabelWidget(requestW + 8, btnY + 6,
+                    fitText(TerminalText.strip(missing), innerW - requestW - cancelW - 24));
+            warn.setColor(tokens.error());
             footer.addWidget(warn);
         }
 
@@ -399,4 +404,5 @@ public class AutocraftConfirmDialog extends DialogWidget {
         TerminalNetwork.sendToServer(new CPacketConfirmAutobuild(result));
         close();
     }
+
 }

@@ -3,20 +3,18 @@ package com.gtceuterminal;
 import com.gtceuterminal.common.ae2.AE2Integration;
 import com.gtceuterminal.common.command.GTCETerminalCommands;
 import com.gtceuterminal.common.compat.integrations.StarTCoreIntegration;
+import com.gtceuterminal.common.compat.integrations.TFGIntegration;
+import com.gtceuterminal.common.config.ClientConfig;
+import com.gtceuterminal.common.config.ComponentPatternRegistry;
 import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.config.ServerConfig;
 import com.gtceuterminal.common.data.GTCEUTerminalItems;
 import com.gtceuterminal.common.data.GTCEUTerminalTabs;
-import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
-import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
-import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.DefaultThemeConfig;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 import com.gtceuterminal.common.util.MiscUtil;
 
-import com.lowdragmc.lowdraglib.gui.factory.UIFactory;
 
 import com.mojang.logging.LogUtils;
 
@@ -47,12 +45,7 @@ public class GTCEUTerminalMod {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         GTCEUTerminalItems.ITEMS.register(modEventBus);
-        GTCEUTerminalTabs.CREATIVE_TABS.register(modEventBus);
-
-        UIFactory.register(EnergyAnalyzerUIFactory.INSTANCE);
-        UIFactory.register(MultiStructureManagerUIFactory.INSTANCE);
-        UIFactory.register(SchematicItemUIFactory.INSTANCE);
-        UIFactory.register(DismantlerItemUIFactory.INSTANCE);
+        GTCEUTerminalTabs.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 
@@ -72,6 +65,10 @@ public class GTCEUTerminalMod {
                 ServerConfig.SPEC,
                 ServerConfig.FILE_NAME);
 
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT,
+                ClientConfig.SPEC,
+                ClientConfig.FILE_NAME);
+
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
@@ -80,6 +77,8 @@ public class GTCEUTerminalMod {
         event.enqueueWork(() -> {
             ItemsConfig.load();
 
+            ComponentPatternRegistry.initialize();
+
             ThemeBundleRegistry.init();
 
             if (MiscUtil.isAE2Loaded) {
@@ -87,6 +86,7 @@ public class GTCEUTerminalMod {
                 com.gtceuterminal.common.ae2.MENetworkCrafting.init();
             }
             StarTCoreIntegration.init();
+            TFGIntegration.init();
         });
 
     }

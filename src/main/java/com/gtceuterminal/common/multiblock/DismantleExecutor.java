@@ -1,27 +1,28 @@
 package com.gtceuterminal.common.multiblock;
 
+import com.gregtechceu.gtceu.api.cover.CoverBehavior;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.config.ItemsConfig;
-
+import com.gtceuterminal.common.pattern.PlayerFluidReservoir;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class DismantleExecutor {
 
@@ -34,6 +35,13 @@ public class DismantleExecutor {
 
         List<ItemStack> items = new ArrayList<>();
         BlockPos controllerPos = controller.getPos();
+
+        IFluidHandler me = null;
+        try {
+            me = MENetworkFluidHandlerWrapper.fromTerminal(player.getMainHandItem(), player);
+        } catch (Exception ignored) {
+        }
+        PlayerFluidReservoir fluidReservoir = new PlayerFluidReservoir(player, me);
 
         Set<BlockPos> skipPositions = new HashSet<>();
         for (BlockPos pos : scanResult.getAllBlocks()) {
@@ -51,18 +59,25 @@ public class DismantleExecutor {
             if (ItemsConfig.isDismantlerBlacklisted(bsCheck.getBlock())) continue;
             ItemStack refund = createRefundStack(level, pos);
             mergeInto(items, refund);
+            collectCovers(level, pos, items);
         }
 
         BlockState controllerBs = level.getBlockState(controllerPos);
         if (!ItemsConfig.isDismantlerBlacklisted(controllerBs.getBlock())) {
             ItemStack controllerRefund = createRefundStack(level, controllerPos);
             mergeInto(items, controllerRefund);
+            collectCovers(level, controllerPos, items);
         }
 
         for (BlockPos pos : scanResult.getAllBlocks()) {
             if (pos.equals(controllerPos)) continue;
             BlockState bsBreak = level.getBlockState(pos);
             if (ItemsConfig.isDismantlerBlacklisted(bsBreak.getBlock())) continue;
+            if (bsBreak.getFluidState().isSource()) {
+                Fluid fluid = bsBreak.getFluidState().getType();
+                int leftover = fluidReservoir.insert(new FluidStack(fluid, 1000));
+                if (leftover > 0) continue;
+            }
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         }
 
@@ -71,17 +86,16 @@ public class DismantleExecutor {
             level.setBlock(controllerPos, Blocks.AIR.defaultBlockState(), 3);
         }
 
+        ItemStack dismantler = player.getMainHandItem();
         for (ItemStack stack : items) {
-            if (!player.getInventory().add(stack)) {
-                ItemEntity itemEntity = new ItemEntity(
-                        level,
-                        player.getX(),
-                        player.getY(),
-                        player.getZ(),
-                        stack.copy()
-                );
-                level.addFreshEntity(itemEntity);
-            }
+            if (player.getInventory().add(stack)) continue;
+
+            long leftover = MENetworkItemExtractor.insertItem(dismantler, level, player, stack);
+            if (leftover <= 0) continue;
+            stack.setCount((int) leftover);
+
+            level.addFreshEntity(new ItemEntity(
+                    level, player.getX(), player.getY(), player.getZ(), stack.copy()));
         }
 
         return true;
@@ -95,62 +109,25 @@ public class DismantleExecutor {
             return ItemStack.EMPTY;
         }
 
-        ItemStack stack = new ItemStack(state.getBlock().asItem());
-        if (stack.isEmpty()) return ItemStack.EMPTY;
-
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be != null) {
-            try {
-                be.saveToItem(stack);
-
-                cleanNBTForStacking(stack);
-            } catch (Throwable ignored) {}
-        }
-        return stack;
+        return new ItemStack(state.getBlock().asItem());
     }
 
-    private static void cleanNBTForStacking(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return;
+    private static void collectCovers(ServerLevel level, BlockPos pos, List<ItemStack> out) {
+        MetaMachine machine = MetaMachine.getMachine(level, pos);
+        if (machine == null) return;
 
-        CompoundTag blockEntityTag = tag.getCompound("BlockEntityTag");
-        if (blockEntityTag.isEmpty()) return;
+        var covers = machine.getCoverContainer();
+        for (Direction side : Direction.values()) {
+            CoverBehavior cover = covers.getCoverAtSide(side);
+            if (cover == null) continue;
 
-        CompoundTag cleanTag = new CompoundTag();
+            for (ItemStack drop : cover.getAdditionalDrops()) {
+                mergeInto(out, drop);
+            }
+            mergeInto(out, cover.getPickItem());
 
-        if (blockEntityTag.contains("CoverContainer")) {
-            cleanTag.put("CoverContainer", blockEntityTag.get("CoverContainer").copy());
-        }
-        if (blockEntityTag.contains("Covers")) {
-            cleanTag.put("Covers", blockEntityTag.get("Covers").copy());
-        }
-
-        if (blockEntityTag.contains("Upgrades")) {
-            cleanTag.put("Upgrades", blockEntityTag.get("Upgrades").copy());
-        }
-
-        if (blockEntityTag.contains("WorkingEnabled")) {
-            cleanTag.putBoolean("WorkingEnabled", blockEntityTag.getBoolean("WorkingEnabled"));
-        }
-
-        if (blockEntityTag.contains("Tier")) {
-            cleanTag.putInt("Tier", blockEntityTag.getInt("Tier"));
-        }
-        if (blockEntityTag.contains("Material")) {
-            cleanTag.putString("Material", blockEntityTag.getString("Material"));
-        }
-
-        if (blockEntityTag.contains("CustomName")) {
-            cleanTag.putString("CustomName", blockEntityTag.getString("CustomName"));
-        }
-
-        if (!cleanTag.isEmpty()) {
-            tag.put("BlockEntityTag", cleanTag);
-        } else {
-            tag.remove("BlockEntityTag");
-        }
-        if (tag.isEmpty()) {
-            stack.setTag(null);
+            cover.onRemoved();
+            covers.setCoverAtSide(null, side);
         }
     }
 

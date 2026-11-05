@@ -2,44 +2,40 @@ package com.gtceuterminal.common.command;
 
 import com.gtceuterminal.common.theme.DefaultThemeConfig;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * Registers /gtcet commands.
- *
+ * <p>
  * Usage:
- *   /gtcet theme set-default       — saves the admin's current item theme as the server default
- *   /gtcet theme reset-default     — resets default_theme.json to built-in values
- *   /gtcet theme reload            — reloads default_theme.json from disk
- *   /gtcet theme info              — shows current default theme colors
+ * /gtcet theme set-default       — saves the admin's current item theme as the server default
+ * /gtcet theme reset-default     — resets default_theme.json to built-in values
+ * /gtcet theme reload            — reloads default_theme.json from disk
+ * /gtcet theme info              — shows current default theme colors
  */
 public class GTCETerminalCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-            Commands.literal("gtcet")
-                .then(Commands.literal("theme")
-                    .requires(src -> src.hasPermission(2))
-                    .then(Commands.literal("set-default")
-                        .executes(GTCETerminalCommands::setDefault))
-                    .then(Commands.literal("reset-default")
-                        .executes(GTCETerminalCommands::resetDefault))
-                    .then(Commands.literal("reload")
-                        .executes(GTCETerminalCommands::reloadConfig))
-                    .then(Commands.literal("info")
-                        .executes(GTCETerminalCommands::showInfo))
-                )
+                Commands.literal("gtcet")
+                        .then(Commands.literal("theme")
+                                .requires(src -> src.hasPermission(2))
+                                .then(Commands.literal("set-default")
+                                        .executes(GTCETerminalCommands::setDefault))
+                                .then(Commands.literal("reset-default")
+                                        .executes(GTCETerminalCommands::resetDefault))
+                                .then(Commands.literal("reload")
+                                        .executes(GTCETerminalCommands::reloadConfig))
+                                .then(Commands.literal("info")
+                                        .executes(GTCETerminalCommands::showInfo))
+                        )
         );
     }
 
@@ -85,7 +81,7 @@ public class GTCETerminalCommands {
     private static int reloadConfig(CommandContext<CommandSourceStack> ctx) {
         DefaultThemeConfig.reload();
         ctx.getSource().sendSuccess(() ->
-            Component.translatable("command.gtceuterminal.theme.reload.success"), true);
+                Component.translatable("command.gtceuterminal.theme.reload.success"), true);
         return 1;
     }
 

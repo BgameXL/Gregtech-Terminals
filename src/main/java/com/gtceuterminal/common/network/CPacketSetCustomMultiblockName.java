@@ -54,12 +54,18 @@ public class CPacketSetCustomMultiblockName {
             ItemStack stack = null;
             for (InteractionHand h : InteractionHand.values()) {
                 ItemStack s = player.getItemInHand(h);
-                if (!s.isEmpty() && s.getItem() instanceof MultiStructureManagerItem) { stack = s; break; }
+                if (!s.isEmpty() && s.getItem() instanceof MultiStructureManagerItem) {
+                    stack = s;
+                    break;
+                }
             }
             if (stack == null) {
                 for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                     ItemStack s = player.getInventory().getItem(i);
-                    if (!s.isEmpty() && s.getItem() instanceof MultiStructureManagerItem) { stack = s; break; }
+                    if (!s.isEmpty() && s.getItem() instanceof MultiStructureManagerItem) {
+                        stack = s;
+                        break;
+                    }
                 }
             }
             if (stack == null || stack.isEmpty()) {

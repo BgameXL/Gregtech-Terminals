@@ -18,12 +18,12 @@ import java.nio.file.Paths;
 
 public class DefaultThemeConfig {
 
-    private static final Gson   GSON        = new GsonBuilder().setPrettyPrinting().create();
-    private static final String CONFIG_DIR  = "config/gtceuterminal";
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String CONFIG_DIR = "config/gtceuterminal";
     private static final String CONFIG_FILE = "default_theme.json";
 
     private static ItemTheme cached = null;
-    private static boolean   loaded = false;
+    private static boolean loaded = false;
 
     public static ItemTheme get() {
         if (!loaded) load();
@@ -42,8 +42,8 @@ public class DefaultThemeConfig {
         loaded = true;
         GTCEUTerminalMod.LOGGER.info("DefaultThemeConfig: received from server, accent=#{} bg=#{} panel=#{}",
                 Integer.toHexString(theme.accentColor & 0xFFFFFF).toUpperCase(),
-                Integer.toHexString(theme.bgColor     & 0xFFFFFF).toUpperCase(),
-                Integer.toHexString(theme.panelColor  & 0xFFFFFF).toUpperCase());
+                Integer.toHexString(theme.bgColor & 0xFFFFFF).toUpperCase(),
+                Integer.toHexString(theme.panelColor & 0xFFFFFF).toUpperCase());
     }
 
     public static void sendToPlayer(net.minecraft.server.level.ServerPlayer player) {
@@ -66,6 +66,7 @@ public class DefaultThemeConfig {
             String json = Files.readString(file);
             JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
             cached = fromJson(obj);
+            if (needsSemanticColorMigration(obj)) save(cached);
             GTCEUTerminalMod.LOGGER.info("DefaultThemeConfig: loaded from {}", file);
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.warn(
@@ -97,17 +98,21 @@ public class DefaultThemeConfig {
 
     private static JsonObject toJson(ItemTheme t) {
         JsonObject o = new JsonObject();
-        o.addProperty("accentColor",  colorToHex(t.accentColor));
-        o.addProperty("bgColor",      colorToHex(t.bgColor));
-        o.addProperty("panelColor",   colorToHex(t.panelColor));
-        o.addProperty("textColor",    colorToHex(t.textColor));
-        o.addProperty("compactMode",  t.compactMode);
+        o.addProperty("accentColor", colorToHex(t.accentColor));
+        o.addProperty("bgColor", colorToHex(t.bgColor));
+        o.addProperty("panelColor", colorToHex(t.panelColor));
+        o.addProperty("textColor", colorToHex(t.textColor));
+        o.addProperty("textMutedColor", colorToHex(t.textMutedColor));
+        o.addProperty("borderColor", colorToHex(t.borderColor));
+        o.addProperty("successColor", colorToHex(t.successColor));
+        o.addProperty("warningColor", colorToHex(t.warningColor));
+        o.addProperty("errorColor", colorToHex(t.errorColor));
+        o.addProperty("compactMode", t.compactMode);
         o.addProperty("showTooltips", t.showTooltips);
-        o.addProperty("showBorders",  t.showBorders);
-        o.addProperty("wallpaper",    t.wallpaper != null ? t.wallpaper : "");
-        o.addProperty("uiStyle",      t.uiStyle != null ? t.uiStyle.name() : ItemTheme.UiStyle.DARK.name());
-        o.addProperty("bundleId",     t.bundleId != null ? t.bundleId : "");
-        o.addProperty("paradeMode",   t.paradeMode != null ? t.paradeMode.name() : ItemTheme.ParadeMode.NONE.name());
+        o.addProperty("showBorders", t.showBorders);
+        o.addProperty("wallpaper", t.wallpaper != null ? t.wallpaper : "");
+        o.addProperty("uiStyle", t.uiStyle != null ? t.uiStyle.name() : ItemTheme.UiStyle.DARK.name());
+        o.addProperty("bundleId", t.bundleId != null ? t.bundleId : "");
         o.addProperty("slideshowMode", t.slideshowMode);
         o.addProperty("slideshowSource", t.slideshowSource != null ? t.slideshowSource.name() : ItemTheme.SlideshowSource.BUILTIN.name());
         return o;
@@ -115,29 +120,41 @@ public class DefaultThemeConfig {
 
     private static ItemTheme fromJson(JsonObject o) {
         ItemTheme t = new ItemTheme();
-        if (o.has("accentColor"))  t.accentColor  = hexToColor(o.get("accentColor").getAsString());
-        if (o.has("bgColor"))      t.bgColor       = hexToColor(o.get("bgColor").getAsString());
-        if (o.has("panelColor"))   t.panelColor    = hexToColor(o.get("panelColor").getAsString());
-        if (o.has("textColor"))    t.textColor     = hexToColor(o.get("textColor").getAsString());
-        if (o.has("compactMode"))  t.compactMode   = o.get("compactMode").getAsBoolean();
-        if (o.has("showTooltips")) t.showTooltips  = o.get("showTooltips").getAsBoolean();
-        if (o.has("showBorders"))  t.showBorders   = o.get("showBorders").getAsBoolean();
-        if (o.has("wallpaper"))    t.wallpaper     = o.get("wallpaper").getAsString();
-        if (o.has("bundleId"))     t.bundleId      = o.get("bundleId").getAsString();
+        if (o.has("accentColor")) t.accentColor = hexToColor(o.get("accentColor").getAsString());
+        if (o.has("bgColor")) t.bgColor = hexToColor(o.get("bgColor").getAsString());
+        if (o.has("panelColor")) t.panelColor = hexToColor(o.get("panelColor").getAsString());
+        if (o.has("textColor")) t.textColor = hexToColor(o.get("textColor").getAsString());
+        if (o.has("textMutedColor")) t.textMutedColor = hexToColor(o.get("textMutedColor").getAsString());
+        if (o.has("borderColor")) t.borderColor = hexToColor(o.get("borderColor").getAsString());
+        if (o.has("successColor")) t.successColor = hexToColor(o.get("successColor").getAsString());
+        if (o.has("warningColor")) t.warningColor = hexToColor(o.get("warningColor").getAsString());
+        if (o.has("errorColor")) t.errorColor = hexToColor(o.get("errorColor").getAsString());
+        if (o.has("compactMode")) t.compactMode = o.get("compactMode").getAsBoolean();
+        if (o.has("showTooltips")) t.showTooltips = o.get("showTooltips").getAsBoolean();
+        if (o.has("showBorders")) t.showBorders = o.get("showBorders").getAsBoolean();
+        if (o.has("wallpaper")) t.wallpaper = o.get("wallpaper").getAsString();
+        if (o.has("bundleId")) t.bundleId = o.get("bundleId").getAsString();
         if (o.has("uiStyle")) {
-            try { t.uiStyle = ItemTheme.UiStyle.valueOf(o.get("uiStyle").getAsString()); }
-            catch (IllegalArgumentException ignored) { t.uiStyle = ItemTheme.UiStyle.DARK; }
-        }
-        if (o.has("paradeMode")) {
-            try { t.paradeMode = ItemTheme.ParadeMode.valueOf(o.get("paradeMode").getAsString()); }
-            catch (IllegalArgumentException ignored) { t.paradeMode = ItemTheme.ParadeMode.NONE; }
+            try {
+                t.uiStyle = ItemTheme.UiStyle.valueOf(o.get("uiStyle").getAsString());
+            } catch (IllegalArgumentException ignored) {
+                t.uiStyle = ItemTheme.UiStyle.DARK;
+            }
         }
         if (o.has("slideshowMode")) t.slideshowMode = o.get("slideshowMode").getAsBoolean();
         if (o.has("slideshowSource")) {
-            try { t.slideshowSource = ItemTheme.SlideshowSource.valueOf(o.get("slideshowSource").getAsString()); }
-            catch (IllegalArgumentException ignored) { t.slideshowSource = ItemTheme.SlideshowSource.BUILTIN; }
+            try {
+                t.slideshowSource = ItemTheme.SlideshowSource.valueOf(o.get("slideshowSource").getAsString());
+            } catch (IllegalArgumentException ignored) {
+                t.slideshowSource = ItemTheme.SlideshowSource.BUILTIN;
+            }
         }
         return t;
+    }
+
+    private static boolean needsSemanticColorMigration(JsonObject o) {
+        return !o.has("textMutedColor") || !o.has("borderColor") || !o.has("successColor")
+                || !o.has("warningColor") || !o.has("errorColor");
     }
 
     private static String colorToHex(int argb) {

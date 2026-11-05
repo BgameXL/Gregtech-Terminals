@@ -8,27 +8,19 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class MultiblockMachineReflection {
 
-    private MultiblockMachineReflection() {}
+    private static final String MWSD_CLASS = "com.gregtechceu.gtceu.api.pattern.MultiblockWorldSavedData";
+    private static final String STATE_CLASS = "com.gregtechceu.gtceu.api.pattern.MultiblockState";
+    private static final String CONTROLLER_CLASS = "com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController";
+
+    private MultiblockMachineReflection() {
+    }
 
     public static void refreshController(ServerLevel level, BlockPos controllerPos) {
         if (level == null || controllerPos == null) return;
+
         BlockEntity be = level.getBlockEntity(controllerPos);
-        if (be != null) {
-            try {
-                Object mm = getMetaMachine(be);
-                if (mm != null) {
-                    Object lock = acquirePatternLock(mm);
-                    try {
-                        invalidateStructure(mm);
-                        checkAndRecheckPattern(mm);
-                        return;
-                    } finally {
-                        releasePatternLock(lock);
-                    }
-                }
-            } catch (Exception e) {
-                GTCEUTerminalMod.LOGGER.error("MultiblockMachineReflection: refreshController failed at {}", controllerPos, e);
-            }
+        if (be != null && markStructureDirty(getMetaMachine(be), level)) {
+            return;
         }
 
         var state = level.getBlockState(controllerPos);
@@ -37,7 +29,7 @@ public final class MultiblockMachineReflection {
         level.blockUpdated(controllerPos, state.getBlock());
     }
 
-    public static Object getMetaMachine(BlockEntity be) {
+    private static Object getMetaMachine(BlockEntity be) {
         try {
             return be.getClass().getMethod("getMetaMachine").invoke(be);
         } catch (Throwable t) {
@@ -46,57 +38,20 @@ public final class MultiblockMachineReflection {
         }
     }
 
-    public static Object acquirePatternLock(Object machine) {
+    private static boolean markStructureDirty(Object machine, ServerLevel level) {
+        if (machine == null) return false;
         try {
-            var getLock = machine.getClass().getMethod("getPatternLock");
-            Object lock = getLock.invoke(machine);
-            if (lock != null) lock.getClass().getMethod("lock").invoke(lock);
-            return lock;
+            Object state = machine.getClass().getMethod("getMultiblockState").invoke(machine);
+            machine.getClass().getMethod("onStructureInvalid").invoke(machine);
+
+            Class<?> mwsdClass = Class.forName(MWSD_CLASS);
+            Object mwsd = mwsdClass.getMethod("getOrCreate", ServerLevel.class).invoke(null, level);
+            mwsdClass.getMethod("removeMapping", Class.forName(STATE_CLASS)).invoke(mwsd, state);
+            mwsdClass.getMethod("addAsyncLogic", Class.forName(CONTROLLER_CLASS)).invoke(mwsd, machine);
+            return true;
         } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: acquirePatternLock failed", t);
-            return null;
+            GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: markStructureDirty failed", t);
+            return false;
         }
     }
-
-    public static void releasePatternLock(Object lock) {
-        if (lock == null) return;
-        try { lock.getClass().getMethod("unlock").invoke(lock); }
-        catch (Throwable t) { GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: releasePatternLock failed", t); }
-    }
-
-    public static void invalidateStructure(Object machine) {
-        try { machine.getClass().getMethod("invalidateStructure").invoke(machine); }
-        catch (Throwable t) { GTCEUTerminalMod.LOGGER.debug("MultiblockMachineReflection: invalidateStructure failed", t); }
-    }
-
-    public static boolean checkAndRecheckPattern(Object machine) {
-        try {
-            Object r = machine.getClass().getMethod("checkStructurePattern").invoke(machine);
-            if (Boolean.TRUE.equals(r)) { notifyFormed(machine); return true; }
-        } catch (Throwable ignored) {}
-
-        try {
-            Object r = machine.getClass().getMethod("checkPattern").invoke(machine);
-            if (Boolean.TRUE.equals(r)) { notifyFormed(machine); return true; }
-        } catch (Throwable ignored) {}
-
-        notifyInvalid(machine);
-        return false;
-    }
-
-    private static void notifyFormed(Object machine) {
-        for (String name : new String[]{"onStructureFormed"}) {
-            try { machine.getClass().getMethod(name).invoke(machine); return; }
-            catch (Throwable ignored) {}
-        }
-    }
-
-    private static void notifyInvalid(Object machine) {
-        for (String name : new String[]{"onStructureInvalid", "onStructureInvalidated"}) {
-            try { machine.getClass().getMethod(name).invoke(machine); return; }
-            catch (Throwable ignored) {}
-        }
-    }
-
-
 }

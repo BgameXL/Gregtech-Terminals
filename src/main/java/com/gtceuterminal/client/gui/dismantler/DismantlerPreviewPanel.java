@@ -1,22 +1,21 @@
 package com.gtceuterminal.client.gui.dismantler;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalText;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.SchematicPreviewWidget;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.multiblock.DismantleScanner;
-
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -26,37 +25,39 @@ import java.util.Map;
 @OnlyIn(Dist.CLIENT)
 final class DismantlerPreviewPanel {
 
-    private DismantlerPreviewPanel() {}
+    private DismantlerPreviewPanel() {
+    }
 
     static WidgetGroup build(
             int x, int y, int w, int h,
-            int colorBgLight,
-            int colorBorderDark,
             DismantleScanner.ScanResult scanResult,
             BlockPos controllerPos,
             Player player
     ) {
+        TerminalTheme tokens = TerminalUI.tokens();
         WidgetGroup panel = new WidgetGroup(x, y, w, h);
-        panel.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(colorBgLight),
-                new ColorBorderTexture(1, colorBorderDark)));
+        panel.setBackground(TerminalUI.surface());
 
-        LabelWidget label = new LabelWidget(6, 5,
-                Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString());
-        label.setTextColor(0xFFAAAAAA);
+        LabelWidget label = new LabelWidget(8, 7, TerminalText.strip(
+                Component.translatable("gui.gtceuterminal.dismantler.preview_label").getString()));
+        label.setColor(tokens.textMuted());
         panel.addWidget(label);
 
         if (scanResult != null && scanResult.getTotalBlocks() > 0) {
             SchematicData previewData = buildSchematic(scanResult, controllerPos, player);
-            if (previewData != null && !previewData.getBlocks().isEmpty()) {
-                panel.addWidget(new SchematicPreviewWidget(6, 20, w - 12, h - 26, previewData));
+            if (previewData != null && !previewData.blocks().isEmpty()) {
+                SchematicPreviewWidget preview = new SchematicPreviewWidget(4, 22, w - 8, h - 26, previewData);
+                preview.setBackground(TerminalUI.panelDisabled());
+                panel.addWidget(preview);
                 return panel;
             }
         }
 
-        LabelWidget noData = new LabelWidget(w / 2 - 30, h / 2,
+        String noDataText = TerminalText.strip(
                 Component.translatable("gui.gtceuterminal.dismantler.no_data").getString());
-        noData.setTextColor(0xFFFF4444);
+        LabelWidget noData = new LabelWidget(
+                (w - Minecraft.getInstance().font.width(noDataText)) / 2, h / 2, noDataText);
+        noData.setColor(tokens.error());
         panel.addWidget(noData);
 
         return panel;
@@ -79,8 +80,9 @@ final class DismantlerPreviewPanel {
                 blocks.put(rel, state);
                 BlockEntity be = level.getBlockEntity(worldPos);
                 if (be != null) {
-                    try { blockEntities.put(rel, be.saveWithFullMetadata()); }
-                    catch (RuntimeException e) {
+                    try {
+                        blockEntities.put(rel, be.saveWithFullMetadata());
+                    } catch (RuntimeException e) {
                         GTCEUTerminalMod.LOGGER.debug(
                                 "DismantlerPreviewPanel: could not serialize BE at {}: {}", worldPos, e.getMessage());
                     }
@@ -92,4 +94,5 @@ final class DismantlerPreviewPanel {
             return null;
         }
     }
+
 }

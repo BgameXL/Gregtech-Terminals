@@ -1,406 +1,502 @@
 package com.gtceuterminal.client.gui.schematic;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalText;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
-import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
+import com.gtceuterminal.common.gui.factory.SchematicItemUIFactory;
 import com.gtceuterminal.common.network.CPacketSchematicAction;
 import com.gtceuterminal.common.network.TerminalNetwork;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.lowdragmc.lowdraglib.utils.Size;
-
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class SchematicInterfaceUI {
 
-    private static final int GUI_W    = 600;
-    private static final int GUI_H    = 480;
-    private static final int HEADER_H = 34;
-    private static final int LEFT_W   = 202;
-    private static final int DIVIDER  = 1;
-
-    private static final int BODY_Y   = HEADER_H;
-    private static final int BODY_H   = GUI_H - HEADER_H;
-    private static final int RIGHT_X  = LEFT_W + DIVIDER;
-    private static final int RIGHT_W  = GUI_W - RIGHT_X;
-
-    private static final int C_BORDER_DARK = 0xFF0A0A0A;
-    private static final int C_TEXT_WHITE  = 0xFFFFFFFF;
-    private static final int C_TEXT_GRAY   = 0xFFAAAAAA;
-    private static final int C_HOVER       = 0x40FFFFFF;
-    private static final int C_SUCCESS     = 0xFF4CAF50;
-    private static final int C_INFO        = 0xFF42A5F5;
-    private  static final  int C_DELETE    = 0xFFE53935;
-    private static final  int C_EXPORT     = 0xFF9C27B0;
-    private static final  int C_IMPORT     = 0xFF54927;
-    private static final int C_ERROR       = 0xFFFF5252;
+    private static final int GUI_W = 660;
+    private static final int GUI_H = 480;
+    private static final int HEADER_H = 30;
+    private static final int BODY_Y = HEADER_H + 1;
+    private static final int BODY_H = GUI_H - BODY_Y - 2;
+    private static final int CARD_INSET = 2;
+    private static final int LEFT_W = 190;
+    private static final int TOOLS_W = 120;
+    private static final int CLIP_H = 38;
+    private static final int DIVIDER = 1;
+    private static final int BODY_W = GUI_W - 4;
+    private static final int INNER_H = BODY_H - CARD_INSET * 2;
 
     private final IUIHolder uiHolder;
     private final ItemStack terminalItem;
-    private final Player    player;
+    private final Player player;
     private final ItemTheme theme;
-    private final int colorBorderLight;
+    private final TerminalTheme tokens;
 
     private List<SchematicData> schematics = new ArrayList<>();
     private int selectedIndex = -1;
-
+    private View activeView = View.SCHEMATIC;
     private ModularUI gui;
     private WidgetGroup mainGroup;
-    private WidgetGroup rightPanel;
     private WidgetGroup bodyGroup;
+    private WidgetGroup previewArea;
     private TextFieldWidget nameInput;
     private DraggableScrollableWidgetGroup schematicsScroll;
-
+    private SchematicData clipboard;
+    private ButtonWidget saveEnabledBtn;
+    private ButtonWidget saveDisabledBtn;
+    private ButtonWidget clearBtn;
+    private LabelWidget clipboardIndicator;
     public SchematicInterfaceUI(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        this.uiHolder     = heldHolder;
+        this.uiHolder = heldHolder;
         this.terminalItem = heldHolder.held;
-        this.player       = heldHolder.player;
-        this.theme        = ItemTheme.load(terminalItem);
-        this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        this.player = heldHolder.player;
+        this.theme = ItemTheme.load(terminalItem);
+        TerminalUI.use(theme);
+        this.tokens = TerminalUI.tokens();
         loadSchematics();
     }
 
     public SchematicInterfaceUI(SchematicItemUIFactory.Holder holder, Player player) {
-        this.uiHolder     = holder;
+        this.uiHolder = holder;
         this.terminalItem = holder.getTerminalItem();
-        this.player       = player;
-        this.theme        = ItemTheme.load(terminalItem);
-        this.colorBorderLight = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
+        this.player = player;
+        this.theme = ItemTheme.load(terminalItem);
+        TerminalUI.use(theme);
+        this.tokens = TerminalUI.tokens();
         loadSchematics();
+    }
+
+    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {
+        return new SchematicInterfaceUI(heldHolder).createUI();
+    }
+
+    public static ModularUI create(SchematicItemUIFactory.Holder holder, Player player) {
+        return new SchematicInterfaceUI(holder, player).createUI();
     }
 
     private void loadSchematics() {
         schematics = new ArrayList<>();
         CompoundTag tag = terminalItem.getTag();
-        if (tag != null && tag.contains("SavedSchematics")) {
-            ListTag list = tag.getList("SavedSchematics", 10);
-            for (int i = 0; i < list.size(); i++) {
-                SchematicData data = SchematicData.fromNBT(list.getCompound(i), player.level().registryAccess());
-                if (!"Clipboard".equals(data.getName())) schematics.add(data);
+        ListTag list = SchematicStorage.getSaved(tag);
+        for (int i = 0; i < list.size(); i++) {
+            SchematicData data = SchematicData.fromNBT(list.getCompound(i), player.level().registryAccess());
+            if (!"Clipboard".equals(data.name())) schematics.add(data);
+        }
+
+        this.clipboard = null;
+        CompoundTag clipTag = SchematicStorage.getClipboard(tag);
+        if (clipTag != null) {
+            try {
+                SchematicData clip = SchematicData.fromNBT(clipTag, player.level().registryAccess());
+                if (!clip.blocks().isEmpty()) this.clipboard = clip;
+            } catch (Exception e) {
+                GTCEUTerminalMod.LOGGER.debug("Failed to read clipboard schematic: {}", e.getMessage());
             }
         }
-        if (!schematics.isEmpty() && selectedIndex < 0) selectedIndex = 0;
-        GTCEUTerminalMod.LOGGER.info("Loaded {} schematics", schematics.size());
+        GTCEUTerminalMod.LOGGER.debug("Loaded {} schematics", schematics.size());
     }
 
     public ModularUI createUI() {
         this.mainGroup = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        mainGroup.setBackground(new ColorRectTexture(0x00000000));
-
-        if (!theme.isNativeStyle()) {
-            mainGroup.addWidget(new WallpaperWidget(0, 0, GUI_W, GUI_H, () -> this.theme));
-        }
-
-        mainGroup.addWidget(buildHeader());
-        mainGroup.addWidget(buildBody());
-        mainGroup.addWidget(buildOuterBorder());
-
-        setupParade();
+        mainGroup.setBackground(TerminalUI.transparent());
         this.gui = buildModularUI(mainGroup);
+        rebuildContent();
         return gui;
     }
 
-    private WidgetGroup buildOuterBorder() {
-        WidgetGroup g = new WidgetGroup(0, 0, GUI_W, GUI_H);
-        g.addWidget(new ImageWidget(0,         0,          GUI_W, 2,     new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(0,         0,          2,     GUI_H, new ColorRectTexture(colorBorderLight)));
-        g.addWidget(new ImageWidget(GUI_W - 2, 0,          2,     GUI_H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0,         GUI_H - 2,  GUI_W, 2,     new ColorRectTexture(C_BORDER_DARK)));
-        return g;
+    private void rebuildContent() {
+        if (mainGroup == null) return;
+        mainGroup.clearAllWidgets();
+
+        if (!theme.isNativeStyle()) {
+            mainGroup.addWidget(new WallpaperWidget(2, BODY_Y, BODY_W, BODY_H, () -> this.theme));
+        }
+
+        mainGroup.addWidget(buildHeader());
+        mainGroup.addWidget(activeView == View.SCHEMATIC ? buildBody() : buildBlueprintBody());
+    }
+
+    private void switchView(View view) {
+        if (view == activeView || mainGroup == null) return;
+        activeView = view;
+        rebuildContent();
+    }
+
+    private WidgetGroup buildBlueprintBody() {
+        WidgetGroup body = new WidgetGroup(2, BODY_Y, BODY_W, BODY_H);
+        body.setBackground(TerminalUI.cardBG());
+        this.bodyGroup = body;
+        this.schematicsScroll = null;
+        this.previewArea = null;
+
+        String msg = Component.translatable("gui.gtceuterminal.schematic_interface.blueprint.coming_soon").getString();
+        int tw = Minecraft.getInstance().font.width(msg);
+        LabelWidget label = new LabelWidget((BODY_W - tw) / 2, BODY_H / 2 - 4, msg);
+        label.setColor(tokens.textMuted());
+        body.addWidget(label);
+        return body;
     }
 
     private WidgetGroup buildHeader() {
-        WidgetGroup header = new WidgetGroup(0, 0, GUI_W, HEADER_H);
-        header.setBackground(theme.headerTexture());
+        WidgetGroup header = new WidgetGroup(0, 0, GUI_W, HEADER_H + 2);
 
-        int titleX = 12;
-        int iconSize = 20, iconY = (HEADER_H - iconSize) / 2;
-        if (theme.isBundleStyle()) {
-            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null) {
-                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
-                if (bundleIcon != null) {
-                    header.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
-                    titleX += iconSize + 4;
-                }
-            }
-        } else {
-            header.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, terminalItem,
-                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
-                    colorBorderLight));
-            titleX += iconSize + 6;
-        }
+        int tabY = 2;
+        int iconSize = 18;
+        int x = 2;
+        int gap = 4;
 
-        LabelWidget title = new LabelWidget(titleX, 11,
-                Component.translatable("gui.gtceuterminal.schematic_interface.title").getString());
-        title.setTextColor(theme.isBundleStyle() ? theme.labelColor() : C_TEXT_WHITE);
-        header.addWidget(title);
+        int schW = 172;
+        WidgetGroup schTab = TerminalTabs.tabCard(x, tabY, schW, HEADER_H,
+                activeView == View.SCHEMATIC, cd -> switchView(View.SCHEMATIC));
+        schTab.addWidget(HeaderItemIcon.build(8, (HEADER_H - iconSize) / 2, iconSize, terminalItem,
+                tokens.panelDisabled(), tokens.border()));
+        LabelWidget schLabel = new LabelWidget(8 + iconSize + 6, (HEADER_H - 8) / 2,
+                Component.translatable("item.gtceuterminal.schematic_interface").getString());
+        schLabel.setColor(tokens.textStrong());
+        schTab.addWidget(schLabel);
+        header.addWidget(schTab);
+        x += schW + gap;
 
-        int btnY = (HEADER_H - 16) / 2;
+        int bpW = 96;
+        WidgetGroup bpTab = TerminalTabs.tabCard(x, tabY, bpW, HEADER_H,
+                activeView == View.BLUEPRINT, cd -> switchView(View.BLUEPRINT));
+        LabelWidget bpLabel = new LabelWidget(10, (HEADER_H - 8) / 2,
+                Component.translatable("gui.gtceuterminal.schematic_interface.tab.blueprint").getString());
+        bpLabel.setColor(tokens.textStrong());
+        bpTab.addWidget(bpLabel);
+        header.addWidget(bpTab);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(GUI_W - 38, btnY, 14, "config",
-                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)));
-        gearBtn.setHoverTooltips(
-                Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        header.addWidget(gearBtn);
-
-        ButtonWidget closeBtn = new ButtonWidget(GUI_W - 20, btnY, 14, 14,
-                new GuiTextureGroup(new ColorRectTexture(theme.panelColor), new ColorBorderTexture(1, colorBorderLight)),
-                cd -> gui.entityPlayer.closeContainer());
-        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
-        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0x66AA0000), new ColorBorderTexture(1, C_TEXT_WHITE),
-                TerminalButton.iconTex("close")));
-        header.addWidget(closeBtn);
+        header.addWidget(TerminalTabs.actionCard(GUI_W - 2 - TerminalTabs.ACTION_CARD_W, tabY, HEADER_H,
+                cd -> ThemeEditorDialog.open(mainGroup, ItemTheme.load(terminalItem)),
+                cd -> gui.entityPlayer.closeContainer()));
 
         return header;
     }
 
     private WidgetGroup buildBody() {
-        WidgetGroup body = new WidgetGroup(0, BODY_Y, GUI_W, BODY_H);
+        WidgetGroup body = new WidgetGroup(2, BODY_Y, BODY_W, BODY_H);
+        body.setBackground(TerminalUI.cardBG());
         this.bodyGroup = body;
 
-        // Left list panel
+        int innerW = BODY_W - CARD_INSET * 2;
+        int topH = INNER_H - CLIP_H - DIVIDER;
+        int previewW = innerW - LEFT_W - TOOLS_W - DIVIDER * 2;
+        int previewX = CARD_INSET + LEFT_W + DIVIDER;
+        int toolsX = previewX + previewW + DIVIDER;
+
         DraggableScrollableWidgetGroup[] scrollRef = new DraggableScrollableWidgetGroup[1];
         WidgetGroup leftPanel = SchematicListPanel.build(
-                0, 0, LEFT_W, BODY_H, 0,
-                C_BORDER_DARK, colorBorderLight, C_TEXT_GRAY,
-                theme, selectedIndex, schematics,
-                this::onSelect, null, scrollRef);
+                CARD_INSET, CARD_INSET, LEFT_W, topH,
+                selectedIndex, schematics, this::onSelect, scrollRef);
         this.schematicsScroll = scrollRef[0];
         body.addWidget(leftPanel);
 
-        // Divider
-        body.addWidget(new ImageWidget(LEFT_W, 0, DIVIDER, BODY_H,
-                new ColorRectTexture(0xFF2A2A2A)));
+        body.addWidget(new ImageWidget(CARD_INSET + LEFT_W, CARD_INSET, DIVIDER, topH,
+                TerminalUI.divider()));
 
-        // Right preview + actions
-        this.rightPanel = buildRightPanel();
-        body.addWidget(rightPanel);
+        WidgetGroup preview = new WidgetGroup(previewX, CARD_INSET, previewW, topH);
+        preview.setBackground(TerminalUI.surface());
+        this.previewArea = preview;
+        refreshPreview();
+        body.addWidget(preview);
+
+        body.addWidget(new ImageWidget(toolsX - DIVIDER, CARD_INSET, DIVIDER, topH,
+                TerminalUI.divider()));
+
+        body.addWidget(buildToolsColumn(toolsX, CARD_INSET, TOOLS_W, topH));
+
+        int clipY = CARD_INSET + topH + DIVIDER;
+        body.addWidget(new ImageWidget(CARD_INSET, clipY - DIVIDER, innerW, DIVIDER,
+                TerminalUI.divider()));
+        body.addWidget(buildClipboardBar(CARD_INSET, clipY, innerW, CLIP_H));
 
         return body;
     }
 
-    private WidgetGroup buildRightPanel() {
-        WidgetGroup panel = new WidgetGroup(RIGHT_X, 0, RIGHT_W, BODY_H);
-        panel.setBackground(new ColorRectTexture(0xFF111111));
+    private WidgetGroup buildToolsColumn(int x, int y, int w, int h) {
+        WidgetGroup col = new WidgetGroup(x, y, w, h);
+        col.setBackground(TerminalUI.panel());
 
-        int actionsH = 72;
-        int previewH = BODY_H - actionsH - 1;
+        int pad = 8;
+        LabelWidget title = new LabelWidget(pad, 8, TerminalText.strip(Component.translatable(
+                "gui.gtceuterminal.schematic_interface.tools_label").getString()));
+        title.setColor(tokens.textMuted());
+        col.addWidget(title);
 
-        // 3D Preview area
-        WidgetGroup previewArea = new WidgetGroup(0, 0, RIGHT_W, previewH);
-        previewArea.setBackground(new ColorRectTexture(0xFF111111));
-        populatePreview(previewArea, previewH);
-        panel.addWidget(previewArea);
+        int bx = pad, bw = w - pad * 2, btnH = 22, gap = 6, by = 24;
 
-        // Divider
-        panel.addWidget(new ImageWidget(0, previewH, RIGHT_W, 1, new ColorRectTexture(0xFF2A2A2A)));
-
-        // Actions area
-        WidgetGroup actions = new WidgetGroup(0, previewH + 1, RIGHT_W, actionsH - 1);
-        actions.setBackground(new ColorRectTexture(0xFF1A1A1A));
-        buildActions(actions);
-        panel.addWidget(actions);
-
-        return panel;
-    }
-
-    private void populatePreview(WidgetGroup area, int previewH) {
-        area.clearAllWidgets();
-        SchematicPreviewPanel.repopulate(area, RIGHT_W, previewH,
-                selectedIndex, schematics, hasClipboard(), theme, player);
-
-
-    }
-
-    private void buildActions(WidgetGroup panel) {
-        int fieldW = RIGHT_W - 20;
-        TextFieldWidget nameField = new TextFieldWidget(10, 8, fieldW, 20, null, s -> {});
-        nameField.setMaxStringLength(32);
-        nameField.setTextColor(C_TEXT_WHITE);
-        nameField.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(0xFF141414)));
-
-        nameField.setCurrentString(selectedIndex >= 0 && selectedIndex < schematics.size()
-                ? schematics.get(selectedIndex).getName() : "");
-        this.nameInput = nameField;
-        panel.addWidget(nameField);
-
-        int btnH = 20, btnY = 36, x = 10, spacing = 6;
-
-        panel.addWidget(makeBtn(x, btnY, 90, btnH, C_SUCCESS,
+        col.addWidget(TerminalButton.text3D(bx, by, bw, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.load").getString(),
-                cd -> pasteSchematic()));
-        x += 90 + spacing;
+                tokens.action(), cd -> pasteSchematic()));
+        by += btnH + gap;
 
-        panel.addWidget(makeBtn(x, btnY, 80, btnH, C_INFO,
-                Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString(),
-                cd -> saveSchematic()));
-        x += 80 + spacing;
+        col.addWidget(TerminalButton.text3D(bx, by, bw, btnH,
+                Component.translatable("gui.gtceuterminal.schematic_interface.button.rename").getString(),
+                tokens.panel(), cd -> renameSchematic()));
+        by += btnH + gap;
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_DELETE,
+        col.addWidget(TerminalButton.text3D(bx, by, bw, btnH,
                 Component.translatable("gui.gtceuterminal.schematic_interface.button.delete").getString(),
-                cd -> deleteSchematic()));
-        x += 60 + spacing;
+                tokens.errorSurface(), cd -> deleteSchematic()));
 
-        panel.addWidget(makeBtn(x, btnY, 60, btnH, C_EXPORT ,
-                Component.translatable("gui.gtceuterminal.schematic_interface.button.export").getString(),
-                cd -> player.displayClientMessage(
-                        Component.translatable("gui.gtceuterminal.schematic_interface.export_not_implemented"), true))
-                .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.not_yet_implemented")));
-        if (com.gtceuterminal.common.config.ItemsConfig.isSchPlannerBuildAllEnabled()) {
-            x += 60 + spacing;
-            panel.addWidget(makeBtn(x, btnY, 64, btnH, C_INFO,
-                    Component.translatable("gui.gtceuterminal.schematic_interface.planner_button").getString(),
-                    cd -> openPlanner())
-                    .setHoverTooltips(Component.translatable("gui.gtceuterminal.schematic_interface.open_planner_tooltip")));
+        return col;
+    }
+
+    private WidgetGroup buildClipboardBar(int x, int y, int w, int h) {
+        WidgetGroup bar = new WidgetGroup(x, y, w, h);
+        bar.setBackground(TerminalUI.panel());
+
+        LabelWidget clipLbl = new LabelWidget(10, (h - 8) / 2, clipboardIndicatorText());
+        clipLbl.setColor(tokens.textMuted());
+        this.clipboardIndicator = clipLbl;
+        bar.addWidget(clipLbl);
+
+        int pad = 8;
+        int gap = 8;
+        int saveW = 62, saveH = 20;
+        int fieldW = 220, fieldH = 18;
+        int saveX = w - pad - saveW;
+        int fieldX = saveX - gap - fieldW;
+        int saveY = (h - saveH) / 2;
+
+        TextFieldWidget nameField = new TextFieldWidget(fieldX, (h - fieldH) / 2, fieldW, fieldH, null, s -> updateSaveState());
+        nameField.setClientSideWidget();
+        nameField.setMaxStringLength(32);
+        nameField.setBordered(false);
+        nameField.setTextColor(tokens.textStrong());
+        this.nameInput = nameField;
+        bar.addWidget(nameField);
+
+        this.saveDisabledBtn = TerminalButton.disabled(saveX, saveY, saveW, saveH,
+                Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString());
+        bar.addWidget(saveDisabledBtn);
+
+        this.saveEnabledBtn = TerminalButton.text3D(saveX, saveY, saveW, saveH,
+                Component.translatable("gui.gtceuterminal.schematic_interface.button.save").getString(),
+                tokens.successSurface(), cd -> saveSchematic());
+        bar.addWidget(saveEnabledBtn);
+
+        int clearW = 62;
+        int clearX = fieldX - gap - clearW;
+        this.clearBtn = TerminalButton.text3D(clearX, saveY, clearW, saveH,
+                Component.translatable("gui.gtceuterminal.schematic_interface.button.clear").getString(),
+                tokens.errorSurface(), cd -> clearClipboard());
+        bar.addWidget(clearBtn);
+
+        updateSaveState();
+        return bar;
+    }
+
+    private boolean isDuplicateName(String name) {
+        for (SchematicData s : schematics) {
+            if (s.name().equalsIgnoreCase(name)) return true;
         }
+        return false;
     }
 
-    private void openPlanner() {
-        List<SchematicData> snapshot = new ArrayList<>(schematics);
-        int sel = Math.max(0, selectedIndex);
-        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-        mc.execute(() -> {
-            if (mc.player != null) mc.player.closeContainer();
-            mc.setScreen(new com.gtceuterminal.client.gui.planner.PlannerScreen(snapshot, sel, 0));
-        });
+    private void updateSaveState() {
+        if (nameInput == null || saveEnabledBtn == null || saveDisabledBtn == null) return;
+        String name = nameInput.getCurrentString().trim();
+        boolean dup = !name.isEmpty() && isDuplicateName(name);
+        boolean valid = hasClipboard() && !name.isEmpty() && !dup;
+
+        saveEnabledBtn.setVisible(valid);
+        saveDisabledBtn.setVisible(!valid);
+        if (clearBtn != null) clearBtn.setVisible(hasClipboard());
+
+        int border = dup ? tokens.error() : tokens.border();
+        nameInput.setBackground(TerminalUI.field(border));
+        nameInput.setHoverTexture(TerminalUI.field(dup ? tokens.error() : tokens.textStrong()));
     }
 
-    private ButtonWidget makeBtn(int x, int y, int w, int h, int color, String label,
-                                 java.util.function.Consumer<com.lowdragmc.lowdraglib.gui.util.ClickData> action) {
-        TextTexture txt = new TextTexture(label).setWidth(w).setType(TextTexture.TextType.NORMAL);
-        ButtonWidget btn = new ButtonWidget(x, y, w, h,
-                new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(1, colorBorderLight), txt),
-                action);
-        btn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture((color & 0x00FFFFFF) | 0x55000000),
-                new ColorBorderTexture(2, C_TEXT_WHITE),
-                txt));
-        return btn;
+    private String clipboardIndicatorText() {
+        return TerminalText.strip(Component.translatable(
+                "gui.gtceuterminal.schematic_interface.clipboard_label").getString()) + ": " + clipboardLabel();
     }
 
-    private void setupParade() {
-        com.gtceuterminal.client.ClientEvents.clearActiveParade();
-        if (!theme.isBundleStyle()) return;
-        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-        if (bundle == null) return;
-        var parade = bundle.createParadeWidget(0, 0, GUI_W, GUI_H);
-        if (parade == null || parade.isEmpty()) return;
-        parade.setGuiCenter(GUI_W / 2f, GUI_H / 2f);
-        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
+    private void refreshClipboardIndicator() {
+        if (clipboardIndicator != null) clipboardIndicator.setText(clipboardIndicatorText());
+    }
+
+    private String clipboardLabel() {
+        if (clipboard == null || clipboard.blocks().isEmpty()) {
+            return Component.translatable("gui.gtceuterminal.schematic_interface.clipboard.empty").getString();
+        }
+        String blocksWord = Component.translatable("gui.gtceuterminal.schematic_interface.clipboard.blocks").getString();
+        String typeName = clipboardTypeName();
+        return (typeName != null ? typeName + " " : "") + clipboard.getBlockCount() + " " + blocksWord;
+    }
+
+    private String clipboardTypeName() {
+        String type = clipboard.multiblockType();
+        if (type == null || type.isEmpty()) return null;
+        try {
+            var block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(new net.minecraft.resources.ResourceLocation(type));
+            if (block != net.minecraft.world.level.block.Blocks.AIR) {
+                String n = block.getName().getString();
+                return n.length() > 22 ? n.substring(0, 21) + "…" : n;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private void refreshPreview() {
+        if (previewArea == null) return;
+        previewArea.clearAllWidgets();
+        SchematicPreviewPanel.repopulate(previewArea,
+                previewArea.getSize().width, previewArea.getSize().height,
+                selectedIndex, schematics, player);
     }
 
     private void onSelect(int index) {
-        if (selectedIndex == index) return;
-        selectedIndex = index;
+        selectedIndex = (selectedIndex == index) ? -1 : index;
         refreshLeft();
-        refreshRight();
-        if (nameInput != null && selectedIndex >= 0 && selectedIndex < schematics.size()) {
-            nameInput.setCurrentString(schematics.get(selectedIndex).getName());
-        }
+        refreshPreview();
     }
 
     private void refreshLeft() {
         if (schematicsScroll == null) return;
-        SchematicListPanel.repopulate(schematicsScroll, schematics, selectedIndex,
-                LEFT_W - 8 - 4, C_TEXT_GRAY, theme, this::onSelect);
-    }
-
-    private void refreshRight() {
-        if (rightPanel == null || bodyGroup == null) return;
-        bodyGroup.removeWidget(rightPanel);
-        this.rightPanel = buildRightPanel();
-        bodyGroup.addWidget(rightPanel);
+        SchematicListPanel.repopulate(
+                schematicsScroll, schematics, selectedIndex, LEFT_W - 2, this::onSelect);
     }
 
     private void pasteSchematic() {
         if (selectedIndex < 0 || selectedIndex >= schematics.size()) {
-            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected"); return;
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected");
+            return;
         }
         SchematicData s = schematics.get(selectedIndex);
         TerminalNetwork.CHANNEL.sendToServer(
-                new CPacketSchematicAction(CPacketSchematicAction.ActionType.LOAD, s.getName(), selectedIndex));
+                new CPacketSchematicAction(CPacketSchematicAction.ActionType.LOAD, s.name(), selectedIndex));
+        this.clipboard = s;
+        refreshClipboardIndicator();
+        updateSaveState();
         player.displayClientMessage(
                 Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.loaded_to_clipboard",
-                        s.getName()), true);
+                        s.name()), true);
     }
 
     private void saveSchematic() {
-        if (!hasClipboard()) { msg("gui.gtceuterminal.schematic_interface.chat.error.no_clipboard"); return; }
+        if (!hasClipboard()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_clipboard");
+            return;
+        }
         String name = nameInput != null ? nameInput.getCurrentString().trim() : "";
-        if (name.isEmpty()) { msg("gui.gtceuterminal.schematic_interface.chat.error.enter_name"); return; }
-        if ("Clipboard".equalsIgnoreCase(name)) { msg("gui.gtceuterminal.schematic_interface.chat.error.reserved_name"); return; }
-        if (schematics.stream().anyMatch(s -> s.getName().equalsIgnoreCase(name))) {
-            msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists"); return;
+        if (name.isEmpty()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.enter_name");
+            return;
+        }
+        if ("Clipboard".equalsIgnoreCase(name)) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.reserved_name");
+            return;
+        }
+        if (schematics.stream().anyMatch(s -> s.name().equalsIgnoreCase(name))) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists");
+            return;
         }
 
         TerminalNetwork.CHANNEL.sendToServer(new CPacketSchematicAction(CPacketSchematicAction.ActionType.SAVE, name, -1));
 
-        CompoundTag itemTag = terminalItem.getTag();
-        if (itemTag != null && itemTag.contains("Clipboard")) {
-            try {
-                SchematicData clip = SchematicData.fromNBT(itemTag.getCompound("Clipboard"), player.level().registryAccess());
-                schematics.add(new SchematicData(name, clip.getMultiblockType(),
-                        clip.getBlocks(), clip.getBlockEntities(), clip.getOriginalFacing()));
-                selectedIndex = schematics.size() - 1;
-            } catch (Exception e) {
-                GTCEUTerminalMod.LOGGER.error("Failed to build local schematic copy after save", e);
-            }
+        if (clipboard != null) {
+            schematics.add(new SchematicData(name, clipboard.multiblockType(),
+                    clipboard.blocks(), clipboard.blockEntities(), clipboard.originalFacing()));
+            selectedIndex = schematics.size() - 1;
         }
 
         if (nameInput != null) nameInput.setCurrentString("");
         refreshLeft();
+        refreshPreview();
+        updateSaveState();
         player.displayClientMessage(
                 Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.saved", name), true);
     }
 
+    private void clearClipboard() {
+        if (!hasClipboard()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_clipboard");
+            return;
+        }
+        TerminalNetwork.CHANNEL.sendToServer(
+                new CPacketSchematicAction(CPacketSchematicAction.ActionType.CLEAR_CLIPBOARD, "", -1));
+        this.clipboard = null;
+        refreshClipboardIndicator();
+        refreshPreview();
+        updateSaveState();
+        player.displayClientMessage(
+                Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.cleared_clipboard"), true);
+    }
+
     private void deleteSchematic() {
         if (selectedIndex < 0 || selectedIndex >= schematics.size()) {
-            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected"); return;
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected");
+            return;
         }
-        String name = schematics.get(selectedIndex).getName();
+        String name = schematics.get(selectedIndex).name();
         TerminalNetwork.CHANNEL.sendToServer(
                 new CPacketSchematicAction(CPacketSchematicAction.ActionType.DELETE, name, -1));
         schematics.remove(selectedIndex);
         if (selectedIndex >= schematics.size()) selectedIndex = schematics.size() - 1;
         refreshLeft();
-        refreshRight();
+        refreshPreview();
         player.displayClientMessage(
                 Component.translatable("gui.gtceuterminal.schematic_interface.chat.success.deleted", name), true);
     }
 
+    private void renameSchematic() {
+        if (selectedIndex < 0 || selectedIndex >= schematics.size()) {
+            msg("gui.gtceuterminal.schematic_interface.chat.error.no_schematic_selected");
+            return;
+        }
+        int idx = selectedIndex;
+        String current = schematics.get(idx).name();
+        SchematicRenameDialog.open(mainGroup, GUI_W, GUI_H, current, newName -> {
+            String name = newName.trim();
+            if (name.isEmpty() || "Clipboard".equalsIgnoreCase(name)) {
+                msg("gui.gtceuterminal.schematic_interface.chat.error.enter_name");
+                return;
+            }
+            if (name.equals(current)) return;
+            for (int i = 0; i < schematics.size(); i++) {
+                if (i != idx && schematics.get(i).name().equalsIgnoreCase(name)) {
+                    msg("gui.gtceuterminal.schematic_interface.chat.error.name_exists");
+                    return;
+                }
+            }
+            TerminalNetwork.CHANNEL.sendToServer(
+                    new CPacketSchematicAction(CPacketSchematicAction.ActionType.RENAME, name, idx));
+            SchematicData old = schematics.get(idx);
+            schematics.set(idx, new SchematicData(name, old.multiblockType(),
+                    old.blocks(), old.blockEntities(), old.originalFacing()));
+            refreshLeft();
+            updateSaveState();
+        });
+    }
+
     private boolean hasClipboard() {
-        CompoundTag tag = terminalItem.getTag();
-        if (tag == null || !tag.contains("Clipboard")) return false;
-        CompoundTag clip = tag.getCompound("Clipboard");
-        return clip.contains("Blocks") && !clip.getList("Blocks", 10).isEmpty();
+        return clipboard != null && !clipboard.blocks().isEmpty();
     }
 
     private void msg(String key) {
@@ -410,15 +506,12 @@ public class SchematicInterfaceUI {
     private ModularUI buildModularUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(GUI_W, GUI_H), uiHolder, player);
         ui.widget(content);
-        ui.background(theme.modularUIBackground());
+        ui.background(TerminalUI.transparent());
         return ui;
     }
 
-    public static ModularUI create(HeldItemUIFactory.HeldItemHolder heldHolder) {
-        return new SchematicInterfaceUI(heldHolder).createUI();
-    }
-
-    public static ModularUI create(SchematicItemUIFactory.Holder holder, Player player) {
-        return new SchematicInterfaceUI(holder, player).createUI();
+    private enum View {
+        SCHEMATIC,
+        BLUEPRINT
     }
 }

@@ -1,39 +1,43 @@
 package com.gtceuterminal.common.autocraft;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.ae2.MEQueryResult;
-import com.gtceuterminal.common.material.ComponentUpgradeHelper;
-import com.gtceuterminal.common.multiblock.ComponentInfo;
-import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
-import com.gtceuterminal.common.config.ManagerSettings;
-
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.ae2.MEQueryResult;
+import com.gtceuterminal.common.compat.BlockPatternReflection;
 import com.gtceuterminal.common.compat.GTCEuCompat;
 import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
+import com.gtceuterminal.common.config.ManagerSettings;
+import com.gtceuterminal.common.material.ComponentUpgradeHelper;
+import com.gtceuterminal.common.multiblock.ComponentInfo;
+import com.gtceuterminal.common.pattern.AutoBuilderHelpers;
+import com.gtceuterminal.common.pattern.CandidateFilter;
+import com.gtceuterminal.common.pattern.CandidateSelector;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-
-import com.gtceuterminal.common.pattern.CandidateFilter;
-
-import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.*;
 
 public final class MultiblockAnalyzer {
 
-    private MultiblockAnalyzer() {}
+    private MultiblockAnalyzer() {
+    }
 
     public static AnalysisResult analyzeForBuild(Player player,
                                                  IMultiController controller,
@@ -42,27 +46,37 @@ public final class MultiblockAnalyzer {
         if (!BlockPatternReflection.READY) return null;
 
         try {
-            BlockPattern pattern       = controller.getPattern();
+            com.gtceuterminal.common.compat.ExpandableMultiblock.Restore sizeRestore =
+                    com.gtceuterminal.common.compat.ExpandableMultiblock.applySize(
+                            controller.self(), settings.expandRadius, settings.expandHeight);
+            BlockPattern pattern;
+            try {
+                pattern = controller.getPattern();
+            } finally {
+                if (sizeRestore != null) sizeRestore.close();
+            }
             MultiblockState worldState = controller.getMultiblockState();
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
-            int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
-            int[][]                     aisleReps    = pattern.aisleRepetitions;
-            RelativeDirection[]         structDir    = pattern.structureDir;
+            int[] centerOff = (int[]) BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            int[][] aisleReps = pattern.aisleRepetitions;
+            RelativeDirection[] structDir = pattern.structureDir;
 
             if (blockMatches == null) return null;
 
-            BlockPos  centerPos = controller.self().getPos();
-            var       facing    = controller.self().getFrontFacing();
-            var       upFacing  = controller.self().getUpwardsFacing();
-            boolean   isFlipped = controller.self().isFlipped();
-            int       minZ      = -centerOff[4];
+            BlockPos centerPos = controller.self().getPos();
+            var facing = controller.self().getFrontFacing();
+            var upFacing = controller.self().getUpwardsFacing();
+            boolean isFlipped = AutoBuilderHelpers.resolveFlip(controller, settings);
+            int minZ = -centerOff[4];
 
-            PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
-            PredicateCountMap cacheLayer  = GTCEuCompat.getLayerCount(worldState);
             GTCEuCompat.clean(worldState);
+            PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
+            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
 
             Map<Item, Integer> needed = new LinkedHashMap<>();
+            Map<Fluid, Integer> neededFluids = new LinkedHashMap<>();
+            List<BlockPos> intruders = new ArrayList<>();
 
             for (int c = 0, z = minZ++; c < blockMatches.length; c++) {
                 int reps = getRepetitions(c, aisleReps, settings.repeatCount);
@@ -74,20 +88,48 @@ public final class MultiblockAnalyzer {
                             BlockPos pos = relativeOffset(structDir, x, y, z, facing, upFacing, isFlipped)
                                     .offset(centerPos);
 
-                            if (!player.level().isEmptyBlock(pos)) {
+                            var currentState = player.level().getBlockState(pos);
+                            boolean floodedSolid = AutoBuilderHelpers.isLiquidReplaceableForSolid(currentState, pred);
+                            if (!currentState.isAir() && !floodedSolid) {
                                 GTCEuCompat.update(worldState, pos, pred);
-                                for (SimplePredicate lim : pred.limited) lim.testLimited(worldState);
+                                if (!pred.test(worldState)) intruders.add(pos.immutable());
                                 continue;
                             }
 
                             BlockInfo[] infos = pickInfos(pred, cacheGlobal, cacheLayer);
+
+                            List<Fluid> fluidCandidates = new ArrayList<>();
+                            boolean hasSolidCandidate = false;
+                            if (infos != null) for (BlockInfo info : infos) {
+                                if (info == null) continue;
+                                var bs = info.getBlockState();
+                                if (bs.isAir()) continue;
+                                if (bs.getFluidState().isSource()) fluidCandidates.add(bs.getFluidState().getType());
+                                else hasSolidCandidate = true;
+                            }
+
+                            if (!hasSolidCandidate && !fluidCandidates.isEmpty()) {
+                                Fluid chosen = null;
+                                for (Fluid f : fluidCandidates)
+                                    if (f instanceof FlowingFluid) {
+                                        chosen = f;
+                                        break;
+                                    }
+                                if (chosen == null) chosen = fluidCandidates.get(0);
+                                neededFluids.merge(chosen, 1, Integer::sum);
+                                continue;
+                            }
+
                             List<ItemStack> candidates = new ArrayList<>();
                             if (infos != null) for (BlockInfo info : infos)
-                                if (info != null && !info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
+                                if (info != null && !info.getBlockState().isAir())
+                                    candidates.add(info.getItemStackForm());
 
                             candidates = CandidateFilter.enrichWithCustomComponents(candidates, pred);
-                            if (settings.noHatchMode != 0) candidates = CandidateFilter.filterOutMultiblockParts(candidates);
-                            candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
+                            if (settings.noHatchMode != 0)
+                                candidates = CandidateFilter.filterOutMultiblockParts(candidates);
+                            candidates = CandidateSelector.excludeOptionalAllowances(candidates, pred);
+                            candidates = CandidateSelector.applyTierPreference(candidates, settings);
 
                             ItemStack candidate = firstUsableBlockItem(candidates);
                             if (candidate == null || candidate.isEmpty()) continue;
@@ -99,7 +141,9 @@ public final class MultiblockAnalyzer {
             }
 
             MEQueryResult meQuery = MEQueryResult.resolve(player);
-            return buildEntries(needed, meQuery, controller.self().getPos(), player);
+            List<AnalysisResult.Entry> entries = buildEntries(needed, meQuery, player);
+            entries.addAll(buildFluidEntries(neededFluids, player, settings));
+            return new AnalysisResult(entries, controller.self().getPos(), intruders);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForBuild failed", e);
@@ -112,8 +156,8 @@ public final class MultiblockAnalyzer {
                                                    int targetTier,
                                                    String upgradeId,
                                                    BlockPos controllerPos) {
-        Map<Item, Integer> needed    = new LinkedHashMap<>();
-        List<BlockPos>     positions = new ArrayList<>();
+        Map<Item, Integer> needed = new LinkedHashMap<>();
+        List<BlockPos> positions = new ArrayList<>();
 
         // Per-unit ingredient map (used to identify the target item)
         Map<Item, Integer> perUnit = (upgradeId != null && !upgradeId.isBlank())
@@ -133,10 +177,9 @@ public final class MultiblockAnalyzer {
         }
 
         try {
-            MEQueryResult  meQuery = MEQueryResult.resolve(player);
-            AnalysisResult base    = buildEntries(needed, meQuery, controllerPos, player);
-            if (base == null) return null;
-            return new AnalysisResult(base.entries, controllerPos, targetTier, upgradeId,
+            MEQueryResult meQuery = MEQueryResult.resolve(player);
+            List<AnalysisResult.Entry> entries = buildEntries(needed, meQuery, player);
+            return new AnalysisResult(entries, controllerPos, targetTier, upgradeId,
                     positions, targetStack, components.size());
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("MultiblockAnalyzer.analyzeForUpgrade failed", e);
@@ -144,21 +187,57 @@ public final class MultiblockAnalyzer {
         }
     }
 
-    private static AnalysisResult buildEntries(Map<Item, Integer> needed,
-                                               MEQueryResult meQuery,
-                                               BlockPos controllerPos,
-                                               Player player) {
+    private static List<AnalysisResult.Entry> buildEntries(Map<Item, Integer> needed,
+                                                           MEQueryResult meQuery,
+                                                           Player player) {
         List<AnalysisResult.Entry> entries = new ArrayList<>();
         for (Map.Entry<Item, Integer> e : needed.entrySet()) {
-            Item item     = e.getKey();
-            int  required = e.getValue();
-            long inME     = meQuery.getAvailable(item);
-            long inInv    = countInInventory(player, item);
+            Item item = e.getKey();
+            int required = e.getValue();
+            long inME = meQuery.getAvailable(item);
+            long inInv = countInInventory(player, item);
             boolean craftable = meQuery.hasGrid()
                     && (inME + inInv < required) && meQuery.isCraftable(item);
             entries.add(new AnalysisResult.Entry(new ItemStack(item, required), inME, inInv, craftable));
         }
-        return new AnalysisResult(entries, controllerPos);
+        return entries;
+    }
+
+    private static List<AnalysisResult.Entry> buildFluidEntries(Map<Fluid, Integer> neededFluids,
+                                                                Player player,
+                                                                ManagerSettings.AutoBuildSettings settings) {
+        List<AnalysisResult.Entry> out = new ArrayList<>();
+        if (neededFluids.isEmpty()) return out;
+
+        IFluidHandler meFluids = null;
+        if (settings.isUseAE == 1) {
+            try {
+                meFluids = MENetworkFluidHandlerWrapper.getFromPlayer(player);
+            } catch (Throwable t) {
+                GTCEUTerminalMod.LOGGER.debug("buildFluidEntries: ME fluid storage unavailable: {}", t.toString());
+            }
+        }
+
+        for (Map.Entry<Fluid, Integer> e : neededFluids.entrySet()) {
+            Fluid fluid = e.getKey();
+            int required = e.getValue();
+            Item bucket = fluid.getBucket();
+            if (bucket == null || bucket == Items.AIR) continue;
+
+            long inInv = countInInventory(player, bucket);
+            long inME = 0;
+            if (meFluids != null) {
+                try {
+                    int mb = meFluids.drain(new FluidStack(fluid, Integer.MAX_VALUE),
+                            IFluidHandler.FluidAction.SIMULATE).getAmount();
+                    inME = mb / 1000L;
+                } catch (Throwable t) {
+                    GTCEUTerminalMod.LOGGER.debug("buildFluidEntries: drain simulate failed: {}", t.toString());
+                }
+            }
+            out.add(new AnalysisResult.Entry(new ItemStack(bucket, required), inME, inInv, false, true));
+        }
+        return out;
     }
 
     private static long countInInventory(Player player, Item item) {
@@ -180,17 +259,17 @@ public final class MultiblockAnalyzer {
             if (pattern == null) return positions;
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
-            int[]                       centerOff    = (int[])                       BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
+            int[] centerOff = (int[]) BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
             if (blockMatches == null || centerOff == null) return positions;
 
-            int[][]             aisleReps = pattern.aisleRepetitions;
+            int[][] aisleReps = pattern.aisleRepetitions;
             RelativeDirection[] structDir = pattern.structureDir;
 
             BlockPos centerPos = controller.self().getPos();
-            var      facing    = controller.self().getFrontFacing();
-            var      upFacing  = controller.self().getUpwardsFacing();
-            boolean  isFlipped = controller.self().isFlipped();
-            int      minZ      = -centerOff[4];
+            var facing = controller.self().getFrontFacing();
+            var upFacing = controller.self().getUpwardsFacing();
+            boolean isFlipped = controller.self().isFlipped();
+            int minZ = -centerOff[4];
 
             for (int c = 0, z = minZ++; c < blockMatches.length; c++) {
                 int reps = getRepetitions(c, aisleReps, 0);
@@ -215,7 +294,7 @@ public final class MultiblockAnalyzer {
         if (aisleReps == null || slice >= aisleReps.length) return 1;
         int min = aisleReps[slice][0];
         int max = aisleReps[slice][1];
-        if (repeatCount == 0) return Math.max(1, min);
+        if (repeatCount == 0) return Math.max(0, min);
         int d = Math.max(repeatCount, min);
         if (max >= min && max > 0) d = Math.min(d, max);
         return Math.max(1, d);
@@ -245,7 +324,7 @@ public final class MultiblockAnalyzer {
         BlockInfo[] infos = new BlockInfo[0];
         for (SimplePredicate lim : pred.limited) {
             if (lim.maxLayerCount != -1 && layer.getOrDefault(lim, Integer.MAX_VALUE) == lim.maxLayerCount) continue;
-            if (lim.maxCount     != -1 && global.getOrDefault(lim, Integer.MAX_VALUE) == lim.maxCount)     continue;
+            if (lim.maxCount != -1 && global.getOrDefault(lim, Integer.MAX_VALUE) == lim.maxCount) continue;
             layer.addTo(lim, 1);
             global.addTo(lim, 1);
             if (lim.candidates != null) infos = merge(infos, lim.candidates.get());
@@ -276,7 +355,7 @@ public final class MultiblockAnalyzer {
                                            net.minecraft.core.Direction upFacing,
                                            boolean flipped) {
         int[] c0 = {x, y, z}, c1 = new int[3];
-        var up   = net.minecraft.core.Direction.UP;
+        var up = net.minecraft.core.Direction.UP;
         var down = net.minecraft.core.Direction.DOWN;
 
         if (facing == up || facing == down) {
@@ -284,43 +363,64 @@ public final class MultiblockAnalyzer {
                     ? upFacing : upFacing.getOpposite();
             for (int i = 0; i < 3; i++) {
                 switch (GTCEuCompat.getActualDirection(dir[i], of)) {
-                    case UP    -> c1[1] =  c0[i];
-                    case DOWN  -> c1[1] = -c0[i];
-                    case WEST  -> c1[0] = -c0[i];
-                    case EAST  -> c1[0] =  c0[i];
+                    case UP -> c1[1] = c0[i];
+                    case DOWN -> c1[1] = -c0[i];
+                    case WEST -> c1[0] = -c0[i];
+                    case EAST -> c1[0] = c0[i];
                     case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] =  c0[i];
+                    case SOUTH -> c1[2] = c0[i];
                 }
             }
             int xOff = upFacing.getStepX(), zOff = upFacing.getStepZ(), tmp;
-            if (xOff == 0) { tmp=c1[2]; c1[2]=zOff>0?c1[1]:-c1[1]; c1[1]=zOff>0?-tmp:tmp; }
-            else           { tmp=c1[0]; c1[0]=xOff>0?c1[1]:-c1[1]; c1[1]=xOff>0?-tmp:tmp; }
-            if (flipped) { if (upFacing==net.minecraft.core.Direction.NORTH||upFacing==net.minecraft.core.Direction.SOUTH) c1[0]=-c1[0]; else c1[2]=-c1[2]; }
+            if (xOff == 0) {
+                tmp = c1[2];
+                c1[2] = zOff > 0 ? c1[1] : -c1[1];
+                c1[1] = zOff > 0 ? -tmp : tmp;
+            } else {
+                tmp = c1[0];
+                c1[0] = xOff > 0 ? c1[1] : -c1[1];
+                c1[1] = xOff > 0 ? -tmp : tmp;
+            }
+            if (flipped) {
+                if (upFacing == net.minecraft.core.Direction.NORTH || upFacing == net.minecraft.core.Direction.SOUTH)
+                    c1[0] = -c1[0];
+                else c1[2] = -c1[2];
+            }
         } else {
             for (int i = 0; i < 3; i++) {
                 switch (GTCEuCompat.getActualDirection(dir[i], facing)) {
-                    case UP    -> c1[1] =  c0[i];
-                    case DOWN  -> c1[1] = -c0[i];
-                    case WEST  -> c1[0] = -c0[i];
-                    case EAST  -> c1[0] =  c0[i];
+                    case UP -> c1[1] = c0[i];
+                    case DOWN -> c1[1] = -c0[i];
+                    case WEST -> c1[0] = -c0[i];
+                    case EAST -> c1[0] = c0[i];
                     case NORTH -> c1[2] = -c0[i];
-                    case SOUTH -> c1[2] =  c0[i];
+                    case SOUTH -> c1[2] = c0[i];
                 }
             }
-            if (upFacing==net.minecraft.core.Direction.WEST||upFacing==net.minecraft.core.Direction.EAST) {
-                int xOff=upFacing==net.minecraft.core.Direction.EAST?facing.getClockWise().getStepX():facing.getClockWise().getOpposite().getStepX();
-                int zOff=upFacing==net.minecraft.core.Direction.EAST?facing.getClockWise().getStepZ():facing.getClockWise().getOpposite().getStepZ();
+            if (upFacing == net.minecraft.core.Direction.WEST || upFacing == net.minecraft.core.Direction.EAST) {
+                int xOff = upFacing == net.minecraft.core.Direction.EAST ? facing.getClockWise().getStepX() : facing.getClockWise().getOpposite().getStepX();
+                int zOff = upFacing == net.minecraft.core.Direction.EAST ? facing.getClockWise().getStepZ() : facing.getClockWise().getOpposite().getStepZ();
                 int tmp;
-                if (xOff==0){tmp=c1[2];c1[2]=zOff>0?-c1[1]:c1[1];c1[1]=zOff>0?tmp:-tmp;}
-                else        {tmp=c1[0];c1[0]=xOff>0?-c1[1]:c1[1];c1[1]=xOff>0?tmp:-tmp;}
-            } else if (upFacing==net.minecraft.core.Direction.SOUTH) {
-                c1[1]=-c1[1];
-                if (facing.getStepX()==0) c1[0]=-c1[0]; else c1[2]=-c1[2];
+                if (xOff == 0) {
+                    tmp = c1[2];
+                    c1[2] = zOff > 0 ? -c1[1] : c1[1];
+                    c1[1] = zOff > 0 ? tmp : -tmp;
+                } else {
+                    tmp = c1[0];
+                    c1[0] = xOff > 0 ? -c1[1] : c1[1];
+                    c1[1] = xOff > 0 ? tmp : -tmp;
+                }
+            } else if (upFacing == net.minecraft.core.Direction.SOUTH) {
+                c1[1] = -c1[1];
+                if (facing.getStepX() == 0) c1[0] = -c1[0];
+                else c1[2] = -c1[2];
             }
             if (flipped) {
-                if (upFacing==net.minecraft.core.Direction.NORTH||upFacing==net.minecraft.core.Direction.SOUTH) {
-                    if (facing==net.minecraft.core.Direction.NORTH||facing==net.minecraft.core.Direction.SOUTH) c1[0]=-c1[0]; else c1[2]=-c1[2];
-                } else c1[1]=-c1[1];
+                if (upFacing == net.minecraft.core.Direction.NORTH || upFacing == net.minecraft.core.Direction.SOUTH) {
+                    if (facing == net.minecraft.core.Direction.NORTH || facing == net.minecraft.core.Direction.SOUTH)
+                        c1[0] = -c1[0];
+                    else c1[2] = -c1[2];
+                } else c1[1] = -c1[1];
             }
         }
         return new BlockPos(c1[0], c1[1], c1[2]);

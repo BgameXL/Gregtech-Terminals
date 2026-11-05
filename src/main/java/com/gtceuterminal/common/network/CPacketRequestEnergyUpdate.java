@@ -12,11 +12,14 @@ import java.util.function.Supplier;
 
 public class CPacketRequestEnergyUpdate {
 
-    public CPacketRequestEnergyUpdate() {}
+    public CPacketRequestEnergyUpdate() {
+    }
 
-    public CPacketRequestEnergyUpdate(FriendlyByteBuf buf) {}
+    public CPacketRequestEnergyUpdate(FriendlyByteBuf buf) {
+    }
 
-    public static void encode(CPacketRequestEnergyUpdate msg, FriendlyByteBuf buf) {}
+    public static void encode(CPacketRequestEnergyUpdate msg, FriendlyByteBuf buf) {
+    }
 
     public static void handle(CPacketRequestEnergyUpdate msg, Supplier<NetworkEvent.Context> ctx) {
         NetworkEvent.Context context = ctx.get();

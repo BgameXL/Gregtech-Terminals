@@ -16,10 +16,11 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public final class ClientTooltipHelper {
 
-    private ClientTooltipHelper() {}
+    private ClientTooltipHelper() {
+    }
 
     public static void appendAE2RangeTooltip(ItemStack stack, Level level,
-                                              List<Component> tooltipComponents) {
+                                             List<Component> tooltipComponents) {
         if (!MENetworkScanner.isItemLinked(stack)) return;
 
         Player localPlayer = Minecraft.getInstance().player;

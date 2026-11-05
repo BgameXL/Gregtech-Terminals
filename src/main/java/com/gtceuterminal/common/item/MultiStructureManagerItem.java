@@ -29,6 +29,11 @@ public class MultiStructureManagerItem extends Item {
     }
 
     @Override
+    public @NotNull InteractionResult onItemUseFirst(@NotNull ItemStack stack, @NotNull UseOnContext context) {
+        return behavior.onItemUseFirst(stack, context);
+    }
+
+    @Override
     public @NotNull InteractionResult useOn(@NotNull UseOnContext context) {
         return behavior.useOn(context);
     }
@@ -45,7 +50,7 @@ public class MultiStructureManagerItem extends Item {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull Level level,
+    public void appendHoverText(@NotNull ItemStack stack, Level level,
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
 

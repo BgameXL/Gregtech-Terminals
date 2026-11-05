@@ -1,6 +1,8 @@
 package com.gtceuterminal.client.gui.theme;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.RGBSliderWidget;
 import com.gtceuterminal.client.gui.widget.TerminalButton;
 import com.gtceuterminal.common.network.CPacketSaveTheme;
@@ -10,10 +12,7 @@ import com.gtceuterminal.common.theme.ThemePreset;
 import com.gtceuterminal.common.theme.bundle.ThemeBundle;
 import com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry;
 
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 
 import net.minecraft.network.chat.Component;
@@ -21,152 +20,189 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class ThemeEditorDialog {
 
-    private static final int HDR_H = 24;
     private static final int FTR_H = 30;
-    private static final int PAD   = 8;
+    private static final int PAD = 8;
+    private static final int SECTION_H = 30;
+    private static final int SECTION_W = 150;
 
     private static final int COL_L = ThemeEditorLeftCol.COL_W;
-
-    private static final int C_BG     = 0xFF1C1C1C;
-    private static final int C_PANEL  = 0xFF272727;
-    private static final int C_BORDER = 0xFF3A3A3A;
-    private static final int C_SEL    = 0xFF2A1A4A;
-    private static final int C_SEL_BR = 0xFF7A3FBF;
-    private static final int C_SAVE   = 0xFF1E6B1E;
-    private static final int C_RESET  = 0xFF6B1E1E;
+    private static final int COLOR_TARGETS = 9;
 
     private final WidgetGroup rootGroup;
-    private final ItemTheme   working;
-
-    private String       activeBundleId;
-    private List<String> wallpapers;
-    private int          wallpaperIdx;
-
+    private final ItemTheme working;
     private final int[] editTargetHolder = {0};
-    private final int[] channels         = new int[4];
-
-    private ImageWidget[]     swatches    = new ImageWidget[3];
-    private ImageWidget[]     tabBgs      = new ImageWidget[3];
-    private TextFieldWidget[] hexFieldRef = new TextFieldWidget[1];
-    private ImageWidget[] wallThumbRef  = new ImageWidget[1];
-    private LabelWidget[] wallLabelRef  = new LabelWidget[1];
-    private ImageWidget[] animToggleBg  = new ImageWidget[1];
+    private final int[] channels = new int[4];
+    private final ImageWidget[] swatches = new ImageWidget[COLOR_TARGETS];
+    private final ImageWidget[] tabBgs = new ImageWidget[COLOR_TARGETS];
+    private final ImageWidget[] sectionCardBgs = new ImageWidget[Section.values().length];
+    private String activeBundleId;
+    private Section activeSection;
+    private final List<String> wallpapers;
+    private int wallpaperIdx;
+    private final TextFieldWidget[] hexFieldRef = new TextFieldWidget[1];
+    private final ImageWidget[] wallThumbRef = new ImageWidget[1];
+    private final LabelWidget[] wallLabelRef = new LabelWidget[1];
     private ImageWidget[] bundleCardBgs;
+    private WidgetGroup contentHost;
 
     private int dw, dh;
+
+    private ThemeEditorDialog(WidgetGroup rootGroup, ItemTheme current) {
+        this.rootGroup = rootGroup;
+        this.working = new ItemTheme(current);
+        this.activeBundleId = current.isBundleStyle() ? current.bundleId : "";
+        this.activeSection = current.isBundleStyle() ? Section.BUNDLES : Section.COLORS;
+        this.wallpapers = WallpaperManager.listWallpapers();
+        this.wallpaperIdx = wallpapers.indexOf(current.wallpaper);
+        syncChannels(working.accentColor);
+    }
 
     public static void open(WidgetGroup rootGroup, ItemTheme current) {
         new ThemeEditorDialog(rootGroup, current).buildAndShow();
     }
 
-    private ThemeEditorDialog(WidgetGroup rootGroup, ItemTheme current) {
-        this.rootGroup      = rootGroup;
-        this.working        = new ItemTheme(current);
-        this.activeBundleId = current.isBundleStyle() ? current.bundleId : "";
-        this.wallpapers     = WallpaperManager.listWallpapers();
-        this.wallpaperIdx   = wallpapers.indexOf(current.wallpaper);
-        syncChannels(working.accentColor);
-    }
-
     private void buildAndShow() {
         DialogWidget dialog = new DialogWidget(rootGroup, true);
-        dialog.setBackground(new ColorRectTexture(0xB0000000));
+        dialog.setBackground(TerminalUI.transparent());
         dialog.setClickClose(false);
+        dialog.setParentInVisible();
 
         this.dw = rootGroup.getSize().width;
         this.dh = rootGroup.getSize().height;
 
         WidgetGroup panel = new WidgetGroup(0, 0, dw, dh);
-        panel.setBackground(new GuiTextureGroup(
-                new ColorRectTexture(C_BG), new ColorBorderTexture(1, C_BORDER)));
-
-        panel.addWidget(buildHeader(dialog));
-
-        int contentY = HDR_H + PAD;
-        int contentH = dh - contentY - FTR_H - PAD;
-        int divX     = PAD + COL_L;
-        int colRx    = divX + 1 + PAD;
-        int colRw    = dw - colRx - PAD;
+        panel.setBackground(TerminalUI.transparent());
 
         List<ThemeBundle> bundles = ThemeBundleRegistry.all().stream()
                 .filter(ThemeBundle::isAvailable)
                 .collect(Collectors.toList());
         bundleCardBgs = new ImageWidget[bundles.size()];
 
-        panel.addWidget(ThemeEditorLeftCol.build(
-                PAD, contentY, contentH,
-                activeBundleId,
-                this::applyPreset,
-                this::applyBundle,
-                bundleCardBgs));
+        int cardsY = 2;
+        int bodyY = cardsY + SECTION_H;
+        int bodyH = dh - bodyY - FTR_H;
+        panel.addWidget(new ImageWidget(PAD, bodyY, dw - PAD * 2, dh - bodyY,
+                TerminalUI.color(TerminalUI.tokens().surface())));
+        contentHost = new WidgetGroup(PAD, bodyY, dw - PAD * 2, bodyH);
+        panel.addWidget(contentHost);
 
-        panel.addWidget(new ImageWidget(divX, contentY, 1, contentH,
-                new ColorRectTexture(C_BORDER)));
-
-        RGBSliderWidget[] sliders = new RGBSliderWidget[4];
-        panel.addWidget(ThemeEditorRightCol.build(
-                colRx, contentY, colRw, contentH,
-                working, editTargetHolder, channels,
-                this::onChannelOrTabChanged,
-                sliders, swatches, tabBgs,
-                this::onHexEntered, hexFieldRef,
-                this::cycleParade,
-                animToggleBg,
-                this::toggleSource,
-                () -> navigateWallpaper(-1),
-                () -> navigateWallpaper(+1),
-                wallLabelRef,
-                wallThumbRef));
+        panel.addWidget(buildSectionCard(Section.COLORS, PAD, cardsY));
+        panel.addWidget(buildSectionCard(Section.BUNDLES, PAD + SECTION_W + 4, cardsY));
+        rebuildSection();
 
         panel.addWidget(buildFooter(dw, dh, dialog));
         dialog.addWidget(panel);
     }
 
-    private WidgetGroup buildHeader(DialogWidget dialog) {
-        WidgetGroup g = new WidgetGroup(0, 0, dw, HDR_H);
-        g.setBackground(new ColorRectTexture(C_PANEL));
-        g.addWidget(new LabelWidget(PAD, (HDR_H - 8) / 2,
-                Component.translatable("gui.gtceuterminal.theme_editor.title").getString()));
-        ButtonWidget close = new ButtonWidget(dw - 20, (HDR_H - 14) / 2, 14, 14,
-                new ColorRectTexture(0x00000000), cd -> dialog.setVisible(false));
-        close.setButtonTexture(TerminalButton.iconTex("close"));
-        close.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        close.setHoverTexture(new ColorRectTexture(0x33FF0000));
-        g.addWidget(close);
-        return g;
+    private WidgetGroup buildSectionCard(Section section, int x, int y) {
+        TerminalTheme tokens = TerminalUI.tokens();
+        WidgetGroup card = new WidgetGroup(x, y, SECTION_W, SECTION_H);
+        ImageWidget background = new ImageWidget(0, 0, SECTION_W, SECTION_H,
+                sectionCardTexture(section));
+        sectionCardBgs[section.ordinal()] = background;
+        card.addWidget(background);
+
+        LabelWidget label = new LabelWidget(10, (SECTION_H - 8) / 2, Component.translatable(section.translationKey).getString());
+        label.setColor(tokens.textStrong());
+        card.addWidget(label);
+
+        ButtonWidget button = new ButtonWidget(0, 0, SECTION_W, SECTION_H,
+                TerminalUI.transparent(), cd -> switchSection(section));
+        button.setHoverTexture(TerminalUI.hover());
+        card.addWidget(button);
+        return card;
+    }
+
+    private void switchSection(Section section) {
+        if (section == activeSection) return;
+        activeSection = section;
+        rebuildSection();
+        refreshAll();
+    }
+
+    private void rebuildSection() {
+        if (contentHost == null) return;
+        contentHost.clearAllWidgets();
+        clearSectionRefs();
+
+        TerminalTheme tokens = TerminalUI.tokens();
+        int contentH = contentHost.getSize().height;
+        int dividerX = COL_L + PAD / 2;
+        int rightX = dividerX + 1 + PAD / 2;
+        int rightW = contentHost.getSize().width - rightX;
+
+        if (activeSection == Section.COLORS) {
+            contentHost.addWidget(ThemeEditorLeftCol.buildColorPresets(
+                    0, 0, contentH, this::applyPreset));
+            contentHost.addWidget(ThemeEditorRightCol.buildColors(
+                    rightX, 0, rightW, contentH,
+                    working, editTargetHolder, channels,
+                    this::onChannelOrTabChanged,
+                    new RGBSliderWidget[4], swatches, tabBgs,
+                    this::onHexEntered, hexFieldRef));
+        } else {
+            contentHost.addWidget(ThemeEditorLeftCol.buildBundles(
+                    0, 0, contentH, activeBundleId, this::applyBundle, bundleCardBgs));
+            contentHost.addWidget(ThemeEditorRightCol.buildBundleOptions(
+                    rightX, 0, rightW, contentH,
+                    working,
+                    this::toggleSource,
+                    () -> navigateWallpaper(-1),
+                    () -> navigateWallpaper(1),
+                    wallLabelRef, wallThumbRef));
+        }
+
+        contentHost.addWidget(new ImageWidget(dividerX, 0, 1, contentH,
+                TerminalUI.divider()));
+        refreshSectionCards();
+        refreshWallpaperThumb();
+    }
+
+    private void clearSectionRefs() {
+        Arrays.fill(swatches, null);
+        Arrays.fill(tabBgs, null);
+        Arrays.fill(bundleCardBgs, null);
+        hexFieldRef[0] = null;
+        wallThumbRef[0] = null;
+        wallLabelRef[0] = null;
+    }
+
+    private void refreshSectionCards() {
+        for (Section section : Section.values()) {
+            ImageWidget background = sectionCardBgs[section.ordinal()];
+            if (background != null) background.setImage(sectionCardTexture(section));
+        }
+    }
+
+    private IGuiTexture sectionCardTexture(Section section) {
+        TerminalTheme tokens = TerminalUI.tokens();
+        return TerminalUI.bevel(section == activeSection ? tokens.panel() : tokens.panelDisabled());
     }
 
     private WidgetGroup buildFooter(int w, int h, DialogWidget dialog) {
-        WidgetGroup ftr = new WidgetGroup(0, h - FTR_H, w, FTR_H);
-        ftr.setBackground(new ColorRectTexture(C_PANEL));
+        TerminalTheme tokens = TerminalUI.tokens();
+        WidgetGroup ftr = new WidgetGroup(PAD, h - FTR_H, w - PAD * 2, FTR_H);
 
-        int btnH   = 18, btnY = (FTR_H - btnH) / 2;
-        int totalW = w - PAD * 2;
-        int resetW = totalW / 3;
-        int saveW  = totalW - resetW - PAD;
+        int btnH = 18, btnY = (FTR_H - btnH) / 2;
+        int totalW = ftr.getSize().width;
+        int resetW = totalW / 6;
+        int saveW = totalW / 4;
 
-        ButtonWidget save = new ButtonWidget(PAD, btnY, saveW, btnH,
-                new GuiTextureGroup(new ColorRectTexture(C_SAVE), new ColorBorderTexture(1, 0xFF2E8B2E)),
-                cd -> saveAndClose(dialog));
-        save.setButtonTexture(new TextTexture(
-                Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString())
-                .setWidth(saveW).setType(TextTexture.TextType.NORMAL));
-        save.setHoverTexture(new ColorRectTexture(0x2200FF00));
+        ButtonWidget save = TerminalButton.text3D(8, btnY, saveW, btnH,
+                Component.translatable("gui.gtceuterminal.theme_editor.button.save").getString(),
+                tokens.successSurface(), cd -> saveAndClose(dialog));
         ftr.addWidget(save);
 
-        ButtonWidget reset = new ButtonWidget(PAD + saveW + PAD, btnY, resetW, btnH,
-                new GuiTextureGroup(new ColorRectTexture(C_RESET), new ColorBorderTexture(1, 0xFF8B2E2E)),
-                cd -> resetDefaults());
-        reset.setButtonTexture(new TextTexture(
-                Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString())
-                .setWidth(resetW).setType(TextTexture.TextType.NORMAL));
-        reset.setHoverTexture(new ColorRectTexture(0x22FF0000));
+        ButtonWidget reset = TerminalButton.text3D(totalW - resetW - 8, btnY, resetW, btnH,
+                Component.translatable("gui.gtceuterminal.theme_editor.button.reset").getString(),
+                tokens.errorSurface(), cd -> resetDefaults());
         ftr.addWidget(reset);
 
         return ftr;
@@ -176,13 +212,15 @@ public class ThemeEditorDialog {
         bundle.applyTo(working);
         working.slideshowMode = true; // bundles drive the wallpaper slideshow automatically
         activeBundleId = bundle.id();
-        syncChannels(working.accentColor);
+        syncChannels(currentColor());
         refreshAll();
         GTCEUTerminalMod.LOGGER.debug("ThemeEditorDialog: applied bundle '{}'", bundle.id());
     }
 
     private void applyPreset(ThemePreset p) {
         p.applyTo(working);
+        working.slideshowMode = false;
+        activeBundleId = "";
         syncChannels(currentColor());
         refreshAll();
     }
@@ -192,23 +230,16 @@ public class ThemeEditorDialog {
         String s = hex.startsWith("#") ? hex.substring(1) : hex;
         if (s.length() != 6) return;
         int rgb;
-        try { rgb = Integer.parseInt(s, 16); }
-        catch (NumberFormatException e) { return; }
+        try {
+            rgb = Integer.parseInt(s, 16);
+        } catch (NumberFormatException e) {
+            return;
+        }
         channels[0] = (rgb >> 16) & 0xFF;
-        channels[1] = (rgb >>  8) & 0xFF;
-        channels[2] =  rgb        & 0xFF;
+        channels[1] = (rgb >> 8) & 0xFF;
+        channels[2] = rgb & 0xFF;
         applyChannels();
         refreshAll();
-    }
-
-    private void cycleParade() {
-        working.paradeMode = switch (working.paradeMode) {
-            case NONE     -> ItemTheme.ParadeMode.ORBITAL;
-            case ORBITAL  -> ItemTheme.ParadeMode.BOUNCING;
-            case BOUNCING -> ItemTheme.ParadeMode.NONE;
-        };
-        ThemeEditorRightCol.refreshAnimToggle(animToggleBg,
-                working.paradeMode != ItemTheme.ParadeMode.NONE);
     }
 
     private void toggleSource() {
@@ -235,10 +266,10 @@ public class ThemeEditorDialog {
     }
 
     private void saveAndClose(DialogWidget dialog) {
-        GTCEUTerminalMod.LOGGER.info("ThemeEditorDialog: saving theme accent=#{} bg=#{} panel=#{}",
+        GTCEUTerminalMod.LOGGER.debug("ThemeEditorDialog: saving theme accent=#{} bg=#{} panel=#{}",
                 String.format("%06X", working.accentColor & 0xFFFFFF),
-                String.format("%06X", working.bgColor     & 0xFFFFFF),
-                String.format("%06X", working.panelColor  & 0xFFFFFF));
+                String.format("%06X", working.bgColor & 0xFFFFFF),
+                String.format("%06X", working.panelColor & 0xFFFFFF));
 
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null) {
@@ -247,14 +278,20 @@ public class ThemeEditorDialog {
                 net.minecraft.world.item.ItemStack s = mc.player.getItemInHand(hand);
                 net.minecraft.resources.ResourceLocation rl =
                         net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(s.getItem());
-                if (rl != null && "gtceuterminal".equals(rl.getNamespace())) { found = s; break; }
+                if (rl != null && "gtceuterminal".equals(rl.getNamespace())) {
+                    found = s;
+                    break;
+                }
             }
             if (found.isEmpty()) {
                 for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
                     net.minecraft.world.item.ItemStack s = mc.player.getInventory().getItem(i);
                     net.minecraft.resources.ResourceLocation rl =
                             net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(s.getItem());
-                    if (rl != null && "gtceuterminal".equals(rl.getNamespace())) { found = s; break; }
+                    if (rl != null && "gtceuterminal".equals(rl.getNamespace())) {
+                        found = s;
+                        break;
+                    }
                 }
             }
             if (!found.isEmpty()) {
@@ -264,8 +301,11 @@ public class ThemeEditorDialog {
             }
         }
 
-        try { TerminalNetwork.CHANNEL.sendToServer(new CPacketSaveTheme(working)); }
-        catch (Exception e) { GTCEUTerminalMod.LOGGER.warn("ThemeEditorDialog: failed to send save packet", e); }
+        try {
+            TerminalNetwork.CHANNEL.sendToServer(new CPacketSaveTheme(working));
+        } catch (Exception e) {
+            GTCEUTerminalMod.LOGGER.warn("ThemeEditorDialog: failed to send save packet", e);
+        }
 
         dialog.setVisible(false);
         net.minecraft.client.Minecraft.getInstance().setScreen(null);
@@ -273,21 +313,25 @@ public class ThemeEditorDialog {
 
     private void resetDefaults() {
         ItemTheme def = new ItemTheme();
-        working.accentColor     = def.accentColor;
-        working.bgColor         = def.bgColor;
-        working.panelColor      = def.panelColor;
-        working.textColor       = def.textColor;
-        working.compactMode     = def.compactMode;
-        working.showTooltips    = def.showTooltips;
-        working.showBorders     = def.showBorders;
-        working.wallpaper       = "";
-        working.uiStyle         = ItemTheme.UiStyle.DARK;
-        working.bundleId        = "";
-        working.paradeMode      = ItemTheme.ParadeMode.NONE;
-        working.slideshowMode   = false;
+        working.accentColor = def.accentColor;
+        working.bgColor = def.bgColor;
+        working.panelColor = def.panelColor;
+        working.textColor = def.textColor;
+        working.textMutedColor = def.textMutedColor;
+        working.borderColor = def.borderColor;
+        working.successColor = def.successColor;
+        working.warningColor = def.warningColor;
+        working.errorColor = def.errorColor;
+        working.compactMode = def.compactMode;
+        working.showTooltips = def.showTooltips;
+        working.showBorders = def.showBorders;
+        working.wallpaper = "";
+        working.uiStyle = ItemTheme.UiStyle.DARK;
+        working.bundleId = "";
+        working.slideshowMode = false;
         working.slideshowSource = ItemTheme.SlideshowSource.BUILTIN;
-        activeBundleId          = "";
-        wallpaperIdx            = -1;
+        activeBundleId = "";
+        wallpaperIdx = -1;
         syncChannels(currentColor());
         refreshAll();
         refreshWallpaperThumb();
@@ -296,38 +340,50 @@ public class ThemeEditorDialog {
     private void applyChannels() {
         int color = (channels[3] << 24) | (channels[0] << 16) | (channels[1] << 8) | channels[2];
         switch (editTargetHolder[0]) {
-            case 1  -> working.bgColor    = color;
-            case 2  -> working.panelColor = color;
+            case 1 -> working.bgColor = color;
+            case 2 -> working.panelColor = color;
+            case 3 -> working.textColor = color;
+            case 4 -> working.textMutedColor = color;
+            case 5 -> working.borderColor = color;
+            case 6 -> working.successColor = color;
+            case 7 -> working.warningColor = color;
+            case 8 -> working.errorColor = color;
             default -> working.accentColor = color;
         }
         if (working.isBundleStyle()) {
-            working.uiStyle       = ItemTheme.UiStyle.DARK;
-            working.bundleId      = "";
+            working.uiStyle = ItemTheme.UiStyle.DARK;
+            working.bundleId = "";
             working.slideshowMode = false;
-            activeBundleId        = "";
+            activeBundleId = "";
         }
     }
 
     private void syncChannels(int color) {
         channels[0] = (color >> 16) & 0xFF;
-        channels[1] = (color >>  8) & 0xFF;
-        channels[2] =  color        & 0xFF;
+        channels[1] = (color >> 8) & 0xFF;
+        channels[2] = color & 0xFF;
         channels[3] = (color >> 24) & 0xFF;
     }
 
     private int currentColor() {
         return switch (editTargetHolder[0]) {
-            case 1  -> working.bgColor;
-            case 2  -> working.panelColor;
+            case 1 -> working.bgColor;
+            case 2 -> working.panelColor;
+            case 3 -> working.textColor;
+            case 4 -> working.textMutedColor;
+            case 5 -> working.borderColor;
+            case 6 -> working.successColor;
+            case 7 -> working.warningColor;
+            case 8 -> working.errorColor;
             default -> working.accentColor;
         };
     }
 
     private void refreshAll() {
+        refreshSectionCards();
         refreshSwatches();
         refreshTabHighlights();
         refreshHexField();
-        ThemeEditorRightCol.refreshAnimToggle(animToggleBg, working.paradeMode != ItemTheme.ParadeMode.NONE);
         ThemeEditorLeftCol.refreshBundleCards(bundleCardBgs, activeBundleId);
     }
 
@@ -337,21 +393,24 @@ public class ThemeEditorDialog {
     }
 
     private void refreshSwatches() {
-        if (swatches[0] != null) swatches[0].setImage(new GuiTextureGroup(
-                new ColorRectTexture(working.bgColor), new ColorBorderTexture(1, 0xFF555555)));
-        if (swatches[1] != null) swatches[1].setImage(new GuiTextureGroup(
-                new ColorRectTexture(working.panelColor), new ColorBorderTexture(1, 0xFF555555)));
-        if (swatches[2] != null) swatches[2].setImage(new GuiTextureGroup(
-                new ColorRectTexture(working.accentColor), new ColorBorderTexture(1, 0xFF555555)));
+        TerminalTheme tokens = TerminalUI.tokens();
+        int[] colors = {
+                working.accentColor, working.bgColor, working.panelColor,
+                working.textColor, working.textMutedColor, working.borderColor,
+                working.successColor, working.warningColor, working.errorColor
+        };
+        for (int i = 0; i < COLOR_TARGETS; i++) {
+            if (swatches[i] != null) {
+                swatches[i].setImage(TerminalUI.outlined(colors[i], tokens.border()));
+            }
+        }
     }
 
     private void refreshTabHighlights() {
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < COLOR_TARGETS; i++) {
             if (tabBgs[i] == null) continue;
             boolean sel = i == editTargetHolder[0];
-            tabBgs[i].setImage(new GuiTextureGroup(
-                    new ColorRectTexture(sel ? C_SEL : C_PANEL),
-                    new ColorBorderTexture(1, sel ? C_SEL_BR : C_BORDER)));
+            tabBgs[i].setImage(ThemeEditorRightCol.targetTexture(sel));
         }
     }
 
@@ -361,9 +420,20 @@ public class ThemeEditorDialog {
         if (working.hasWallpaper()) {
             WallpaperManager.getTexture(working.wallpaper).ifPresentOrElse(
                     rl -> thumb.setImage(new com.lowdragmc.lowdraglib.gui.texture.ResourceTexture(rl.toString())),
-                    () -> thumb.setImage(new ColorRectTexture(0xFF0A0A0A)));
+                    () -> thumb.setImage(TerminalUI.divider()));
         } else {
-            thumb.setImage(new ColorRectTexture(0xFF0A0A0A));
+            thumb.setImage(TerminalUI.divider());
+        }
+    }
+
+    private enum Section {
+        COLORS("gui.gtceuterminal.theme_editor.section.colors"),
+        BUNDLES("gui.gtceuterminal.theme_editor.section.bundles");
+
+        private final String translationKey;
+
+        Section(String translationKey) {
+            this.translationKey = translationKey;
         }
     }
 }

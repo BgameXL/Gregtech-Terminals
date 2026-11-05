@@ -5,11 +5,13 @@ import com.gtceuterminal.client.gui.autocraft.AutocraftConfirmDialog;
 import com.gtceuterminal.client.gui.dismantler.DismantlerUI;
 import com.gtceuterminal.client.gui.energy.EnergyAnalyzerUI;
 import com.gtceuterminal.client.gui.energy.EnergyUpdateWidget;
-import com.gtceuterminal.client.gui.multiblock.InlineUpgradePanel;
 import com.gtceuterminal.client.gui.multiblock.ManagerSettingsUI;
 import com.gtceuterminal.client.gui.multiblock.MultiStructureManagerUI;
+import com.gtceuterminal.client.gui.multiblock.MultiblockUpgradePanel;
 import com.gtceuterminal.client.gui.schematic.SchematicInterfaceUI;
+import com.gtceuterminal.client.highlight.MultiblockHighlighter;
 import com.gtceuterminal.common.autocraft.AnalysisResult;
+import com.gtceuterminal.common.config.ItemsConfig;
 import com.gtceuterminal.common.energy.EnergySnapshot;
 import com.gtceuterminal.common.energy.LinkedMachineData;
 import com.gtceuterminal.common.gui.factory.DismantlerItemUIFactory;
@@ -21,7 +23,6 @@ import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -35,35 +36,51 @@ import java.util.Set;
 @OnlyIn(Dist.CLIENT)
 public final class ClientPacketHandlers {
 
-    private ClientPacketHandlers() {}
+    private static final int CLIENT_ONLY_CONTAINER_ID = 30000;
 
-    public static void handleDefaultTheme(int accentColor, int bgColor, int panelColor,
-                                          int textColor, boolean compactMode,
-                                          boolean showTooltips, boolean showBorders,
-                                          String wallpaper) {
+    private ClientPacketHandlers() {
+    }
+
+    public static void handleDefaultTheme(int accentColor, int bgColor, int panelColor, int textColor, int textMutedColor, int borderColor, int successColor, int warningColor, int errorColor, boolean compactMode, boolean showTooltips, boolean showBorders, String wallpaper) {
         ItemTheme theme = new ItemTheme();
-        theme.accentColor  = accentColor;
-        theme.bgColor      = bgColor;
-        theme.panelColor   = panelColor;
-        theme.textColor    = textColor;
-        theme.compactMode  = compactMode;
+        theme.accentColor = accentColor;
+        theme.bgColor = bgColor;
+        theme.panelColor = panelColor;
+        theme.textColor = textColor;
+        theme.textMutedColor = textMutedColor;
+        theme.borderColor = borderColor;
+        theme.successColor = successColor;
+        theme.warningColor = warningColor;
+        theme.errorColor = errorColor;
+        theme.compactMode = compactMode;
         theme.showTooltips = showTooltips;
-        theme.showBorders  = showBorders;
-        theme.wallpaper    = wallpaper;
+        theme.showBorders = showBorders;
+        theme.wallpaper = wallpaper;
         DefaultThemeConfig.setClientOverride(theme);
     }
 
     public static void handleAnalysisResult(AnalysisResult result) {
         try {
-            Minecraft mc     = Minecraft.getInstance();
-            Player    player = mc.player;
+            Minecraft mc = Minecraft.getInstance();
+            Player player = mc.player;
             if (player == null) return;
+
+            boolean hasIntruders = result.kind() == AnalysisResult.Kind.BUILD
+                    && !result.intruderPositions().isEmpty();
+
+            if (result.entries().isEmpty() && hasIntruders) {
+                highlightIntruders(result);
+                return;
+            }
 
             ModularUI ui = new ModularUI(IUIHolder.EMPTY, player);
             ui.setFullScreen();
             ui.mainGroup.setClientSideWidget();
 
-            new AutocraftConfirmDialog(ui.mainGroup, result, player);
+            AutocraftConfirmDialog dialog = new AutocraftConfirmDialog(ui.mainGroup, result, player);
+            if (hasIntruders) {
+                dialog.setOnClose(() -> highlightIntruders(result));
+            }
 
             openClientOnly(ui);
         } catch (Exception e) {
@@ -71,8 +88,24 @@ public final class ClientPacketHandlers {
         }
     }
 
+    private static void highlightIntruders(AnalysisResult result) {
+        handleHighlightPositions(result.controllerPos(), result.intruderPositions());
+    }
+
+    public static void handleHighlightPositions(BlockPos controllerPos, java.util.List<BlockPos> positions) {
+        if (positions == null || positions.isEmpty()) return;
+        MultiblockHighlighter.highlightPositions(controllerPos,
+                new java.util.HashSet<>(positions),
+                ItemsConfig.getMgrIntruderHighlightColor(),
+                ItemsConfig.getMgrHighlightDurationMs());
+    }
+
     public static void handleUpgradeAvailability(int requestId, AnalysisResult result) {
-        InlineUpgradePanel.handleAvailabilityResult(requestId, result);
+        MultiblockUpgradePanel.handleAvailabilityResult(requestId, result);
+    }
+
+    public static void handleComponentUpgradeDone(BlockPos controllerPos) {
+        UpgradeRefresh.schedule(controllerPos);
     }
 
     public static void handleOpenMultiStructureManager(String mode, ItemStack item) {
@@ -145,8 +178,6 @@ public final class ClientPacketHandlers {
             GTCEUTerminalMod.LOGGER.error("ClientPacketHandlers: failed to apply energy update", t);
         }
     }
-
-    private static final int CLIENT_ONLY_CONTAINER_ID = 30000;
 
     private static void openClientOnly(ModularUI ui) {
         Minecraft mc = Minecraft.getInstance();

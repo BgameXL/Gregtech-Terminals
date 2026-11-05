@@ -1,6 +1,7 @@
 package com.gtceuterminal.common.ae2;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.config.ServerConfig;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,16 +24,16 @@ public class MENetworkScanner {
             }
             ae2Checked = true;
         }
-        return ae2Available;
+        return ae2Available && ServerConfig.isAE2IntegrationEnabled();
     }
 
     public static boolean isItemLinked(ItemStack stack) {
         if (!isAE2Available()) return false;
-        return WirelessTerminalHandler.isLinked(stack);
+        return AccessPointLink.isLinked(stack);
     }
 
     public static boolean isItemInRange(ItemStack stack, Level level, Player player) {
         if (!isAE2Available()) return false;
-        return WirelessTerminalHandler.isInRange(stack, level, player);
+        return AccessPointLink.isInRange(stack, level, player);
     }
 }

@@ -14,19 +14,20 @@ public class ItemsConfig {
 
     private static final YamlConfigLoader LOADER = new YamlConfigLoader("", "gtceuterminals.yaml");
 
-    private static int     ea_maxLinkedMachines    = 16;
-    private static int     ea_refreshIntervalTicks = 20;
-    private static boolean ea_showPerHatchDetails  = true;
-    private static int     ea_historySeconds       = 30;
+    private static int ea_maxLinkedMachines = 16;
+    private static int ea_refreshIntervalTicks = 20;
+    private static boolean ea_showPerHatchDetails = true;
+    private static int ea_historySeconds = 30;
+    private static Set<String> ea_dimensionBlacklist = new HashSet<>();
 
-    private static int     mgr_maxDetectedMultiblocks = 32;
-    private static boolean mgr_allowMENetworkUpgrade  = true;
-    private static int     mgr_highlightDurationSec   = 10;
-    private static int     mgr_highlightColor         = 0x00AAFF;
+    private static int mgr_maxDetectedMultiblocks = 32;
+    private static boolean mgr_allowMENetworkUpgrade = true;
+    private static int mgr_highlightDurationSec = 10;
+    private static int mgr_highlightColor = 0x00AAFF;
+    private static int mgr_intruderHighlightColor = 0xFF3030;
 
-    private static boolean sch_allowAE2ConfigCopy    = true;
-    private static boolean sch_plannerBuildAllEnabled = false;
-    private static Set<Block> sch_blockBlacklist     = new HashSet<>();
+    private static boolean sch_allowAE2ConfigCopy = true;
+    private static Set<Block> sch_blockBlacklist = new HashSet<>();
 
     private static Set<Block> dis_blockBlacklist = new HashSet<>();
 
@@ -43,6 +44,12 @@ public class ItemsConfig {
                         " Show per-hatch energy breakdown in the UI"),
                 YamlConfigLoader.ConfigEntry.of("energy_analyzer.history_seconds", 30,
                         " Seconds of energy history to graph (5-120)"),
+                YamlConfigLoader.ConfigEntry.of("energy_analyzer.dimension_blacklist", List.of(),
+                        """
+                                 Dimension IDs where the Energy Analyzer will NOT link machines.
+                                 Leave empty to allow all dimensions.
+                                 Example: - minecraft:the_nether, - custom:custom_dimension
+                                """),
 
                 // Multi Structure Manager
                 YamlConfigLoader.ConfigEntry.section("Multi Structure Manager"),
@@ -59,32 +66,39 @@ public class ItemsConfig {
                 YamlConfigLoader.ConfigEntry.section("Schematic Interface"),
                 YamlConfigLoader.ConfigEntry.of("schematic.allow_ae2_config_copy", true,
                         " Preserve AE2/ME bus slot configurations when copying and pasting multiblocks (requires AE2)"),
-                YamlConfigLoader.ConfigEntry.of("schematic.planner_build_all_enabled", false,
-                        " Allow the Placement Planner 'Build All' button to place real blocks in the world. Disabled by default (Beta Phase)."),
                 YamlConfigLoader.ConfigEntry.of("schematic.block_blacklist", List.of(),
-                        " Registry IDs of blocks the Schematic Interface will NEVER copy or paste.\n" +
-                                " Use this to block unobtainable or modpack-internal blocks (e.g. barriers, custom casings).\n" +
-                                " Example: - minecraft:bedrock, - kubejs:custom_block\n"),
+                        """
+                                 Registry IDs of blocks the Schematic Interface will NEVER copy or paste.
+                                 Use this to block unobtainable or modpack-internal blocks (e.g. barriers, custom casings).
+                                 Example: - minecraft:bedrock, - kubejs:custom_block
+                                """),
 
                 YamlConfigLoader.ConfigEntry.section("Dismantler"),
                 YamlConfigLoader.ConfigEntry.of("dismantler.block_blacklist", List.of(),
-                        " Registry IDs of blocks the Dismantler will NEVER refund or remove.\n" +
-                                " Use this to protect blocks that cannot normally be obtained (e.g. bedrock, barriers, etc.)\n" +
-                                "- minecraft:bedrock, - minecraft; barriers, -kubejs:custom_block. \n")
+                        """
+                                 Registry IDs of blocks the Dismantler will NEVER refund or remove.
+                                 Use this to protect blocks that cannot normally be obtained (e.g. bedrock, barriers, etc.).
+                                 Example: - minecraft:bedrock, - kubejs:custom_block
+                                """)
         ));
 
-        ea_maxLinkedMachines    = clamp(LOADER.getInt("energy_analyzer.max_linked_machines", 16), 1, 64);
+        ea_maxLinkedMachines = clamp(LOADER.getInt("energy_analyzer.max_linked_machines", 16), 1, 64);
         ea_refreshIntervalTicks = clamp(LOADER.getInt("energy_analyzer.refresh_interval_ticks", 20), 5, 200);
-        ea_showPerHatchDetails  = LOADER.getBoolean("energy_analyzer.show_per_hatch_details", true);
-        ea_historySeconds       = clamp(LOADER.getInt("energy_analyzer.history_seconds", 30), 5, 120);
+        ea_showPerHatchDetails = LOADER.getBoolean("energy_analyzer.show_per_hatch_details", true);
+        ea_historySeconds = clamp(LOADER.getInt("energy_analyzer.history_seconds", 30), 5, 120);
+        ea_dimensionBlacklist = new HashSet<>();
+        for (String entry : LOADER.getStringList("energy_analyzer.dimension_blacklist")) {
+            String trimmed = entry.trim();
+            if (!trimmed.isEmpty()) ea_dimensionBlacklist.add(trimmed);
+        }
 
         mgr_maxDetectedMultiblocks = clamp(LOADER.getInt("manager.max_detected_multiblocks", 32), 1, 128);
-        mgr_allowMENetworkUpgrade  = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
-        mgr_highlightDurationSec   = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
-        mgr_highlightColor         = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
+        mgr_allowMENetworkUpgrade = LOADER.getBoolean("manager.allow_me_network_upgrade", true);
+        mgr_highlightDurationSec = clamp(LOADER.getInt("manager.highlight_duration_seconds", 10), 1, 60);
+        mgr_highlightColor = parseHexColor(LOADER.getString("manager.highlight_color", "00AAFF"), 0x00AAFF);
+        mgr_intruderHighlightColor = parseHexColor(LOADER.getString("manager.intruder_highlight_color", "FF3030"), 0xFF3030);
 
-        sch_allowAE2ConfigCopy     = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
-        sch_plannerBuildAllEnabled = LOADER.getBoolean("schematic.planner_build_all_enabled", false);
+        sch_allowAE2ConfigCopy = LOADER.getBoolean("schematic.allow_ae2_config_copy", true);
 
         sch_blockBlacklist = loadBlockSet("schematic.block_blacklist", "[Schematic]");
         dis_blockBlacklist = loadBlockSet("dismantler.block_blacklist", "[Dismantler]");
@@ -120,25 +134,60 @@ public class ItemsConfig {
     }
 
     // Energy Analyzer Getters
-    public static int     getEAMaxLinkedMachines()    { return ea_maxLinkedMachines; }
-    public static int     getEARefreshIntervalTicks() { return ea_refreshIntervalTicks; }
-    public static boolean getEAShowPerHatchDetails()  { return ea_showPerHatchDetails; }
-    public static int     getEAHistorySeconds()       { return ea_historySeconds; }
-    public static boolean isEADimensionAllowed(String dimensionId) { return true; }
+    public static int getEAMaxLinkedMachines() {
+        return ea_maxLinkedMachines;
+    }
+
+    public static int getEARefreshIntervalTicks() {
+        return ea_refreshIntervalTicks;
+    }
+
+    public static boolean getEAShowPerHatchDetails() {
+        return ea_showPerHatchDetails;
+    }
+
+    public static int getEAHistorySeconds() {
+        return ea_historySeconds;
+    }
+
+    public static boolean isEADimensionAllowed(String dimensionId) {
+        return !ea_dimensionBlacklist.contains(dimensionId);
+    }
 
     // Multi Structure Manager Getters
-    public static int     getMgrMaxDetectedMultiblocks()  { return mgr_maxDetectedMultiblocks; }
-    public static boolean isMgrAllowMENetworkUpgrade()    { return mgr_allowMENetworkUpgrade; }
-    public static int     getMgrHighlightDurationMs()     { return mgr_highlightDurationSec * 1000; }
-    public static int     getMgrHighlightColor()          { return mgr_highlightColor; }
+    public static int getMgrMaxDetectedMultiblocks() {
+        return mgr_maxDetectedMultiblocks;
+    }
+
+    public static boolean isMgrAllowMENetworkUpgrade() {
+        return mgr_allowMENetworkUpgrade;
+    }
+
+    public static int getMgrHighlightDurationMs() {
+        return mgr_highlightDurationSec * 1000;
+    }
+
+    public static int getMgrIntruderHighlightColor() {
+        return mgr_intruderHighlightColor;
+    }
+
+    public static int getMgrHighlightColor() {
+        return mgr_highlightColor;
+    }
 
     // Schematic Interface Getters
-    public static boolean isSchAllowAE2ConfigCopy()     { return sch_allowAE2ConfigCopy; }
-    public static boolean isSchPlannerBuildAllEnabled() { return sch_plannerBuildAllEnabled; }
-    public static boolean isSchematicBlacklisted(Block block) { return sch_blockBlacklist.contains(block); }
+    public static boolean isSchAllowAE2ConfigCopy() {
+        return sch_allowAE2ConfigCopy;
+    }
+
+    public static boolean isSchematicBlacklisted(Block block) {
+        return sch_blockBlacklist.contains(block);
+    }
 
     // Dismantler Getters
-    public static boolean isDismantlerBlacklisted(Block block) { return dis_blockBlacklist.contains(block); }
+    public static boolean isDismantlerBlacklisted(Block block) {
+        return dis_blockBlacklist.contains(block);
+    }
 
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));

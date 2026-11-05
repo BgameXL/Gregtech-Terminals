@@ -2,16 +2,13 @@ package com.gtceuterminal.common.item.behavior;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MEQueryResult;
 import com.gtceuterminal.common.config.ManagerSettings;
-import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
-
 import com.gtceuterminal.common.gui.factory.MultiStructureManagerUIFactory;
 import com.gtceuterminal.common.network.SPacketOpenMultiStructureManagerUI;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
+import com.gtceuterminal.common.pattern.AdvancedAutoBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiStructureManagerBehavior {
@@ -39,7 +37,7 @@ public class MultiStructureManagerBehavior {
 
     public MultiStructureManagerBehavior(int cooldownTicks, boolean enableSounds) {
         this.cooldownTicks = cooldownTicks;
-        this.enableSounds  = enableSounds;
+        this.enableSounds = enableSounds;
     }
 
     public MultiStructureManagerBehavior() {
@@ -47,11 +45,11 @@ public class MultiStructureManagerBehavior {
     }
 
     public @NotNull InteractionResult useOn(@NotNull UseOnContext context) {
-        Player    player    = context.getPlayer();
+        Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        Level     level     = context.getLevel();
-        BlockPos  blockPos  = context.getClickedPos();
+        Level level = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
         ItemStack itemStack = context.getItemInHand();
         InteractionHand hand = context.getHand();
 
@@ -64,7 +62,8 @@ public class MultiStructureManagerBehavior {
                         GlobalPos globalPos = GlobalPos.of(level.dimension(), blockPos);
                         CompoundTag tag = itemStack.getOrCreateTag();
                         tag.put("accessPoint", GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, globalPos)
-                                .getOrThrow(false, err -> {}));
+                                .getOrThrow(false, err -> {
+                                }));
                         player.displayClientMessage(
                                 Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.linked_to_me_network"),
                                 true);
@@ -72,7 +71,8 @@ public class MultiStructureManagerBehavior {
                     }
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }
-            } catch (ClassNotFoundException ignored) {}
+            } catch (ClassNotFoundException ignored) {
+            }
         }
 
         if (player.isShiftKeyDown()) {
@@ -97,9 +97,29 @@ public class MultiStructureManagerBehavior {
                             playSound(level, blockPos, SoundEvents.ANVIL_LAND, 0.5f, 0.8f);
                             return InteractionResult.FAIL;
                         }
+                        if (buildSettings.mirrorMode == 1 && !controller.self().allowFlip()) {
+                            sendMessage(player,
+                                    Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.mirror_unsupported"),
+                                    false);
+                        }
                         try {
+                            com.gtceuterminal.common.autocraft.AnalysisResult analysis =
+                                    com.gtceuterminal.common.autocraft.MultiblockAnalyzer.analyzeForBuild(
+                                            player, controller, buildSettings);
+                            boolean hasIntruders = analysis != null && !analysis.intruderPositions().isEmpty();
+
                             boolean success = AdvancedAutoBuilder.autoBuild(player, controller, buildSettings);
-                            if (success) {
+
+                            if (hasIntruders) {
+                                TerminalNetwork.sendToPlayer(
+                                        new com.gtceuterminal.common.network.SPacketHighlightPositions(
+                                                controller.self().getPos(), analysis.intruderPositions()),
+                                        (ServerPlayer) player);
+                                sendMessage(player,
+                                        Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.invalid_blocks_highlighted"),
+                                        false);
+                                playSound(level, blockPos, SoundEvents.ANVIL_LAND, 0.5f, 0.8f);
+                            } else if (success) {
                                 if (cooldownTicks > 0)
                                     player.getCooldowns().addCooldown(itemStack.getItem(), cooldownTicks);
                                 sendMessage(player,
@@ -132,65 +152,38 @@ public class MultiStructureManagerBehavior {
             }
 
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
-                GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
                 TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        {
-            MetaMachine machine = MetaMachine.getMachine(level, blockPos);
-            if (machine instanceof IMultiController controller && !controller.isFormed()) {
-                if (!level.isClientSide) {
-                    if (cooldownTicks > 0 && player.getCooldowns().isOnCooldown(itemStack.getItem())) {
-                        sendMessage(player,
-                                Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.cooldown_active"),
-                                false);
-                        return InteractionResult.FAIL;
-                    }
-                    try {
-                        ManagerSettings.Settings raw = new ManagerSettings.Settings(itemStack);
-                        ManagerSettings.AutoBuildSettings buildSettings = raw.toAutoBuildSettings();
-
-                        com.gtceuterminal.common.autocraft.AnalysisResult analysis =
-                                com.gtceuterminal.common.autocraft.MultiblockAnalyzer.analyzeForBuild(
-                                        player, controller, buildSettings);
-
-                        if (analysis == null || analysis.entries.isEmpty()) {
-                            sendMessage(player,
-                                    Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.nothing_to_build"),
-                                    true);
-                            return InteractionResult.sidedSuccess(false);
-                        }
-
-                        com.gtceuterminal.common.network.TerminalNetwork.sendToPlayer(
-                                new com.gtceuterminal.common.network.SPacketAnalysisResult(analysis),
-                                (ServerPlayer) player);
-
-                    } catch (Exception e) {
-                        GTCEUTerminalMod.LOGGER.error("Error during autocraft analysis", e);
-                        sendMessage(player,
-                                Component.translatable("item.gtceuterminal.multi_structure_manager.behavior.analysis_failed"),
-                                false);
-                        return InteractionResult.FAIL;
-                    }
-                }
-                return InteractionResult.sidedSuccess(level.isClientSide);
-            }
-        }
-
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
             TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    public @NotNull InteractionResult onItemUseFirst(@NotNull ItemStack stack, @NotNull UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player == null || player.isShiftKeyDown()) return InteractionResult.PASS;
+
+        Level level = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
+        MetaMachine machine = MetaMachine.getMachine(level, blockPos);
+        if (machine instanceof IMultiController controller && !controller.isFormed()) {
+            if (level.isClientSide) {
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                        com.gtceuterminal.client.ClientMultiblockPreview.show(blockPos));
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return InteractionResult.PASS;
     }
 
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Item item, @NotNull Level level,
                                                            @NotNull Player player, @NotNull InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
             TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);

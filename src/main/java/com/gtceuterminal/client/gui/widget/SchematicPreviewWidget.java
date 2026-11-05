@@ -1,32 +1,30 @@
 package com.gtceuterminal.client.gui.widget;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.data.SchematicData;
-
 import com.gregtechceu.gtceu.api.block.IMachineBlock;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.gui.style.TerminalUI;
+import com.gtceuterminal.common.data.SchematicData;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 import com.lowdragmc.lowdraglib.utils.TrackedDummyWorld;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class SchematicPreviewWidget extends WidgetGroup {
-
-    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {}
 
     private final LinkedHashMap<String, SceneCacheEntry> sceneCache = new LinkedHashMap<>() {
         @Override
@@ -39,12 +37,10 @@ public class SchematicPreviewWidget extends WidgetGroup {
             return false;
         }
     };
-
     private SchematicData schematic;
-    private int rotSteps = 0;
+    private final int rotSteps = 0;
     private SceneWidget sceneWidget;
     private boolean pendingBuild = true;
-
     private int blockCount = 0;
     private String displayName = "Multiblock Structure";
 
@@ -75,9 +71,9 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private void buildScene() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return;
-        if (schematic == null || schematic.getBlocks().isEmpty()) return;
+        if (schematic == null || schematic.blocks().isEmpty()) return;
 
-        String cacheKey = schematic.getName() + ":" + rotSteps;
+        String cacheKey = schematic.name() + ":" + rotSteps;
         if (sceneCache.containsKey(cacheKey)) {
             SceneCacheEntry entry = sceneCache.get(cacheKey);
             sceneWidget = entry.scene();
@@ -92,8 +88,12 @@ public class SchematicPreviewWidget extends WidgetGroup {
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         for (BlockPos p : rotated.keySet()) {
-            minX = Math.min(minX, p.getX()); minY = Math.min(minY, p.getY()); minZ = Math.min(minZ, p.getZ());
-            maxX = Math.max(maxX, p.getX()); maxY = Math.max(maxY, p.getY()); maxZ = Math.max(maxZ, p.getZ());
+            minX = Math.min(minX, p.getX());
+            minY = Math.min(minY, p.getY());
+            minZ = Math.min(minZ, p.getZ());
+            maxX = Math.max(maxX, p.getX());
+            maxY = Math.max(maxY, p.getY());
+            maxZ = Math.max(maxZ, p.getZ());
         }
         int sizeX = maxX - minX + 1, sizeY = maxY - minY + 1, sizeZ = maxZ - minZ + 1;
         float maxDim = Math.max(sizeX, Math.max(sizeY, sizeZ));
@@ -140,14 +140,14 @@ public class SchematicPreviewWidget extends WidgetGroup {
 
         int w = getSize().width, h = getSize().height;
         sceneWidget = new SceneWidget(0, 0, w, h, level);
-        sceneWidget.useOrtho(true)
-                .setOrthoRange(0.5f)
-                .setScalable(true)
-                .setDraggable(true)
-                .setRenderFacing(false)
-                .setRenderSelect(false);
+        sceneWidget.useOrtho(true).setOrthoRange(0.5f).setScalable(true).setDraggable(true).setRenderFacing(false).setRenderSelect(false);
 
-        sceneWidget.setCameraYawAndPitch(25, -135);
+        float camPitch = -135f;
+        if (ctrl != null) {
+            net.minecraft.core.Direction front = ctrl.self().getFrontFacing();
+            camPitch = (float) (Math.toDegrees(Math.atan2(front.getStepZ(), front.getStepX())) - 45);
+        }
+        sceneWidget.setCameraYawAndPitch(25, camPitch);
         sceneWidget.setZoom((float) (3.5 * Math.sqrt(Math.max(maxDim, 1))));
         sceneWidget.setRenderedCore(infoMap.keySet(), null);
 
@@ -158,12 +158,14 @@ public class SchematicPreviewWidget extends WidgetGroup {
     }
 
     private void updateDisplayInfo() {
-        if (schematic == null || schematic.getBlocks().isEmpty()) {
-            blockCount = 0; displayName = "Multiblock Structure"; return;
+        if (schematic == null || schematic.blocks().isEmpty()) {
+            blockCount = 0;
+            displayName = "Multiblock Structure";
+            return;
         }
-        blockCount = (int) schematic.getBlocks().values().stream().filter(s -> !s.isAir()).count();
+        blockCount = (int) schematic.blocks().values().stream().filter(s -> !s.isAir()).count();
 
-        for (var e : schematic.getBlocks().entrySet()) {
+        for (var e : schematic.blocks().entrySet()) {
             if (e.getValue().isAir()) continue;
             var block = e.getValue().getBlock();
             if (block instanceof IMachineBlock mb && mb.getDefinition() instanceof MultiblockMachineDefinition) {
@@ -173,7 +175,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
             }
         }
 
-        for (var e : schematic.getBlocks().entrySet()) {
+        for (var e : schematic.blocks().entrySet()) {
             if (!e.getValue().isAir()) {
                 String n = e.getValue().getBlock().getName().getString();
                 displayName = n.length() > 35 ? n.substring(0, 32) + "..." : n;
@@ -186,7 +188,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private Map<BlockPos, BlockState> buildRotatedBlocks() {
         Map<BlockPos, BlockState> r = new HashMap<>();
         if (schematic == null) return r;
-        for (var e : schematic.getBlocks().entrySet())
+        for (var e : schematic.blocks().entrySet())
             r.put(rotatePos(e.getKey(), rotSteps), rotateState(e.getValue(), rotSteps));
         return r;
     }
@@ -194,16 +196,16 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private Map<BlockPos, CompoundTag> buildRotatedBEs() {
         Map<BlockPos, CompoundTag> r = new HashMap<>();
         if (schematic == null) return r;
-        for (var e : schematic.getBlockEntities().entrySet())
+        for (var e : schematic.blockEntities().entrySet())
             r.put(rotatePos(e.getKey(), rotSteps), e.getValue().copy());
         return r;
     }
 
     private BlockPos rotatePos(BlockPos p, int steps) {
         return switch (steps % 4) {
-            case 1 -> new BlockPos(-p.getZ(), p.getY(),  p.getX());
+            case 1 -> new BlockPos(-p.getZ(), p.getY(), p.getX());
             case 2 -> new BlockPos(-p.getX(), p.getY(), -p.getZ());
-            case 3 -> new BlockPos( p.getZ(), p.getY(), -p.getX());
+            case 3 -> new BlockPos(p.getZ(), p.getY(), -p.getX());
             default -> p;
         };
     }
@@ -227,8 +229,10 @@ public class SchematicPreviewWidget extends WidgetGroup {
             try {
                 if (s.hasProperty(A)) {
                     var ax = s.getValue(A);
-                    if (ax == net.minecraft.core.Direction.Axis.X) s = s.setValue(A, net.minecraft.core.Direction.Axis.Z);
-                    else if (ax == net.minecraft.core.Direction.Axis.Z) s = s.setValue(A, net.minecraft.core.Direction.Axis.X);
+                    if (ax == net.minecraft.core.Direction.Axis.X)
+                        s = s.setValue(A, net.minecraft.core.Direction.Axis.Z);
+                    else if (ax == net.minecraft.core.Direction.Axis.Z)
+                        s = s.setValue(A, net.minecraft.core.Direction.Axis.X);
                 }
             } catch (IllegalArgumentException e) {
                 GTCEUTerminalMod.LOGGER.debug("SchematicPreviewWidget: could not rotate AXIS: {}", e.getMessage());
@@ -244,22 +248,22 @@ public class SchematicPreviewWidget extends WidgetGroup {
             buildScene();
         }
 
+        var tokens = TerminalUI.tokens();
         int x = getPosition().x, y = getPosition().y, w = getSize().width, h = getSize().height;
-        graphics.fill(x, y, x + w, y + h, 0xFF080808);
+        graphics.fill(x, y, x + w, y + h, tokens.surface());
 
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
 
         if (sceneWidget == null) {
-            String msg = "No Schematic";
+            String msg = Component.translatable("gui.gtceuterminal.schematic_preview.empty").getString();
             int tw = Minecraft.getInstance().font.width(msg);
-            graphics.drawString(Minecraft.getInstance().font, msg,
-                    x + (w - tw) / 2, y + h / 2 - 4, 0xFF888888, false);
+            graphics.drawString(Minecraft.getInstance().font, msg, x + (w - tw) / 2, y + h / 2 - 4, tokens.textMuted(), false);
         }
 
-        graphics.fill(x, y, x + w, y + 1, 0xFF555555);
-        graphics.fill(x, y + h - 1, x + w, y + h, 0xFF555555);
-        graphics.fill(x, y, x + 1, y + h, 0xFF555555);
-        graphics.fill(x + w - 1, y, x + w, y + h, 0xFF555555);
+        graphics.fill(x, y, x + w, y + 1, tokens.border());
+        graphics.fill(x, y + h - 1, x + w, y + h, tokens.border());
+        graphics.fill(x, y, x + 1, y + h, tokens.border());
+        graphics.fill(x + w - 1, y, x + w, y + h, tokens.border());
     }
 
     @Override
@@ -277,7 +281,18 @@ public class SchematicPreviewWidget extends WidgetGroup {
         return super.mouseWheelMove(mx, my, delta);
     }
 
-    public int    getRotSteps()              { return rotSteps; }
-    public int    getBlockCount()            { return blockCount; }
-    public String getMultiblockDisplayName() { return displayName; }
+    public int getRotSteps() {
+        return rotSteps;
+    }
+
+    public int getBlockCount() {
+        return blockCount;
+    }
+
+    public String getMultiblockDisplayName() {
+        return displayName;
+    }
+
+    private record SceneCacheEntry(TrackedDummyWorld level, SceneWidget scene) {
+    }
 }

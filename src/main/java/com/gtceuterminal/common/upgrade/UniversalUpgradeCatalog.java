@@ -1,31 +1,15 @@
 package com.gtceuterminal.common.upgrade;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-
 import net.minecraft.core.BlockPos;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 // Catalog of possible upgrades for parts in a multiblock machine, keyed by their position.
 public class UniversalUpgradeCatalog {
-
-    public record InstalledPart(
-            BlockPos pos,
-            String blockId,
-            int tier,
-            Set<PartAbility> abilities
-    ) {}
-
-    public record CandidatePart(
-            String blockId,
-            int tier,
-            PartAbility ability
-    ) {}
-
-    public record UpgradeOptions(
-            InstalledPart installed,
-            List<CandidatePart> candidates
-    ) {}
 
     private final Map<BlockPos, UpgradeOptions> optionsByPos = new HashMap<>();
 
@@ -39,5 +23,26 @@ public class UniversalUpgradeCatalog {
 
     public boolean isEmpty() {
         return optionsByPos.isEmpty();
+    }
+
+    public record InstalledPart(
+            BlockPos pos,
+            String blockId,
+            int tier,
+            Set<PartAbility> abilities
+    ) {
+    }
+
+    public record CandidatePart(
+            String blockId,
+            int tier,
+            PartAbility ability
+    ) {
+    }
+
+    public record UpgradeOptions(
+            InstalledPart installed,
+            List<CandidatePart> candidates
+    ) {
     }
 }

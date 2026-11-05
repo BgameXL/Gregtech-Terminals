@@ -1,15 +1,11 @@
 package com.gtceuterminal.client.highlight;
 
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.multiblock.MultiblockInfo;
 import com.gtceuterminal.common.multiblock.MultiblockScanner;
-import com.gtceuterminal.common.multiblock.MultiblockStatus;
-
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,6 +27,81 @@ public class MultiblockHighlighter {
             GTCEUTerminalMod.LOGGER.debug("MultiblockHighlighter: cleared highlights on level unload");
         }
     }
+
+    public static void highlight(IMultiController controller, int color, int durationMs) {
+        BlockPos controllerPos = controller.self().getPos();
+        Set<BlockPos> blocks = MultiblockScanner.getMultiblockBlocks(controller);
+
+        if (blocks.isEmpty()) {
+            com.gtceuterminal.GTCEUTerminalMod.LOGGER.warn("No blocks found for multiblock at {}", controllerPos);
+            return;
+        }
+
+        HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
+        activeHighlights.put(controllerPos, info);
+    }
+
+    public static void highlight(MultiblockInfo multiblock, int color, int durationMs) {
+        BlockPos controllerPos = multiblock.getControllerPos();
+
+        Set<BlockPos> blocks = new java.util.HashSet<>(multiblock.getAllBlockPositions());
+        if (blocks.isEmpty()) {
+            blocks.add(controllerPos);
+            for (com.gtceuterminal.common.multiblock.ComponentInfo comp : multiblock.getComponents()) {
+                blocks.add(comp.getPosition());
+            }
+        }
+
+        HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
+        activeHighlights.put(controllerPos, info);
+    }
+
+    public static void highlightByStatus(MultiblockInfo multiblock, int durationMs) {
+        int color = multiblock.getStatus().getColor();
+        BlockPos controllerPos = multiblock.getControllerPos();
+
+        Set<BlockPos> blocks = new java.util.HashSet<>(multiblock.getAllBlockPositions());
+        if (blocks.isEmpty()) {
+            blocks.add(controllerPos);
+            for (com.gtceuterminal.common.multiblock.ComponentInfo comp : multiblock.getComponents()) {
+                blocks.add(comp.getPosition());
+            }
+            com.gtceuterminal.GTCEUTerminalMod.LOGGER.warn(
+                    "highlightByStatus: allBlockPositions empty for '{}', using {} component positions",
+                    multiblock.getMachineTypeName(), blocks.size());
+        }
+
+        HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
+        activeHighlights.put(controllerPos, info);
+    }
+
+    public static void highlightPositions(BlockPos controllerPos, Set<BlockPos> blocks, int color, int durationMs) {
+        if (blocks == null || blocks.isEmpty()) return;
+        HighlightInfo info = new HighlightInfo(controllerPos, new java.util.HashSet<>(blocks), color, durationMs);
+        activeHighlights.put(controllerPos, info);
+    }
+
+    public static void highlight(IMultiController controller) {
+        highlight(controller, 0xFFFF00, 10000); // 10 seconds
+    }
+
+    public static void clearHighlight(BlockPos controllerPos) {
+        activeHighlights.remove(controllerPos);
+    }
+
+    public static void clearAll() {
+        activeHighlights.clear();
+    }
+
+    public static Map<BlockPos, HighlightInfo> getActiveHighlights() {
+        activeHighlights.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        return activeHighlights;
+    }
+
+    public static boolean isHighlighted(BlockPos controllerPos) {
+        return activeHighlights.containsKey(controllerPos);
+    }
+
     public static class HighlightInfo {
         public final BlockPos controllerPos;
         public final Set<BlockPos> blocks;
@@ -70,80 +141,5 @@ public class MultiblockHighlighter {
 
             return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
         }
-    }
-
-    public static void highlight(IMultiController controller, int color, int durationMs) {
-        BlockPos controllerPos = controller.self().getPos();
-        Set<BlockPos> blocks = MultiblockScanner.getMultiblockBlocks(controller);
-
-        if (blocks.isEmpty()) {
-            com.gtceuterminal.GTCEUTerminalMod.LOGGER.warn("No blocks found for multiblock at {}", controllerPos);
-            return;
-        }
-
-        HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
-        activeHighlights.put(controllerPos, info);
-    }
-
-    public static void highlight(MultiblockInfo multiblock, int color, int durationMs) {
-        BlockPos controllerPos = multiblock.getControllerPos();
-
-        Set<BlockPos> blocks = new java.util.HashSet<>(multiblock.getAllBlockPositions());
-        if (blocks.isEmpty()) {
-            blocks.add(controllerPos);
-            for (com.gtceuterminal.common.multiblock.ComponentInfo comp : multiblock.getComponents()) {
-                blocks.add(comp.getPosition());
-            }
-        }
-
-        HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
-        activeHighlights.put(controllerPos, info);
-
-        /**com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
-         "Highlight: {} blocks at {} color=0x{} duration={}ms",
-         blocks.size(), controllerPos, Integer.toHexString(color), durationMs);**/
-    }
-
-    public static void highlightByStatus(MultiblockInfo multiblock, int durationMs) {
-        int color = multiblock.getStatus().getColor();
-        BlockPos controllerPos = multiblock.getControllerPos();
-
-        Set<BlockPos> blocks = new java.util.HashSet<>(multiblock.getAllBlockPositions());
-        if (blocks.isEmpty()) {
-            blocks.add(controllerPos);
-            for (com.gtceuterminal.common.multiblock.ComponentInfo comp : multiblock.getComponents()) {
-                blocks.add(comp.getPosition());
-            }
-            com.gtceuterminal.GTCEUTerminalMod.LOGGER.warn(
-                    "highlightByStatus: allBlockPositions empty for '{}', using {} component positions",
-                    multiblock.getMachineTypeName(), blocks.size());
-        }
-
-        HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
-        activeHighlights.put(controllerPos, info);
-
-        com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
-                "Highlight added: {} blocks at {} color=0x{}", blocks.size(), controllerPos, Integer.toHexString(color));
-    }
-
-    public static void highlight(IMultiController controller) {
-        highlight(controller, 0xFFFF00, 10000); // 10 seconds
-    }
-
-    public static void clearHighlight(BlockPos controllerPos) {
-        activeHighlights.remove(controllerPos);
-    }
-
-    public static void clearAll() {
-        activeHighlights.clear();
-    }
-
-    public static Map<BlockPos, HighlightInfo> getActiveHighlights() {
-        activeHighlights.entrySet().removeIf(entry -> entry.getValue().isExpired());
-        return activeHighlights;
-    }
-
-    public static boolean isHighlighted(BlockPos controllerPos) {
-        return activeHighlights.containsKey(controllerPos);
     }
 }

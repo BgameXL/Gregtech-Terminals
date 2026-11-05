@@ -2,14 +2,11 @@ package com.gtceuterminal.common.item.behavior;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-
-import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
-import com.gtceuterminal.common.util.SchematicUtils;
-
+import com.gtceuterminal.common.data.SchematicStorage;
 import com.gtceuterminal.common.network.SPacketOpenSchematicInterfaceUI;
 import com.gtceuterminal.common.network.TerminalNetwork;
-
+import com.gtceuterminal.common.util.SchematicUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +19,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-
 import org.jetbrains.annotations.NotNull;
 
 public class SchematicInterfaceBehavior {
@@ -31,9 +27,9 @@ public class SchematicInterfaceBehavior {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
-        Level     level    = context.getLevel();
-        BlockPos  blockPos = context.getClickedPos();
-        ItemStack stack    = context.getItemInHand();
+        Level level = context.getLevel();
+        BlockPos blockPos = context.getClickedPos();
+        ItemStack stack = context.getItemInHand();
 
         if (player.isShiftKeyDown()) {
             MetaMachine machine = MetaMachine.getMachine(level, blockPos);
@@ -45,7 +41,7 @@ public class SchematicInterfaceBehavior {
             }
 
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
-                GTCEUTerminalMod.LOGGER.info("Server: opening Schematic UI");
+                SchematicStorage.migrate(stack);
                 TerminalNetwork.sendToPlayer(new SPacketOpenSchematicInterfaceUI(stack), sp);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -66,17 +62,16 @@ public class SchematicInterfaceBehavior {
 
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
-                GTCEUTerminalMod.LOGGER.info("Server: opening Schematic UI");
+                SchematicStorage.migrate(stack);
                 TerminalNetwork.sendToPlayer(new SPacketOpenSchematicInterfaceUI(stack), sp);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
         if (hasClipboard(stack) && !level.isClientSide) {
-            CompoundTag itemTag   = stack.getTag();
             SchematicData clipboard = SchematicData.fromNBT(
-                    itemTag.getCompound("Clipboard"), level.registryAccess());
-            double   distance  = SchematicUtils.calculateOptimalDistance(clipboard);
+                    SchematicStorage.getClipboard(stack.getTag()), level.registryAccess());
+            double distance = SchematicUtils.calculateOptimalDistance(clipboard);
             BlockPos targetPos = SchematicUtils.getTargetPlacementPos(player, distance);
             SchematicPaster.pasteSchematic(stack, player, level, targetPos);
             return InteractionResultHolder.success(stack);
@@ -86,9 +81,7 @@ public class SchematicInterfaceBehavior {
     }
 
     private boolean hasClipboard(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains("Clipboard")) return false;
-        CompoundTag clip = tag.getCompound("Clipboard");
-        return clip.contains("Blocks") && !clip.getList("Blocks", 10).isEmpty();
+        CompoundTag clip = SchematicStorage.getClipboard(stack.getTag());
+        return clip != null && clip.contains("Blocks") && !clip.getList("Blocks", 10).isEmpty();
     }
 }

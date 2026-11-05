@@ -2,32 +2,30 @@ package com.gtceuterminal.common.item.behavior;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
-
+import com.gtceuterminal.common.data.SchematicStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import java.util.*;
 
 public final class SchematicCopier {
 
-    private SchematicCopier() {}
+    private SchematicCopier() {
+    }
 
     public static void copyMultiblock(IMultiController controller, ItemStack itemStack,
                                       Player player, Level level) {
-        GTCEUTerminalMod.LOGGER.info("=== COPYING MULTIBLOCK ===");
-
         Set<BlockPos> positions = scanMultiblockArea(controller, level);
 
         if (positions.isEmpty()) {
@@ -78,14 +76,23 @@ public final class SchematicCopier {
                 "Clipboard", multiblockType, blocks, blockEntities, facing.getName());
 
         CompoundTag itemTag = itemStack.getOrCreateTag();
-        itemTag.put("Clipboard", clipboard.toNBT());
+        SchematicStorage.putClipboard(itemTag, clipboard.toNBT());
         itemStack.setTag(itemTag);
+
+        if (SchematicStorage.itemTagSize(itemTag) > SchematicStorage.MAX_ITEM_NBT_BYTES) {
+            itemTag.remove(SchematicStorage.CLIPBOARD);
+            itemStack.setTag(itemTag);
+            player.displayClientMessage(
+                    Component.translatable("item.gtceuterminal.schematic_copier.too_large"),
+                    true);
+            return;
+        }
 
         player.displayClientMessage(
                 Component.translatable("item.gtceuterminal.schematic_copier.multiblock_copied", blocks.size()),
                 true);
 
-        GTCEUTerminalMod.LOGGER.info("Multiblock copied: {} blocks", blocks.size());
+        GTCEUTerminalMod.LOGGER.debug("Multiblock copied: {} blocks", blocks.size());
     }
 
     private static Set<BlockPos> scanMultiblockArea(IMultiController controller, Level level) {
@@ -95,7 +102,7 @@ public final class SchematicCopier {
             Collection<BlockPos> cached = controller.getMultiblockState().getCache();
             if (cached != null && !cached.isEmpty()) {
                 positions.addAll(cached);
-                GTCEUTerminalMod.LOGGER.info("Got {} positions from multiblock cache", positions.size());
+                GTCEUTerminalMod.LOGGER.debug("Got {} positions from multiblock cache", positions.size());
                 return positions;
             }
         } catch (Exception e) {
@@ -113,7 +120,7 @@ public final class SchematicCopier {
             positions.add(part.self().getPos());
         }
 
-        GTCEUTerminalMod.LOGGER.info("Fallback scan: collected {} part positions", positions.size());
+        GTCEUTerminalMod.LOGGER.debug("Fallback scan: collected {} part positions", positions.size());
         return positions;
     }
 
@@ -124,35 +131,28 @@ public final class SchematicCopier {
 
         copyString(originalTag, clean, "id");
 
-        copyTag(originalTag, clean, "CoverContainer");
-        copyTag(originalTag, clean, "Covers");
-        copyTag(originalTag, clean, "Upgrades");
+        copyTag(originalTag, clean, "cover");
+        copyTag(originalTag, clean, "filterHandler");
 
-        if (originalTag.contains("Tier"))     clean.putInt("Tier", originalTag.getInt("Tier"));
-        copyString(originalTag, clean, "Material");
-
-        copyString(originalTag, clean, "Facing");
-        copyString(originalTag, clean, "FrontFacing");
-
-        if (originalTag.contains("WorkingEnabled"))
-            clean.putBoolean("WorkingEnabled", originalTag.getBoolean("WorkingEnabled"));
-        if (originalTag.contains("AllowInputFromOutputSide"))
-            clean.putBoolean("AllowInputFromOutputSide", originalTag.getBoolean("AllowInputFromOutputSide"));
+        if (originalTag.contains("workingEnabled"))
+            clean.putBoolean("workingEnabled", originalTag.getBoolean("workingEnabled"));
+        if (originalTag.contains("allowInputFromOutputSideItems"))
+            clean.putBoolean("allowInputFromOutputSideItems", originalTag.getBoolean("allowInputFromOutputSideItems"));
+        if (originalTag.contains("allowInputFromOutputSideFluids"))
+            clean.putBoolean("allowInputFromOutputSideFluids", originalTag.getBoolean("allowInputFromOutputSideFluids"));
         if (originalTag.contains("activeRecipeType"))
             clean.putInt("activeRecipeType", originalTag.getInt("activeRecipeType"));
 
 
-        copyString(originalTag, clean, "CustomName");
-        if (originalTag.contains("PartIndex"))
-            clean.putInt("PartIndex", originalTag.getInt("PartIndex"));
+        copyString(originalTag, clean, "customName");
         copyTag(originalTag, clean, "ownerUUID");
         if (originalTag.contains("paintingColor"))
             clean.putInt("paintingColor", originalTag.getInt("paintingColor"));
 
         if (com.gtceuterminal.common.config.ItemsConfig.isSchAllowAE2ConfigCopy()) {
             String blockId = originalTag.getString("id").toLowerCase();
-            if (isGTCEuAE2Machine(blockId))  copyGTCEuAE2MachineConfig(originalTag, clean);
-            if (isAE2CableBus(blockId))       copyAE2CableBusConfig(originalTag, clean);
+            if (isGTCEuAE2Machine(blockId)) copyGTCEuAE2MachineConfig(originalTag, clean);
+            if (isAE2CableBus(blockId)) copyAE2CableBusConfig(originalTag, clean);
         }
 
         GTCEUTerminalMod.LOGGER.debug("Cleaned NBT — original keys: {}, clean keys: {}",
@@ -219,19 +219,20 @@ public final class SchematicCopier {
             }
         }
 
-        if (src.contains("circuitInventory"))  dst.put("circuitInventory", src.get("circuitInventory").copy());
-        if (src.contains("circuitSlotEnabled")) dst.putBoolean("circuitSlotEnabled", src.getBoolean("circuitSlotEnabled"));
-        if (src.contains("isDistinct"))        dst.putBoolean("isDistinct", src.getBoolean("isDistinct"));
-        if (src.contains("filterHandler"))     dst.put("filterHandler", src.get("filterHandler").copy());
-        if (src.contains("autoPull"))          dst.putBoolean("autoPull", src.getBoolean("autoPull"));
-        if (src.contains("minStackSize"))      dst.putInt("minStackSize", src.getInt("minStackSize"));
-        if (src.contains("ticksPerCycle"))     dst.putInt("ticksPerCycle", src.getInt("ticksPerCycle"));
+        if (src.contains("circuitInventory")) dst.put("circuitInventory", src.get("circuitInventory").copy());
+        if (src.contains("circuitSlotEnabled"))
+            dst.putBoolean("circuitSlotEnabled", src.getBoolean("circuitSlotEnabled"));
+        if (src.contains("isDistinct")) dst.putBoolean("isDistinct", src.getBoolean("isDistinct"));
+        if (src.contains("filterHandler")) dst.put("filterHandler", src.get("filterHandler").copy());
+        if (src.contains("autoPull")) dst.putBoolean("autoPull", src.getBoolean("autoPull"));
+        if (src.contains("minStackSize")) dst.putInt("minStackSize", src.getInt("minStackSize"));
+        if (src.contains("ticksPerCycle")) dst.putInt("ticksPerCycle", src.getInt("ticksPerCycle"));
 
         GTCEUTerminalMod.LOGGER.debug("Copied GTCEu AE2 machine config — keys: {}", dst.getAllKeys());
     }
 
     private static void copyAE2CableBusConfig(CompoundTag src, CompoundTag dst) {
-        String[] sideKeys = { "down", "up", "north", "south", "east", "west", "cable" };
+        String[] sideKeys = {"down", "up", "north", "south", "east", "west", "cable"};
 
         for (String side : sideKeys) {
             if (!src.contains(side)) continue;
@@ -243,7 +244,7 @@ public final class SchematicCopier {
 
         if (src.contains("hasRedstone")) dst.putInt("hasRedstone", src.getInt("hasRedstone"));
         for (String side : sideKeys) {
-            String facadeKey = "facade_" + side;
+            String facadeKey = "facade" + Character.toUpperCase(side.charAt(0)) + side.substring(1);
             if (src.contains(facadeKey)) dst.put(facadeKey, src.get(facadeKey).copy());
         }
     }
@@ -265,7 +266,6 @@ public final class SchematicCopier {
 
         if (partData.contains("reportingValue")) safe.putLong("reportingValue", partData.getLong("reportingValue"));
         copyString(partData, safe, "customName");
-        copyTag(partData, safe, "cm");
 
         return safe;
     }

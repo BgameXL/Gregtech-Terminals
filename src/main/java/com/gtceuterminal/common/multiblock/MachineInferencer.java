@@ -11,68 +11,14 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
 import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.config.ServerConfig;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.math.BigInteger;
-
-// Infers machine state and energy usage by analyzing traits, capabilities, and recipe logic.
 public class MachineInferencer {
 
     private static final org.slf4j.Logger LOGGER = GTCEUTerminalMod.LOGGER;
-
-    private static boolean isDebug() {
-        try { return ServerConfig.isDebugLoggingEnabled(); } catch (Exception e) { return false; }
-    }
-
-    public static class MachineSnapshot {
-        public final long euPerTick;
-        public final MachineState state;
-        public final long inputEuPerTick;
-        public final long outputEuPerTick;
-        public final long storedEu;
-        public final long capacityEu;
-
-        public MachineSnapshot(long euPerTick, MachineState state) {
-            this(euPerTick, state, 0, 0, 0, 0);
-        }
-
-        public MachineSnapshot(long euPerTick, MachineState state, long inputEuPerTick, long outputEuPerTick) {
-            this(euPerTick, state, inputEuPerTick, outputEuPerTick, 0, 0);
-        }
-
-        public MachineSnapshot(long euPerTick,
-                               MachineState state,
-                               long inputEuPerTick,
-                               long outputEuPerTick,
-                               long storedEu,
-                               long capacityEu) {
-            this.euPerTick = euPerTick;
-            this.state = state;
-            this.inputEuPerTick = inputEuPerTick;
-            this.outputEuPerTick = outputEuPerTick;
-            this.storedEu = storedEu;
-            this.capacityEu = capacityEu;
-        }
-
-        public boolean hasInputOutputData() {
-            return inputEuPerTick > 0 || outputEuPerTick > 0;
-        }
-
-        public boolean hasStorageData() {
-            return capacityEu > 0 || storedEu > 0;
-        }
-    }
-
-    private static class EnergyTracker {
-        long lastEnergy = -1;
-        long lastTime = -1;
-        int calculatedEuPerTick = 0;
-    }
-
     private static final int MAX_TRACKED_MACHINES = 1000; // ~36 KB max
     private static final java.util.Map<BlockPos, EnergyTracker> energyTrackers =
             java.util.Collections.synchronizedMap(
@@ -133,11 +79,6 @@ public class MachineInferencer {
 
     private static MachineSnapshot inferFromEnergyContainerWithDelta(MetaMachine metaMachine, BlockPos pos) {
         try {
-
-            var traits = metaMachine.getTraits();
-            for (var trait : traits) {
-            }
-
             var energyContainerOpt = metaMachine.getTraits().stream()
                     .filter(IEnergyContainer.class::isInstance)
                     .map(IEnergyContainer.class::cast)
@@ -189,8 +130,7 @@ public class MachineInferencer {
 
                 if (tracker.calculatedEuPerTick > 0) {
                     eut = tracker.calculatedEuPerTick;
-                }
-                else if (theoreticalOutput > 0 || theoreticalInput > 0) {
+                } else if (theoreticalOutput > 0 || theoreticalInput > 0) {
                     eut = (int) Math.min(Math.max(theoreticalOutput, theoreticalInput), Integer.MAX_VALUE);
                 }
 
@@ -286,13 +226,9 @@ public class MachineInferencer {
             long inputPerTick = inputPerSec / 20;
             long outputPerTick = Math.abs(outputPerSec) / 20;
 
-            if (inputPerTick > 0 || outputPerTick > 0) {
-            }
-
             long flowRate = Math.max(inputPerTick, outputPerTick);
 
-            if (flowRate > 0) {
-            } else {
+            if (flowRate <= 0) {
                 long maxEnergy = bigCapacity.compareTo(java.math.BigInteger.valueOf(Long.MAX_VALUE)) > 0
                         ? Long.MAX_VALUE
                         : bigCapacity.longValue();
@@ -375,7 +311,6 @@ public class MachineInferencer {
         return new MachineSnapshot(0, MachineState.IDLE_NO_RECIPE);
     }
 
-
     private static int getMaxEnergyHatchVoltage(IMultiController controller) {
         try {
             long maxVoltage = 0;
@@ -391,9 +326,6 @@ public class MachineInferencer {
                         }
                     }
                 }
-            }
-
-            if (maxVoltage > 0) {
             }
 
             return (int) Math.min(maxVoltage, Integer.MAX_VALUE);
@@ -477,5 +409,23 @@ public class MachineInferencer {
 
     public static void clearTracker(BlockPos pos) {
         energyTrackers.remove(pos);
+    }
+
+    public record MachineSnapshot(long euPerTick, MachineState state, long inputEuPerTick, long outputEuPerTick,
+                                  long storedEu, long capacityEu) {
+            public MachineSnapshot(long euPerTick, MachineState state) {
+                this(euPerTick, state, 0, 0, 0, 0);
+            }
+
+            public MachineSnapshot(long euPerTick, MachineState state, long inputEuPerTick, long outputEuPerTick) {
+                this(euPerTick, state, inputEuPerTick, outputEuPerTick, 0, 0);
+            }
+
+    }
+
+    private static class EnergyTracker {
+        long lastEnergy = -1;
+        long lastTime = -1;
+        int calculatedEuPerTick = 0;
     }
 }

@@ -19,6 +19,11 @@ public class GTCEuCompat {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(GTCEuCompat.class);
     private static final boolean IS_LEGACY;
+    private static final Method METHOD_CLEAN;
+    private static final Method METHOD_UPDATE;
+    private static final Method METHOD_GET_ACTUAL_DIRECTION;
+    private static final Field FIELD_GLOBAL_COUNT;
+    private static final Field FIELD_LAYER_COUNT;
 
     static {
         boolean legacy = false;
@@ -33,13 +38,6 @@ public class GTCEuCompat {
         LOGGER.info("[GTCEuCompat] Detected GTCEu API: {}", IS_LEGACY ? "1.6.4 (legacy)" : "7.0.0+");
     }
 
-    public static boolean isLegacy() {
-        return IS_LEGACY;
-    }
-
-    private static final Method METHOD_CLEAN;
-    private static final Method METHOD_UPDATE;
-
     static {
         Method mClean = null, mUpdate = null;
         try {
@@ -50,8 +48,40 @@ public class GTCEuCompat {
         } catch (Exception e) {
             LOGGER.error("[GTCEuCompat] Failed to cache MultiblockState methods", e);
         }
-        METHOD_CLEAN  = mClean;
+        METHOD_CLEAN = mClean;
         METHOD_UPDATE = mUpdate;
+    }
+
+    static {
+        Method m = null;
+        try {
+            if (IS_LEGACY) {
+                m = RelativeDirection.class.getMethod("getActualFacing", Direction.class);
+            } else {
+                m = RelativeDirection.class.getMethod("getActualDirection", Direction.class);
+            }
+        } catch (Exception e) {
+            LOGGER.error("[GTCEuCompat] Failed to cache RelativeDirection method", e);
+        }
+        METHOD_GET_ACTUAL_DIRECTION = m;
+    }
+
+    static {
+        Field fg = null, fl = null;
+        try {
+            fg = MultiblockState.class.getDeclaredField("globalCount");
+            fg.setAccessible(true);
+            fl = MultiblockState.class.getDeclaredField("layerCount");
+            fl.setAccessible(true);
+        } catch (Exception e) {
+            LOGGER.error("[GTCEuCompat] Could not access MultiblockState count fields", e);
+        }
+        FIELD_GLOBAL_COUNT = fg;
+        FIELD_LAYER_COUNT = fl;
+    }
+
+    public static boolean isLegacy() {
+        return IS_LEGACY;
     }
 
     public static void clean(MultiblockState state) {
@@ -71,22 +101,6 @@ public class GTCEuCompat {
         }
     }
 
-    private static final Method METHOD_GET_ACTUAL_DIRECTION;
-
-    static {
-        Method m = null;
-        try {
-            if (IS_LEGACY) {
-                m = RelativeDirection.class.getMethod("getActualFacing", Direction.class);
-            } else {
-                m = RelativeDirection.class.getMethod("getActualDirection", Direction.class);
-            }
-        } catch (Exception e) {
-            LOGGER.error("[GTCEuCompat] Failed to cache RelativeDirection method", e);
-        }
-        METHOD_GET_ACTUAL_DIRECTION = m;
-    }
-
     public static Direction getActualDirection(RelativeDirection relDir, Direction facing) {
         try {
             return (Direction) METHOD_GET_ACTUAL_DIRECTION.invoke(relDir, facing);
@@ -94,105 +108,6 @@ public class GTCEuCompat {
             LOGGER.error("[GTCEuCompat] getActualDirection() failed", e);
             return Direction.NORTH;
         }
-    }
-
-    public static class PredicateCountMap {
-
-        private final Object inner;
-
-        private static Method mapGet;
-        private static Method mapPut;
-        private static Method mapGetOrDefault;
-        private static Method mapClear;
-
-        private static Method o2iGetInt;
-        private static Method o2iAddTo;
-        private static Method o2iGetOrDefault;
-        private static Method o2iClear;
-
-        static {
-            try {
-                if (IS_LEGACY) {
-                    mapGet          = Map.class.getMethod("get", Object.class);
-                    mapPut          = Map.class.getMethod("put", Object.class, Object.class);
-                    mapGetOrDefault = Map.class.getMethod("getOrDefault", Object.class, Object.class);
-                    mapClear        = Map.class.getMethod("clear");
-                } else {
-                    Class<?> o2i = Class.forName("it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap");
-                    o2iGetInt       = o2i.getMethod("getInt", Object.class);
-                    o2iAddTo        = o2i.getMethod("addTo", Object.class, int.class);
-                    o2iGetOrDefault = o2i.getMethod("getOrDefault", Object.class, int.class);
-                    o2iClear        = o2i.getMethod("clear");
-                }
-            } catch (Exception e) {
-                LOGGER.error("[GTCEuCompat] Failed to cache PredicateCountMap methods", e);
-            }
-        }
-
-        private PredicateCountMap(Object inner) {
-            this.inner = inner;
-        }
-
-        public int getInt(SimplePredicate key) {
-            try {
-                if (IS_LEGACY) {
-                    Object v = mapGet.invoke(inner, key);
-                    return v == null ? 0 : (int) v;
-                } else {
-                    return (int) o2iGetInt.invoke(inner, key);
-                }
-            } catch (Exception e) { return 0; }
-        }
-
-        public int getOrDefault(SimplePredicate key, int defaultValue) {
-            try {
-                if (IS_LEGACY) {
-                    return (int) mapGetOrDefault.invoke(inner, key, defaultValue);
-                } else {
-                    return (int) o2iGetOrDefault.invoke(inner, key, defaultValue);
-                }
-            } catch (Exception e) { return defaultValue; }
-        }
-
-        public void addTo(SimplePredicate key, int delta) {
-            try {
-                if (IS_LEGACY) {
-                    Object cur = mapGet.invoke(inner, key);
-                    int current = cur == null ? 0 : (int) cur;
-                    mapPut.invoke(inner, key, current + delta);
-                } else {
-                    o2iAddTo.invoke(inner, key, delta);
-                }
-            } catch (ReflectiveOperationException e) {
-                GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.addTo: reflection error: {}", e.getMessage());
-            }
-        }
-
-        public void clear() {
-            try {
-                if (IS_LEGACY) mapClear.invoke(inner);
-                else           o2iClear.invoke(inner);
-            } catch (ReflectiveOperationException e) {
-                GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.clear: reflection error: {}", e.getMessage());
-            }
-        }
-    }
-
-    private static final Field FIELD_GLOBAL_COUNT;
-    private static final Field FIELD_LAYER_COUNT;
-
-    static {
-        Field fg = null, fl = null;
-        try {
-            fg = MultiblockState.class.getDeclaredField("globalCount");
-            fg.setAccessible(true);
-            fl = MultiblockState.class.getDeclaredField("layerCount");
-            fl.setAccessible(true);
-        } catch (Exception e) {
-            LOGGER.error("[GTCEuCompat] Could not access MultiblockState count fields", e);
-        }
-        FIELD_GLOBAL_COUNT = fg;
-        FIELD_LAYER_COUNT  = fl;
     }
 
     public static PredicateCountMap getGlobalCount(MultiblockState state) {
@@ -210,6 +125,95 @@ public class GTCEuCompat {
         } catch (Exception e) {
             LOGGER.error("[GTCEuCompat] getLayerCount failed", e);
             return new PredicateCountMap(new java.util.HashMap<>());
+        }
+    }
+
+    public static class PredicateCountMap {
+
+        private static Method mapGet;
+        private static Method mapPut;
+        private static Method mapGetOrDefault;
+        private static Method mapClear;
+        private static Method o2iGetInt;
+        private static Method o2iAddTo;
+        private static Method o2iGetOrDefault;
+        private static Method o2iClear;
+
+        static {
+            try {
+                if (IS_LEGACY) {
+                    mapGet = Map.class.getMethod("get", Object.class);
+                    mapPut = Map.class.getMethod("put", Object.class, Object.class);
+                    mapGetOrDefault = Map.class.getMethod("getOrDefault", Object.class, Object.class);
+                    mapClear = Map.class.getMethod("clear");
+                } else {
+                    Class<?> o2i = Class.forName("it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap");
+                    o2iGetInt = o2i.getMethod("getInt", Object.class);
+                    o2iAddTo = o2i.getMethod("addTo", Object.class, int.class);
+                    o2iGetOrDefault = o2i.getMethod("getOrDefault", Object.class, int.class);
+                    o2iClear = o2i.getMethod("clear");
+                }
+            } catch (Exception e) {
+                LOGGER.error("[GTCEuCompat] Failed to cache PredicateCountMap methods", e);
+            }
+        }
+
+        private final Object inner;
+
+        private PredicateCountMap(Object inner) {
+            this.inner = inner;
+        }
+
+        public int getInt(SimplePredicate key) {
+            if (inner == null) return 0;
+            try {
+                if (IS_LEGACY) {
+                    Object v = mapGet.invoke(inner, key);
+                    return v == null ? 0 : (int) v;
+                } else {
+                    return (int) o2iGetInt.invoke(inner, key);
+                }
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+
+        public int getOrDefault(SimplePredicate key, int defaultValue) {
+            if (inner == null) return defaultValue;
+            try {
+                if (IS_LEGACY) {
+                    return (int) mapGetOrDefault.invoke(inner, key, defaultValue);
+                } else {
+                    return (int) o2iGetOrDefault.invoke(inner, key, defaultValue);
+                }
+            } catch (Exception e) {
+                return defaultValue;
+            }
+        }
+
+        public void addTo(SimplePredicate key, int delta) {
+            if (inner == null) return;
+            try {
+                if (IS_LEGACY) {
+                    Object cur = mapGet.invoke(inner, key);
+                    int current = cur == null ? 0 : (int) cur;
+                    mapPut.invoke(inner, key, current + delta);
+                } else {
+                    o2iAddTo.invoke(inner, key, delta);
+                }
+            } catch (ReflectiveOperationException e) {
+                GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.addTo: reflection error: {}", e.getMessage());
+            }
+        }
+
+        public void clear() {
+            if (inner == null) return;
+            try {
+                if (IS_LEGACY) mapClear.invoke(inner);
+                else o2iClear.invoke(inner);
+            } catch (ReflectiveOperationException e) {
+                GTCEUTerminalMod.LOGGER.debug("GTCEuCompat.PredicateCountMap.clear: reflection error: {}", e.getMessage());
+            }
         }
     }
 }

@@ -1,27 +1,53 @@
 package com.gtceuterminal.common.theme.bundle;
 
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gtceuterminal.common.theme.ItemTheme;
 import com.lowdragmc.lowdraglib.gui.texture.*;
-import javax.annotation.Nullable;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import javax.annotation.Nullable;
 
 public abstract class ThemeBundle {
 
     public boolean isAvailable() {
         return true;
     }
+
     public abstract String id();
+
     public abstract String displayName();
+
     public abstract String description();
 
     public abstract int accentColor();
+
     public abstract int bgColor();
+
     public abstract int panelColor();
+
     public int textColor() {
-        return 0xFFFFFFFF;
+        return ItemTheme.DEFAULT_TEXT;
+    }
+
+    public int textMutedColor() {
+        return ItemTheme.DEFAULT_TEXT_MUTED;
+    }
+
+    public int borderColor() {
+        return accentColor();
+    }
+
+    public int successColor() {
+        return ItemTheme.DEFAULT_SUCCESS;
+    }
+
+    public int warningColor() {
+        return ItemTheme.DEFAULT_WARNING;
+    }
+
+    public int errorColor() {
+        return ItemTheme.DEFAULT_ERROR;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -89,7 +115,7 @@ public abstract class ThemeBundle {
     }
 
     public int separatorColor() {
-        return (accentColor() & 0x00FFFFFF) | 0x55000000;
+        return (borderColor() & 0x00FFFFFF) | 0x55000000;
     }
 
     public void applyTo(ItemTheme theme) {
@@ -97,6 +123,11 @@ public abstract class ThemeBundle {
         theme.bgColor = bgColor();
         theme.panelColor = panelColor();
         theme.textColor = textColor();
+        theme.textMutedColor = textMutedColor();
+        theme.borderColor = borderColor();
+        theme.successColor = successColor();
+        theme.warningColor = warningColor();
+        theme.errorColor = errorColor();
         theme.uiStyle = ItemTheme.UiStyle.BUNDLE;
         theme.bundleId = id();
         ResourceLocation wp = builtinWallpaper();
@@ -122,19 +153,8 @@ public abstract class ThemeBundle {
                 : new ColorRectTexture(panelColor());
         return new GuiTextureGroup(
                 base,
-                new ColorBorderTexture(1, accentColor())
+                new ColorBorderTexture(1, borderColor())
         );
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    @Nullable
-    public com.gtceuterminal.client.gui.widget.MultiblockParadeWidget createParadeWidget(
-            int x,
-            int y,
-            int guiW,
-            int guiH
-    ) {
-        return null;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -174,14 +194,14 @@ public abstract class ThemeBundle {
         if (t != null) return t;
         return new GuiTextureGroup(
                 new ColorRectTexture(panelColor()),
-                new ColorBorderTexture(1, accentColor())
+                new ColorBorderTexture(1, borderColor())
         );
     }
 
     @OnlyIn(Dist.CLIENT)
     public final IGuiTexture resolvedBorder() {
         IGuiTexture t = borderTexture();
-        return t != null ? t : new ColorBorderTexture(1, accentColor());
+        return t != null ? t : new ColorBorderTexture(1, borderColor());
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -193,7 +213,7 @@ public abstract class ThemeBundle {
                 : new ColorRectTexture(panelColor());
         IGuiTexture rim = (border != null)
                 ? border
-                : new ColorBorderTexture(1, accentColor());
+                : new ColorBorderTexture(1, borderColor());
         return new GuiTextureGroup(base, rim);
     }
 }

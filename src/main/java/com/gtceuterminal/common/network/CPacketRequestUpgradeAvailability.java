@@ -20,24 +20,11 @@ import java.util.function.Supplier;
 
 public class CPacketRequestUpgradeAvailability {
 
-    private static final class ComponentEntry {
-        final BlockPos pos;
-        final ComponentGroup group;
-        final int tier;
-
-        ComponentEntry(BlockPos pos, ComponentGroup group, int tier) {
-            this.pos = pos;
-            this.group = group;
-            this.tier = tier;
-        }
-    }
-
     private final int requestId;
     private final List<ComponentEntry> components;
     private final int targetTier;
     private final String upgradeId;
     private final BlockPos controllerPos;
-
     public CPacketRequestUpgradeAvailability(int requestId,
                                              List<ComponentInfo> infos,
                                              int targetTier,
@@ -106,5 +93,8 @@ public class CPacketRequestUpgradeAvailability {
             }
         });
         ctx.get().setPacketHandled(true);
+    }
+
+    private record ComponentEntry(BlockPos pos, ComponentGroup group, int tier) {
     }
 }

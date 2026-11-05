@@ -1,0 +1,85 @@
+package com.gtceuterminal.client.gui.energy;
+
+import com.gtceuterminal.client.gui.style.*;
+import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.common.energy.LinkedMachineData;
+import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
+import com.lowdragmc.lowdraglib.gui.widget.DialogWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
+@OnlyIn(Dist.CLIENT)
+final class EnergyOptionsDialog {
+
+    private EnergyOptionsDialog() {
+    }
+
+    static void open(
+            WidgetGroup rootGroup,
+            int parentW,
+            int parentH,
+            int machineIdx,
+            LinkedMachineData machine,
+            Player player
+    ) {
+        final int DW = 220, DH = 110;
+        TerminalTheme tokens = TerminalUI.tokens();
+        DialogWidget dialog = new DialogWidget(rootGroup, true);
+        dialog.setBackground(TerminalUI.scrim());
+        dialog.setClickClose(true);
+
+        WidgetGroup panel = new WidgetGroup((parentW - DW) / 2, (parentH - DH) / 2, DW, DH);
+        panel.setBackground(TerminalUI.cardBG());
+        dialog.addWidget(panel);
+
+        WidgetGroup titleBar = new WidgetGroup(0, 0, DW, 18);
+        titleBar.setBackground(TerminalUI.bevel(tokens.surface()));
+        panel.addWidget(titleBar);
+
+        LabelWidget titleLbl = new LabelWidget(8, 4,
+                TerminalText.strip(Component.translatable(
+                        "gui.gtceuterminal.energy_analyzer.machine_options.title").getString()));
+        titleLbl.setColor(tokens.textStrong());
+        titleBar.addWidget(titleLbl);
+
+        ButtonWidget closeBtn = TerminalButton.icon3D(DW - 18, 1, 16, TerminalButton.ICON_CLOSE, cd -> dialog.close());
+        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
+        titleBar.addWidget(closeBtn);
+
+        LabelWidget nameLbl = new LabelWidget(8, 22,
+                EnergyDisplayHelper.truncate(machine.getDisplayNameComponent().getString(), 28));
+        nameLbl.setColor(tokens.textMuted());
+        panel.addWidget(nameLbl);
+
+        ButtonWidget renameBtn = TerminalButton.text3D(8, 38, DW - 16, 18,
+                Component.translatable(
+                        "gui.gtceuterminal.energy_analyzer.machine_options.rename").getString(),
+                tokens.warningSurface(),
+                cd -> {
+                    dialog.close();
+                    EnergyRenameDialog.open(rootGroup, parentW, parentH, machineIdx, machine);
+                });
+        panel.addWidget(renameBtn);
+
+        ButtonWidget unlinkBtn = TerminalButton.text3D(8, 60, DW - 16, 18,
+                Component.translatable(
+                        "gui.gtceuterminal.energy_analyzer.machine_options.unlink_machine").getString(),
+                tokens.errorSurface(),
+                cd -> {
+                    dialog.close();
+                    EnergyUnlinkDialog.open(rootGroup, parentW, parentH, machineIdx, machine, player);
+                });
+        panel.addWidget(unlinkBtn);
+
+        ButtonWidget cancelBtn = TerminalButton.text3D(8, 84, DW - 16, 18,
+                Component.translatable(
+                        "gui.gtceuterminal.energy_analyzer.machine_options.cancel").getString(),
+                tokens.panelDisabled(), cd -> dialog.close());
+        panel.addWidget(cancelBtn);
+    }
+
+}

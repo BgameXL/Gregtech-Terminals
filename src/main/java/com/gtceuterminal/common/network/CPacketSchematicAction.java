@@ -2,11 +2,10 @@ package com.gtceuterminal.common.network;
 
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,7 +56,7 @@ public class CPacketSchematicAction {
 
             switch (this.actionType) {
                 case SAVE:
-                    if (!stackTag.contains("Clipboard")) {
+                    if (!SchematicStorage.hasClipboard(stackTag)) {
                         player.displayClientMessage(
                                 Component.translatable("item.gtceuterminal.schematic_action.message.no_clipboard_to_save"),
                                 true
@@ -65,8 +64,8 @@ public class CPacketSchematicAction {
                         return;
                     }
 
-                    CompoundTag clipboardTag = stackTag.getCompound("Clipboard");
-                    if (!clipboardTag.contains("Blocks") || clipboardTag.getList("Blocks", 10).isEmpty()) {
+                    CompoundTag clipboardTag = SchematicStorage.getClipboard(stackTag);
+                    if (clipboardTag == null || !clipboardTag.contains("Blocks") || clipboardTag.getList("Blocks", 10).isEmpty()) {
                         player.displayClientMessage(
                                 Component.translatable("item.gtceuterminal.schematic_action.message.clipboard_empty"),
                                 true
@@ -78,7 +77,7 @@ public class CPacketSchematicAction {
 
                     List<SchematicData> existingSchematics = loadSchematics(stack, player);
                     boolean isDuplicate = existingSchematics.stream()
-                            .anyMatch(s -> s.getName().equals(this.schematicName));
+                            .anyMatch(s -> s.name().equals(this.schematicName));
 
                     if (isDuplicate) {
                         player.displayClientMessage(
@@ -90,17 +89,24 @@ public class CPacketSchematicAction {
 
                     SchematicData namedSchematic = new SchematicData(
                             this.schematicName,
-                            clipboard.getMultiblockType(),
-                            clipboard.getBlocks(),
-                            clipboard.getBlockEntities(),
-                            clipboard.getOriginalFacing()
+                            clipboard.multiblockType(),
+                            clipboard.blocks(),
+                            clipboard.blockEntities(),
+                            clipboard.originalFacing()
                     );
 
                     existingSchematics.add(namedSchematic);
                     saveSchematics(stack, existingSchematics);
 
-                    GTCEUTerminalMod.LOGGER.info("Saved schematic '{}' with originalFacing: {}",
-                            this.schematicName, clipboard.getOriginalFacing());
+                    if (SchematicStorage.itemTagSize(stack.getTag()) > SchematicStorage.MAX_ITEM_NBT_BYTES) {
+                        existingSchematics.remove(namedSchematic);
+                        saveSchematics(stack, existingSchematics);
+                        player.displayClientMessage(
+                                Component.translatable("item.gtceuterminal.schematic_action.message.too_large"),
+                                true
+                        );
+                        return;
+                    }
 
                     player.displayClientMessage(
                             Component.translatable(
@@ -116,15 +122,12 @@ public class CPacketSchematicAction {
                     if (this.schematicIndex >= 0 && this.schematicIndex < schematics.size()) {
                         SchematicData schematic = schematics.get(this.schematicIndex);
 
-                        stackTag.put("Clipboard", schematic.toNBT());
-
-                        GTCEUTerminalMod.LOGGER.info("Loaded schematic '{}' with originalFacing: {}",
-                                schematic.getName(), schematic.getOriginalFacing());
+                        SchematicStorage.putClipboard(stackTag, schematic.toNBT());
 
                         player.displayClientMessage(
                                 Component.translatable(
                                         "item.gtceuterminal.schematic_action.message.loaded_schematic",
-                                        schematic.getName()
+                                        schematic.name()
                                 ),
                                 true
                         );
@@ -133,7 +136,7 @@ public class CPacketSchematicAction {
 
                 case DELETE:
                     List<SchematicData> allSchematics = loadSchematics(stack, player);
-                    boolean removed = allSchematics.removeIf(s -> s.getName().equals(this.schematicName));
+                    boolean removed = allSchematics.removeIf(s -> s.name().equals(this.schematicName));
                     if (removed) {
                         saveSchematics(stack, allSchematics);
                         player.displayClientMessage(
@@ -145,6 +148,44 @@ public class CPacketSchematicAction {
                         );
                     } else {
                         GTCEUTerminalMod.LOGGER.warn("DELETE: schematic '{}' not found on server", this.schematicName);
+                    }
+                    break;
+
+                case RENAME: {
+                    List<SchematicData> toRename = loadSchematics(stack, player);
+                    if (this.schematicIndex >= 0 && this.schematicIndex < toRename.size()) {
+                        String newName = this.schematicName;
+                        boolean nameTaken = false;
+                        for (int i = 0; i < toRename.size(); i++) {
+                            if (i != this.schematicIndex
+                                    && toRename.get(i).name().equalsIgnoreCase(newName)) {
+                                nameTaken = true;
+                                break;
+                            }
+                        }
+                        if (nameTaken) {
+                            player.displayClientMessage(
+                                    Component.translatable("item.gtceuterminal.schematic_action.message.schematic_name_already_exists"),
+                                    true);
+                            return;
+                        }
+                        SchematicData old = toRename.get(this.schematicIndex);
+                        toRename.set(this.schematicIndex, new SchematicData(newName, old.multiblockType(),
+                                old.blocks(), old.blockEntities(), old.originalFacing()));
+                        saveSchematics(stack, toRename);
+                        player.displayClientMessage(
+                                Component.translatable("item.gtceuterminal.schematic_action.message.renamed_schematic", newName),
+                                true);
+                    }
+                    break;
+                }
+
+                case CLEAR_CLIPBOARD:
+                    if (SchematicStorage.hasClipboard(stackTag)) {
+                        stackTag.remove(SchematicStorage.CLIPBOARD);
+                        player.displayClientMessage(
+                                Component.translatable("item.gtceuterminal.schematic_action.message.cleared_clipboard"),
+                                true);
                     }
                     break;
             }
@@ -169,16 +210,10 @@ public class CPacketSchematicAction {
     private List<SchematicData> loadSchematics(ItemStack stack, ServerPlayer player) {
         List<SchematicData> schematics = new ArrayList<>();
 
-        CompoundTag stackTag = stack.getTag();
-        if (stackTag == null || !stackTag.contains("SavedSchematics")) {
-            return schematics;
-        }
-
-        ListTag savedList = stackTag.getList("SavedSchematics", 10);
+        ListTag savedList = SchematicStorage.getSaved(stack.getTag());
         for (int i = 0; i < savedList.size(); i++) {
             try {
-                CompoundTag schematicTag = savedList.getCompound(i);
-                schematics.add(SchematicData.fromNBT(schematicTag, player.level().registryAccess()));
+                schematics.add(SchematicData.fromNBT(savedList.getCompound(i), player.level().registryAccess()));
             } catch (Exception e) {
                 GTCEUTerminalMod.LOGGER.error("Error loading schematic {}: {}", i, e.getMessage());
             }
@@ -188,19 +223,18 @@ public class CPacketSchematicAction {
     }
 
     private void saveSchematics(ItemStack stack, List<SchematicData> schematics) {
-        CompoundTag stackTag = stack.getOrCreateTag();
-
         ListTag savedList = new ListTag();
         for (SchematicData schematic : schematics) {
             savedList.add(schematic.toNBT());
         }
-
-        stackTag.put("SavedSchematics", savedList);
+        SchematicStorage.putSaved(stack.getOrCreateTag(), savedList);
     }
 
     public enum ActionType {
         SAVE,
         LOAD,
-        DELETE
+        DELETE,
+        RENAME,
+        CLEAR_CLIPBOARD
     }
 }

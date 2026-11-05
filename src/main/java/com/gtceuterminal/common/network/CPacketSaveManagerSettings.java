@@ -23,26 +23,6 @@ public class CPacketSaveManagerSettings {
         this.tag = buf.readNbt();
     }
 
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeNbt(tag);
-    }
-
-    public void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer player = ctx.get().getSender();
-            if (player == null || tag == null) return;
-            ItemStack stack = findManagerItem(player);
-            if (stack == null || stack.isEmpty()) return;
-            CompoundTag existing = stack.getOrCreateTag();
-            existing.putInt("NoHatchMode",  tag.getInt("NoHatchMode")  != 0 ? 1 : 0);
-            existing.putInt("TierMode",     Mth.clamp(tag.getInt("TierMode"),     1, 16));
-            existing.putInt("RepeatCount",  Mth.clamp(tag.getInt("RepeatCount"),  0, 99));
-            existing.putInt("IsUseAE",      tag.getInt("IsUseAE")      != 0 ? 1 : 0);
-            player.getInventory().setChanged();
-        });
-        ctx.get().setPacketHandled(true);
-    }
-
     private static ItemStack findManagerItem(ServerPlayer player) {
         for (var hand : net.minecraft.world.InteractionHand.values()) {
             ItemStack s = player.getItemInHand(hand);
@@ -57,5 +37,28 @@ public class CPacketSaveManagerSettings {
 
     private static boolean isManagerItem(ItemStack stack) {
         return !stack.isEmpty() && stack.is(GTCEUTerminalItems.MULTI_STRUCTURE_MANAGER.get());
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeNbt(tag);
+    }
+
+    public void handle(Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            ServerPlayer player = ctx.get().getSender();
+            if (player == null || tag == null) return;
+            ItemStack stack = findManagerItem(player);
+            if (stack == null || stack.isEmpty()) return;
+            CompoundTag existing = stack.getOrCreateTag();
+            existing.putInt("NoHatchMode", tag.getInt("NoHatchMode") != 0 ? 1 : 0);
+            existing.putInt("TierMode", Mth.clamp(tag.getInt("TierMode"), 0, 14));
+            existing.putInt("RepeatCount", Mth.clamp(tag.getInt("RepeatCount"), 0, 99));
+            existing.putInt("IsUseAE", tag.getInt("IsUseAE") != 0 ? 1 : 0);
+            existing.putInt("MirrorMode", tag.getInt("MirrorMode") != 0 ? 1 : 0);
+            existing.putInt("ExpandRadius", Mth.clamp(tag.getInt("ExpandRadius"), 0, 7));
+            existing.putInt("ExpandHeight", Mth.clamp(tag.getInt("ExpandHeight"), 0, 14));
+            player.getInventory().setChanged();
+        });
+        ctx.get().setPacketHandled(true);
     }
 }

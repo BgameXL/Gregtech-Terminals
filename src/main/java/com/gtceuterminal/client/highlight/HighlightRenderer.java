@@ -1,25 +1,16 @@
 package com.gtceuterminal.client.highlight;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.blaze3d.vertex.VertexFormat;
-
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
 import org.joml.Matrix4f;
 
 import java.util.Map;
@@ -128,8 +119,8 @@ public class HighlightRenderer {
             Set<BlockPos> blockSet = hl.blocks;
             int col = hl.color;
             float r = ((col >> 16) & 0xFF) / 255f;
-            float g = ((col >>  8) & 0xFF) / 255f;
-            float b = ( col        & 0xFF) / 255f;
+            float g = ((col >> 8) & 0xFF) / 255f;
+            float b = (col & 0xFF) / 255f;
 
             for (BlockPos pos : blockSet) {
                 for (Direction dir : Direction.values()) {

@@ -2,13 +2,11 @@ package com.gtceuterminal.common.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import net.minecraft.core.BlockPos;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a detected multiblock structure in the world, containing information about its controller, components, status, and other metadata.
@@ -59,12 +57,12 @@ public class MultiblockInfo {
         return name;
     }
 
-    public void setCustomDisplayName(String name) {
-        this.customDisplayName = name;
-    }
-
     public String getCustomDisplayName() {
         return customDisplayName != null ? customDisplayName : "";
+    }
+
+    public void setCustomDisplayName(String name) {
+        this.customDisplayName = name;
     }
 
     public Set<BlockPos> getAllBlockPositions() {
@@ -150,49 +148,18 @@ public class MultiblockInfo {
         return String.format(java.util.Locale.ROOT, "%.0fm", distanceFromPlayer);
     }
 
-    public List<ComponentInfo> getComponentsByGroup(ComponentGroup group) {
-        return components.stream().filter(c -> c.getGroup() == group).toList();
-    }
-
-    public List<ComponentInfo> getUpgradeableComponents() {
-        return components.stream().filter(c -> c.getGroup().isUpgradeable).toList();
-    }
-
-    public int countComponentsOfGroup(ComponentGroup group) {
-        return (int) components.stream().filter(c -> c.getGroup() == group).count();
-    }
-
-    // MOD SOURCE TRACKING
     public void setSourceMod(String modId) {
         this.sourceMod = modId != null ? modId : "unknown";
-    }
-
-    public String getSourceMod() {
-        return sourceMod;
-    }
-
-    public boolean isFromMod(String modId) {
-        return this.sourceMod.equals(modId);
     }
 
     public boolean isVanillaGTCEu() {
         return "gtceu".equals(sourceMod);
     }
 
-    public String getDisplayNameWithMod() {
-        if ("gtceu".equals(sourceMod)) {
-            return getName();
-        }
-        return "[" + sourceMod.toUpperCase() + "] " + getName();
-    }
-
     public int getModColor() {
         return switch (sourceMod) {
             case "gtceu" -> 0xFFFFFF;
-            case "monifactory" -> 0x00FF00;
             case "terrafirmagreg" -> 0x00FFFF;
-            case "phoenix's technologies" -> 0xFFAA00;
-            case "astrogreg:exsilium" -> 0xFF00FF;
             default -> 0xAAAAAA;
         };
     }
@@ -208,9 +175,5 @@ public class MultiblockInfo {
                 ", status=" + status +
                 ", sourceMod='" + sourceMod + '\'' +
                 '}';
-    }
-
-    public String getType() {
-        return "";
     }
 }

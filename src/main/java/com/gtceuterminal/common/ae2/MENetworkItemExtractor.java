@@ -5,27 +5,37 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
-
-import com.gtceuterminal.GTCEUTerminalMod;
-
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class MENetworkItemExtractor {
 
-    /**
-     * Extracts all required items from the ME network.
-     * On partial failure rolls back and returns false.
-     */
+    public static long insertItem(IGrid grid, ItemStack stack, Player player) {
+        if (stack.isEmpty()) return 0;
+        if (grid == null) return stack.getCount();
+        IStorageService storage = grid.getStorageService();
+        if (storage == null) return stack.getCount();
+        AEItemKey key = AEItemKey.of(stack);
+        if (key == null) return stack.getCount();
+        long inserted = storage.getInventory().insert(key, stack.getCount(), Actionable.MODULATE,
+                IActionSource.ofPlayer(player));
+        return stack.getCount() - inserted;
+    }
+
+    public static long insertItem(ItemStack terminalStack, Level level, Player player, ItemStack stack) {
+        return insertItem(resolveGrid(terminalStack, level, player), stack, player);
+    }
+
     public static boolean extractItems(IGrid grid, Map<Item, Integer> required, Player player) {
         if (grid == null) return false;
 
         IStorageService storage = grid.getStorageService();
-        IActionSource   src     = IActionSource.ofPlayer(player);
+        IActionSource src = IActionSource.ofPlayer(player);
 
         // Verify before touching anything
         for (Map.Entry<Item, Integer> e : required.entrySet()) {
@@ -35,9 +45,9 @@ public class MENetworkItemExtractor {
 
         Map<Item, Long> extracted = new HashMap<>();
         for (Map.Entry<Item, Integer> e : required.entrySet()) {
-            AEItemKey key    = AEItemKey.of(e.getKey());
-            long      amount = e.getValue();
-            long      got    = storage.getInventory().extract(key, amount, Actionable.MODULATE, src);
+            AEItemKey key = AEItemKey.of(e.getKey());
+            long amount = e.getValue();
+            long got = storage.getInventory().extract(key, amount, Actionable.MODULATE, src);
 
             if (got < amount) {
                 rollback(storage, extracted, src);
@@ -49,7 +59,7 @@ public class MENetworkItemExtractor {
     }
 
     public static ExtractResult tryExtractFromMEOrInventory(IGrid grid, Map<Item, Integer> required, Player player) {
-        if (grid != null && extractItems(grid, required, player)) {
+        if (extractItems(grid, required, player)) {
             return new ExtractResult(true, ExtractionSource.ME_NETWORK);
         }
         if (extractFromPlayerInventory(player, required)) {
@@ -58,29 +68,32 @@ public class MENetworkItemExtractor {
         return new ExtractResult(false, ExtractionSource.NONE);
     }
 
-    public static ExtractResult tryExtractFromMEOrInventory(ItemStack terminalStack,
-                                                            net.minecraft.world.level.Level level,
-                                                            Player player,
-                                                            Map<Item, Integer> required) {
+    public static ExtractResult tryExtractFromMEOrInventory(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player, Map<Item, Integer> required) {
+        if (!MENetworkScanner.isAE2Available()) {
+            return extractFromPlayerInventory(player, required) ? new ExtractResult(true, ExtractionSource.PLAYER_INVENTORY) : new ExtractResult(false, ExtractionSource.NONE);
+        }
         IGrid grid = resolveGrid(terminalStack, level, player);
         return tryExtractFromMEOrInventory(grid, required, player);
     }
 
-    public static long checkItemAvailability(ItemStack terminalStack,
-                                             net.minecraft.world.level.Level level,
-                                             Player player,
-                                             Item item) {
+    public static boolean extractFromME(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player, Map<Item, Integer> required) {
+        if (required.isEmpty()) return true;
+        if (!MENetworkScanner.isAE2Available()) return false;
+        IGrid grid = resolveGrid(terminalStack, level, player);
+        return extractItems(grid, required, player);
+    }
+
+    public static long checkItemAvailability(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player, Item item) {
         if (!MENetworkScanner.isAE2Available()) return 0;
         IGrid grid = resolveGrid(terminalStack, level, player);
         if (grid == null) return 0;
         return grid.getStorageService().getCachedInventory().get(appeng.api.stacks.AEItemKey.of(item));
     }
 
-    private static IGrid resolveGrid(ItemStack terminalStack,
-                                     net.minecraft.world.level.Level level,
-                                     Player player) {
-        if (terminalStack == null || terminalStack.isEmpty()) return null;
-        return WirelessTerminalHandler.getLinkedGrid(terminalStack, level, player);
+    private static IGrid resolveGrid(ItemStack terminalStack, net.minecraft.world.level.Level level, Player player) {
+        IGrid grid = (terminalStack != null && !terminalStack.isEmpty())
+                ? AccessPointLink.getLinkedGrid(terminalStack, level, player) : null;
+        return grid != null ? grid : AccessPointLink.getGridFromCarriedTerminal(player, level);
     }
 
     private static void rollback(IStorageService storage, Map<Item, Long> extracted, IActionSource src) {
@@ -118,17 +131,10 @@ public class MENetworkItemExtractor {
         return count;
     }
 
-    public static class ExtractResult {
-        public final boolean         success;
-        public final ExtractionSource source;
-
-        public ExtractResult(boolean success, ExtractionSource source) {
-            this.success = success;
-            this.source  = source;
-        }
-    }
-
     public enum ExtractionSource {
         ME_NETWORK, PLAYER_INVENTORY, NONE
+    }
+
+    public record ExtractResult(boolean success, ExtractionSource source) {
     }
 }

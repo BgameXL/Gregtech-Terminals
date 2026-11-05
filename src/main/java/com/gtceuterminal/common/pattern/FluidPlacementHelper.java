@@ -1,13 +1,12 @@
 package com.gtceuterminal.common.pattern;
 
+import com.gtceuterminal.GTCEUTerminalMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BucketItem;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlockContainer;
@@ -15,24 +14,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.gregtechceu.gtceu.api.fluids.GTFluid;
-import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
-import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
-import com.gregtechceu.gtceu.api.item.GTBucketItem;
-import com.gtceuterminal.GTCEUTerminalMod;
-
-import java.util.Optional;
 
 // Helper class to handle fluid placement logic, including checks for valid placement
 // handling of special cases (like water in the nether), and integration with player inventory and ME Network fluid storage.
@@ -43,8 +27,7 @@ public class FluidPlacementHelper {
             @NotNull BlockPos pos,
             @NotNull Player player,
             @NotNull Fluid fluid,
-            @Nullable IItemHandler playerInventory,
-            @Nullable IFluidHandler fluidStorage
+            @Nullable PlayerFluidReservoir reservoir
     ) {
         if (!(fluid instanceof FlowingFluid)) {
             return false;
@@ -60,35 +43,20 @@ public class FluidPlacementHelper {
             return placeFluidBlock(world, pos, currentState, fluid, player);
         }
 
-        boolean bucketFound = false;
-        if (playerInventory != null) {
-            for (int i = 0; i < playerInventory.getSlots(); i++) {
-                ItemStack stack = playerInventory.getStackInSlot(i);
-                if (stack.getItem() instanceof BucketItem bucketItem) {
-                    if (bucketItem.getFluid() == fluid) {
-                        if (placeFluidBlock(world, pos, currentState, fluid, player)) {
-                            playerInventory.extractItem(i, 1, false);
-                            bucketFound = true;
-                            break;
-                        }
-                    }
-                }
-            }
+        if (reservoir == null || !reservoir.extract(fluid, 1000)) {
+            return false;
         }
 
-        if (!bucketFound && fluidStorage != null) {
-            FluidStack requiredFluid = new FluidStack(fluid, 1000);
-
-            FluidStack drained = fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.SIMULATE);
-            if (drained.getAmount() >= 1000) {
-                if (placeFluidBlock(world, pos, currentState, fluid, player)) {
-                    fluidStorage.drain(requiredFluid, IFluidHandler.FluidAction.EXECUTE);
-                    return true;
-                }
-            }
+        if (placeFluidBlock(world, pos, currentState, fluid, player)) {
+            return true;
         }
 
-        return bucketFound;
+        int leftover = reservoir.insert(new FluidStack(fluid, 1000));
+        if (leftover > 0) {
+            GTCEUTerminalMod.LOGGER.warn("Extracted 1000 mB of {} but placement failed at {}; {} mB could not be refunded",
+                    fluid, pos, leftover);
+        }
+        return false;
     }
 
 
@@ -121,9 +89,11 @@ public class FluidPlacementHelper {
         }
 
         if (currentState.getBlock() instanceof LiquidBlockContainer container && fluid == Fluids.WATER) {
-            container.placeLiquid(world, pos, currentState, ((FlowingFluid) fluid).getSource(false));
-            playEmptySound(world, pos, fluid, player);
-            return true;
+            if (container.placeLiquid(world, pos, currentState, ((FlowingFluid) fluid).getSource(false))) {
+                playEmptySound(world, pos, fluid, player);
+                return true;
+            }
+            return false;
         }
 
         if (currentState.canBeReplaced(fluid) && !currentState.liquid()) {
@@ -141,11 +111,7 @@ public class FluidPlacementHelper {
     }
 
     private static boolean shouldVaporize(Level world, BlockPos pos, Fluid fluid) {
-        if (world.dimensionType().ultraWarm() && fluid.is(FluidTags.WATER)) {
-            return true;
-        }
-
-        return false;
+        return world.dimensionType().ultraWarm() && fluid.is(FluidTags.WATER);
     }
 
 
@@ -165,32 +131,5 @@ public class FluidPlacementHelper {
     private static void playEmptySound(Level world, BlockPos pos, Fluid fluid, @Nullable Player player) {
         var soundEvent = fluid.is(FluidTags.LAVA) ? SoundEvents.BUCKET_EMPTY_LAVA : SoundEvents.BUCKET_EMPTY;
         world.playSound(player, pos, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
-    }
-
-
-    @Nullable
-    public static Fluid findAvailableFluid(IItemHandler playerInventory, @Nullable IFluidHandler fluidStorage) {
-        if (playerInventory != null) {
-            for (int i = 0; i < playerInventory.getSlots(); i++) {
-                ItemStack stack = playerInventory.getStackInSlot(i);
-                if (stack.getItem() instanceof BucketItem bucketItem) {
-                    Fluid fluid = bucketItem.getFluid();
-                    if (fluid != Fluids.EMPTY) {
-                        return fluid;
-                    }
-                }
-            }
-        }
-
-        if (fluidStorage != null) {
-            for (int tank = 0; tank < fluidStorage.getTanks(); tank++) {
-                FluidStack fluidInTank = fluidStorage.getFluidInTank(tank);
-                if (!fluidInTank.isEmpty() && fluidInTank.getAmount() >= 1000) {
-                    return fluidInTank.getFluid();
-                }
-            }
-        }
-
-        return null;
     }
 }

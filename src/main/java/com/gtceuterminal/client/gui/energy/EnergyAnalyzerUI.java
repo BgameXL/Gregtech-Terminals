@@ -1,41 +1,38 @@
 package com.gtceuterminal.client.gui.energy;
 
-import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.widget.WallpaperWidget;
 import com.gtceuterminal.common.energy.EnergySnapshot;
+import com.gtceuterminal.common.gui.factory.EnergyAnalyzerUIFactory;
 import com.gtceuterminal.common.theme.ItemTheme;
-
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
-
 import net.minecraft.world.entity.player.Player;
-
-import java.util.List;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class EnergyAnalyzerUI {
 
-    private static final int W         = 600;
-    private static final int H         = 480;
-    private static final int SIDEBAR_W = 148;
-    private static final int DETAIL_X  = SIDEBAR_W + 6;
-    private static final int DETAIL_W  = W - DETAIL_X - 6;
-    private static final int HEADER_H  = 26;
-    private static final int GRAPH_W   = DETAIL_W - 68;
-    private static final int GRAPH_H   = 80;
-    private static final int PAD       = 6;
-    private static final int ITEM_H    = 36;
-
-    private static final int C_RED    = 0xFFFF5555;
-    private static final int C_ORANGE = 0xFFFF8800;
-    private static final int C_GREEN  = 0xFF55FF55;
-    private static final int C_GRAY   = 0xFFAAAAAA;
-    private static final int C_BORDER_DARK = 0xFF0A0A0A;
+    private static final int W = 600;
+    private static final int H = 480;
+    private static final int HEADER_H = 30;
+    private static final int BODY_Y = HEADER_H + 1;
+    private static final int BODY_H = H - BODY_Y - 2;
+    private static final int CARD_INSET = 2;
+    private static final int INNER_W = W - 4 - CARD_INSET * 2;
+    private static final int INNER_H = BODY_H - CARD_INSET * 2;
+    private static final int SIDEBAR_W = 166;
+    private static final int DIVIDER = 1;
+    private static final int DETAIL_X = CARD_INSET + SIDEBAR_W + DIVIDER;
+    private static final int DETAIL_W = INNER_W - SIDEBAR_W - DIVIDER;
+    private static final int GRAPH_W = DETAIL_W - 6;
+    private static final int PAD = 6;
+    private static final int ITEM_H = 36;
 
     private final EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder;
     private final Player player;
@@ -47,10 +44,11 @@ public class EnergyAnalyzerUI {
     private EnergyAnalyzerDetail detail;
 
     private EnergyAnalyzerUI(EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder, Player player) {
-        this.holder        = holder;
-        this.player        = player;
+        this.holder = holder;
+        this.player = player;
         this.selectedIndex = holder.initialIndex;
-        this.theme         = holder.theme;
+        this.theme = holder.theme;
+        TerminalUI.use(this.theme);
     }
 
     public static ModularUI create(EnergyAnalyzerUIFactory.EnergyAnalyzerHolder holder, Player player) {
@@ -59,64 +57,39 @@ public class EnergyAnalyzerUI {
 
     private ModularUI buildUI() {
         rootGroup = new WidgetGroup(0, 0, W, H);
-        rootGroup.setBackground(new ColorRectTexture(0x00000000));
+        rootGroup.setBackground(TerminalUI.transparent());
         EnergyUpdateWidget updater = new EnergyUpdateWidget(holder);
         updater.setRebuildCallback(this::onDataRefresh);
         rootGroup.addWidget(updater);
 
         if (!theme.isNativeStyle()) {
-            rootGroup.addWidget(new WallpaperWidget(0, 0, W, H, () -> this.theme));
+            rootGroup.addWidget(new WallpaperWidget(2, BODY_Y, W - 4, BODY_H, () -> this.theme));
         }
 
         rootGroup.addWidget(EnergyAnalyzerHeader.build(
-                W, HEADER_H, PAD, holder.machines.size(), holder.itemStack, theme, rootGroup, player));
+                W, HEADER_H, holder.machines.size(), holder.itemStack, theme, rootGroup, player));
 
-        WidgetGroup div = new WidgetGroup(SIDEBAR_W + 2, HEADER_H, 2, H - HEADER_H);
-        div.setBackground(new ColorRectTexture(theme.isNativeStyle() ? 0x40000000 : theme.accent(0x80)));
-        rootGroup.addWidget(div);
+        WidgetGroup body = new WidgetGroup(2, BODY_Y, W - 4, BODY_H);
+        body.setBackground(TerminalUI.cardBG());
 
         sidebarSelects = new WidgetGroup[holder.machines.size()];
-        rootGroup.addWidget(EnergyAnalyzerSidebar.build(
-                SIDEBAR_W, HEADER_H, H, PAD, selectedIndex,
+        body.addWidget(EnergyAnalyzerSidebar.build(
+                CARD_INSET, CARD_INSET, SIDEBAR_W, INNER_H, PAD, selectedIndex,
                 holder.machines, ITEM_H,
-                theme.panelColor, theme.accent(0x55), C_GRAY, C_RED, C_ORANGE, C_GREEN,
                 this::snapAt,
                 this::selectMachine,
-                idx -> MachineOptionsDialog.open(rootGroup, W, H, idx, holder.machines.get(idx), player),
+                idx -> EnergyOptionsDialog.open(rootGroup, W, H, idx, holder.machines.get(idx), player),
                 sidebarSelects));
 
-        detail = new EnergyAnalyzerDetail(DETAIL_W, GRAPH_W, GRAPH_H);
-        rootGroup.addWidget(detail.build(
-                DETAIL_X, HEADER_H, H, PAD,
-                this::selSnap,
-                () -> { EnergySnapshot s = selSnap(); if (s != null) RecipeHistoryDialog.open(rootGroup, s, W, H); }));
-        
-        rootGroup.addWidget(buildOuterBorder());
+        body.addWidget(new ImageWidget(CARD_INSET + SIDEBAR_W, CARD_INSET, DIVIDER, INNER_H,
+                TerminalUI.divider()));
 
-        setupParade();
+        detail = new EnergyAnalyzerDetail(DETAIL_W, GRAPH_W);
+        body.addWidget(detail.build(
+                DETAIL_X, CARD_INSET, INNER_H, PAD,
+                this::selSnap));
+        rootGroup.addWidget(body);
         return wrapUI(rootGroup);
-    }
-
-    private WidgetGroup buildOuterBorder() {
-        int light = theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF);
-        WidgetGroup g = new WidgetGroup(0, 0, W, H);
-        g.addWidget(new ImageWidget(0,     0,     W, 2, new ColorRectTexture(light)));
-        g.addWidget(new ImageWidget(0,     0,     2, H, new ColorRectTexture(light)));
-        g.addWidget(new ImageWidget(W - 2, 0,     2, H, new ColorRectTexture(C_BORDER_DARK)));
-        g.addWidget(new ImageWidget(0,     H - 2, W, 2, new ColorRectTexture(C_BORDER_DARK)));
-        return g;
-    }
-
-    private void setupParade() {
-        com.gtceuterminal.client.ClientEvents.clearActiveParade();
-        if (!theme.isBundleStyle()) return;
-        com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-        if (bundle == null) return;
-        com.gtceuterminal.client.gui.widget.MultiblockParadeWidget parade = bundle.createParadeWidget(0, 0, W, H);
-        if (parade == null || parade.isEmpty()) return;
-        parade.setGuiCenter(W / 2f, H / 2f);
-        com.gtceuterminal.client.ClientEvents.setActiveParade(parade, theme.paradeMode);
     }
 
     private void onDataRefresh() {
@@ -148,7 +121,7 @@ public class EnergyAnalyzerUI {
     private ModularUI wrapUI(WidgetGroup content) {
         ModularUI ui = new ModularUI(new Size(W, H), holder, player);
         ui.widget(content);
-        ui.background(theme.modularUIBackground());
+        ui.background(TerminalUI.transparent());
         return ui;
     }
 }

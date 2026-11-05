@@ -4,18 +4,18 @@ import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
 import com.gtceuterminal.common.ae2.MENetworkItemExtractor;
 import com.gtceuterminal.common.data.SchematicData;
+import com.gtceuterminal.common.data.SchematicStorage;
 import com.gtceuterminal.common.material.MaterialCalculator;
 import com.gtceuterminal.common.pattern.FluidPlacementHelper;
 import com.gtceuterminal.common.util.SchematicUtils;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -31,73 +31,66 @@ import java.util.Map;
 
 public final class SchematicPaster {
 
-    private SchematicPaster() {}
+    private SchematicPaster() {
+    }
 
     public static void pasteSchematic(ItemStack itemStack, Player player,
                                       Level level, BlockPos targetPos) {
-        CompoundTag itemTag = itemStack.getTag();
-        if (itemTag == null || !itemTag.contains("Clipboard")) {
+        CompoundTag clipTag = SchematicStorage.getClipboard(itemStack.getTag());
+        if (clipTag == null) {
             player.displayClientMessage(
                     Component.translatable("item.gtceuterminal.schematic_paster.no_schematic_in_clipboard"),
                     true);
             return;
         }
 
-        SchematicData clipboard = SchematicData.fromNBT(
-                itemTag.getCompound("Clipboard"), level.registryAccess());
-        Direction originalFacing = Direction.SOUTH;
-        try {
-            String facingStr = clipboard.getOriginalFacing();
-            if (facingStr != null && !facingStr.isEmpty()) {
-                Direction byName = Direction.byName(facingStr);
-                if (byName != null) originalFacing = byName;
-            }
-        } catch (IllegalStateException e) {
-            GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not read original facing, defaulting to SOUTH: {}", e.getMessage());
-        }
+        SchematicData clipboard = SchematicData.fromNBT(clipTag, level.registryAccess());
+        Direction originalFacing = SchematicUtils.resolveOriginalFacing(clipboard);
 
         Direction targetFacing = player.getDirection().getOpposite();
         int rotationSteps = SchematicUtils.getRotationSteps(originalFacing, targetFacing);
 
         try {
-            CompoundTag clipTag = itemTag.getCompound("Clipboard");
             if (clipTag.contains("UserRot"))
                 rotationSteps = (rotationSteps + (clipTag.getInt("UserRot") & 3)) & 3;
         } catch (ClassCastException e) {
             GTCEUTerminalMod.LOGGER.warn("SchematicPaster: malformed UserRot tag, ignoring: {}", e.getMessage());
         }
 
-        final int finalRotationSteps = rotationSteps;
-
-        int minRelY = clipboard.getBlocks().keySet().stream()
-                .mapToInt(pos -> SchematicUtils.rotatePositionSteps(pos, finalRotationSteps).getY())
-                .min()
-                .orElse(0);
+        int minRelY = SchematicUtils.minRotatedY(clipboard, rotationSteps);
 
         final BlockPos adjustedTarget = targetPos.above(-minRelY);
-
-        GTCEUTerminalMod.LOGGER.info(
-                "Pasting at {} (adjusted from {}, minRelY={}) — rotation: {}",
-                adjustedTarget, targetPos, minRelY, rotationSteps);
 
         Map<Item, Integer> required = new HashMap<>();
         List<Placement> placements = new ArrayList<>();
         int skippedCount = 0;
 
-        for (Map.Entry<BlockPos, BlockState> entry : clipboard.getBlocks().entrySet()) {
-            BlockPos   relativePos  = entry.getKey();
-            BlockState state        = entry.getValue();
+        for (Map.Entry<BlockPos, BlockState> entry : clipboard.blocks().entrySet()) {
+            BlockPos relativePos = entry.getKey();
+            BlockState state = entry.getValue();
 
-            BlockPos   rotatedPos   = SchematicUtils.rotatePositionSteps(relativePos, rotationSteps);
+            BlockPos rotatedPos = SchematicUtils.rotatePositionSteps(relativePos, rotationSteps);
             BlockState rotatedState = SchematicUtils.rotateBlockStateSteps(state, rotationSteps);
-            BlockPos   worldPos     = adjustedTarget.offset(rotatedPos);
+            BlockPos worldPos = adjustedTarget.offset(rotatedPos);
 
-            if (!level.isInWorldBounds(worldPos)) { skippedCount++; continue; }
-            if (com.gtceuterminal.common.config.ItemsConfig.isSchematicBlacklisted(rotatedState.getBlock())) { skippedCount++; continue; }
+            if (!level.isInWorldBounds(worldPos)) {
+                skippedCount++;
+                continue;
+            }
+            if (com.gtceuterminal.common.config.ItemsConfig.isSchematicBlacklisted(rotatedState.getBlock())) {
+                skippedCount++;
+                continue;
+            }
 
             BlockState current = level.getBlockState(worldPos);
-            if (!current.isAir() && !current.canBeReplaced()) { skippedCount++; continue; }
-            if (current.equals(rotatedState))                  { skippedCount++; continue; }
+            if (!current.isAir() && !current.canBeReplaced()) {
+                skippedCount++;
+                continue;
+            }
+            if (current.equals(rotatedState)) {
+                skippedCount++;
+                continue;
+            }
 
             // Fluid blocks
             if (rotatedState.getFluidState().isSource()) {
@@ -107,11 +100,15 @@ public final class SchematicPaster {
 
             if (rotatedState.getBlock() instanceof DoorBlock
                     && rotatedState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
-                skippedCount++; continue;
+                skippedCount++;
+                continue;
             }
 
             Item item = rotatedState.getBlock().asItem();
-            if (item == Items.AIR) { skippedCount++; continue; }
+            if (item == Items.AIR) {
+                skippedCount++;
+                continue;
+            }
 
             required.merge(item, 1, Integer::sum);
             placements.add(new Placement(relativePos, worldPos, rotatedState));
@@ -128,31 +125,32 @@ public final class SchematicPaster {
             MENetworkItemExtractor.ExtractResult result =
                     MENetworkItemExtractor.tryExtractFromMEOrInventory(itemStack, level, player, required);
 
-            if (!result.success) {
+            if (!result.success()) {
                 player.displayClientMessage(buildMissingMessage(itemStack, level, player, required), true);
                 return;
             }
         }
 
-        IFluidHandler fluidStorage = null;
-        net.minecraftforge.items.IItemHandler playerInventory = null;
+        com.gtceuterminal.common.pattern.PlayerFluidReservoir fluidReservoir = null;
 
         if (!player.getAbilities().instabuild) {
-            try { fluidStorage = MENetworkFluidHandlerWrapper.fromTerminal(itemStack, player); }
-            catch (RuntimeException e) {
+            IFluidHandler fluidStorage = null;
+            try {
+                fluidStorage = MENetworkFluidHandlerWrapper.fromTerminal(itemStack, player);
+            } catch (RuntimeException e) {
                 GTCEUTerminalMod.LOGGER.warn("SchematicPaster: could not resolve AE2 fluid storage: {}", e.getMessage());
             }
-
-            var cap = player.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER);
-            playerInventory = cap.resolve().orElse(null);
+            fluidReservoir = new com.gtceuterminal.common.pattern.PlayerFluidReservoir(player, fluidStorage);
         }
 
         int placedCount = 0;
+        boolean survival = !player.getAbilities().instabuild;
+        Map<Item, Integer> refunds = new HashMap<>();
 
         for (Placement p : placements) {
             if (p.state.getFluidState().isSource()) {
                 Fluid fluid = p.state.getFluidState().getType();
-                if (FluidPlacementHelper.tryPlaceFluid(level, p.worldPos, player, fluid, playerInventory, fluidStorage))
+                if (FluidPlacementHelper.tryPlaceFluid(level, p.worldPos, player, fluid, fluidReservoir))
                     placedCount++;
                 else
                     skippedCount++;
@@ -163,32 +161,39 @@ public final class SchematicPaster {
                     && p.state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
                 BlockPos upperPos = p.worldPos.above();
                 BlockState upperCurrent = level.getBlockState(upperPos);
-                if (upperCurrent.isAir() || upperCurrent.canBeReplaced()) {
+                if ((upperCurrent.isAir() || upperCurrent.canBeReplaced())
+                        && level.setBlock(p.worldPos, p.state, 3)) {
                     BlockState upperState = p.state.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
-                    level.setBlock(p.worldPos, p.state, 3);
-                    level.setBlock(upperPos,   upperState, 3);
+                    level.setBlock(upperPos, upperState, 3);
                     placedCount++;
                 } else {
+                    refunds.merge(p.state.getBlock().asItem(), 1, Integer::sum);
                     skippedCount++;
                 }
                 continue;
             }
-            level.setBlock(p.worldPos, p.state, 3);
+
+            if (!level.setBlock(p.worldPos, p.state, 3)) {
+                refunds.merge(p.state.getBlock().asItem(), 1, Integer::sum);
+                skippedCount++;
+                continue;
+            }
             placedCount++;
 
             // Restore block-entity data
-            if (clipboard.getBlockEntities().containsKey(p.relativeKey)) {
-                CompoundTag beTag = clipboard.getBlockEntities().get(p.relativeKey).copy();
+            if (clipboard.blockEntities().containsKey(p.relativeKey)) {
+                CompoundTag beTag = clipboard.blockEntities().get(p.relativeKey).copy();
                 BlockEntity be = level.getBlockEntity(p.worldPos);
                 if (be != null) {
                     try {
                         beTag.putInt("x", p.worldPos.getX());
                         beTag.putInt("y", p.worldPos.getY());
                         beTag.putInt("z", p.worldPos.getZ());
+                        SchematicUtils.rotateCoverSides(beTag, rotationSteps);
                         be.load(beTag);
                         try {
                             p.state.getBlock().setPlacedBy(
-                                    (net.minecraft.server.level.ServerLevel) level,
+                                    level,
                                     p.worldPos, p.state, player,
                                     net.minecraft.world.item.ItemStack.EMPTY);
                         } catch (RuntimeException e) {
@@ -199,6 +204,14 @@ public final class SchematicPaster {
                         GTCEUTerminalMod.LOGGER.error("Failed to load block entity at {}", p.worldPos, e);
                     }
                 }
+            }
+        }
+
+        if (survival && !refunds.isEmpty()) {
+            for (Map.Entry<Item, Integer> e : refunds.entrySet()) {
+                if (e.getKey() == Items.AIR || e.getValue() <= 0) continue;
+                ItemStack back = new ItemStack(e.getKey(), e.getValue());
+                if (!player.getInventory().add(back)) player.drop(back, false);
             }
         }
 
@@ -214,8 +227,6 @@ public final class SchematicPaster {
             );
         }
         player.displayClientMessage(msg, true);
-
-        GTCEUTerminalMod.LOGGER.info("Schematic pasted: {} placed, {} skipped", placedCount, skippedCount);
     }
 
     // Helpers
@@ -226,9 +237,9 @@ public final class SchematicPaster {
         int shown = 0;
 
         for (Map.Entry<Item, Integer> req : required.entrySet()) {
-            Item it   = req.getKey();
-            int  need = req.getValue();
-            int  have = (int) Math.min(Integer.MAX_VALUE,
+            Item it = req.getKey();
+            int need = req.getValue();
+            int have = (int) Math.min(Integer.MAX_VALUE,
                     (long) inv.getOrDefault(it, 0)
                             + MENetworkItemExtractor.checkItemAvailability(itemStack, level, player, it));
             long miss = need - have;
@@ -236,7 +247,10 @@ public final class SchematicPaster {
             if (miss > 0) {
                 if (shown > 0) sb.append(", ");
                 sb.append(it.getDescription().getString()).append(" x").append(miss);
-                if (++shown >= 6) { sb.append(" ..."); break; }
+                if (++shown >= 6) {
+                    sb.append(" ...");
+                    break;
+                }
             }
         }
 
@@ -247,5 +261,6 @@ public final class SchematicPaster {
     }
 
     // Internal record
-    private record Placement(BlockPos relativeKey, BlockPos worldPos, BlockState state) {}
+    private record Placement(BlockPos relativeKey, BlockPos worldPos, BlockState state) {
+    }
 }

@@ -21,11 +21,11 @@ public class GTCEUTerminalItems {
             () -> new MultiStructureManagerItem(new Item.Properties().stacksTo(1), 20, true));
 
     public static final RegistryObject<Item> SCHEMATIC_INTERFACE = ITEMS.register("schematic_interface",
-            () -> new SchematicInterfaceItem());
+            SchematicInterfaceItem::new);
 
     public static final RegistryObject<Item> DISMANTLER = ITEMS.register("dismantler",
             () -> new DismantlerItem(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> ENERGY_ANALYZER = ITEMS.register("energy_analyzer",
-            () -> new EnergyAnalyzerItem());
+            EnergyAnalyzerItem::new);
 }

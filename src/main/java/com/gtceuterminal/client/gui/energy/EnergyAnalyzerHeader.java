@@ -1,94 +1,84 @@
 package com.gtceuterminal.client.gui.energy;
 
+import com.gtceuterminal.client.gui.style.TerminalTheme;
+import com.gtceuterminal.client.gui.style.TerminalUI;
 import com.gtceuterminal.client.gui.theme.ThemeEditorDialog;
 import com.gtceuterminal.client.gui.widget.HeaderItemIcon;
-import com.gtceuterminal.client.gui.widget.TerminalButton;
+import com.gtceuterminal.client.gui.widget.TerminalTabs;
 import com.gtceuterminal.common.theme.ItemTheme;
-
-import com.lowdragmc.lowdraglib.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-
+import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 final class EnergyAnalyzerHeader {
 
-    private EnergyAnalyzerHeader() {}
+    private EnergyAnalyzerHeader() {
+    }
 
     static WidgetGroup build(
             int guiW,
             int headerH,
-            int pad,
             int machineCount,
             ItemStack itemStack,
             ItemTheme theme,
             WidgetGroup rootGroup,
             Player player
     ) {
-        WidgetGroup g = new WidgetGroup(0, 0, guiW, headerH);
-        g.setBackground(theme.isNativeStyle()
-                ? com.gregtechceu.gtceu.api.gui.GuiTextures.TITLE_BAR_BACKGROUND
-                : new ColorRectTexture(semi(theme.panelColor)));
+        TerminalTheme tokens = TerminalUI.tokens();
+        var font = Minecraft.getInstance().font;
+        WidgetGroup g = new WidgetGroup(2, 2, guiW - 4, headerH);
 
-        int titleX = pad;
-        int iconSize = 18;
+        int iconSize = 20, padL = 6, padR = 6;
+        int itemX = padL + iconSize + 6;
         int iconY = (headerH - iconSize) / 2;
-        if (theme.isBundleStyle()) {
-            com.gtceuterminal.common.theme.bundle.ThemeBundle bundle =
-                    com.gtceuterminal.common.theme.bundle.ThemeBundleRegistry.get(theme.bundleId);
-            if (bundle != null) {
-                com.lowdragmc.lowdraglib.gui.texture.IGuiTexture bundleIcon = bundle.iconTexture();
-                if (bundleIcon != null) {
-                    g.addWidget(new ImageWidget(titleX, iconY, iconSize, iconSize, bundleIcon));
-                    titleX += iconSize + 4;
-                }
-            }
+
+        String name = itemStack.getHoverName().getString();
+        String info = Component.translatable(
+                "gui.gtceuterminal.energy_analyzer.header.linked", machineCount).getString();
+
+        int maxTitleW = g.getSizeWidth() - TerminalTabs.ACTION_CARD_W - 4;
+        int titleW = Math.min(maxTitleW, itemX + Math.max(font.width(name), font.width(info)) + padR);
+        int textMaxW = Math.max(0, titleW - padR - itemX);
+
+        WidgetGroup titleCard = new WidgetGroup(0, 0, titleW, headerH);
+        titleCard.setBackground(TerminalUI.bevel(tokens.surface()));
+
+        var bundleIcon = TerminalUI.bundleIcon();
+        if (bundleIcon != null) {
+            titleCard.addWidget(new ImageWidget(padL, iconY, iconSize, iconSize, bundleIcon));
         } else {
-            g.addWidget(HeaderItemIcon.build(titleX, iconY, iconSize, itemStack,
-                    theme.isNativeStyle() ? 0xFF2A2A2A : theme.accent(0x55),
-                    theme.isNativeStyle() ? 0xFF555555 : theme.accent(0xFF)));
-            titleX += iconSize + 4;
+            titleCard.addWidget(HeaderItemIcon.build(padL, iconY, iconSize, itemStack,
+                    tokens.panelDisabled(), tokens.border()));
         }
 
-        LabelWidget title = new LabelWidget(titleX, 8,
-                Component.translatable("gui.gtceuterminal.energy_analyzer.title").getString());
-        title.setTextColor(0xFFFFAA00);
-        g.addWidget(title);
+        LabelWidget nameLbl = new LabelWidget(itemX, 6, fitText(name, textMaxW));
+        nameLbl.setColor(TerminalUI.itemLabelColor());
+        titleCard.addWidget(nameLbl);
 
-        LabelWidget sub = new LabelWidget(guiW - 180, 8,
-                Component.translatable("gui.gtceuterminal.energy_analyzer.header.linked", machineCount).getString());
-        sub.setTextColor(0xFFAAAAAA);
-        g.addWidget(sub);
+        LabelWidget infoLbl = new LabelWidget(itemX, 17, fitText(info, textMaxW));
+        infoLbl.setColor(tokens.textMuted());
+        titleCard.addWidget(infoLbl);
 
-        ButtonWidget gearBtn = TerminalButton.ghostIcon(guiW - 38, (headerH - 14) / 2, 14, "config",
-                cd -> ThemeEditorDialog.open(rootGroup, theme));
-        gearBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.theme_settings").getString());
-        g.addWidget(gearBtn);
+        g.addWidget(titleCard);
 
-        int accent80 = (theme.accentColor & 0x00FFFFFF) | 0x80000000;
-        ButtonWidget closeBtn = new ButtonWidget(guiW - 20, (headerH - 14) / 2, 14, 14,
-                new GuiTextureGroup(new ColorRectTexture(theme.panelColor), new ColorBorderTexture(1, accent80)),
-                cd -> player.closeContainer());
-
-        closeBtn.setButtonTexture(TerminalButton.iconTex("close"));
-        closeBtn.setHoverTooltips(Component.translatable("gui.gtceuterminal.close").getString());
-        closeBtn.setHoverTexture(new GuiTextureGroup(
-                new ColorRectTexture(0xFFAA0000),
-                new ColorBorderTexture(1, 0xFFFFFFFF),
-                TerminalButton.iconTex("close")));
-        g.addWidget(closeBtn);
-
+        g.addWidget(TerminalTabs.actionCard(g.getSizeWidth() - TerminalTabs.ACTION_CARD_W, 0, headerH,
+                cd -> ThemeEditorDialog.open(rootGroup, theme),
+                cd -> player.closeContainer()));
         return g;
     }
 
-    private static int semi(int color) {
-        return (color & 0x00FFFFFF) | 0xCC000000;
+    private static String fitText(String text, int maxWidth) {
+        var font = Minecraft.getInstance().font;
+        if (font.width(text) <= maxWidth) return text;
+        String ellipsis = "…";
+        return font.substrByWidth(Component.literal(text),
+                Math.max(0, maxWidth - font.width(ellipsis))).getString() + ellipsis;
     }
 }

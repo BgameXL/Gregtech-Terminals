@@ -1,13 +1,5 @@
 package com.gtceuterminal.common.pattern;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.ae2.MENetworkExtractor;
-import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
-import com.gtceuterminal.common.compat.BlockPatternReflection;
-import com.gtceuterminal.common.compat.GTCEuCompat;
-import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
-import com.gtceuterminal.common.config.ManagerSettings;
-
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -16,11 +8,16 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.ae2.MENetworkExtractor;
+import com.gtceuterminal.common.ae2.MENetworkFluidHandlerWrapper;
+import com.gtceuterminal.common.compat.BlockPatternReflection;
+import com.gtceuterminal.common.compat.ExpandableMultiblock;
+import com.gtceuterminal.common.compat.GTCEuCompat;
+import com.gtceuterminal.common.compat.GTCEuCompat.PredicateCountMap;
+import com.gtceuterminal.common.config.ManagerSettings;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
-
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -33,28 +30,16 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-/**
- * Advanced Auto-Builder for GTCEu Multiblocks (rebased on GTCEu BlockPattern.autoBuild)
- * - noHatchMode: avoids placing MultiblockPartMachine blocks (hatches/buses/etc.)
- * - repeatCount: overrides repetitions per slice (clamped to [min,max] when max exists)
- * - tierMode: coil tier selector (tierMode-1). Falls back to default candidates if no match.
- */
+
 public class AdvancedAutoBuilder {
 
     public static boolean autoBuild(
@@ -66,7 +51,14 @@ public class AdvancedAutoBuilder {
             BlockPatternReflection.ensure();
             if (!BlockPatternReflection.READY) return false;
 
-            BlockPattern pattern = controller.getPattern();
+            ExpandableMultiblock.Restore sizeRestore =
+                    ExpandableMultiblock.applySize(controller.self(), settings.expandRadius, settings.expandHeight);
+            BlockPattern pattern;
+            try {
+                pattern = controller.getPattern();
+            } finally {
+                if (sizeRestore != null) sizeRestore.close();
+            }
             MultiblockState worldState = controller.getMultiblockState();
             Level world = player.level();
 
@@ -86,10 +78,10 @@ public class AdvancedAutoBuilder {
             BlockPos centerPos = controller.self().getPos();
             Direction facing = controller.self().getFrontFacing();
             Direction upwardsFacing = controller.self().getUpwardsFacing();
-            boolean isFlipped = controller.self().isFlipped();
+            boolean isFlipped = AutoBuilderHelpers.resolveFlip(controller, settings);
 
             PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(worldState);
-            PredicateCountMap cacheLayer  = GTCEuCompat.getLayerCount(worldState);
+            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(worldState);
 
             Map<BlockPos, Object> blocks = new HashMap<>();
             Set<BlockPos> placedByUs = new HashSet<>();
@@ -97,12 +89,21 @@ public class AdvancedAutoBuilder {
 
             int placedCount = 0;
 
-            IFluidHandler fluidStorage = null;
-            try { fluidStorage = getMENetworkFluidStorage(player); } catch (Exception ignored) {}
+            PlayerFluidReservoir fluidReservoir = null;
+            if (!player.isCreative()) {
+                IFluidHandler me = null;
+                if (settings.isUseAE == 1) {
+                    try {
+                        me = getMENetworkFluidStorage(player);
+                    } catch (Exception ignored) {
+                    }
+                }
+                fluidReservoir = new PlayerFluidReservoir(player, me);
+            }
 
             final int fingerLength = blockMatches.length;
-            final int thumbLength  = fingerLength > 0 ? blockMatches[0].length : 0;
-            final int palmLength   = thumbLength  > 0 ? blockMatches[0][0].length : 0;
+            final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
+            final int palmLength = thumbLength > 0 ? blockMatches[0][0].length : 0;
 
             for (int c = 0, z = minZ++, r; c < fingerLength; c++) {
                 int repsForSlice = AutoBuilderHelpers.getRepetitionsForSlice(c, aisleRepetitions, settings.repeatCount);
@@ -119,36 +120,47 @@ public class AdvancedAutoBuilder {
 
                             GTCEuCompat.update(worldState, pos, predicate);
 
-                            if (!world.isEmptyBlock(pos)) {
-                                blocks.put(pos, world.getBlockState(pos));
+                            BlockState existing = world.getBlockState(pos);
+                            boolean floodedSolid = AutoBuilderHelpers.isLiquidReplaceableForSolid(existing, predicate);
+                            if (!existing.isAir() && !floodedSolid) {
+                                blocks.put(pos, existing);
                                 for (SimplePredicate limit : predicate.limited) limit.testLimited(worldState);
                             } else {
                                 BlockInfo[] infos = AutoBuilderHelpers.pickInfosForPredicate(predicate, cacheGlobal, cacheLayer);
-                                List<ItemStack> candidates = new ArrayList<>();
-                                if (infos != null) for (BlockInfo info : infos) if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
 
-                                candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
-                                if (settings.noHatchMode != 0) candidates = CandidateFilter.filterOutMultiblockParts(candidates);
-                                candidates = CandidateFilter.applyCoilTierPreference(candidates, settings.tierMode);
-
-                                // Fluid block handling
-                                boolean isFluidBlock = false;
-                                net.minecraft.world.level.material.Fluid targetFluid = null;
-                                for (ItemStack cand : candidates) {
-                                    if (cand.getItem() instanceof BlockItem bi) {
-                                        BlockState cs = bi.getBlock().defaultBlockState();
-                                        if (cs.getFluidState().isSource()) { isFluidBlock = true; targetFluid = cs.getFluidState().getType(); break; }
-                                    }
+                                List<net.minecraft.world.level.material.Fluid> fluidCandidates = new ArrayList<>();
+                                boolean hasSolidCandidate = false;
+                                if (infos != null) for (BlockInfo info : infos) {
+                                    BlockState bs = info.getBlockState();
+                                    if (bs.isAir()) continue;
+                                    if (bs.getFluidState().isSource())
+                                        fluidCandidates.add(bs.getFluidState().getType());
+                                    else hasSolidCandidate = true;
                                 }
 
-                                if (isFluidBlock && targetFluid != null) {
-                                    boolean placed = player.isCreative()
-                                            ? FluidPlacementHelper.tryPlaceFluid(world, pos, player, targetFluid, null, null)
-                                            : FluidPlacementHelper.tryPlaceFluid(world, pos, player, targetFluid,
-                                            player.getCapability(ForgeCapabilities.ITEM_HANDLER).resolve().orElse(null), fluidStorage);
-                                    if (placed) { placedByUs.add(pos); placedCount++; blocks.put(pos, world.getBlockState(pos)); }
+                                if (!hasSolidCandidate && !fluidCandidates.isEmpty()) {
+                                    boolean placedFluid = false;
+                                    for (net.minecraft.world.level.material.Fluid f : fluidCandidates) {
+                                        placedFluid = FluidPlacementHelper.tryPlaceFluid(world, pos, player, f, fluidReservoir);
+                                        if (placedFluid) break;
+                                    }
+                                    if (placedFluid) {
+                                        placedByUs.add(pos);
+                                        placedCount++;
+                                        blocks.put(pos, world.getBlockState(pos));
+                                    }
                                     continue;
                                 }
+
+                                List<ItemStack> candidates = new ArrayList<>();
+                                if (infos != null) for (BlockInfo info : infos)
+                                    if (!info.getBlockState().isAir()) candidates.add(info.getItemStackForm());
+
+                                candidates = CandidateFilter.enrichWithCustomComponents(candidates, predicate);
+                                if (settings.noHatchMode != 0)
+                                    candidates = CandidateFilter.filterOutMultiblockParts(candidates);
+                                candidates = CandidateSelector.excludeOptionalAllowances(candidates, predicate);
+                                candidates = CandidateSelector.applyTierPreference(candidates, settings);
 
                                 ItemStack found = null;
                                 int foundSlot = -1;
@@ -182,7 +194,8 @@ public class AdvancedAutoBuilder {
                                     if (handler != null) handler.extractItem(foundSlot, 1, false);
                                 }
 
-                                if (world.getBlockEntity(pos) instanceof IMachineBlockEntity mbe) blocks.put(pos, mbe.getMetaMachine());
+                                if (world.getBlockEntity(pos) instanceof IMachineBlockEntity mbe)
+                                    blocks.put(pos, mbe.getMetaMachine());
                                 else blocks.put(pos, world.getBlockState(pos));
                             }
                         }
@@ -197,11 +210,17 @@ public class AdvancedAutoBuilder {
                 if (block instanceof IMultiController) return;
                 if (block instanceof BlockState state && placedByUs.contains(pos)) {
                     AutoBuilderHelpers.resetFacing(pos, state, frontFacing,
-                            (p, f) -> { Object o = blocks.get(p.relative(f)); return o == null || (o instanceof BlockState bs && bs.getBlock() == net.minecraft.world.level.block.Blocks.AIR); },
+                            (p, f) -> {
+                                Object o = blocks.get(p.relative(f));
+                                return o == null || (o instanceof BlockState bs && bs.getBlock() == net.minecraft.world.level.block.Blocks.AIR);
+                            },
                             newState -> world.setBlock(pos, newState, 3));
                 } else if (block instanceof MetaMachine machine) {
                     AutoBuilderHelpers.resetFacing(pos, machine.getBlockState(), frontFacing,
-                            (p, f) -> { Object o = blocks.get(p.relative(f)); return (o == null || (o instanceof BlockState bs && bs.isAir())) && machine.isFacingValid(f); },
+                            (p, f) -> {
+                                Object o = blocks.get(p.relative(f));
+                                return (o == null || (o instanceof BlockState bs && bs.isAir())) && machine.isFacingValid(f);
+                            },
                             newState -> world.setBlock(pos, newState, 3));
                 }
             });
@@ -232,13 +251,13 @@ public class AdvancedAutoBuilder {
             return null;
         }
 
-        for (int i = 0; i < handler.getSlots(); i++) {
-            ItemStack stack = handler.getStackInSlot(i);
-            if (stack.isEmpty()) continue;
-
-            if (candidates.stream().anyMatch(c -> ItemStack.isSameItemSameTags(c, stack))
-                    && stack.getItem() instanceof BlockItem) {
-                return IntObjectPair.of(i, handler);
+        for (ItemStack candidate : candidates) {
+            if (!(candidate.getItem() instanceof BlockItem)) continue;
+            for (int i = 0; i < handler.getSlots(); i++) {
+                ItemStack stack = handler.getStackInSlot(i);
+                if (!stack.isEmpty() && ItemStack.isSameItemSameTags(candidate, stack)) {
+                    return IntObjectPair.of(i, handler);
+                }
             }
         }
         return null;

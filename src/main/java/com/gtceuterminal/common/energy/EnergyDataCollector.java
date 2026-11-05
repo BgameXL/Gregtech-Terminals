@@ -1,61 +1,36 @@
 package com.gtceuterminal.common.energy;
 
-import com.gtceuterminal.GTCEUTerminalMod;
-import com.gtceuterminal.common.compat.RecipeLogicReflection;
-import com.gtceuterminal.common.config.ItemsConfig;
-import com.gtceuterminal.common.multiblock.MachineInferencer;
-import com.gtceuterminal.common.energy.MultiblockHandlerRegistry;
-
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.PowerSubstationMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-
+import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.common.compat.RecipeLogicReflection;
+import com.gtceuterminal.common.config.ItemsConfig;
+import com.gtceuterminal.common.multiblock.MachineInferencer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.math.BigInteger;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = com.gtceuterminal.GTCEUTerminalMod.MOD_ID)
 public class EnergyDataCollector {
 
-    private static final Map<String, Deque<Long>> inputHistoryMap  = new HashMap<>();
-    private static final Map<String, Deque<Long>> outputHistoryMap = new HashMap<>();
-
-    @SubscribeEvent
-    public static void onLevelUnload(LevelEvent.Unload event) {
-        if (!event.getLevel().isClientSide()) {
-            inputHistoryMap.clear();
-            outputHistoryMap.clear();
-            com.gtceuterminal.GTCEUTerminalMod.LOGGER.debug(
-                    "EnergyDataCollector: cleared history maps on level unload");
-        }
-    }
-
-    // Main entry point
     public static EnergySnapshot collect(ServerLevel level, BlockPos pos,
                                          String customName, String controllerBlockKey) {
         EnergySnapshot snap = new EnergySnapshot();
+        snap.sampleTick = level.getGameTime();
         snap.machineCustomName = customName != null ? customName : "";
         snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
         snap.mode = EnergySnapshot.MachineMode.UNKNOWN;
@@ -70,34 +45,32 @@ public class EnergyDataCollector {
                 snap.mode = EnergySnapshot.MachineMode.STORAGE;
 
                 IEnergyInfoProvider.EnergyInfo info = substation.getEnergyInfo();
-                snap.usesBigInt   = info.capacity().compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0;
-                snap.bigStored    = info.stored();
-                snap.bigCapacity  = info.capacity();
-                snap.energyStored   = snap.bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
+                snap.usesBigInt = info.capacity().compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0;
+                snap.bigStored = info.stored();
+                snap.bigCapacity = info.capacity();
+                snap.energyStored = snap.bigStored.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
                 snap.energyCapacity = snap.bigCapacity.min(BigInteger.valueOf(Long.MAX_VALUE)).longValue();
 
                 MachineInferencer.MachineSnapshot ms = MachineInferencer.inferMachine(level, pos);
                 if (ms != null) {
-                    snap.inputPerSec  = ms.inputEuPerTick * 20;
-                    snap.outputPerSec = ms.outputEuPerTick * 20;
+                    snap.inputPerSec = ms.inputEuPerTick() * 20;
+                    snap.outputPerSec = ms.outputEuPerTick() * 20;
                 }
 
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
-                    snap.inputVoltage  = ec.getInputVoltage();
+                    snap.inputVoltage = ec.getInputVoltage();
                     snap.inputAmperage = ec.getInputAmperage();
-                    snap.outputVoltage  = ec.getOutputVoltage();
+                    snap.outputVoltage = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
-                    if (snap.inputPerSec == 0)  snap.inputPerSec  = ec.getInputPerSec();
+                    if (snap.inputPerSec == 0) snap.inputPerSec = ec.getInputPerSec();
                     if (snap.outputPerSec == 0) snap.outputPerSec = ec.getOutputPerSec();
                 }
 
                 if (ItemsConfig.getEAShowPerHatchDetails() && snap.isFormed) {
                     collectHatchInfo(substation, snap);
                 }
-            }
-
-            else if (machine instanceof WorkableElectricMultiblockMachine electric) {
+            } else if (machine instanceof WorkableElectricMultiblockMachine electric) {
                 snap.isFormed = electric.isFormed();
                 snap.mode = electric.isGenerator()
                         ? EnergySnapshot.MachineMode.GENERATOR
@@ -105,13 +78,13 @@ public class EnergyDataCollector {
 
                 EnergyContainerList ec = electric.getEnergyContainer();
                 if (ec != null) {
-                    snap.energyStored   = ec.getEnergyStored();
+                    snap.energyStored = ec.getEnergyStored();
                     snap.energyCapacity = ec.getEnergyCapacity();
-                    snap.inputPerSec    = ec.getInputPerSec();
-                    snap.outputPerSec   = ec.getOutputPerSec();
-                    snap.inputVoltage   = ec.getInputVoltage();
-                    snap.inputAmperage  = ec.getInputAmperage();
-                    snap.outputVoltage  = ec.getOutputVoltage();
+                    snap.inputPerSec = ec.getInputPerSec();
+                    snap.outputPerSec = ec.getOutputPerSec();
+                    snap.inputVoltage = ec.getInputVoltage();
+                    snap.inputAmperage = ec.getInputAmperage();
+                    snap.outputVoltage = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
                 }
 
@@ -121,45 +94,24 @@ public class EnergyDataCollector {
 
                 if (snap.isFormed && snap.mode == EnergySnapshot.MachineMode.CONSUMER) {
                     collectRecipeInfo(electric, snap);
-                    RecipeHistoryTracker.poll(pos, electric);
-                    snap.recipeHistory = new java.util.ArrayList<>(RecipeHistoryTracker.getHistory(pos));
                 }
-            }
-
-            else {
-                var custom = MultiblockHandlerRegistry.tryHandle(machine, level, pos);
-                if (custom.isPresent()) {
-                    snap = custom.get();
-                    snap.machineCustomName = customName != null ? customName : "";
-                    snap.machineTypeKey = typeKeyFromControllerBlock(level, pos, controllerBlockKey);
-                    String key = historyKey(level, pos);
-                    int maxH = ItemsConfig.getEAHistorySeconds();
-                    snap.inputHistory  = updateHistory(inputHistoryMap,  key, snap.inputPerSec,  maxH);
-                    snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
-                    return snap;
-                }
-
+            } else {
                 IEnergyContainer ec = GTCapabilityHelper.getEnergyContainer(level, pos, null);
                 if (ec != null) {
                     snap.isFormed = true;
                     snap.mode = ec.getOutputVoltage() > 0
                             ? EnergySnapshot.MachineMode.GENERATOR
                             : EnergySnapshot.MachineMode.CONSUMER;
-                    snap.energyStored   = ec.getEnergyStored();
+                    snap.energyStored = ec.getEnergyStored();
                     snap.energyCapacity = ec.getEnergyCapacity();
-                    snap.inputPerSec    = ec.getInputPerSec();
-                    snap.outputPerSec   = ec.getOutputPerSec();
-                    snap.inputVoltage   = ec.getInputVoltage();
-                    snap.inputAmperage  = ec.getInputAmperage();
-                    snap.outputVoltage  = ec.getOutputVoltage();
+                    snap.inputPerSec = ec.getInputPerSec();
+                    snap.outputPerSec = ec.getOutputPerSec();
+                    snap.inputVoltage = ec.getInputVoltage();
+                    snap.inputAmperage = ec.getInputAmperage();
+                    snap.outputVoltage = ec.getOutputVoltage();
                     snap.outputAmperage = ec.getOutputAmperage();
                 }
             }
-
-            String key = historyKey(level, pos);
-            int maxH = ItemsConfig.getEAHistorySeconds();
-            snap.inputHistory  = updateHistory(inputHistoryMap,  key, snap.inputPerSec,  maxH);
-            snap.outputHistory = updateHistory(outputHistoryMap, key, snap.outputPerSec, maxH);
 
         } catch (Exception e) {
             GTCEUTerminalMod.LOGGER.error("Error collecting energy snapshot at {}", pos, e);
@@ -183,38 +135,36 @@ public class EnergyDataCollector {
     }
 
     private static void collectRecipeInfo(IRecipeLogicMachine rlm, EnergySnapshot snap) {
+        RecipeLogic logic = rlm.getRecipeLogic();
+        if (logic == null) return;
+
+        snap.isRecipeActive = logic.isWorking();
+        snap.recipeDuration = logic.getMaxProgress();
         try {
-            RecipeLogic logic = rlm.getRecipeLogic();
-            if (logic == null) return;
+            int progressTicks = RecipeLogicReflection.getProgress(logic);
+            snap.recipeProgress = snap.recipeDuration > 0
+                    ? (float) progressTicks / snap.recipeDuration : 0f;
+            snap.recipeProgressTicks = progressTicks;
+        } catch (Exception e2) {
+            snap.recipeProgress = (float) logic.getProgressPercent();
+            snap.recipeProgressTicks = (int) (snap.recipeProgress * snap.recipeDuration);
+        }
 
-            snap.isRecipeActive = logic.isWorking();
-            snap.recipeDuration = logic.getMaxProgress();
+        if (logic.isWorking() || logic.isWaiting()) {
             try {
-                int progressTicks = RecipeLogicReflection.getProgress(logic);
-                snap.recipeProgress = snap.recipeDuration > 0
-                        ? (float) progressTicks / snap.recipeDuration : 0f;
-                snap.recipeProgressTicks = progressTicks;
-            } catch (Exception e2) {
-                snap.recipeProgress = (float) logic.getProgressPercent();
-                snap.recipeProgressTicks = (int) (snap.recipeProgress * snap.recipeDuration);
-            }
-
-            if (logic.isWorking() || logic.isWaiting()) {
-                try {
-                    com.gregtechceu.gtceu.api.recipe.GTRecipe recipe =
-                            RecipeLogicReflection.getLastRecipe(logic).orElse(null);
-                    if (recipe != null) {
-                        snap.recipeId = getOutputName(recipe);
-                        if (recipe.recipeType != null) {
-                            snap.recipeTypeName = toReadableName(
-                                    recipe.recipeType.registryName.getPath());
-                        }
+                com.gregtechceu.gtceu.api.recipe.GTRecipe recipe =
+                        RecipeLogicReflection.getLastRecipe(logic).orElse(null);
+                if (recipe != null) {
+                    snap.recipeId = getOutputName(recipe);
+                    if (recipe.recipeType != null) {
+                        snap.recipeTypeName = toReadableName(
+                                recipe.recipeType.registryName.getPath());
                     }
-                } catch (RuntimeException e) {
-                    GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
                 }
+            } catch (RuntimeException e) {
+                GTCEUTerminalMod.LOGGER.debug("EnergyDataCollector: error reading recipe details: {}", e.getMessage());
             }
-        } finally {}
+        }
     }
 
     private static String getOutputName(com.gregtechceu.gtceu.api.recipe.GTRecipe recipe) {
@@ -288,7 +238,7 @@ public class EnergyDataCollector {
                     }
                 }
 
-                long voltage  = isInput ? ec.getInputVoltage()  : ec.getOutputVoltage();
+                long voltage = isInput ? ec.getInputVoltage() : ec.getOutputVoltage();
                 long amperage = isInput ? ec.getInputAmperage() : ec.getOutputAmperage();
                 if (voltage <= 0) continue;
 
@@ -305,21 +255,4 @@ public class EnergyDataCollector {
         return key != null ? key.toString() : "";
     }
 
-    private static long[] updateHistory(Map<String, Deque<Long>> map, String key,
-                                        long value, int maxSize) {
-        Deque<Long> deque = map.computeIfAbsent(key, k -> new ArrayDeque<>());
-        deque.addLast(value);
-        while (deque.size() > maxSize) deque.pollFirst();
-        return deque.stream().mapToLong(Long::longValue).toArray();
-    }
-
-    private static String historyKey(Level level, BlockPos pos) {
-        return level.dimension().location() + ":" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
-    }
-
-    public static void clearHistory(Level level, BlockPos pos) {
-        String key = historyKey(level, pos);
-        inputHistoryMap.remove(key);
-        outputHistoryMap.remove(key);
-    }
 }

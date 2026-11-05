@@ -1,6 +1,5 @@
 package com.gtceuterminal.common.network;
 
-import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.ae2.CuriosCompat;
 import com.gtceuterminal.common.compat.MultiblockMachineReflection;
 import com.gtceuterminal.common.item.MultiStructureManagerItem;
@@ -25,10 +24,10 @@ import java.util.function.Supplier;
 
 public class CPacketComponentUpgrade {
 
-    private List<BlockPos> positions = new ArrayList<>();
     private final int targetTier;
     private final String targetUpgradeId;
     private final BlockPos controllerPos;
+    private final List<BlockPos> positions;
     private ServerLevel level;
 
     public CPacketComponentUpgrade(List<BlockPos> positions, int targetTier, String targetUpgradeId, BlockPos controllerPos) {
@@ -50,19 +49,6 @@ public class CPacketComponentUpgrade {
         this(position, targetTier, null, controllerPos);
     }
 
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeInt(positions.size());
-        for (BlockPos pos : positions) {
-            buf.writeBlockPos(pos);
-        }
-        buf.writeInt(targetTier);
-        buf.writeBlockPos(controllerPos);
-
-        boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
-        buf.writeBoolean(hasId);
-        if (hasId) buf.writeUtf(targetUpgradeId);
-    }
-
     public static CPacketComponentUpgrade decode(FriendlyByteBuf buf) {
         int size = buf.readInt();
         List<BlockPos> positions = new ArrayList<>();
@@ -81,12 +67,25 @@ public class CPacketComponentUpgrade {
         return new CPacketComponentUpgrade(positions, targetTier, upgradeId, controllerPos);
     }
 
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeInt(positions.size());
+        for (BlockPos pos : positions) {
+            buf.writeBlockPos(pos);
+        }
+        buf.writeInt(targetTier);
+        buf.writeBlockPos(controllerPos);
+
+        boolean hasId = targetUpgradeId != null && !targetUpgradeId.isBlank();
+        buf.writeBoolean(hasId);
+        if (hasId) buf.writeUtf(targetUpgradeId);
+    }
+
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
-            ItemStack wirelessTerminal = findWirelessTerminal(player);
+            ItemStack linkedManager = findLinkedManager(player);
 
             int upgraded = 0;
             int failed = 0;
@@ -118,10 +117,10 @@ public class CPacketComponentUpgrade {
                         player,
                         player.level(),
                         true,
-                        wirelessTerminal
+                        linkedManager
                 );
 
-                if (result.success) {
+                if (result.success()) {
                     upgraded++;
                 } else {
                     failed++;
@@ -141,6 +140,7 @@ public class CPacketComponentUpgrade {
 
             if (upgraded > 0) {
                 MultiblockMachineReflection.refreshController((ServerLevel) player.level(), controllerPos);
+                TerminalNetwork.sendToPlayer(new SPacketComponentUpgradeDone(controllerPos), player);
             }
 
             if (upgraded > 0) {
@@ -167,7 +167,7 @@ public class CPacketComponentUpgrade {
 
     // Manager-only: a manager upgrade resolves ME strictly from a Multi-Structure Manager. A linked
     // Schematic Interface (or the player's AE2 wireless terminal) must not bridge it to the network.
-    private ItemStack findWirelessTerminal(ServerPlayer player) {
+    private ItemStack findLinkedManager(ServerPlayer player) {
         if (player.getMainHandItem().getItem() instanceof MultiStructureManagerItem) return player.getMainHandItem();
         if (player.getOffhandItem().getItem() instanceof MultiStructureManagerItem) return player.getOffhandItem();
 

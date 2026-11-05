@@ -1,11 +1,10 @@
 package com.gtceuterminal.common.network;
 
+import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.item.DismantlerItem;
 import com.gtceuterminal.common.multiblock.DismantleExecutor;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -49,9 +48,6 @@ public class CPacketDismantle {
                     return;
                 }
 
-                GTCEUTerminalMod.LOGGER.info("Dismantling multiblock at {} for player {}",
-                        msg.controllerPos, player.getName().getString());
-
                 BlockEntity blockEntity = serverLevel.getBlockEntity(msg.controllerPos);
 
                 if (blockEntity instanceof IMachineBlockEntity mbe) {
@@ -63,9 +59,7 @@ public class CPacketDismantle {
                                     serverLevel, player, controller
                             );
 
-                            if (success) {
-                                GTCEUTerminalMod.LOGGER.info("Successfully dismantled multiblock");
-                            } else {
+                            if (!success) {
                                 GTCEUTerminalMod.LOGGER.error("Failed to dismantle multiblock");
                             }
                         } else {

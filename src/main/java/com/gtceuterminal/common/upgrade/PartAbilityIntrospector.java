@@ -10,13 +10,12 @@ import java.util.*;
 
 public final class PartAbilityIntrospector {
 
-    private PartAbilityIntrospector() {}
-
     // GTCEu tiers go from ULV(0) to MAX(14)
     private static final int MAX_KNOWN_TIER = 14;
-
     private static volatile List<PartAbility> ALL_KNOWN_ABILITIES;
     private static volatile Map<PartAbility, Map<Integer, Set<Block>>> ABILITY_REGISTRY_CACHE;
+    private PartAbilityIntrospector() {
+    }
 
     public static List<PartAbility> getAllKnownAbilities() {
         var local = ALL_KNOWN_ABILITIES;
@@ -29,7 +28,8 @@ public final class PartAbilityIntrospector {
                 f.setAccessible(true);
                 PartAbility ability = (PartAbility) f.get(null);
                 if (ability != null) out.add(ability);
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
         }
 
         out.sort(Comparator.comparing(PartAbility::getName));
@@ -63,7 +63,8 @@ public final class PartAbilityIntrospector {
         for (PartAbility a : getAllKnownAbilities()) {
             try {
                 if (a.isApplicable(block)) abilities.add(a);
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
         }
         return abilities;
     }

@@ -1,3 +1,5 @@
+![Dismantler](assets/img/items/dismantler.gif){ .item-icon }
+
 # Dismantler
 
 The Dismantler removes a formed multiblock in one pass and returns everything it was made of.

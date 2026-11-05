@@ -1,3 +1,5 @@
+![Multi-Structure Manager](assets/img/items/multi_structure_manager.gif){ .item-icon }
+
 # Multi-Structure Manager
 
 The Multi-Structure Manager (MSM) scans for every multiblock within a 32-block radius of the player and lets you inspect, upgrade, and auto-build structures without making them hand by hand.

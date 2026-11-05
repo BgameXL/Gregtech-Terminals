@@ -48,3 +48,23 @@
 .md-typeset details.warning {
   border-color: var(--gtt-yellow);
 }
+
+.md-typeset img.item-icon {
+  image-rendering: pixelated;
+  float: right;
+  width: 128px;
+  height: auto;
+  margin: 0 0 1rem 1rem;
+}
+
+@media screen and (max-width: 44.9375em) {
+  .md-typeset img.item-icon {
+    float: none;
+    display: block;
+    margin: 0 auto 1rem;
+  }
+}
+
+.md-header__button.md-logo img {
+  image-rendering: pixelated;
+}

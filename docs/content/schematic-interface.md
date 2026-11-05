@@ -1,3 +1,5 @@
+![Schematic Interface](assets/img/items/schematic_interface.gif){ .item-icon }
+
 # Schematic Interface
 
 The Schematic Interface copies and pastes multiblock structures.

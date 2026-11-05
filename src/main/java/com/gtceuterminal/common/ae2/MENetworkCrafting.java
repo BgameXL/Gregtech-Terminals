@@ -55,7 +55,6 @@ public final class MENetworkCrafting {
             if (key == null) continue;
 
             if (!cs.isCraftable(key)) {
-                GTCEUTerminalMod.LOGGER.info("MENetworkCrafting: {} is not craftable in the ME network", e.getKey());
                 continue;
             }
             if (cs.isRequesting(key) || hasPending(player, e.getKey())) {
@@ -68,7 +67,6 @@ public final class MENetworkCrafting {
                         level, requester, key, amount, CalculationStrategy.CRAFT_LESS);
                 PENDING.add(new Pending(future, grid, src, player, e.getKey(), amount));
                 handled++;
-                GTCEUTerminalMod.LOGGER.info("MENetworkCrafting: started crafting calculation for {} x{}", e.getKey(), amount);
             } catch (Exception ex) {
                 GTCEUTerminalMod.LOGGER.warn("MENetworkCrafting: failed to begin crafting for {}", e.getKey(), ex);
             }
@@ -107,14 +105,11 @@ public final class MENetworkCrafting {
                 if (plan.simulation()) {
                     String missing = describeMissing(plan);
                     notify(p, "§c[ME] Cannot craft %s — missing: " + missing);
-                    GTCEUTerminalMod.LOGGER.info("MENetworkCrafting: plan is simulation for {} — missing=[{}]", p.item, missing);
                     continue;
                 }
                 ICraftingSubmitResult result = p.grid.getCraftingService()
                         .submitJob(plan, null, null, false, p.src);
-                if (result != null && result.successful()) {
-                    GTCEUTerminalMod.LOGGER.info("MENetworkCrafting: submitted crafting job for {} x{}", p.item, p.amount);
-                } else {
+                if (result == null || !result.successful()) {
                     String code = result != null ? String.valueOf(result.errorCode()) : "unknown";
                     notify(p, "§c[ME] Could not start crafting %s (" + code + ")");
                     GTCEUTerminalMod.LOGGER.warn("MENetworkCrafting: submitJob unsuccessful for {}: {}", p.item, code);

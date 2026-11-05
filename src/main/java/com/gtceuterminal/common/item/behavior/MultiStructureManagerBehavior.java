@@ -152,14 +152,12 @@ public class MultiStructureManagerBehavior {
             }
 
             if (!level.isClientSide && player instanceof ServerPlayer sp) {
-                GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
                 TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
             TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -186,7 +184,6 @@ public class MultiStructureManagerBehavior {
                                                            @NotNull Player player, @NotNull InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
         if (!level.isClientSide && player instanceof ServerPlayer sp) {
-            GTCEUTerminalMod.LOGGER.info("Server: opening Multi-Structure Manager UI");
             TerminalNetwork.sendToPlayer(new SPacketOpenMultiStructureManagerUI(MultiStructureManagerUIFactory.MODE_MULTI, itemStack), sp);
         }
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);

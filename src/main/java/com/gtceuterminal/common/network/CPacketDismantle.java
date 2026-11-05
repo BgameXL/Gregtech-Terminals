@@ -48,9 +48,6 @@ public class CPacketDismantle {
                     return;
                 }
 
-                GTCEUTerminalMod.LOGGER.info("Dismantling multiblock at {} for player {}",
-                        msg.controllerPos, player.getName().getString());
-
                 BlockEntity blockEntity = serverLevel.getBlockEntity(msg.controllerPos);
 
                 if (blockEntity instanceof IMachineBlockEntity mbe) {
@@ -62,9 +59,7 @@ public class CPacketDismantle {
                                     serverLevel, player, controller
                             );
 
-                            if (success) {
-                                GTCEUTerminalMod.LOGGER.info("Successfully dismantled multiblock");
-                            } else {
+                            if (!success) {
                                 GTCEUTerminalMod.LOGGER.error("Failed to dismantle multiblock");
                             }
                         } else {

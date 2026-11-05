@@ -108,9 +108,6 @@ public class CPacketSchematicAction {
                         return;
                     }
 
-                    GTCEUTerminalMod.LOGGER.info("Saved schematic '{}' with originalFacing: {}",
-                            this.schematicName, clipboard.originalFacing());
-
                     player.displayClientMessage(
                             Component.translatable(
                                     "item.gtceuterminal.schematic_action.message.saved_schematic",
@@ -126,9 +123,6 @@ public class CPacketSchematicAction {
                         SchematicData schematic = schematics.get(this.schematicIndex);
 
                         SchematicStorage.putClipboard(stackTag, schematic.toNBT());
-
-                        GTCEUTerminalMod.LOGGER.info("Loaded schematic '{}' with originalFacing: {}",
-                                schematic.name(), schematic.originalFacing());
 
                         player.displayClientMessage(
                                 Component.translatable(

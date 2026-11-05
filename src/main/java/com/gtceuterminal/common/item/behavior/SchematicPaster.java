@@ -61,10 +61,6 @@ public final class SchematicPaster {
 
         final BlockPos adjustedTarget = targetPos.above(-minRelY);
 
-        GTCEUTerminalMod.LOGGER.info(
-                "Pasting at {} (adjusted from {}, minRelY={}) — rotation: {}",
-                adjustedTarget, targetPos, minRelY, rotationSteps);
-
         Map<Item, Integer> required = new HashMap<>();
         List<Placement> placements = new ArrayList<>();
         int skippedCount = 0;
@@ -231,8 +227,6 @@ public final class SchematicPaster {
             );
         }
         player.displayClientMessage(msg, true);
-
-        GTCEUTerminalMod.LOGGER.info("Schematic pasted: {} placed, {} skipped", placedCount, skippedCount);
     }
 
     // Helpers

@@ -90,8 +90,6 @@ public class MaterialCalculator {
             Player player,
             Level level
     ) {
-        GTCEUTerminalMod.LOGGER.debug("Checking Materials Availability (Server: {})", !level.isClientSide);
-
         List<MaterialAvailability> availability = new ArrayList<>();
 
         Map<Item, Integer> playerInv = scanPlayerInventory(player);
@@ -114,23 +112,14 @@ public class MaterialCalculator {
                     long stillNeeded = Math.max(0, needed - haveLocally);
 
                     inME = stillNeeded;
-                    GTCEUTerminalMod.LOGGER.debug("  {} [CLIENT]: Wireless linked, assuming ME can provide {} (will verify on server)",
-                            entry.getKey().getDescription().getString(), stillNeeded);
                 } else {
                     inME = MENetworkItemExtractor.checkItemAvailability(
                             linkedManager, level, player, entry.getKey()
                     );
-                    GTCEUTerminalMod.LOGGER.debug("  {} [SERVER]: Found {} in ME",
-                            entry.getKey().getDescription().getString(), inME);
                 }
             }
 
             mat.setInMENetwork(inME);
-
-            String itemName = entry.getKey().getDescription().getString();
-            GTCEUTerminalMod.LOGGER.debug("  {}: Required={}, InInv={}, InChests={}, InME={}, Total={}, Enough={}",
-                    itemName, entry.getValue(), mat.getInInventory(), mat.getInNearbyChests(),
-                    inME, mat.getTotalAvailable(), mat.hasEnough());
 
             availability.add(mat);
         }
@@ -220,8 +209,6 @@ public class MaterialCalculator {
             boolean useInventory,
             boolean useChests
     ) {
-        GTCEUTerminalMod.LOGGER.debug("Extracting Materials (Server: {})", !level.isClientSide);
-
         ItemStack linkedManager = findLinkedManager(player);
         boolean meUsable = MiscUtil.isAE2Loaded
                 && ItemsConfig.isMgrAllowMENetworkUpgrade()
@@ -240,7 +227,6 @@ public class MaterialCalculator {
             if (result.success()) {
                 return true;
             }
-            GTCEUTerminalMod.LOGGER.debug("  Single-source extraction failed, planning combined extraction");
         }
 
         Map<Item, Integer> fromME = new HashMap<>();

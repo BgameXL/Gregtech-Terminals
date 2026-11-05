@@ -97,11 +97,6 @@ public class ComponentUpgrader {
         }
 
         String targetLabel = hasId ? targetUpgradeId : com.gregtechceu.gtceu.api.GTValues.VN[targetTier];
-        String groupLabel = component.getGroup() != null ? component.getGroup().id : "unknown";
-        GTCEUTerminalMod.LOGGER.info("Upgraded {} at {} from {} to {} (Block: {} -> {}){}",
-                groupLabel, pos, component.getTierName(), targetLabel,
-                oldBlock.getDescriptionId(), newBlock.getDescriptionId(),
-                extractionSource.replace("§a", "").replace("§7", ""));
 
         return new UpgradeResult(true, "Successfully upgraded to " + targetLabel + extractionSource);
     }

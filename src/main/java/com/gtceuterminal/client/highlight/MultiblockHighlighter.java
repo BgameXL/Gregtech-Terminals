@@ -73,9 +73,6 @@ public class MultiblockHighlighter {
 
         HighlightInfo info = new HighlightInfo(controllerPos, blocks, color, durationMs);
         activeHighlights.put(controllerPos, info);
-
-        com.gtceuterminal.GTCEUTerminalMod.LOGGER.info(
-                "Highlight added: {} blocks at {} color=0x{}", blocks.size(), controllerPos, Integer.toHexString(color));
     }
 
     public static void highlightPositions(BlockPos controllerPos, Set<BlockPos> blocks, int color, int durationMs) {

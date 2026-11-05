@@ -26,8 +26,6 @@ public final class SchematicCopier {
 
     public static void copyMultiblock(IMultiController controller, ItemStack itemStack,
                                       Player player, Level level) {
-        GTCEUTerminalMod.LOGGER.debug("COPYING MULTIBLOCK");
-
         Set<BlockPos> positions = scanMultiblockArea(controller, level);
 
         if (positions.isEmpty()) {

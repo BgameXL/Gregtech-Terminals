@@ -43,6 +43,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
     private boolean pendingBuild = true;
     private int blockCount = 0;
     private String displayName = "Multiblock Structure";
+
     public SchematicPreviewWidget(int x, int y, int width, int height, SchematicData schematic) {
         super(x, y, width, height);
         this.schematic = schematic;
@@ -139,14 +140,14 @@ public class SchematicPreviewWidget extends WidgetGroup {
 
         int w = getSize().width, h = getSize().height;
         sceneWidget = new SceneWidget(0, 0, w, h, level);
-        sceneWidget.useOrtho(true)
-                .setOrthoRange(0.5f)
-                .setScalable(true)
-                .setDraggable(true)
-                .setRenderFacing(false)
-                .setRenderSelect(false);
+        sceneWidget.useOrtho(true).setOrthoRange(0.5f).setScalable(true).setDraggable(true).setRenderFacing(false).setRenderSelect(false);
 
-        sceneWidget.setCameraYawAndPitch(25, -135);
+        float camPitch = -135f;
+        if (ctrl != null) {
+            net.minecraft.core.Direction front = ctrl.self().getFrontFacing();
+            camPitch = (float) (Math.toDegrees(Math.atan2(front.getStepZ(), front.getStepX())) - 45);
+        }
+        sceneWidget.setCameraYawAndPitch(25, camPitch);
         sceneWidget.setZoom((float) (3.5 * Math.sqrt(Math.max(maxDim, 1))));
         sceneWidget.setRenderedCore(infoMap.keySet(), null);
 
@@ -256,8 +257,7 @@ public class SchematicPreviewWidget extends WidgetGroup {
         if (sceneWidget == null) {
             String msg = Component.translatable("gui.gtceuterminal.schematic_preview.empty").getString();
             int tw = Minecraft.getInstance().font.width(msg);
-            graphics.drawString(Minecraft.getInstance().font, msg,
-                    x + (w - tw) / 2, y + h / 2 - 4, tokens.textMuted(), false);
+            graphics.drawString(Minecraft.getInstance().font, msg, x + (w - tw) / 2, y + h / 2 - 4, tokens.textMuted(), false);
         }
 
         graphics.fill(x, y, x + w, y + 1, tokens.border());

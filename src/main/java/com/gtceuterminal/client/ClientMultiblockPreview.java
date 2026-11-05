@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gtceuterminal.common.config.ManagerSettings;
 import com.gtceuterminal.common.data.GTCEUTerminalItems;
 import com.gtceuterminal.common.data.SchematicData;
-import com.gtceuterminal.common.pattern.MultiblockGhostBuilder;
+import com.gtceuterminal.common.pattern.MultiblockGhost;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -18,6 +18,7 @@ import java.util.Map;
 
 public final class ClientMultiblockPreview {
 
+    private static int requestToken = 0;
     private static BlockPos cachedPos;
     private static int cachedKey;
     private static SchematicData cachedGhost;
@@ -34,21 +35,32 @@ public final class ClientMultiblockPreview {
 
         ManagerSettings.AutoBuildSettings settings = resolveSettings(minecraft.player);
         int key = cacheKey(controller, settings);
+        int duration = ConfigHolder.INSTANCE.client.inWorldPreviewDuration * 20;
+        int token = ++requestToken;
 
-        SchematicData ghost;
         if (pos.equals(cachedPos) && key == cachedKey && cachedGhost != null) {
-            ghost = cachedGhost;
-        } else {
-            Map<BlockPos, BlockState> blocks = MultiblockGhostBuilder.build(minecraft.level, controller, settings);
-            if (blocks.isEmpty()) return;
-            ghost = new SchematicData("preview", "", blocks, Map.of(), "north");
-            cachedPos = pos.immutable();
-            cachedKey = key;
-            cachedGhost = ghost;
+            MultiblockPreview.show(minecraft.level, pos, cachedGhost, duration);
+            return;
         }
 
-        int duration = ConfigHolder.INSTANCE.client.inWorldPreviewDuration * 20;
-        MultiblockPreview.show(minecraft.level, pos, ghost, duration);
+        MultiblockGhost.Snapshot snapshot =
+                MultiblockGhost.captureSnapshot(minecraft.level, controller, settings);
+        if (snapshot == null) return;
+
+        BlockPos reqPos = pos.immutable();
+        Thread thread = new Thread(() -> {
+            Map<BlockPos, BlockState> blocks = MultiblockGhost.walk(snapshot);
+            minecraft.execute(() -> {
+                if (token != requestToken || minecraft.level == null || blocks.isEmpty()) return;
+                SchematicData ghost = new SchematicData("preview", "", blocks, Map.of(), "north");
+                cachedPos = reqPos;
+                cachedKey = key;
+                cachedGhost = ghost;
+                MultiblockPreview.show(minecraft.level, reqPos, ghost, duration);
+            });
+        }, "gtceuterminal-ghost-build");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static int cacheKey(MultiblockControllerMachine controller, ManagerSettings.AutoBuildSettings settings) {

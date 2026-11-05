@@ -1,15 +1,14 @@
 package com.gtceuterminal.client;
 
 import com.gtceuterminal.GTCEUTerminalMod;
+import com.gtceuterminal.client.renderer.GhostRenderCache;
 import com.gtceuterminal.client.renderer.SchematicPreviewRenderer;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.data.SchematicStorage;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
@@ -21,6 +20,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ClientEvents {
 
+    private static final GhostRenderCache CLIPBOARD = new GhostRenderCache();
     private static SchematicData cachedClipboard = null;
     private static int cachedClipboardHash = 0;
 
@@ -32,9 +32,8 @@ public class ClientEvents {
         if (minecraft.player == null) return;
 
         PoseStack poseStack = event.getPoseStack();
-        MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
 
-        MultiblockPreview.render(poseStack, bufferSource, minecraft);
+        MultiblockPreview.render(poseStack, minecraft);
 
         ItemStack heldItem = minecraft.player.getMainHandItem();
         if (!heldItem.getItem().toString().contains("schematic_interface")) {
@@ -60,16 +59,7 @@ public class ClientEvents {
             }
             if (cachedClipboard == null || cachedClipboard.blocks().isEmpty()) return;
 
-            poseStack.pushPose();
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShaderColor(1f, 1f, 1f, SchematicPreviewRenderer.GHOST_ALPHA);
-            SchematicPreviewRenderer.renderGhostBlocks(
-                    poseStack, bufferSource, cachedClipboard, minecraft);
-            bufferSource.endBatch();
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-            RenderSystem.disableBlend();
-            poseStack.popPose();
+            SchematicPreviewRenderer.renderGhostBlocks(CLIPBOARD, poseStack, cachedClipboard, minecraft);
         } catch (RuntimeException e) {
             GTCEUTerminalMod.LOGGER.warn("ClientEvents: error rendering clipboard hologram: {}", e.getMessage());
         }

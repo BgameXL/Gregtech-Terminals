@@ -1,30 +1,22 @@
 package com.gtceuterminal.client.renderer;
 
-import com.gtceuterminal.GTCEUTerminalMod;
 import com.gtceuterminal.common.data.SchematicData;
 import com.gtceuterminal.common.util.SchematicUtils;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public class SchematicPreviewRenderer {
 
     public static final float GHOST_ALPHA = 0.7f;
-    public static final float GHOST_SCALE = 0.875f;
+    public static final float GHOST_SCALE = 1.0f;
 
-    public static void renderGhostBlocks(PoseStack poseStack,
-                                         MultiBufferSource bufferSource,
-                                         SchematicData schematic,
-                                         Minecraft minecraft) {
+    public static void renderGhostBlocks(GhostRenderCache cache, PoseStack poseStack,
+                                         SchematicData schematic, Minecraft minecraft) {
         if (schematic == null || schematic.blocks().isEmpty()
                 || minecraft.level == null || minecraft.player == null) return;
 
@@ -45,68 +37,21 @@ public class SchematicPreviewRenderer {
         int minRelY = SchematicUtils.minRotatedY(schematic, rotationSteps);
         BlockPos adjustedTarget = targetPos.above(-minRelY);
 
-        renderRotatedBlocks(poseStack, bufferSource, schematic, rotationSteps,
-                minecraft.getBlockRenderer(),
+        cache.draw(poseStack, schematic, rotationSteps,
                 adjustedTarget.getX() - cameraPos.x,
                 adjustedTarget.getY() - cameraPos.y,
-                adjustedTarget.getZ() - cameraPos.z,
-                GHOST_SCALE, true);
+                adjustedTarget.getZ() - cameraPos.z);
     }
 
-    public static void renderGhostBlocksAt(PoseStack poseStack,
-                                           MultiBufferSource bufferSource,
-                                           SchematicData schematic,
-                                           Minecraft minecraft,
-                                           BlockPos origin,
-                                           int rotSteps,
-                                           float scale, boolean translucent) {
-        if (schematic == null || schematic.blocks().isEmpty()) return;
+    public static void renderGhostBlocksAt(GhostRenderCache cache, PoseStack poseStack,
+                                           SchematicData schematic, Minecraft minecraft,
+                                           BlockPos origin, int rotSteps) {
+        if (schematic == null || schematic.blocks().isEmpty() || minecraft.level == null) return;
 
         Vec3 cameraPos = minecraft.gameRenderer.getMainCamera().getPosition();
-        renderRotatedBlocks(poseStack, bufferSource, schematic, rotSteps,
-                minecraft.getBlockRenderer(),
+        cache.draw(poseStack, schematic, rotSteps,
                 origin.getX() - cameraPos.x,
                 origin.getY() - cameraPos.y,
-                origin.getZ() - cameraPos.z,
-                scale, translucent);
-    }
-
-    private static void renderRotatedBlocks(PoseStack poseStack,
-                                            MultiBufferSource bufferSource,
-                                            SchematicData schematic,
-                                            int rotSteps,
-                                            BlockRenderDispatcher blockRenderer,
-                                            double baseX, double baseY, double baseZ,
-                                            float scale, boolean translucent) {
-        MultiBufferSource source = translucent
-                ? type -> bufferSource.getBuffer(RenderType.translucent())
-                : bufferSource;
-        for (var entry : schematic.blocks().entrySet()) {
-            BlockState state = entry.getValue();
-            if (state.isAir()) continue;
-
-            BlockPos rotated = SchematicUtils.rotatePositionSteps(entry.getKey(), rotSteps);
-            BlockState rotatedState = SchematicUtils.rotateBlockStateSteps(state, rotSteps);
-
-            poseStack.pushPose();
-            poseStack.translate(baseX + rotated.getX(), baseY + rotated.getY(), baseZ + rotated.getZ());
-            if (scale != 1f) {
-                poseStack.translate(0.5, 0.5, 0.5);
-                poseStack.scale(scale, scale, scale);
-                poseStack.translate(-0.5, -0.5, -0.5);
-            }
-            try {
-                blockRenderer.renderSingleBlock(rotatedState, poseStack, source,
-                        15728880, OverlayTexture.NO_OVERLAY);
-            } catch (RuntimeException e) {
-                GTCEUTerminalMod.LOGGER.debug("SchematicPreviewRenderer: skipped block render for {}: {}",
-                        rotatedState.getBlock().getDescriptionId(), e.getMessage());
-            }
-            poseStack.popPose();
-        }
-    }
-
-    public static BlockPos getTargetPlacementPos(Minecraft minecraft, double distance) {
-        return SchematicUtils.getTargetPlacementPos(minecraft.player, distance);
+                origin.getZ() - cameraPos.z);
     }
 }

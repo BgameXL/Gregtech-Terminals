@@ -26,20 +26,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Builds the block layout of a multiblock from its pattern, reusing the same candidate selection as the auto-builder.
- */
-public final class MultiblockGhostBuilder {
+public final class MultiblockGhost {
 
-    private MultiblockGhostBuilder() {
+    private MultiblockGhost() {
     }
 
-    public static Map<BlockPos, BlockState> build(Level level, IMultiController controller,
-                                                  ManagerSettings.AutoBuildSettings settings) {
-        Map<BlockPos, BlockState> out = new HashMap<>();
+    public record Snapshot(TraceabilityPredicate[][][] blockMatches, int[] centerOffset, int[][] aisleRepetitions,
+                           RelativeDirection[] structureDir, Direction facing, Direction upwardsFacing,
+                           boolean flipped, MultiblockState state, ManagerSettings.AutoBuildSettings settings) {
+    }
+
+    public static Snapshot captureSnapshot(Level level, IMultiController controller,
+                                           ManagerSettings.AutoBuildSettings settings) {
         try {
             BlockPatternReflection.ensure();
-            if (!BlockPatternReflection.READY) return out;
+            if (!BlockPatternReflection.READY) return null;
 
             ExpandableMultiblock.Restore restore =
                     ExpandableMultiblock.applySize(controller.self(), settings.expandRadius, settings.expandHeight);
@@ -49,23 +50,40 @@ public final class MultiblockGhostBuilder {
             } finally {
                 if (restore != null) restore.close();
             }
-            if (pattern == null) return out;
+            if (pattern == null) return null;
 
             TraceabilityPredicate[][][] blockMatches = (TraceabilityPredicate[][][]) BlockPatternReflection.F_BLOCK_MATCHES.get(pattern);
             int[] centerOffset = (int[]) BlockPatternReflection.F_CENTER_OFFSET.get(pattern);
             int[][] aisleRepetitions = pattern.aisleRepetitions;
             RelativeDirection[] structureDir = pattern.structureDir;
             if (blockMatches == null || centerOffset == null || aisleRepetitions == null || structureDir == null)
-                return out;
+                return null;
 
             MultiblockState state = new MultiblockState(level, controller.self().getPos());
-            GTCEuCompat.clean(state);
-            PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(state);
-            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(state);
-
             Direction facing = controller.self().getFrontFacing();
             Direction upwardsFacing = controller.self().getUpwardsFacing();
-            boolean isFlipped = AutoBuilderHelpers.resolveFlip(controller, settings);
+            boolean flipped = AutoBuilderHelpers.resolveFlip(controller, settings);
+
+            return new Snapshot(blockMatches, centerOffset, aisleRepetitions, structureDir,
+                    facing, upwardsFacing, flipped, state, settings);
+        } catch (Throwable t) {
+            GTCEUTerminalMod.LOGGER.debug("MultiblockGhostBuilder.captureSnapshot failed: {}", t.getMessage());
+            return null;
+        }
+    }
+
+    public static Map<BlockPos, BlockState> walk(Snapshot snap) {
+        Map<BlockPos, BlockState> out = new HashMap<>();
+        try {
+            GTCEuCompat.clean(snap.state());
+            PredicateCountMap cacheGlobal = GTCEuCompat.getGlobalCount(snap.state());
+            PredicateCountMap cacheLayer = GTCEuCompat.getLayerCount(snap.state());
+
+            TraceabilityPredicate[][][] blockMatches = snap.blockMatches();
+            int[] centerOffset = snap.centerOffset();
+            int[][] aisleRepetitions = snap.aisleRepetitions();
+            RelativeDirection[] structureDir = snap.structureDir();
+            ManagerSettings.AutoBuildSettings settings = snap.settings();
 
             final int fingerLength = blockMatches.length;
             final int thumbLength = fingerLength > 0 ? blockMatches[0].length : 0;
@@ -80,7 +98,7 @@ public final class MultiblockGhostBuilder {
                         for (int a = 0, x = -centerOffset[0]; a < palmLength; a++, x++) {
                             TraceabilityPredicate predicate = blockMatches[c][b][a];
                             BlockPos off = AutoBuilderHelpers.setActualRelativeOffset(
-                                    structureDir, x, y, z, facing, upwardsFacing, isFlipped);
+                                    structureDir, x, y, z, snap.facing(), snap.upwardsFacing(), snap.flipped());
                             if (off.equals(BlockPos.ZERO)) continue;
                             BlockState bs = pickRepresentative(predicate, cacheGlobal, cacheLayer, settings);
                             if (bs != null && !bs.isAir()) out.put(off, bs);
@@ -90,7 +108,7 @@ public final class MultiblockGhostBuilder {
                 }
             }
         } catch (Throwable t) {
-            GTCEUTerminalMod.LOGGER.debug("MultiblockGhostBuilder failed: {}", t.getMessage());
+            GTCEUTerminalMod.LOGGER.debug("MultiblockGhostBuilder.walk failed: {}", t.getMessage());
         }
         return out;
     }
